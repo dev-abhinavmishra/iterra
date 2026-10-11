@@ -3,7 +3,7 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of d10f4a6)
+## State of the terrain (as of 8f50152)
 
 - Branch `devin/iterra-env`, PR #1 open (not merged — Abhinav decides).
 - All 8 apps vendored under `apps/<name>` + wired: build-time base, hub script
@@ -109,6 +109,17 @@ contract every app and the shell follows.
   next-up 'open the slip' → ?block= intake (c4705d1); 'due on the
   terrain' walks the whole ledger — decks → due problems → pending
   marks (6ce177d); smoke 17/17 (d10f4a6).
+- Stir-tagging wave: every app's feed emits now carry real course keys —
+  proof sessions/exports (problem courseId→code), flashcards (d.course),
+  timer file-backs (syllabus.course), rhythm hits + register-complete
+  (single-key only — mixed-course days stay honestly untagged)
+  (38a62bd + 8ae631a). Old-blob merge guards: proof persist backfills
+  arrays + deep-merges settings (a persisted settings:{} → 0-problem
+  sessions; 38a62bd). links.ts contract suite 14 tests (283ecc8 —
+  links-test.diff arrived with NO @@ hunks: git apply reported success
+  on an EMPTY file; children must `git apply --check` before attaching).
+  margin frame granted `microphone` scoped per-place — Permissions-
+  Policy denied framed getUserMedia even over https (8f50152).
 - Outbound wave (8a1cd82 era): every app now emits the timer intake
   contract somewhere — flashcards 'Drill in timer…' (Deck ▾, acc7e93),
   gradestack test-row timer icon ('study <test>'), dossier 'drill <course>'
