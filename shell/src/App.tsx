@@ -86,6 +86,11 @@ export default function App() {
       const d = ev.data;
       if (!d || typeof d !== 'object' || typeof d.type !== 'string') return;
       if (d.type === 'iterra:open' && typeof d.url === 'string') {
+        // terrain hash routes address the shell itself (dossier, home)
+        if (/^#\//.test(d.url)) {
+          window.location.hash = d.url.slice(1);
+          return;
+        }
         const m = d.url.match(/^\/apps\/([a-z]+)(\/[^?#]*)?(\?[^#]*)?/);
         if (!m || !PLACE_MAP[m[1]]) {
           if (/^https?:/.test(d.url)) window.open(d.url, '_blank', 'noopener');

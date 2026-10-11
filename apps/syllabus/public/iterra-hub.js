@@ -72,6 +72,12 @@
      same-origin paths are rebased onto this place. */
   function open(url) {
     if (!framed) { origWindowOpen(url, '_blank', 'noopener'); return; }
+    /* terrain hash routes ('#/c/<key>' dossier, '#/p/<place>', '#/') pass
+       straight through — they address the shell, not a place path */
+    if (/^#\//.test(String(url))) {
+      say({ type: 'iterra:open', from: me || undefined, url: String(url) });
+      return;
+    }
     var abs;
     try { abs = new URL(url, window.location.href); } catch (e) { return; }
     if (abs.origin !== window.location.origin) { origWindowOpen(abs.href, '_blank', 'noopener'); return; }
