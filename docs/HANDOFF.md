@@ -3,7 +3,7 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of 002eb3f)
+## State of the terrain (as of d10f4a6)
 
 - Branch `devin/iterra-env`, PR #1 open (not merged — Abhinav decides).
 - All 8 apps vendored under `apps/<name>` + wired: build-time base, hub script
@@ -11,8 +11,9 @@ contract every app and the shell follows.
   inbound deep links, ambient commons/index/feed publishers (try/catch'd).
 - `dist/` is gitignored — rebuilt locally for verification
   (`python3 -m http.server 8090 -d dist` + `scripts/smoke.cjs` over CDP 29229).
-- Smoke: 15/15 (scripts/smoke.cjs — now asserts the timer sender chip) +
-  focused checks: intake-check.cjs, focus-dossier-check.cjs,
+- Smoke: 17/17 (scripts/smoke.cjs — sender chip, dossier+shelf,
+  workflow-card routing, open-the-slip) + focused checks:
+  intake-check.cjs, focus-dossier-check.cjs,
   drill-check/dossier-drill-check/markbook-drill-check.cjs.
 - Children (SWE-2-max) run standing verify/implement queues:
   - `devin-4edd25facad54ca0b834833dc9933ffe` — syllabus + gradestack
@@ -99,21 +100,23 @@ contract every app and the shell follows.
   ?cards= + timer link, dossier live-focus join (137586b), gradestack
   courseName linkage + proof dedupe fix (fe52695), shell motion layer
   (12d5048 — all reduced-motion gated).
-- Newest wave (002eb3f era): palette ⌘P pins the selected hit (4316705);
-  dossier stirs resolve feed urls→entity keys (1ad6124); proof routes
-  /apps/* launches in-place via openDeep (3a080a0 — same escape fix is
-  in-flight for syllabus TodayView via its child); 'unfiled' dossier +
-  palette 'the unfiled →' route (002eb3f); gradestack guarded uid
-  (002eb3f — plain-http /builder crash). Smoke asserts the sender chip
-  (86375a5).
+- Newest wave (d10f4a6 era): palette ⌘P pins the selected hit (4316705);
+  dossier stirs resolve feed urls→entity keys (1ad6124); proof + syllabus
+  route /apps/* launches in-place via openDeep (3a080a0 + child diff);
+  'unfiled' dossier + palette 'the unfiled →' route (002eb3f); gradestack
+  guarded uid (002eb3f — plain-http /builder crash); feed items carry
+  course/topic keys (40eceb1 — emitters tag, never synthesize);
+  next-up 'open the slip' → ?block= intake (c4705d1); 'due on the
+  terrain' walks the whole ledger — decks → due problems → pending
+  marks (6ce177d); smoke 17/17 (d10f4a6).
 - Outbound wave (8a1cd82 era): every app now emits the timer intake
   contract somewhere — flashcards 'Drill in timer…' (Deck ▾, acc7e93),
   gradestack test-row timer icon ('study <test>'), dossier 'drill <course>'
   header button (142750c), timer engraves '← <sender>' on bound sessions
   (c4c71a4 — from= kept by parseSyllabusLink, click returns to sender).
 - Rail additions: 'the ledger' aggregates due-counts from presence
-  summaries (71dbffe); 'due on the terrain' next-up fallback deep-links
-  a due deck when the folio is quiet (8a1cd82); palette searches stirs
+  summaries (71dbffe); 'due on the terrain' next-up fallback walks the
+  ledger (6ce177d); palette searches stirs
   (a2a04be); mesh contract vitest (b2f9d36, 13/13); syllabus persist
   merge backfills dependencies/reasons — old blobs booted to a white
   screen (583479b, child-verified).
