@@ -65,7 +65,7 @@ wireIterra();
     const ids = new Set(sessions.map((s: any) => String(s.timestamp)));
     if (lastIds) for (const s of sessions as any[]) {
       if (!lastIds.has(String(s.timestamp))) {
-        it.feed({ text: `${Math.round(s.duration / 60)}m on the instruments${s.label ? ` — ${s.label}` : ''}`, url: '/apps/timer/' });
+        it.feed({ text: `${Math.max(1, Math.round(s.duration / 60))}m on the instruments${s.label ? ` — ${s.label}` : ''}`, url: '/apps/timer/' });
       }
     }
     lastIds = ids;
