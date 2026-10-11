@@ -74,7 +74,7 @@ wireIterra();
     const entities = tests.slice(0, 50).map((t: any) => ({
       t: 'assessment', id: t.id, title: t.name,
       sub: `${scans.filter((x: any) => x.testId === t.id).length} marked`,
-      url: '/apps/gradestack/', at: t.createdAt || Date.now(),
+      url: `/apps/gradestack/?assessment=${t.id}`, at: t.createdAt || Date.now(),
     }));
     const ej = JSON.stringify(entities);
     if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
