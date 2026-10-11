@@ -168,14 +168,19 @@ export default function App() {
   /* watchdog: a mounted frame should say iterra:hello within a few seconds;
      if it never does (dead dev server, 404, crashed app) surface a slim
      notice instead of showing a silent dead frame forever. The hello must
-     postdate THIS mount — an older hello can't vouch for a fresh reload. */
+     postdate THIS mount — an older hello can't vouch for a fresh reload.
+     An app that has answered before gets a longer grace: a mid-session
+     remount (bound link, file-back) can keep the frame's main thread busy
+     past the quick window without being dead — a false-positive banner on a
+     live frame is worse than a slower warning on a truly dead one. */
   useEffect(() => {
     setUnanswered(null);
     if (!active || !frames[active]) return;
     const mountedAt = Date.now();
+    const everAnswered = !!helloRef.current[active];
     const t = window.setTimeout(() => {
       if ((helloRef.current[active] || 0) < mountedAt) setUnanswered(active);
-    }, 7000);
+    }, everAnswered ? 20000 : 7000);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, frames[active || '']]);
