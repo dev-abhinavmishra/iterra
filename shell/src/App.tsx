@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, type Presence } from './hub';
+import { subscribePresences, subscribeShared, type Presence, type SharedField } from './hub';
 import { Terrain } from './Terrain';
 
 /* ── hash routing: '' → terrain, 'p/<place>' → place view ── */
@@ -17,6 +17,7 @@ function appUrl(place: string, path = '/'): string {
 export default function App() {
   const [active, setActive] = useState<string>(() => parseHash());
   const [presences, setPresences] = useState<Record<string, Presence>>({});
+  const [shared, setShared] = useState<Record<string, SharedField>>({});
   /* visited places keep their iframes mounted (keep-alive) — the environment
      stays warm: state persists while wandering the terrain. */
   const [frames, setFrames] = useState<Record<string, string>>({});
@@ -24,6 +25,7 @@ export default function App() {
   const iframeRefs = useRef<Record<string, HTMLIFrameElement | null>>({});
 
   useEffect(() => subscribePresences(setPresences), []);
+  useEffect(() => subscribeShared(setShared), []);
 
   useEffect(() => {
     const onHash = () => {
@@ -216,7 +218,7 @@ export default function App() {
       </div>
       {!activePlace ? (
         <div className="flex-1 overflow-auto">
-          <Terrain presences={presences} onEnter={enter} />
+          <Terrain presences={presences} shared={shared} onEnter={enter} />
         </div>
       ) : null}
     </div>

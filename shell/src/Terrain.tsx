@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PLACES } from './places';
-import type { Presence } from './hub';
+import type { Presence, SharedField } from './hub';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 /* presence heartbeats land ~every 10s; past ~3 missed beats the writer is
@@ -31,11 +31,42 @@ function StatusLine({ p, stale }: { p: Presence | undefined; stale: boolean }) {
   return <span className="text-atlas-500 italic">quiet</span>;
 }
 
+/* commons fields → a line of text; `by` tells which app wrote it.
+   Fresh (<10min) writers render live; older ones are dimmed, very old hidden. */
+const COMMONS_FRESH_MS = 10 * 60 * 1000;
+const COMMONS_DEAD_MS = 60 * 60 * 1000;
+
+function commonsLine(field: string, f: SharedField): { app: string; text: string } | null {
+  const v = (f?.v || {}) as Record<string, any>;
+  switch (field) {
+    case 'focus':
+      return v.running ? { app: 'timer', text: `focus: ${v.label || 'in session'}${v.endsInMin != null ? ` · ${v.endsInMin}m left` : ''}` } : null;
+    case 'today':
+      return v.slips != null ? { app: 'syllabus', text: `${v.slips} slips · ${v.overdue || 0} late${v.next ? ` — next: ${v.next}` : ''}` } : null;
+    case 'activeCourse':
+      return v.code ? { app: 'syllabus', text: `course: ${v.code}${v.name ? ` ${v.name}` : ''}` } : null;
+    case 'noteActive':
+      return v.title ? { app: f.by, text: `editing ${f.by === 'ink' ? 'in ink' : 'in margin'}: ${v.title}` } : null;
+    case 'deck':
+      return v.deck ? { app: 'flashcards', text: `deck: ${v.deck}${v.due != null ? ` · ${v.due} due` : ''}` } : null;
+    case 'session':
+      return v.active ? { app: 'proof', text: `proof session${v.topic ? `: ${v.topic}` : ''}${v.minutes ? ` · ${v.minutes}m` : ''}` } : null;
+    case 'register':
+      return v.marked != null ? { app: 'rhythm', text: `${v.marked} marked${v.pending != null ? ` · ${v.pending} open` : ''}` } : null;
+    case 'markbook':
+      return v.assessment ? { app: 'gradestack', text: `${v.assessment}${v.scored != null ? ` · ${v.scored}/${v.total ?? '?'} scored` : ''}` } : null;
+    default:
+      return null;
+  }
+}
+
 export function Terrain({
   presences,
+  shared,
   onEnter,
 }: {
   presences: Record<string, Presence>;
+  shared: Record<string, SharedField>;
   onEnter: (id: string) => void;
 }) {
   const today = new Date();
@@ -109,6 +140,43 @@ export function Terrain({
             <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-moss-700">
               today across the terrain
             </h2>
+            {/* the commons — fields every app writes into the shared doc */}
+            {(() => {
+              const lines = Object.entries(shared)
+                .map(([field, f]) => {
+                  if (!f?.at || Date.now() - f.at > COMMONS_DEAD_MS) return null;
+                  const line = commonsLine(field, f);
+                  if (!line) return null;
+                  return { ...line, stale: Date.now() - f.at > COMMONS_FRESH_MS, at: f.at };
+                })
+                .filter((x): x is { app: string; text: string; stale: boolean; at: number } => !!x)
+                .sort((a, b) => a.at - b.at || a.app.localeCompare(b.app));
+              if (!lines.length) return null;
+              return (
+                <div className="mb-3 rounded-lg border border-moss-300 bg-moss-50/60 p-3.5">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-moss-700">
+                    the commons
+                  </div>
+                  <ul className="mt-2 space-y-1.5">
+                    {lines.map((l, i) => (
+                      <li key={i}>
+                        <button
+                          onClick={() => onEnter(l.app)}
+                          className={`flex w-full items-start gap-1.5 text-left text-[13px] hover:text-moss-700 focus:outline-none ${
+                            l.stale ? 'text-atlas-500' : 'text-field-faint'
+                          }`}
+                        >
+                          {!l.stale && (
+                            <span className="live-dot mt-1.5 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-moss-600" />
+                          )}
+                          <span>{l.text}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
             <div className="today-rail max-h-[70vh] space-y-3 overflow-y-auto pr-1">
               {PLACES.map((p) => {
                 const pres = presences[p.id];

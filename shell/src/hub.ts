@@ -43,3 +43,34 @@ export function subscribePresences(cb: (p: Record<string, Presence>) => void): (
     window.clearInterval(t);
   };
 }
+
+/* The commons — apps' namespaced fields on iterra.doc('shared'), each
+   stamped { v, by, at } by its writer (docs/WIRING.md §7). */
+export interface SharedField<T = any> {
+  v: T;
+  by: string;
+  at: number;
+}
+
+export function readShared(): Record<string, SharedField> {
+  try {
+    const m = JSON.parse(localStorage.getItem('iterra.v1.doc.shared') || '{}');
+    return m && typeof m === 'object' && !Array.isArray(m) ? m : {};
+  } catch {
+    return {};
+  }
+}
+
+export function subscribeShared(cb: (m: Record<string, SharedField>) => void): () => void {
+  const emit = () => cb(readShared());
+  const onStorage = (ev: StorageEvent) => {
+    if (ev.key === 'iterra.v1.doc.shared') emit();
+  };
+  window.addEventListener('storage', onStorage);
+  const t = window.setInterval(emit, 2500);
+  emit();
+  return () => {
+    window.removeEventListener('storage', onStorage);
+    window.clearInterval(t);
+  };
+}
