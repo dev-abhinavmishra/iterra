@@ -2,13 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { PLACE_MAP } from './places';
 import type { Entity } from './hub';
 import { subscribeShelf, type ShelfPin } from './shelf';
+import { readFeed, subscribeFeed, type FeedItem } from './hub';
 
 interface Hit {
   app: string;
   label: string;
   sub: string;
   url: string;
-  kind: 'entity' | 'place';
+  kind: 'entity' | 'place' | 'stir';
   key?: string;
 }
 
@@ -25,6 +26,8 @@ export function Search({
   onClose: () => void;
   onGo: (url: string) => void;
 }) {
+  const [feed, setFeed] = useState<FeedItem[]>(() => readFeed());
+  useEffect(() => subscribeFeed(setFeed), []);
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
   const [pins, setPins] = useState<ShelfPin[]>([]);
@@ -72,7 +75,18 @@ export function Search({
         });
       }
     }
-    const all = [...places, ...ents];
+    /* stirrings are searchable too — "filed", "stamped", "imported" queries
+       should find the activity, not just entities */
+    const stirs: Hit[] = needle
+      ? feed.map((f) => ({
+          app: f.app,
+          kind: 'stir' as const,
+          label: f.text,
+          sub: f.app,
+          url: f.url || `#/p/${f.app}`,
+        }))
+      : [];
+    const all = [...places, ...ents, ...stirs];
     if (!needle) return all.slice(0, 30);
     const rank = (h: Hit) => {
       const l = h.label.toLowerCase();
@@ -89,7 +103,7 @@ export function Search({
       .sort((a, b) => a.r - b.r || a.h.label.localeCompare(b.h.label))
       .slice(0, 30)
       .map((x) => x.h);
-  }, [q, indexes]);
+  }, [q, indexes, feed]);
 
   /* browse mode (no query): group entities under their course/topic so one
      class's blocks, decks, notes and sessions read as one dossier */
