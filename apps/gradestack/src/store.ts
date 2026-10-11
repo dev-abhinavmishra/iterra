@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import { db, auth } from './lib/firebase';
 import { collection, doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { gradeResponses, letterFor, GradingScale, DEFAULT_SCALE } from './lib/grading';
+import { uid } from './lib/uid';
 
 /* Firestore rejects any document containing undefined field values —
    strip them before every write. */
@@ -140,7 +141,7 @@ export const useStore = create<AppState>()(
 
       addTest: async (test) => {
         const user = auth?.currentUser;
-        const id = crypto.randomUUID();
+        const id = uid();
         const newTest: Test = {
           ...test,
           id,
@@ -187,7 +188,7 @@ export const useStore = create<AppState>()(
 
       addScan: async (scan) => {
         const user = auth?.currentUser;
-        const id = crypto.randomUUID();
+        const id = uid();
         const newScan: Scan = {
           ...scan,
           id,

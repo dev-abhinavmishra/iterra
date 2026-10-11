@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore, QuestionFormat, TestSection } from '../store';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PDFDocument } from 'pdf-lib';
+import { uid } from '../lib/uid';
 import { generatePDF } from '../lib/pdfGenerator';
 import { Reorder, motion } from 'motion/react';
 import { Icon, Button, Input, Field, Toggle, BubbleMark } from '../components/ui';
@@ -63,7 +64,7 @@ export function SheetBuilder() {
   const [importError, setImportError] = useState<string | null>(null);
 
   const [sections, setSections] = useState<TestSection[]>([
-    { id: crypto.randomUUID(), count: 50, format: 'A-D' }
+    { id: uid(), count: 50, format: 'A-D' }
   ]);
   const [testName, setTestName] = useState('');
   const [courseName, setCourseName] = useState('');
@@ -196,7 +197,7 @@ export function SheetBuilder() {
         const qFormat = questionMap.get(i)?.format || 'A-D';
         if (!currentSection || currentSection.format !== qFormat) {
           if (currentSection) importedSections.push(currentSection);
-          currentSection = { id: crypto.randomUUID(), count: 1, format: qFormat };
+          currentSection = { id: uid(), count: 1, format: qFormat };
         } else {
           currentSection.count = (currentSection.count as number) + 1;
         }
@@ -580,7 +581,7 @@ export function SheetBuilder() {
               variant="outline"
               icon="add"
               className="!h-8 px-2.5 text-xs"
-              onClick={() => setSections([...sections, { id: crypto.randomUUID(), count: 10, format: 'A-D' }])}
+              onClick={() => setSections([...sections, { id: uid(), count: 10, format: 'A-D' }])}
             >
               Section
             </Button>

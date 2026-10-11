@@ -24,6 +24,9 @@ export function Dossier({
   onHome: () => void;
 }) {
   const key = course.toLowerCase();
+  /* 'unfiled' is a sentinel dossier: every entity with no course AND no
+     topic lands here — notes that can't file under a class still group. */
+  const unfiled = key === 'unfiled';
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
   const pinnedUrls = new Set(pins.map((p) => p.url));
@@ -31,7 +34,9 @@ export function Dossier({
     .map(([app, list]) => ({
       app,
       ents: (list || []).filter(
-        (e) => e?.title && ((e.course || '').toLowerCase() === key || (e.topic || '').toLowerCase() === key),
+        (e) => e?.title && (unfiled
+          ? !e.course && !e.topic
+          : (e.course || '').toLowerCase() === key || (e.topic || '').toLowerCase() === key),
       ),
     }))
     .filter((g) => g.ents.length > 0);
@@ -44,7 +49,7 @@ export function Dossier({
   const urlKeys = new Map<string, string>();
   for (const g of byApp) for (const e of g.ents) if (e.url) urlKeys.set(e.url, key);
   const mentions = feed
-    .filter((f) => keyRe.test(f.text) || (f.url ? urlKeys.has(f.url) : false))
+    .filter((f) => (unfiled ? false : keyRe.test(f.text)) || (f.url ? urlKeys.has(f.url) : false))
     .slice(0, 8);
   const nb = (shared.today?.v as any)?.nextBlock;
   const ac = (shared.activeCourse?.v as any);
@@ -70,10 +75,10 @@ export function Dossier({
         ← terrain
       </button>
       <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-moss-700">
-        course dossier
+        {unfiled ? 'the unfiled' : 'course dossier'}
       </div>
       <div className="mb-2 flex items-baseline gap-2">
-        <h1 className="text-[26px] font-semibold tracking-tight text-field-ink">{course}</h1>
+        <h1 className="text-[26px] font-semibold tracking-tight text-field-ink">{unfiled ? 'unfiled' : course}</h1>
         <button
           onClick={() => togglePin({ app: 'terrain', title: `${course} desk`, url: `#/c/${encodeURIComponent(course)}` })}
           title={pinnedUrls.has(`#/c/${encodeURIComponent(course)}`) ? 'unpin this desk' : 'pin this desk to the shelf'}
@@ -87,15 +92,17 @@ export function Dossier({
       </div>
       <p className="mb-4 text-[13px] text-field-faint">
         {total === 0
-          ? 'nothing on the terrain carries this key yet'
+          ? (unfiled ? 'everything on the terrain is filed under a key' : 'nothing on the terrain carries this key yet')
           : `${total} ${total === 1 ? 'thing' : 'things'} across ${byApp.length} ${byApp.length === 1 ? 'place' : 'places'}`}
       </p>
-      <button
-        onClick={() => onGo(`/apps/timer/?intent=${encodeURIComponent(`drill ${course}`)}&minutes=25&course=${encodeURIComponent(course)}&from=terrain`)}
-        className="mb-8 rounded-full border border-moss-400/70 bg-moss-50 px-3.5 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-100"
-      >
-        drill {course} →
-      </button>
+      {!unfiled && (
+        <button
+          onClick={() => onGo(`/apps/timer/?intent=${encodeURIComponent(`drill ${course}`)}&minutes=25&course=${encodeURIComponent(course)}&from=terrain`)}
+          className="mb-8 rounded-full border border-moss-400/70 bg-moss-50 px-3.5 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-100"
+        >
+          drill {course} →
+        </button>
+      )}
       {total === 0 && knownKeys.length > 0 && (
         <div className="mb-8 flex flex-wrap items-baseline gap-1.5 text-[12px] text-field-faint">
           <span>the terrain does know:</span>
