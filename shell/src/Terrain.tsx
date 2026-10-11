@@ -317,7 +317,29 @@ export function Terrain({
               const t = shared.today?.v as any;
               const nb = t?.nextBlock || null;
               const title = nb?.title || t?.next || null;
-              if (!title) return null;
+              if (!title) {
+                /* no folio plan — offer the most-due thing the ledger can
+                   deep-link: a due deck reviews straight into the cardfile */
+                const deckDue = (presences['flashcards']?.summary as any)?.due || 0;
+                const deckEnt = deckDue > 0
+                  ? (indexes['flashcards'] || []).find((e) => e?.url)
+                  : null;
+                if (!deckEnt) return null;
+                return (
+                  <div className="mb-3 rounded-lg border border-atlas-300 bg-atlas-50/70 p-3.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-field-faint">
+                      due on the terrain
+                    </span>
+                    <p className="mt-1.5 text-[14px] font-medium leading-snug text-field-ink">{deckEnt.title}</p>
+                    <button
+                      onClick={() => onGo(deckEnt.url!)}
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-moss-600 px-3 py-1.5 text-[12px] font-medium text-moss-800 hover:bg-moss-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+                    >
+                      review {deckDue} card{deckDue === 1 ? '' : 's'} →
+                    </button>
+                  </div>
+                );
+              }
               const mins = nb?.minutes || t?.suggestedMinutes || 25;
               const course = nb?.course || shared.activeCourse?.v?.code || '';
               const block = nb?.id || '';
