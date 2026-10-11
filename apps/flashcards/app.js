@@ -2032,3 +2032,17 @@ function boot() {
 }
 
 document.addEventListener('DOMContentLoaded', boot);
+
+/* ── iterra bridge — the cardfile announces itself to the terrain ── */
+if (window.iterra) {
+  window.iterra.register('flashcards', {
+    title: 'Flashcards',
+    summary: () => {
+      const decks = Object.values(state.decks || {});
+      if (!decks.length) return { decks: 0 };
+      const due = decks.reduce((n, d) =>
+        n + d.cards.filter(c => c.status !== 'mastered').length, 0);
+      return { decks: decks.length, due };
+    },
+  });
+}

@@ -16,6 +16,7 @@ import SelectionPopover from './components/SelectionPopover';
 import { View, Note, AppSettings } from './types';
 import { initDB, getAllNotes, saveNote, deleteNote, getSettings, saveSettings, migrateFromLocalStorage, deleteNotesBefore, clearAllNotes, saveNoteVersion } from './services/storageService';
 import { refreshUsage, initAuth } from './services/usageService';
+import { wireMargin, setMarginSource } from './iterra';
 
 const WELCOME_NOTE = (): Note => ({
     id: 'welcome',
@@ -32,6 +33,8 @@ const viewKey = (v: View, activeNote: Note | null) =>
     v === View.EDITOR ? `editor-${activeNote?.id}` : v;
 
 const App: React.FC = () => {
+    useEffect(() => wireMargin(), []);
+
     const [currentView, setCurrentView] = useState<View>(View.LIBRARY);
     const [activeNote, setActiveNote] = useState<Note | null>(null);
     const [showQuotaModal, setShowQuotaModal] = useState(false);
@@ -106,6 +109,22 @@ const App: React.FC = () => {
         };
         loadData();
     }, []);
+
+    // feed the terrain its live summary of the margin
+    useEffect(() => {
+        setMarginSource(() => ({ notes }));
+    }, [notes]);
+
+    // inbound: /apps/margin/?note=<id> opens that note in the editor
+    useEffect(() => {
+        if (!isLoaded) return;
+        const id = new URLSearchParams(window.location.search).get('note');
+        if (!id) return;
+        window.history.replaceState(null, '', window.location.pathname);
+        const note = notes.find(n => n.id === id);
+        if (note) handleOpenNote(note);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoaded]);
 
     const setSettings = (newSettings: AppSettings | ((prev: AppSettings) => AppSettings)) => {
         setSettingsState(prev => {
