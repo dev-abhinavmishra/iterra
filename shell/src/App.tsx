@@ -3,12 +3,16 @@ import { PLACES, PLACE_MAP } from './places';
 import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, type Presence, type SharedField, type Entity, type FeedItem } from './hub';
 import { Terrain } from './Terrain';
 import { Search } from './Search';
+import { Dossier } from './Dossier';
 
-/* ── hash routing: '' → terrain, 'p/<place>' → place view ── */
-function parseHash(): string {
+/* ── hash routing: '' → terrain, 'p/<place>' → place view,
+   'c/<key>' → course dossier ── */
+function parseHash(): { place: string; course: string } {
   const h = window.location.hash.replace(/^#\/?/, '');
+  const c = h.match(/^c\/([^?#]+)/);
+  if (c) return { place: '', course: decodeURIComponent(c[1]) };
   const m = h.match(/^p\/([a-z]+)/);
-  return m && PLACE_MAP[m[1]] ? m[1] : '';
+  return { place: m && PLACE_MAP[m[1]] ? m[1] : '', course: '' };
 }
 
 function appUrl(place: string, path = '/'): string {
@@ -16,7 +20,8 @@ function appUrl(place: string, path = '/'): string {
 }
 
 export default function App() {
-  const [active, setActive] = useState<string>(() => parseHash());
+  const [active, setActive] = useState<string>(() => parseHash().place);
+  const [course, setCourse] = useState<string>(() => parseHash().course);
   const [presences, setPresences] = useState<Record<string, Presence>>({});
   const [shared, setShared] = useState<Record<string, SharedField>>({});
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
@@ -55,8 +60,9 @@ export default function App() {
 
   useEffect(() => {
     const onHash = () => {
-      const id = parseHash();
+      const { place: id, course: ckey } = parseHash();
       setActive(id);
+      setCourse(ckey);
       if (id) setFrames((f) => (f[id] ? f : { ...f, [id]: appUrl(id) }));
     };
     window.addEventListener('hashchange', onHash);
@@ -66,8 +72,12 @@ export default function App() {
 
   useEffect(() => {
     const place = active ? PLACE_MAP[active] : null;
-    document.title = place ? `${place.app} · iterra` : 'iterra — an integrated study terrain';
-  }, [active]);
+    document.title = place
+      ? `${place.app} · iterra`
+      : course
+        ? `${course} · iterra`
+        : 'iterra — an integrated study terrain';
+  }, [active, course]);
 
   /* environment navigation: apps post iterra:open with an /apps/<p>/ URL. */
   useEffect(() => {
@@ -400,7 +410,19 @@ export default function App() {
       </div>
       {!activePlace ? (
         <div className="flex-1 overflow-auto">
-          <Terrain presences={presences} shared={shared} feed={feed} onEnter={enter} onGo={goUrl} />
+          {course ? (
+            <Dossier
+              course={course}
+              indexes={indexes}
+              shared={shared}
+              feed={feed}
+              onGo={goUrl}
+              onEnter={enter}
+              onHome={goHome}
+            />
+          ) : (
+            <Terrain presences={presences} shared={shared} feed={feed} onEnter={enter} onGo={goUrl} />
+          )}
         </div>
       ) : null}
       <Search

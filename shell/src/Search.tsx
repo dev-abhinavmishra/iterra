@@ -147,9 +147,18 @@ export function Search({
             groups.map((g, gi) => (
               <li key={g.header ?? `g${gi}`}>
                 {g.header && (
-                  <div className="px-4 pb-0.5 pt-2.5 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
-                    {g.header}
-                  </div>
+                  g.header === 'elsewhere' ? (
+                    <div className="px-4 pb-0.5 pt-2.5 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+                      {g.header}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => { onGo(`#/c/${encodeURIComponent(g.header!)}`); onClose(); }}
+                      className="block w-full px-4 pb-0.5 pt-2.5 text-left text-[9.5px] font-semibold uppercase tracking-[0.14em] text-atlas-500 hover:text-moss-700"
+                    >
+                      {g.header} →
+                    </button>
+                  )
                 )}
                 <ul>
                   {g.items.map(({ h, i }) => (
