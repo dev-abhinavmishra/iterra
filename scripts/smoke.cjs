@@ -44,6 +44,15 @@ const { chromium } = require('playwright-core');
     return { hash: location.hash, frames: [...document.querySelectorAll('iframe')].map((i) => i.getAttribute('src')) };
   });
 
+  // sender chip — the bound timer mounted by openResult carries from=syllabus;
+  // its engraved register should show '← syllabus'
+  await page.waitForTimeout(2500);
+  const senderChip = await page.evaluate(() => {
+    const fr = [...document.querySelectorAll('iframe')].find((f) => (f.src || '').includes('/apps/timer/'));
+    if (!fr || !fr.contentWindow) return 'no timer frame';
+    try { return /←\s*syllabus/i.test(fr.contentWindow.document.body.innerText); } catch (e) { return 'err:' + e.message; }
+  });
+
   // ambient layer — boot each place's frame so its publisher runs, then
   // assert the commons/index docs land on the bus
   for (const pl of ['rhythm', 'timer', 'ink']) {
@@ -78,7 +87,7 @@ const { chromium } = require('playwright-core');
   });
 
   await page.screenshot({ path: '/tmp/iterra-terrain.png', fullPage: false });
-  console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, ambient, dossier, errors: errors.slice(0, 8) }, null, 1));
+  console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, senderChip, ambient, dossier, errors: errors.slice(0, 8) }, null, 1));
 
   // real assertions — non-zero exit on failure
   const fails = [];
@@ -90,6 +99,7 @@ const { chromium } = require('playwright-core');
   assert('framed iterra present', inPlace.framedIt === true);
   assert('presence registered', !!presences.syllabus);
   assert('open() routed to timer', openResult.hash === '#/p/timer' && (openResult.frames || []).some((f) => (f || '').startsWith('/apps/timer/')));
+  assert('sender chip engraved', senderChip === true);
   assert('syllabus frame kept alive', (openResult.frames || []).some((f) => (f || '').startsWith('/apps/syllabus/')));
   assert('ambient docs landing', ambient.keys.length >= 2);
   assert('commons fields live', ambient.sharedFields.length >= 2);
@@ -98,7 +108,7 @@ const { chromium } = require('playwright-core');
   assert('shelf pin writes', dossier.pinWorked === true);
   assert('no page errors', errors.length === 0);
   if (fails.length) { console.error('ASSERT FAIL:', fails.join('; ')); process.exit(1); }
-  console.log('SMOKE PASS: 14/14 assertions');
+  console.log('SMOKE PASS: 15/15 assertions');
   await page.close();
   process.exit(0);
 })().catch((e) => { console.error('SMOKE FAIL', e); process.exit(1); });
