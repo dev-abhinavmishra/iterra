@@ -3,7 +3,7 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of 8f50152)
+## State of the terrain (as of 4fcc039)
 
 - Branch `devin/iterra-env`, PR #1 open (not merged — Abhinav decides).
 - All 8 apps vendored under `apps/<name>` + wired: build-time base, hub script
@@ -93,6 +93,9 @@ contract every app and the shell follows.
   honest path to notes joining dossiers — needs Abhinav's call.
 - rhythm upstream closed — sibling session exited; its sequencer rehaul
   (c0145cc) is the vendored base; nothing newer to sync.
+- In flight on rhythm child: ink `initialNotes` demo-library strip →
+  margin-style welcome note + no seeded folders (standing no-fake-data
+  rule — was indexing 3 fabricated notes into #/c/unfiled).
 - Landed recently (verify before re-doing): ?block= slip intake + ring
   (2e40d6e), entity urls carry ?block=<id> so dossier/palette/shelf clicks
   land ON the slip, FOCUS pill on bound slips, Sigma→proof pad links,
@@ -118,6 +121,22 @@ contract every app and the shell follows.
   sessions; 38a62bd). links.ts contract suite 14 tests (283ecc8 —
   links-test.diff arrived with NO @@ hunks: git apply reported success
   on an EMPTY file; children must `git apply --check` before attaching).
+- Latest wave (afaae0e→4fcc039): timer `?routine=<name>` intake +
+  `?return=` protocol guard (javascript:/data:/file:/vbscript: rejected,
+  tests pinned); stir wave 6368ca0 — every real syllabus/gradestack
+  transition emits w/ real course keys + 7 drive-found fixes (boot
+  subscribe recursion, off-day ?block= swallow, ACCEPT-ALL double-click
+  dup, import code-vs-name, lingering ?scanId); margin decks/quizzes
+  indexed + ?deck=/?quiz= intakes + noteActive `v.at` real-write
+  arbitration (b70c281); stale ?testId falls to create mode (5512f93);
+  rhythm experiments indexed + ?experiment= intake (08ebd55); hub
+  forwards unclaimed terrain chords from frames — bubble phase,
+  defaultPrevented yields to the app's own ⌘K (9790a24); standalone
+  timer 'completed Nm' (suppressed when filing back), flashcards 'deck
+  made', proof 'problem set down' stirs (4fcc039). Frame probes: ink
+  wikilinks need real coordinate clicks (ProseMirror ignores synthetic
+  MouseEvents); `?bust=` iframe-src defeats stale dist bundles — dist
+  is gitignored so pulls never refresh it (per-clone rebuild).
   margin frame granted `microphone` scoped per-place — Permissions-
   Policy denied framed getUserMedia even over https (8f50152).
 - Outbound wave (8a1cd82 era): every app now emits the timer intake
