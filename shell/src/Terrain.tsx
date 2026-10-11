@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PLACES } from './places';
+import { PLACES, PLACE_MAP } from './places';
 import type { Presence, SharedField, FeedItem, Entity } from './hub';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -294,7 +294,7 @@ export function Terrain({
                           className="flex w-full items-baseline gap-2 text-left text-[13px] text-field-faint hover:text-moss-700 focus:outline-none"
                         >
                           <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-moss-700">
-                            {it.app}
+                            {PLACE_MAP[it.app]?.app || it.app}
                           </span>
                           <span className="min-w-0 flex-1 truncate">{it.text}</span>
                           <span className="shrink-0 text-[10px] text-atlas-500">{when}</span>
