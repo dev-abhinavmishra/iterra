@@ -24,7 +24,7 @@ declare global {
         setField: (field: string, v: unknown) => void;
         subscribe: (cb: (v: unknown) => void) => () => void;
       };
-      feed: (item: { text: string; url?: string }) => void;
+      feed: (item: { text: string; url?: string; course?: string; topic?: string }) => void;
     };
   }
 }
@@ -100,8 +100,20 @@ export function wireIterra() {
     if (lastEntryIds) {
       /* register completing is the other half of the contract: the day going
          from open lines to none. Baseline is captured silently below. */
+      const routineCourse = (cid: string | undefined) =>
+        cid ? (s.courses[cid]?.code ?? s.courses[cid]?.name) : undefined;
       if (sum && prevPending !== null && prevPending > 0 && sum.pending === 0 && sum.total > 0) {
-        iterra.feed({ text: `register complete — ${sum.total}/${sum.total} for today`, url: '/apps/rhythm/' });
+        /* a day-aggregate: tag the key only when every marked entry shares it */
+        const keys = new Set(
+          Object.values(s.entries)
+            .map((e) => routineCourse(s.routines[e.routineId]?.courseId))
+            .filter(Boolean),
+        );
+        iterra.feed({
+          text: `register complete — ${sum.total}/${sum.total} for today`,
+          url: '/apps/rhythm/',
+          course: keys.size === 1 ? [...keys][0] : undefined,
+        });
       }
       for (const id of ids) {
         if (!lastEntryIds.has(id)) {
@@ -110,6 +122,7 @@ export function wireIterra() {
           iterra.feed({
             text: `${r?.name ?? 'a channel'} hit${e?.isMinimum ? ' (minimum)' : ''}`,
             url: '/apps/rhythm/',
+            course: routineCourse(r?.courseId),
           });
         }
       }
