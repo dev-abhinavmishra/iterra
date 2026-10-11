@@ -188,9 +188,26 @@ timer — presence already heartbeats). Read defensively (`at` freshness,
 | `iterra.onIndex(cb)` | unsubscribe fn — fires on sibling index writes (storage events) |
 | `iterra.presence(name?)` / `iterra.onPresence(cb)` | live `{app,title,summary,at,framed,stale}` entries |
 | `iterra.doc('shared').subscribe(cb)` | fires on any commons write, same-window or sibling |
+| `iterra.feedItems()` / `iterra.onFeed(cb)` | read / follow the 30-item stirrings feed |
 
 Use `iterra.index*`/`iterra.presence` rather than reading `iterra.v1.*` keys
 directly — the doc naming is an implementation detail.
+
+### Terrain surfaces that consume the mesh
+
+- **Commons strip** (terrain home rail): one line per fresh field, click → writer.
+- **Desks row**: every course/topic key found across indexes → `#/c/<key>`.
+- **Dossier** `#/c/<key>`: all entities carrying that key (grouped by place),
+  commons mentions, stirrings mentioning it.
+- **Next up / in session**: `shared.today.v.nextBlock` → bound timer URL;
+  `shared.focus` supersedes while a session runs (<3m fresh).
+- **Palette** (`⌘K`/`/`): places + every entity; browse groups by course/topic,
+  group headers open the dossier.
+- **Switcher**: "in this place" (own entities) + "linked across the terrain"
+  (sibling entities sharing this place's keys) + dossier links.
+- **Stirrings rail**: feed items deep-link via `url`.
+- `feed()` dedupes identical {app,text} emits within 2s (multi-frame
+  rehydration guard).
 
 ## 8. Dev topology
 
