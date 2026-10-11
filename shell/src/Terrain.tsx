@@ -40,7 +40,11 @@ function commonsLine(field: string, f: SharedField): { app: string; text: string
   const v = (f?.v || {}) as Record<string, any>;
   switch (field) {
     case 'focus':
-      return v.running ? { app: 'timer', text: `focus: ${v.label || 'in session'}${v.endsInMin != null ? ` · ${v.endsInMin}m left` : ''}` } : null;
+      // tighter staleness than generic commons: a running session rewrites
+      // every minute — >3m old means the instruments tab died mid-session
+      return v.running && f.at && Date.now() - f.at < 3 * 60 * 1000
+        ? { app: 'timer', text: `focus: ${v.label || 'in session'}${v.endsInMin != null ? ` · ${v.endsInMin}m left` : ''}` }
+        : null;
     case 'today':
       return v.slips != null ? { app: 'syllabus', text: `${v.slips} slips · ${v.overdue || 0} late${v.next ? ` — next: ${v.next}` : ''}` } : null;
     case 'activeCourse':
@@ -185,6 +189,29 @@ export function Terrain({
                 shared plan, offer one click into a bound timer session that
                 files back to the folio when it completes */}
             {(() => {
+              // a live focus session supersedes next-up: show what's running.
+              // `at` refreshes every minute while endsInMin ticks — a write
+              // older than ~3m means the instruments tab died mid-session
+              const foc = shared.focus?.v as any;
+              const focFresh = shared.focus?.at && Date.now() - shared.focus.at < 3 * 60 * 1000;
+              if (foc?.running && focFresh) {
+                return (
+                  <div className="mb-3 rounded-lg border border-moss-400/70 bg-moss-50 p-3.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-moss-700">
+                      in session
+                    </span>
+                    <p className="mt-1.5 text-[14px] font-medium leading-snug text-field-ink">
+                      {foc.label || 'focus'}
+                    </p>
+                    <button
+                      onClick={() => onGo('/apps/timer/')}
+                      className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-moss-600 px-3 py-1.5 text-[12px] font-medium text-moss-800 hover:bg-moss-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+                    >
+                      {foc.endsInMin != null ? `${foc.endsInMin}m left · ` : ''}instruments →
+                    </button>
+                  </div>
+                );
+              }
               const t = shared.today?.v as any;
               const nb = t?.nextBlock || null;
               const title = nb?.title || t?.next || null;
