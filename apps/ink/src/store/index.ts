@@ -124,66 +124,36 @@ const para = (text: string) => ({
 
 const initialNotes: Note[] = [
   {
-    id: 'seed-1',
-    title: 'Notes toward a second draft',
+    id: 'welcome',
+    title: 'Welcome to the desk',
     content: doc([
-      { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'What the essay is actually about' }] },
-      para('It keeps pretending to be about the house. It is not about the house. It is about the way my grandmother measured every room with her eyes before she would sit down in it.'),
-      para('Cut the second paragraph. Move the kitchen scene up. Let the reader smell the onions before they know whose kitchen it is.'),
-      { type: 'blockquote', content: [para('“Write it like a letter to someone who already forgives you.” — note to self, margin of draft three')] },
-    ]),
-    tags: ['ESSAY', 'DRAFTS'],
-    lastModified: Date.now() - 42 * 60 * 1000,
-    createdAt: Date.now() - 6 * 24 * 3600 * 1000,
-    isPinned: true,
-    folder: 'Work',
-    wordCount: 78,
-    trashedAt: null,
-    dailyKey: null,
-  },
-  {
-    id: 'seed-2',
-    title: 'Reading: The Rings of Saturn',
-    content: doc([
-      para('Sebald walks the Suffolk coast and somehow ends up inside the entire history of European melancholy. The silkworm chapter should not work and it does.'),
+      { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'A place to write' }] },
+      para('This is your writing desk. Every page lands in the rail on the left — pin it, tag it, or file it in a folder of your own.'),
+      { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'The pieces' }] },
       { type: 'bulletList', content: [
-        { type: 'listItem', content: [para('Photographs interrupt the text with no caption — trust the reader')] },
-        { type: 'listItem', content: [para('A digression is just a path the author refuses to apologise for')] },
+        { type: 'listItem', content: [para('Write with the pen that suits the page — wet ink dries as you go')] },
+        { type: 'listItem', content: [para('Link pages to each other and Ink web draws the web they make')] },
+        { type: 'listItem', content: [para('Today keeps one page per day; the Wastebasket holds what you toss until it dries for good')] },
       ]},
-      para('Related: [[Notes toward a second draft]] — the digression problem again.'),
+      { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Useful moves' }] },
+      { type: 'bulletList', content: [
+        { type: 'listItem', content: [para('Press ⌘K to jump anywhere, search, or start a new page')] },
+        { type: 'listItem', content: [para('Drafts on a page’s rail keep checkpoints of earlier writing')] },
+      ]},
+      para('Ink is local-first — everything on this desk stays on this device.'),
     ]),
-    tags: ['READING'],
-    lastModified: Date.now() - 5 * 3600 * 1000,
-    createdAt: Date.now() - 3 * 24 * 3600 * 1000,
-    isPinned: false,
-    folder: 'Personal',
-    wordCount: 74,
-    trashedAt: null,
-    dailyKey: null,
-  },
-  {
-    id: 'seed-3',
-    title: 'Café on Rue de la Roquette',
-    content: doc([
-      para('Good light in the morning, terrible after two. The owner plays Coltrane at a volume that suggests he is alone in the room, which, before ten, he mostly is.'),
-      para('Table by the window wobbles. Bring the folded-paper trick.'),
-    ]),
-    tags: ['PARIS'],
-    lastModified: Date.now() - 2 * 24 * 3600 * 1000,
-    createdAt: Date.now() - 15 * 24 * 3600 * 1000,
-    isPinned: false,
-    folder: 'Personal',
-    wordCount: 45,
+    tags: [],
+    lastModified: Date.now(),
+    createdAt: Date.now(),
+    isPinned: true,
+    folder: 'Unfiled',
+    wordCount: 132,
     trashedAt: null,
     dailyKey: null,
   },
 ];
 
-const initialFolders: Folder[] = [
-  { id: 'work', name: 'Work' },
-  { id: 'personal', name: 'Personal' },
-  { id: 'journal', name: 'Journal' },
-];
+const initialFolders: Folder[] = [];
 
 export const useStore = create<AppState>()(
   persist(
@@ -192,7 +162,7 @@ export const useStore = create<AppState>()(
       folders: initialFolders,
       drafts: {},
       writeSeq: 0,
-      activeNoteId: 'seed-1',
+      activeNoteId: 'welcome',
       activeFolder: 'All Notes',
       searchQuery: '',
       sortOrder: 'modified',
