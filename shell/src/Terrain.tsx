@@ -154,6 +154,44 @@ export function Terrain({
             <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-moss-700">
               today across the terrain
             </h2>
+            {/* the ledger — due-counts aggregated across every place's
+                presence summary (deck due, proofs due, late slips, pending
+                marks); a place that owes nothing stays quiet */}
+            {(() => {
+              const owes: { app: string; text: string; stale: boolean }[] = [];
+              const num = (x: unknown) => (typeof x === 'number' && x > 0 ? x : 0);
+              const s = (app: string) => (presences[app]?.summary as any) || {};
+              const stale = (app: string) => isStale(presences[app]);
+              if (num(s('flashcards').due)) owes.push({ app: 'flashcards', text: `${s('flashcards').due} cards due`, stale: stale('flashcards') });
+              if (num(s('proof').due)) owes.push({ app: 'proof', text: `${s('proof').due} proofs due`, stale: stale('proof') });
+              if (num(s('syllabus').overdue)) owes.push({ app: 'syllabus', text: `${s('syllabus').overdue} slips late`, stale: stale('syllabus') });
+              if (num(s('rhythm').pending)) owes.push({ app: 'rhythm', text: `${s('rhythm').pending} marks pending`, stale: stale('rhythm') });
+              if (!owes.length) return null;
+              return (
+                <div className="anim-fade mb-3 rounded-lg border border-atlas-300 bg-atlas-50/70 p-3.5">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-field-faint">
+                    the ledger
+                  </div>
+                  <ul className="mt-2 space-y-1">
+                    {owes.map((o) => (
+                      <li key={o.app}>
+                        <button
+                          onClick={() => onEnter(o.app)}
+                          className={`flex w-full items-baseline gap-2 text-left text-[13px] hover:text-moss-700 focus:outline-none ${
+                            o.stale ? 'text-atlas-500' : 'text-field-faint'
+                          }`}
+                        >
+                          <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-moss-700">
+                            {PLACE_MAP[o.app]?.app || o.app}
+                          </span>
+                          <span>{o.text}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })()}
             {/* the commons — fields every app writes into the shared doc */}
             {(() => {
               const lines = Object.entries(shared)
