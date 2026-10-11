@@ -141,4 +141,15 @@ export function wireIterra() {
   }
 }
 
+/** Open an /apps/* deep link in place: framed routes through the shell so
+ *  the sibling mounts inside the terrain; standalone keeps the old
+ *  new-tab behaviour. */
+export function openDeep(url: string) {
+  const iterra = window.iterra;
+  try {
+    if (iterra?.isFramed?.() && iterra.open) { iterra.open(url); return; }
+  } catch { /* fall through to the solo path */ }
+  window.open(url, '_blank', 'noopener');
+}
+
 wireIterra();

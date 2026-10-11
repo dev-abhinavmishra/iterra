@@ -9,6 +9,7 @@ import {
 import type { Attempt, Difficulty, PracticeSession, SessionRules } from '../lib/types';
 import { isDue } from '../lib/schedule';
 import { timerDeepLink, type InboundLink } from '../lib/links';
+import { openDeep } from '../lib/iterra';
 import { docToText } from '../lib/doc';
 import { cn, fmtMinutes } from '../lib/utils';
 import { DiffMeter } from '../components/DiffMeter';
@@ -103,7 +104,7 @@ export function SessionSetupView({
       label: `Proof — ${session.intent ?? 'practice session'}`,
     });
     setTimerUrl(session.id, url);
-    window.open(url, '_blank', 'noopener');
+    openDeep(url);
   };
 
   const beginNext = () => {

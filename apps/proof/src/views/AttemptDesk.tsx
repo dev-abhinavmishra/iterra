@@ -3,6 +3,7 @@ import { useWorkbench } from '../store';
 import type { Attempt, WorkStep } from '../lib/types';
 import { autoCheck, answerKind } from '../lib/checking';
 import { timerDeepLink } from '../lib/links';
+import { openDeep } from '../lib/iterra';
 import { cn, fmtElapsed, uid } from '../lib/utils';
 import { DocView } from '../components/DocView';
 import { DrawPad } from '../components/DrawPad';
@@ -98,7 +99,7 @@ export function AttemptDesk({
       course,
     });
     setTimerUrl(session.id, url);
-    window.open(url, '_blank', 'noopener');
+    openDeep(url);
   };
 
   if (!attempt || !problem) {

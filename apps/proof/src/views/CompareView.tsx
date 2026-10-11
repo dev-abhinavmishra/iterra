@@ -4,6 +4,7 @@ import { useWorkbench, selectErrorsFor } from '../store';
 import type { Attempt, AttemptResult, ErrorCategory } from '../lib/types';
 import { autoCheck } from '../lib/checking';
 import { flashcardsCardsLink, inkNoteMarkdown, misconceptionCard } from '../lib/links';
+import { openDeep } from '../lib/iterra';
 import { cn, fmtDateTime } from '../lib/utils';
 import { DocView } from '../components/DocView';
 import { DrawPad } from '../components/DrawPad';
@@ -368,7 +369,7 @@ export function CompareView({
                     ? useWorkbench.getState().courses[problem.courseId]?.code
                     : undefined;
                   const url = flashcardsCardsLink(settings, [card], title, course);
-                  window.open(url, '_blank', 'noopener');
+                  openDeep(url);
                   (window as any).iterra?.feed?.({ text: `exported deck: ${title}`, url });
                 }}
                 disabled={!repairCue.trim() && !divergence.trim()}
