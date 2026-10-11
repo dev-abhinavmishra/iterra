@@ -364,7 +364,10 @@ export function CompareView({
                     problem,
                   });
                   const title = `Proof — ${problem.topic} misconceptions`;
-                  const url = flashcardsCardsLink(settings, [card], title);
+                  const course = problem.courseId
+                    ? useWorkbench.getState().courses[problem.courseId]?.code
+                    : undefined;
+                  const url = flashcardsCardsLink(settings, [card], title, course);
                   window.open(url, '_blank', 'noopener');
                   (window as any).iterra?.feed?.({ text: `exported deck: ${title}`, url });
                 }}

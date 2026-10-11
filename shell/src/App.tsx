@@ -193,7 +193,7 @@ export default function App() {
   const chrome = useMemo(() => {
     if (!activePlace) return null;
     return (
-      <div className="flex h-12 shrink-0 items-center gap-3 border-b border-atlas-300 bg-atlas-50 px-3 sm:px-4">
+      <div className="anim-fade flex h-12 shrink-0 items-center gap-3 border-b border-atlas-300 bg-atlas-50 px-3 sm:px-4">
         <button
           onClick={goHome}
           className="flex items-center gap-2 rounded-md px-2 py-1 text-[13px] font-medium text-moss-700 hover:bg-moss-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
@@ -223,7 +223,7 @@ export default function App() {
           {switcherOpen && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setSwitcherOpen(false)} />
-              <div className="absolute left-0 top-full z-40 mt-1 w-64 rounded-lg border border-atlas-300 bg-atlas-50 p-1.5 shadow-[0_16px_40px_-16px_rgba(29,51,42,0.4)]">
+              <div className="anim-rise absolute left-0 top-full z-40 mt-1 w-64 rounded-lg border border-atlas-300 bg-atlas-50 p-1.5 shadow-[0_16px_40px_-16px_rgba(29,51,42,0.4)]">
                 {/* in this place — the active app's own entities as
                     quick-jump links (from its index.<app> doc) */}
                 {(indexes[active || ''] || []).length > 0 && (
@@ -397,13 +397,13 @@ export default function App() {
             }}
             src={src}
             title={PLACE_MAP[id]?.app || id}
-            className="absolute inset-0 h-full w-full border-0"
+            className="frame-fade absolute inset-0 h-full w-full border-0"
             style={{ display: id === active ? 'block' : 'none' }}
             allow="clipboard-read; clipboard-write"
           />
         ))}
         {unanswered && unanswered === active && (
-          <div className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-3 rounded-full border border-atlas-400 bg-atlas-50/95 px-4 py-1.5 text-[12px] text-field-faint shadow-md">
+          <div className="anim-rise absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-3 rounded-full border border-atlas-400 bg-atlas-50/95 px-4 py-1.5 text-[12px] text-field-faint shadow-md">
             <span>
               <span className="font-medium text-field-ink">{PLACE_MAP[unanswered]?.place}</span> isn't answering
             </span>

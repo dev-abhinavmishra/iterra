@@ -123,11 +123,12 @@ export function Terrain({
               the terrain
             </h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              {PLACES.map((p) => (
+              {PLACES.map((p, i) => (
                 <button
                   key={p.id}
                   onClick={() => onEnter(p.id)}
-                  className="place-card group rounded-xl border border-atlas-300 bg-atlas-50/80 p-5 text-left shadow-[0_1px_0_rgba(34,48,42,0.05)] hover:border-moss-400 hover:shadow-[0_10px_30px_-12px_rgba(29,51,42,0.35)] focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+                  className="anim-card place-card group rounded-xl border border-atlas-300 bg-atlas-50/80 p-5 text-left shadow-[0_1px_0_rgba(34,48,42,0.05)] hover:border-moss-400 hover:shadow-[0_10px_30px_-12px_rgba(29,51,42,0.35)] focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+                  style={{ animationDelay: `${i * 45}ms` }}
                 >
                   <div className="flex items-start justify-between">
                     <span className="block h-9 w-9 text-moss-700 transition-colors group-hover:text-moss-600">
@@ -166,7 +167,7 @@ export function Terrain({
                 .sort((a, b) => a.at - b.at || a.app.localeCompare(b.app));
               if (!lines.length) return null;
               return (
-                <div className="mb-3 rounded-lg border border-moss-300 bg-moss-50/60 p-3.5">
+                <div className="anim-fade mb-3 rounded-lg border border-moss-300 bg-moss-50/60 p-3.5">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-moss-700">
                     the commons
                   </div>
@@ -321,7 +322,7 @@ export function Terrain({
                     const mins = Math.floor(ago / 60000);
                     const when = mins < 1 ? 'now' : mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h`;
                     return (
-                      <li key={`${it.at}-${i}`}>
+                      <li key={`${it.at}-${i}`} className="anim-stir" style={{ animationDelay: `${Math.min(i, 7) * 26}ms` }}>
                         <button
                           onClick={() => (it.url ? onGo(it.url) : onEnter(it.app))}
                           className="flex w-full items-baseline gap-2 text-left text-[13px] text-field-faint hover:text-moss-700 focus:outline-none"

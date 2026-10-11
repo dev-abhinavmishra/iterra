@@ -460,8 +460,9 @@ function deckFingerprint(title, cards) {
   return `${title}|${cards.length}|${h}`;
 }
 
-/** Import a shared-link deck into the library (deduped), select it. */
-function importSharedDeck(title, rawCards) {
+/** Import a shared-link deck into the library (deduped), select it.
+    `course` rides the ?cards= contract so the deck files under the dossier. */
+function importSharedDeck(title, rawCards, course) {
   rawCards = rawCards.filter(c => c && c.q && c.a)
     .map(c => ({ q: diacritics(c.q), a: diacritics(c.a), ex: diacritics(c.ex) }));
   if (!rawCards.length) { toast('That link had no usable cards in it.'); return; }
@@ -472,6 +473,7 @@ function importSharedDeck(title, rawCards) {
     deckFingerprint(d.title, d.cards.map(c => ({ q: c.q, a: c.a }))) === fp);
   if (existing) { selectDeck(existing.id); toast('Deck already in your library'); return; }
   const d = createDeck(title, rawCards.map(c => newCard(c.q, c.a, c.ex)));
+  if (course && typeof course === 'string') d.course = course;
   saveStore();
   selectDeck(d.id);
   feedIt(`imported ${d.title}`, `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`);
@@ -504,6 +506,14 @@ function parseUrlDeck() {
     return true;
   }
   if (deckKey) {
+    /* index entities + shelf pins emit ?deck=<deck-id> — select that deck.
+       Legacy links used ?deck=<localStorage-key holding {title,cards}> —
+       keep that path as fallback when the id isn't a known deck. */
+    if (state.decks[deckKey]) {
+      selectDeck(deckKey);
+      history.replaceState(null, '', location.pathname);
+      return true;
+    }
     try {
       const stored = localStorage.getItem(deckKey);
       if (stored) {
@@ -526,7 +536,8 @@ function parseUrlDeck() {
         return q && a ? { q, a, ex } : null;
       }).filter(Boolean);
       if (cards.length) {
-        importSharedDeck(titleParam ? decodeURIComponent(titleParam) : 'Shared deck', cards);
+        importSharedDeck(titleParam ? decodeURIComponent(titleParam) : 'Shared deck', cards,
+          p.get('course') ? decodeURIComponent(p.get('course')) : undefined);
       }
     } catch { toast('Bad card data in link.'); }
     history.replaceState(null, '', location.pathname);
@@ -563,7 +574,7 @@ function renderLibrary() {
     const d = state.decks[id];
     const s = deckStats(d);
     return `
-      <div class="deck-row ${id === state.currentId ? 'active' : ''}" data-deck="${id}">
+      <div class="deck-row dr-in ${id === state.currentId ? 'active' : ''}" data-deck="${id}" style="animation-delay:${Math.min(ids.indexOf(id), 11) * 22}ms">
         <button class="dr-main">
           <span class="dr-title">${esc(d.title)}</span>
           <span class="dr-meta"><span>${s.total} card${s.total === 1 ? '' : 's'}${s.starred ? ` · ${s.starred}★` : ''}</span><span>${relTime(d.lastStudiedAt)}</span></span>
@@ -724,9 +735,10 @@ function publishIndex() {
   const entities = Object.values(state.decks || {}).slice(0, 50).map(d => ({
     t: 'deck', id: d.id, title: d.title,
     sub: `${d.cards.filter(c => c.status !== 'mastered').length} due`,
+    course: d.course || undefined,
     url: `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`, at: Date.now(),
   }));
-  const j = JSON.stringify(entities.map(e => [e.t, e.id, e.title, e.sub, e.url]));
+  const j = JSON.stringify(entities.map(e => [e.t, e.id, e.title, e.sub, e.course, e.url]));
   if (j === lastIndexJson) return;
   lastIndexJson = j;
   doc.set({ entities });

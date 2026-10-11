@@ -118,14 +118,14 @@ export function Search({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-field-ink/25 pt-[14vh] backdrop-blur-[2px]"
+      className="anim-fade fixed inset-0 z-50 flex items-start justify-center bg-field-ink/25 pt-[14vh] backdrop-blur-[2px]"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Search the terrain"
     >
       <div
-        className="w-full max-w-xl overflow-hidden rounded-xl border border-atlas-300 bg-atlas-50 shadow-[0_24px_60px_-16px_rgba(29,51,42,0.4)]"
+        className="anim-rise w-full max-w-xl overflow-hidden rounded-xl border border-atlas-300 bg-atlas-50 shadow-[0_24px_60px_-16px_rgba(29,51,42,0.4)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5 border-b border-atlas-300 px-4 py-3">
@@ -175,7 +175,7 @@ export function Search({
                 )}
                 <ul>
                   {g.items.map(({ h, i }) => (
-                    <li key={`${h.app}-${h.url}-${i}`}>
+                    <li key={`${h.app}-${h.url}-${i}`} className="anim-stir" style={{ animationDelay: `${Math.min(i, 9) * 14}ms` }}>
                       <button
                         onMouseEnter={() => setSel(i)}
                         onClick={() => { onGo(h.url); onClose(); }}
