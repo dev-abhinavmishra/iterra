@@ -179,6 +179,19 @@ Rules: publish on mount + whenever the underlying state changes (not on a
 timer — presence already heartbeats). Read defensively (`at` freshness,
 `by` provenance, missing fields). Never read your own writes for authority.
 
+### Reading the mesh (app-side APIs)
+
+| API | Returns |
+|---|---|
+| `iterra.index('<app>')` | that app's entity array (or `[]`) |
+| `iterra.indexes()` | `{ <app>: Entity[] }` for every publisher |
+| `iterra.onIndex(cb)` | unsubscribe fn — fires on sibling index writes (storage events) |
+| `iterra.presence(name?)` / `iterra.onPresence(cb)` | live `{app,title,summary,at,framed,stale}` entries |
+| `iterra.doc('shared').subscribe(cb)` | fires on any commons write, same-window or sibling |
+
+Use `iterra.index*`/`iterra.presence` rather than reading `iterra.v1.*` keys
+directly — the doc naming is an implementation detail.
+
 ## 8. Dev topology
 
 Shell dev proxy maps `/apps/<name>` → `localhost:<port>`:

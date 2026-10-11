@@ -225,6 +225,39 @@
     return function () { window.removeEventListener('storage', h); };
   }
 
+  /* Entity indexes — index.<app> docs under the same namespace; apps read
+     siblings without knowing the key convention (§7). */
+  var INDEX_PREFIX = DOC_PREFIX + 'index.';
+  function readIndex(name) {
+    var key = INDEX_PREFIX + name;
+    try {
+      var d = JSON.parse(localStorage.getItem(key) || 'null');
+      return (d && Array.isArray(d.entities)) ? d.entities : [];
+    } catch (e) { return []; }
+  }
+  function readIndexes() {
+    var out = {};
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && k.indexOf(INDEX_PREFIX) === 0) {
+          var name = k.slice(INDEX_PREFIX.length);
+          if (/^[a-z]+$/.test(name)) out[name] = readIndex(name);
+        }
+      }
+    } catch (e) {}
+    return out;
+  }
+
+  function onIndex(cb) {
+    var h = function (ev) {
+      if (!ev.key || ev.key.indexOf(INDEX_PREFIX) !== 0) return;
+      try { cb(readIndexes()); } catch (e) {}
+    };
+    window.addEventListener('storage', h);
+    return function () { window.removeEventListener('storage', h); };
+  }
+
   window.iterra = {
     register: register,
     open: open,
@@ -235,6 +268,9 @@
     presence: presence,
     onPresence: onPresence,
     feed: feed,
+    index: readIndex,
+    indexes: readIndexes,
+    onIndex: onIndex,
     apps: readApps,
     isFramed: function () { return framed; },
   };
