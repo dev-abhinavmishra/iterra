@@ -74,33 +74,21 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     });
   }, [running, isBreak, label, intent, syllabus, endsInMin]);
 
-  /* commons read: shared.today — when this session came in with a block
-     context, show the block title from syllabus's plan (WIRING §7) */
+  /* commons read: index.syllabus — when this session came in bound to a
+     block, resolve the block's real title from the folio's entity index
+     (WIRING §7 — the index is where per-entity lookups live) */
   const [blockTitle, setBlockTitle] = useState<string | null>(null);
   useEffect(() => {
     const blockId = syllabus?.block;
     if (!blockId) { setBlockTitle(null); return; }
-    const doc = (window as any).iterra?.doc?.('shared');
-    if (!doc) return;
-    const read = (v: any) => {
-      const e = v?.today;
-      let title: string | null = null;
-      if (e && e.by === 'syllabus' && e.v && Number.isFinite(e.at) && Date.now() - e.at < 12 * 60 * 60 * 1000) {
-        const slips = Array.isArray(e.v.slips) ? e.v.slips : [];
-        for (const s of slips) {
-          if (!s || typeof s !== 'object') continue;
-          if (s.id === blockId) { title = s.title ?? s.label ?? null; break; }
-          const blocks = Array.isArray(s.blocks) ? s.blocks : [];
-          const hit = blocks.find((b: any) => b && b.id === blockId);
-          if (hit) { title = hit.label ?? hit.title ?? s.title ?? s.label ?? null; break; }
-        }
-        const next = e.v.next;
-        if (!title && next && (next.id === blockId || next.blockId === blockId)) title = next.title ?? next.label ?? null;
-      }
-      setBlockTitle(title);
+    const iterra = (window as any).iterra;
+    const read = () => {
+      const ents: any[] = iterra?.index?.('syllabus') ?? [];
+      const hit = ents.find((e) => e && e.id === blockId);
+      setBlockTitle(hit?.title ?? null);
     };
-    read(doc.get());
-    return doc.subscribe(read);
+    read();
+    return iterra?.onIndex?.(read);
   }, [syllabus]);
 
   /* ---------- preset plumbing + inbound Syllabus deep link ----------
