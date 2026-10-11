@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PLACE_MAP } from './places';
 import type { Entity } from './hub';
+import { subscribeShelf, type ShelfPin } from './shelf';
 
 interface Hit {
   app: string;
@@ -26,6 +27,18 @@ export function Search({
 }) {
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
+  const [pins, setPins] = useState<ShelfPin[]>([]);
+  useEffect(() => subscribeShelf(setPins), []);
+  const pinned = useMemo(() => {
+    const s = new Set<string>();
+    for (const p of pins) {
+      s.add(p.url);
+      // '/apps/x' bare and '#/p/x' are the same destination — match either
+      const m = p.url.match(/^\/apps\/([a-z]+)\/?$/);
+      if (m) s.add(`#/p/${m[1]}`);
+    }
+    return s;
+  }, [pins]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -177,6 +190,9 @@ export function Search({
                           <span className="block truncate text-[13.5px] text-field-ink">{h.label}</span>
                           {h.sub && <span className="block truncate text-[11px] text-atlas-500">{h.sub}</span>}
                         </span>
+                        {pinned.has(h.url) && (
+                          <span className="shrink-0 text-[11px] text-moss-700" title="on the shelf">◈</span>
+                        )}
                         <span className="text-[11px] text-atlas-500">{i === sel ? '↵' : '→'}</span>
                       </button>
                     </li>
