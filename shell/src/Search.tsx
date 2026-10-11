@@ -8,6 +8,7 @@ interface Hit {
   sub: string;
   url: string;
   kind: 'entity' | 'place';
+  key?: string;
 }
 
 /* unified palette — every app's published index + the places themselves.
@@ -54,6 +55,7 @@ export function Search({
           label: e.title,
           sub: [e.t, e.sub, e.course, e.topic].filter(Boolean).join(' · '),
           url: e.url || `#/p/${app}`,
+          key: e.course || e.topic || undefined,
         });
       }
     }
@@ -75,6 +77,28 @@ export function Search({
       .slice(0, 30)
       .map((x) => x.h);
   }, [q, indexes]);
+
+  /* browse mode (no query): group entities under their course/topic so one
+     class's blocks, decks, notes and sessions read as one dossier */
+  const groups = useMemo<{ header: string | null; items: { h: Hit; i: number }[] }[]>(() => {
+    if (q.trim()) return [{ header: null, items: hits.map((h, i) => ({ h, i })) }];
+    const places = hits.filter((h) => h.kind === 'place');
+    const byKey = new Map<string, { label: string; items: { h: Hit; i: number }[] }>();
+    const loose: { h: Hit; i: number }[] = [];
+    hits.forEach((h, i) => {
+      if (h.kind === 'place') return;
+      const key = (h.key || '').toLowerCase();
+      if (!key) { loose.push({ h, i }); return; }
+      if (!byKey.has(key)) byKey.set(key, { label: h.key!, items: [] });
+      byKey.get(key)!.items.push({ h, i });
+    });
+    const out: { header: string | null; items: { h: Hit; i: number }[] }[] = [
+      { header: null, items: places.map((h) => ({ h, i: hits.indexOf(h) })) },
+    ];
+    for (const g of byKey.values()) out.push({ header: g.label, items: g.items });
+    if (loose.length) out.push({ header: 'elsewhere', items: loose });
+    return out;
+  }, [hits, q]);
 
   useEffect(() => setSel(0), [hits.length]);
 
@@ -120,24 +144,35 @@ export function Search({
         </div>
         <ul className="max-h-[52vh] overflow-y-auto py-1.5">
           {hits.length ? (
-            hits.map((h, i) => (
-              <li key={`${h.app}-${h.url}-${i}`}>
-                <button
-                  onMouseEnter={() => setSel(i)}
-                  onClick={() => { onGo(h.url); onClose(); }}
-                  className={`flex w-full items-center gap-3 px-4 py-2 text-left ${
-                    i === sel ? 'bg-moss-50' : ''
-                  }`}
-                >
-                  <span className="w-20 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-moss-700">
-                    {PLACE_MAP[h.app]?.app || h.app}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13.5px] text-field-ink">{h.label}</span>
-                    {h.sub && <span className="block truncate text-[11px] text-atlas-500">{h.sub}</span>}
-                  </span>
-                  <span className="text-[11px] text-atlas-500">{i === sel ? '↵' : '→'}</span>
-                </button>
+            groups.map((g, gi) => (
+              <li key={g.header ?? `g${gi}`}>
+                {g.header && (
+                  <div className="px-4 pb-0.5 pt-2.5 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+                    {g.header}
+                  </div>
+                )}
+                <ul>
+                  {g.items.map(({ h, i }) => (
+                    <li key={`${h.app}-${h.url}-${i}`}>
+                      <button
+                        onMouseEnter={() => setSel(i)}
+                        onClick={() => { onGo(h.url); onClose(); }}
+                        className={`flex w-full items-center gap-3 px-4 py-2 text-left ${
+                          i === sel ? 'bg-moss-50' : ''
+                        }`}
+                      >
+                        <span className="w-20 shrink-0 text-[10px] font-semibold uppercase tracking-[0.12em] text-moss-700">
+                          {PLACE_MAP[h.app]?.app || h.app}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[13.5px] text-field-ink">{h.label}</span>
+                          {h.sub && <span className="block truncate text-[11px] text-atlas-500">{h.sub}</span>}
+                        </span>
+                        <span className="text-[11px] text-atlas-500">{i === sel ? '↵' : '→'}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))
           ) : (

@@ -210,9 +210,31 @@
     var cur;
     try { cur = JSON.parse(localStorage.getItem(FEED_KEY) || 'null'); } catch (e) { cur = null; }
     if (!cur || !Array.isArray(cur.items)) cur = { items: [] };
-    cur.items.unshift({ app: me || '?', text: String(item.text || ''), url: item.url || undefined, at: Date.now() });
+    /* dedupe: several mounted frames of the same app rehydrating from the
+       same store would otherwise each emit the same new event */
+    var text = String(item.text || '');
+    var now = Date.now();
+    for (var i = 0; i < Math.min(cur.items.length, 5); i++) {
+      var it0 = cur.items[i];
+      if (it0 && it0.app === (me || '?') && it0.text === text && now - it0.at < 2000) return;
+    }
+    cur.items.unshift({ app: me || '?', text: text, url: item.url || undefined, at: now });
     cur.items = cur.items.slice(0, 30);
     try { localStorage.setItem(FEED_KEY, JSON.stringify(cur)); } catch (e) {}
+  }
+  function readFeedItems() {
+    try {
+      var d = JSON.parse(localStorage.getItem(FEED_KEY) || 'null');
+      return (d && Array.isArray(d.items)) ? d.items : [];
+    } catch (e) { return []; }
+  }
+  function onFeed(cb) {
+    var h = function (ev) {
+      if (ev.key !== FEED_KEY) return;
+      try { cb(readFeedItems()); } catch (e) {}
+    };
+    window.addEventListener('storage', h);
+    return function () { window.removeEventListener('storage', h); };
   }
 
   /* Subscribe to sibling presence changes (storage-event driven). */
@@ -268,6 +290,8 @@
     presence: presence,
     onPresence: onPresence,
     feed: feed,
+    feedItems: readFeedItems,
+    onFeed: onFeed,
     index: readIndex,
     indexes: readIndexes,
     onIndex: onIndex,
