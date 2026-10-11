@@ -3,7 +3,7 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of cfda7c6)
+## State of the terrain (as of ca9d098)
 
 - Branch `devin/iterra-env`, PR #1 open (not merged — Abhinav decides).
 - All 8 apps vendored under `apps/<name>` + wired: build-time base, hub script
@@ -26,10 +26,16 @@ contract every app and the shell follows.
   APIs: register/open/openApp/selfBase/interceptNav/doc/presence/onPresence/
   feed/feedItems/onFeed/index/indexes/onIndex/apps/isFramed.
 - `shell/src/` — App.tsx (hash routes `#/` `#/p/<id>` `#/c/<course>`, frames
-  keep-alive map, iterra:open/hello handlers, watchdog, ⌘ keys, switcher),
-  Terrain.tsx (commons strip, desks chips, next-up/in-session, stirrings),
-  Search.tsx (palette + course groups), Dossier.tsx, hub.ts (LS subscribers).
+  keep-alive map, iterra:open/hello handlers incl. `#/` route pass-through,
+  watchdog, ⌘ keys, switcher), Terrain.tsx (commons strip, shelf, desks chips,
+  next-up/in-session, stirrings), Search.tsx (palette + course groups),
+  Dossier.tsx (course pages w/ per-row pins), shelf.ts (pins, `iterra.v1.shelf`),
+  hub.ts (LS subscribers).
 - Commons `iterra.doc('shared')` fields — see WIRING §7 table.
+- Terrain surfaces: commons rail, shelf pins (◇ on dossier rows), desks chips,
+  dossiers `#/c/<key>`, next-up→bound timer, in-session card, stirrings feed,
+  ⌘K palette w/ course groups, switcher "in this place"/"linked across" +
+  dossier buttons, ⌘1–8/⌘0 keys.
 
 ## Traps already hit (don't re-step)
 
@@ -48,11 +54,23 @@ contract every app and the shell follows.
 - `shared.focus` freshness is 3min (per-minute heartbeats while running);
   generic commons fields are 10min live / 1h dead.
 - feed() dedupes {app,text} within 2s (multi-frame rehydration guard).
+- `iterra.open('#/c/…')` / `'#/p/…'` pass straight to the shell — apps can
+  route to terrain surfaces; don't rebase hash routes through URL parsing.
+- Block-title resolution: `index.syllabus` entities are keyed by BLOCK id
+  (8bf947a) — the space `?block=`/`completedBlock=` bindings reference.
+  Commitment entities remain for coverage but share `t:'block'`.
+- innerText reflects CSS text-transform — asserting 'on the shelf' lower-case
+  against an uppercase-styled header is a false negative; match a link's
+  visible label instead.
+- `page.goto('#/…')` hash-only navigations don't reload/remount — drive
+  `location.hash` in-page when verifying SPA routes.
 
 ## Open threads
 
-- proof child's 18-file diff pending (timer stale-closure fix landed there;
-  re-verify on new head).
-- syllabus `?block=` intake — dossier/palette can't deep-link a specific
-  work slip yet.
+- syllabus `?block=` intake — block entities now carry the right ids; the
+  intake (open/highlight that slip) is queued on the syllabus child.
+- Dossier deep-link polish: syllabus entity urls may carry `?block=<id>` once
+  intake lands (entities currently url `/apps/syllabus/`).
+- ink wikilink mesh fallback ([[title]] → index lookup → '#/c/') — queued on
+  the rhythm child.
 - rhythm is vendored mid-development — re-sync when upstream lands.
