@@ -11,7 +11,7 @@ import { routineWeek } from '../lib/register';
 import { addDaysISO, diffDaysISO, fmtDay, todayISO, weekStartISO } from '../lib/dates';
 import { Field } from '../components/Field';
 import { Sheet } from '../components/Sheet';
-import { WStamp } from '../components/WStamp';
+import { Lamp } from '../components/Lamp';
 
 export function ExperimentsView() {
   const s = useRegister();
@@ -28,7 +28,7 @@ export function ExperimentsView() {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="kicker mb-1">Experiments</div>
-          <h1 className="datestamp text-2xl">Test one change at a time</h1>
+          <h1 className="disp text-2xl">Test one change at a time</h1>
           <p className="mt-1 max-w-lg text-[12.5px] leading-snug text-ink-soft">
             An experiment changes one thing, for a fixed window, then reports back. It is a pencil
             note in the margin — the routine's record is untouched.
@@ -41,7 +41,7 @@ export function ExperimentsView() {
 
       {experiments.length === 0 && (
         <div className="py-10 text-center">
-          <p className="datestamp text-lg text-ink-soft">No experiments on file.</p>
+          <p className="disp text-lg text-ink-soft">No experiments on file.</p>
           <p className="mt-1 text-sm text-ink-faint">
             When a routine feels off, test a change for two weeks instead of guessing.
           </p>
@@ -69,9 +69,9 @@ export function ExperimentsView() {
           <div className="kicker mb-2">Filed</div>
           <div className="border-y border-rule">
             {finished.map((e) => (
-              <div key={e.id} className="lrow px-2 py-2.5">
+              <div key={e.id} className="chan px-2 py-2.5">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="datestamp text-[14px]">{s.routines[e.routineId]?.name ?? 'archived routine'}</span>
+                  <span className="disp text-[14px]">{s.routines[e.routineId]?.name ?? 'archived routine'}</span>
                   <span className="mono text-[10px] uppercase text-ink-faint">
                     {fmtDay(e.startDate)} – {fmtDay(e.endDate)} · {e.status}
                   </span>
@@ -158,12 +158,12 @@ function ExperimentCard({ experiment: e, onResolve }: { experiment: Experiment; 
   const overdue = daysLeft < 0;
 
   return (
-    <div className="slip mb-3 p-4">
+    <div className="panel mb-3 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="datestamp text-[15px]">{routine?.name ?? 'archived routine'}</span>
-            <WStamp band="experimenting" />
+            <span className="disp text-[15px]">{routine?.name ?? 'archived routine'}</span>
+            <Lamp band="experimenting" />
           </div>
           <p className="mt-1 max-w-md text-[12.5px] italic text-ink-soft">"{e.hypothesis}"</p>
           <p className="text-[12px] text-ink-soft">testing: {e.change}</p>

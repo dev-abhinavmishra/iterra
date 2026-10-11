@@ -1,7 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 
-/** A register slip drawn up over the leaf — the app's only modal. */
+/** A register panel drawn up over the deck — the app's only modal. */
 export function Sheet({
   title,
   onClose,
@@ -41,15 +41,15 @@ export function Sheet({
       <div className="sheet-modal" role="dialog" aria-modal="true" aria-label={title}>
         <div
           ref={ref}
-          className="slip slip--in w-full p-5"
+          className="panel panel--in w-full p-5"
           style={{ maxWidth: wide ? 620 : 440, maxHeight: '88vh', overflowY: 'auto' }}
         >
           <div className="mb-4 flex items-start justify-between gap-4">
-            <h2 className="datestamp text-lg" style={{ color: 'var(--color-ink)' }}>{title}</h2>
+            <h2 className="disp text-lg" style={{ color: 'var(--color-ink)' }}>{title}</h2>
             <button
               onClick={onClose}
               aria-label="Close"
-              className="rounded p-1 text-ink-soft hover:bg-black/5 hover:text-ink"
+              className="rounded p-1 text-ink-soft hover:bg-white/5 hover:text-ink"
             >
               <X size={16} />
             </button>

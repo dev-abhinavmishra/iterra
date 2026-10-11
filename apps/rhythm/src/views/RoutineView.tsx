@@ -19,8 +19,9 @@ import {
   weekStartISO,
 } from '../lib/dates';
 import { cx, EXCEPTION_LABEL, FRICTION_LABEL, WEEKDAY_NAMES } from '../lib/utils';
-import { Mark } from '../components/Mark';
-import { WStamp } from '../components/WStamp';
+import { usePlayhead } from '../lib/playhead';
+import { Pad } from '../components/Pad';
+import { Lamp } from '../components/Lamp';
 import { Sheet } from '../components/Sheet';
 import { Field } from '../components/Field';
 import { evidenceUrl } from '../lib/links';
@@ -39,10 +40,11 @@ export function RoutineView({ routineId }: { routineId: string }) {
   );
 
   if (!r) {
-    return <p className="py-10 text-center text-ink-faint">That routine is no longer in the register.</p>;
+    return <p className="py-10 text-center text-ink-faint">That channel is no longer patched in.</p>;
   }
 
   const weekDates = Array.from({ length: 7 }, (_, i) => addDaysISO(weekStartISO(today, s.settings.weekStartsOn), i));
+  const play = usePlayhead(s.settings.motion === 'full');
   const myEntries = Object.values(s.entries)
     .filter((e) => e.routineId === r.id)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -80,8 +82,8 @@ export function RoutineView({ routineId }: { routineId: string }) {
         <div>
           <div className="kicker mb-1">Routine detail — since {fmtDay(dateOfInstant(r.createdAt))}</div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="datestamp text-2xl">{r.name}</h1>
-            {band && <WStamp band={band.band} />}
+            <h1 className="disp text-2xl">{r.name}</h1>
+            {band && <Lamp band={band.band} />}
           </div>
           {band && <p className="mt-1 max-w-md text-[12px] text-ink-soft">{BAND_NOTE[band.band]}</p>}
         </div>
@@ -108,7 +110,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
             <button
               className="btn btn--danger"
               onClick={() => {
-                if (window.confirm(`Archive "${r.name}"? Its history stays in the register but it leaves Today.`)) {
+                if (window.confirm(`Archive "${r.name}"? Its history stays on the tape but it leaves Today.`)) {
                   s.archiveRoutine(r.id);
                 }
               }}
@@ -121,8 +123,8 @@ export function RoutineView({ routineId }: { routineId: string }) {
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* ── Target card ─────────────────────────────────────────── */}
-        <section className="slip p-4" aria-label="target">
-          <div className="kicker mb-2">The bar</div>
+        <section className="panel p-4" aria-label="target">
+          <div className="kicker mb-2">The part</div>
           <dl className="space-y-1.5 text-[13px]">
             <Row k="Measures">
               {r.measure === 'check' ? 'showing up' : r.measure}
@@ -157,15 +159,15 @@ export function RoutineView({ routineId }: { routineId: string }) {
           </dl>
         </section>
 
-        {/* ── This week + history stats ───────────────────────────── */}
-        <section className="slip p-4" aria-label="record">
-          <div className="kicker mb-2">This week</div>
+        {/* ── This measure + history stats ────────────────────────── */}
+        <section className="panel p-4" aria-label="record">
+          <div className="kicker mb-2">This measure</div>
           <div className="mb-3 grid grid-cols-7 gap-1">
-            {weekDates.map((d) => {
+            {weekDates.map((d, i) => {
               const state = dayState(r, d, s.entries, s.exceptions, today);
               return (
-                <div key={d} className="flex flex-col items-center gap-0.5">
-                  <Mark state={state} accent={r.accent} size={24} title={`${fmtDayFull(d)} — ${state}`} />
+                <div key={d} className={cx('flex flex-col items-center gap-0.5 rounded-[3px] py-0.5', i === play && 'step--play', d === today && 'step--now')}>
+                  <Pad state={state} accent={r.accent} size={24} title={`${fmtDayFull(d)} — ${state}`} />
                   <span className="mono text-[8.5px] uppercase text-ink-faint">{fmtDay(d)}</span>
                 </div>
               );
@@ -180,7 +182,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
         </section>
 
         {/* ── Friction — the recurring barriers ───────────────────── */}
-        <section className="slip p-4" aria-label="friction">
+        <section className="panel p-4" aria-label="friction">
           <div className="kicker mb-2">Common friction</div>
           {topFriction.length === 0 ? (
             <p className="text-[12.5px] text-ink-faint">
@@ -190,7 +192,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
           ) : (
             <>
               {topFriction.map(([kind, n]) => (
-                <div key={kind} className="lrow flex items-center justify-between py-1.5 text-[13px]">
+                <div key={kind} className="chan flex items-center justify-between py-1.5 text-[13px]">
                   <span>{FRICTION_LABEL[kind] ?? kind}</span>
                   <span className="mono text-[11px] text-ink-soft">×{n}</span>
                 </div>
@@ -205,17 +207,17 @@ export function RoutineView({ routineId }: { routineId: string }) {
         </section>
 
         {/* ── Connections + exceptions ────────────────────────────── */}
-        <section className="slip p-4" aria-label="connections">
+        <section className="panel p-4" aria-label="connections">
           <div className="kicker mb-2">Connected events</div>
           {myMappings.length === 0 ? (
             <p className="text-[12.5px] text-ink-faint">
-              No event mappings. Connect suite events from the Connections tab — a finished Timer
-              session can stamp this line itself.
+              No routings yet. Wire suite signals from the Signal-in tab — a finished Timer session
+              can hit this channel itself.
             </p>
           ) : (
             <>
               {myMappings.map((m) => (
-                <div key={m.id} className="lrow flex items-center justify-between py-1.5 text-[12.5px]">
+                <div key={m.id} className="chan flex items-center justify-between py-1.5 text-[12.5px]">
                   <span className="mono text-[11.5px]">{m.eventType}</span>
                   <span className="mono text-[10px] uppercase text-ink-faint">
                     {m.valueRule}
@@ -229,7 +231,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
                   {myEvents.map((ev) => {
                     const url = evidenceUrl(ev, s.settings);
                     return (
-                      <div key={ev.id} className="lrow flex items-center justify-between py-1 text-[12px]">
+                      <div key={ev.id} className="chan flex items-center justify-between py-1 text-[12px]">
                         <span className="mono text-[11px]">{fmtDay(dateOfInstant(ev.occurredAt))}</span>
                         {url ? (
                           <a className="mono text-[11px] text-indigo underline" href={url} target="_blank" rel="noreferrer">
@@ -250,7 +252,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
             <div className="mt-4">
               <div className="kicker mb-1">Exceptions on record</div>
               {myExceptions.slice(0, 6).map((e) => (
-                <div key={e.id} className="lrow flex items-center justify-between py-1 text-[12px]">
+                <div key={e.id} className="chan flex items-center justify-between py-1 text-[12px]">
                   <span className="mono text-[11px]">{fmtDay(e.date)}</span>
                   <span className="flex items-center gap-2">
                     <span className="text-ink-soft">
@@ -261,7 +263,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
                       className="mono text-[10px] uppercase text-ink-faint underline"
                       onClick={() => s.removeException(e.id)}
                     >
-                      strike
+                      cut
                     </button>
                   </span>
                 </div>
@@ -271,18 +273,18 @@ export function RoutineView({ routineId }: { routineId: string }) {
         </section>
       </div>
 
-      {/* ── Entry ledger — every line stays ──────────────────────── */}
-      <section className="mt-6" aria-label="entry ledger">
-        <div className="kicker mb-2">The ledger — every line stays</div>
+      {/* ── The tape — every hit stays ───────────────────────────── */}
+      <section className="mt-6" aria-label="the tape">
+        <div className="kicker mb-2">The tape — every hit stays</div>
         <div className="border-y border-rule">
           {myEntries.length === 0 && (
-            <p className="py-4 text-[12.5px] text-ink-faint">Nothing logged yet. Today is a fine first line.</p>
+            <p className="py-4 text-[12.5px] text-ink-faint">Nothing recorded yet. Today is a fine first hit.</p>
           )}
           {myEntries.slice(0, 30).map((e) => (
             <EntryRow key={e.id} entry={e} routine={r} onRemove={() => s.removeEntry(e.id)} />
           ))}
           {myEntries.length > 30 && (
-            <p className="py-2 mono text-[10px] text-ink-faint">…{myEntries.length - 30} earlier lines kept in the register</p>
+            <p className="py-2 mono text-[10px] text-ink-faint">…{myEntries.length - 30} earlier hits kept on the tape</p>
           )}
         </div>
       </section>
@@ -300,8 +302,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
             }}
           >
             <p className="text-[12px] leading-snug text-ink-soft">
-              Pausing suspends judgment, not history. The register notes the pause; every earlier
-              mark stays.
+              Muting a channel suspends judgment, not history. Every earlier hit stays on the tape.
             </p>
             <Field label="Why pause (optional, private)">
               <input
@@ -316,7 +317,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
                 Cancel
               </button>
               <button type="submit" className="btn btn--primary">
-                Pause routine
+                Mute channel
               </button>
             </div>
           </form>
@@ -337,8 +338,8 @@ function Row({ k, children }: { k: string; children: React.ReactNode }) {
 
 function EntryRow({ entry: e, routine, onRemove }: { entry: Entry; routine: Routine; onRemove: () => void }) {
   return (
-    <div className="lrow flex items-center gap-3 px-2 py-1.5">
-      <Mark state={e.isMinimum ? 'minimum' : 'full'} accent={routine.accent} size={20} />
+    <div className="chan flex items-center gap-3 px-2 py-1.5">
+      <Pad state={e.isMinimum ? 'minimum' : 'full'} accent={routine.accent} size={20} />
       <span className="mono text-[11px]">{fmtDayFull(e.date)}</span>
       <span className="mono flex-1 text-[11.5px] text-ink-soft">
         {routine.measure === 'check' ? (e.isMinimum ? 'minimum' : 'showed up') : `${e.value} ${routine.measure === 'duration' ? 'min' : routine.unit || ''}`}
@@ -346,8 +347,8 @@ function EntryRow({ entry: e, routine, onRemove }: { entry: Entry; routine: Rout
       </span>
       {e.note && <span className="max-w-40 truncate text-[11px] italic text-ink-faint">{e.note}</span>}
       <span className="mono text-[9.5px] uppercase text-ink-faint">{e.source}</span>
-      <button className="mono text-[10px] uppercase text-ink-faint underline" onClick={onRemove} title="strike this line">
-        strike
+      <button className="mono text-[10px] uppercase text-ink-faint underline" onClick={onRemove} title="cut this hit from the tape">
+        cut
       </button>
     </div>
   );
@@ -457,7 +458,7 @@ export function EditSheet({ routine, onClose }: { routine: Routine; onClose: () 
           </div>
         </Field>
 
-        <Field label="Ink">
+        <Field label="Channel LED">
           <div className="flex flex-wrap gap-1.5">
             {ACCENTS.map((a) => (
               <button

@@ -2,100 +2,118 @@
 
 @theme {
   /* ── Typography ──────────────────────────────────────────────
-     Source Sans 3 — humanist sans, everyday reading + controls
-     Zilla Slab    — slab numerals for dates, the date-stamp voice
-     IBM Plex Mono — precise totals, codes, timestamps           */
-  --font-ui: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
-  --font-slab: 'Zilla Slab', 'Iowan Old Style', Georgia, serif;
+     Space Grotesk — the machine's silkscreen / display face
+     IBM Plex Mono — engraved labels, LCD readouts, timing
+     Source Sans 3 — humanist sans for readable body text        */
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+  --font-ui: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
 
-  /* ── The cover + the stock ───────────────────────────────────
-     A cloth-bound attendance register on a dark desk. The cover is
-     charcoal cloth with a woven crosshatch; the leaves are cream
-     ledger paper. Indigo is the registrar's ink.                 */
-  --color-cover: #232019;
-  --color-cover-deep: #1a1812;
-  --color-cover-edge: #14120d;
-  --color-stock: #f1ebd7;
-  --color-stock-dim: #e8e1c8;
-  --color-leaf: #f6f1df; /* the open register leaf — brightest paper */
-  --color-form: #faf6e9;
-  --color-ink: #2e2b23;
-  --color-ink-soft: #665f4e;
-  --color-ink-faint: #968d74;
-  --color-rule: #d6cdb0;
-  --color-rule-dark: #b1a783;
+  /* ── The unit — a desktop step-sequencer chassis ─────────────
+     Dark graphite hardware on a darker desk. The faceplate is a
+     raised deck of brushed metal; signal amber is the machine's
+     live color; every routine channel gets its own LED hue.     */
+  --color-chassis: #15140f; /* the unit's body — deepest surface */
+  --color-chassis-deep: #0f0e0a;
+  --color-deck: #201f18; /* the faceplate everything mounts on */
+  --color-panel: #26251d; /* raised sub-panel on the deck */
+  --color-recess: #161510; /* recessed screens, tracks, wells */
+  --color-ink: #ede8d6; /* engraved print */
+  --color-ink-soft: #a8a28a;
+  --color-ink-faint: #6f6956;
+  --color-rule: #353226;
+  --color-rule-dark: #4a4533;
 
-  --color-indigo: #46527a; /* registrar's ink */
-  --color-indigo-deep: #36415f;
-  --color-amber: #8a6420; /* recovery — caution, not alarm */
-  --color-ok: #44603f;
+  --color-indigo: #f0a032; /* signal amber — the machine's live color */
+  --color-indigo-deep: #c67e20;
+  --color-amber: #e0b04a; /* caution lamp — recovery, not alarm */
+  --color-ok: #8fce6a;
+  --color-bad: #f0553f;
+  --color-lcd-bg: #121a08;
+  --color-lcd-fg: #cfe382;
 
   /* alpha triplets */
-  --ink-rgb: 46 43 35;
-  --stock-rgb: 241 235 215;
-  --indigo-rgb: 70 82 122;
-  --amber-rgb: 138 100 32;
-  --ok-rgb: 68 96 63;
-  --cover-rgb: 35 32 25;
+  --ink-rgb: 237 232 214;
+  --stock-rgb: 32 31 24;
+  --indigo-rgb: 240 160 50;
+  --amber-rgb: 224 176 74;
+  --ok-rgb: 143 206 106;
+  --bad-rgb: 240 85 63;
+  --lcd-rgb: 207 227 130;
+  --cover-rgb: 21 20 15;
 
-  /* ── Routine accents — stamped-ink palette, muted by law ────── */
-  --color-acc-indigo: #46527a;
-  --color-acc-oxblood: #84463c;
-  --color-acc-hunter: #4b6142;
-  --color-acc-ochre: #a07830;
-  --color-acc-plum: #6b4a66;
-  --color-acc-teal: #3f6864;
-  --color-acc-slate: #5a6272;
-  --color-acc-rust: #96562e;
+  /* ── Channel accents — LED hues, one per routine ──────────────
+     Names are stored on routines; values are lit-LED tuned.      */
+  --color-acc-indigo: #6ea0ff;
+  --color-acc-oxblood: #ff5a42;
+  --color-acc-hunter: #86d05a;
+  --color-acc-ochre: #ffab3d;
+  --color-acc-plum: #e06fc4;
+  --color-acc-teal: #45d6b8;
+  --color-acc-slate: #cfd8ea;
+  --color-acc-rust: #ff7c30;
 
-  --acc-indigo-rgb: 70 82 122;
-  --acc-oxblood-rgb: 132 70 60;
-  --acc-hunter-rgb: 75 97 66;
-  --acc-ochre-rgb: 160 120 48;
-  --acc-plum-rgb: 107 74 102;
-  --acc-teal-rgb: 63 104 100;
-  --acc-slate-rgb: 90 98 114;
-  --acc-rust-rgb: 150 86 46;
+  --acc-indigo-rgb: 110 160 255;
+  --acc-oxblood-rgb: 255 90 66;
+  --acc-hunter-rgb: 134 208 90;
+  --acc-ochre-rgb: 255 171 61;
+  --acc-plum-rgb: 224 111 196;
+  --acc-teal-rgb: 69 214 184;
+  --acc-slate-rgb: 207 216 234;
+  --acc-rust-rgb: 255 124 48;
 
-  --shadow-leaf: 0 1px 0 rgb(255 255 255 / 0.3) inset, 0 12px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
-  --shadow-slip: 0 1px 2px rgb(0 0 0 / 0.16), 0 6px 14px rgb(0 0 0 / 0.13);
-  --shadow-stamp: 0 1px 1px rgb(0 0 0 / 0.18);
+  --shadow-deck: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 18px 44px rgb(0 0 0 / 0.55), 0 3px 8px rgb(0 0 0 / 0.4);
+  --shadow-panel: 0 1px 0 rgb(255 255 255 / 0.045) inset, 0 2px 6px rgb(0 0 0 / 0.4);
+  --shadow-key: 0 2px 0 #0d0c08, 0 3px 7px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.07);
 
-  /* ── Motion — restrained, material, once ──────────────────────
-     A stamp compresses once when pressed; week pages slide like a
-     register leaf turning. Nothing loops, nothing bounces twice. */
-  --animate-stamp-press: stamp-press 0.34s cubic-bezier(0.3, 1.5, 0.5, 1) both;
-  --animate-page-turn: page-turn 0.32s cubic-bezier(0.25, 0.8, 0.3, 1) both;
-  --animate-sheet-in: sheet-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) both;
-  --animate-row-in: row-in 0.22s ease both;
-  --animate-receipt-in: receipt-in 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  /* ── Motion — a machine, not a page ───────────────────────────
+     A pad depresses and its LED blooms; the playhead sweeps the
+     measure; switching weeks swaps the pattern. Motion is the
+     machine running — nothing decorative for its own sake.      */
+  --animate-pad-hit: pad-hit 0.4s cubic-bezier(0.25, 1.4, 0.4, 1) both;
+  --animate-page-turn: measure-in 0.34s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+  --animate-sheet-in: panel-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-row-in: row-in 0.24s ease both;
+  --animate-receipt-in: card-in 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
 
-  /* the stamp lands squashed, rebounds a hair, settles flat */
-  @keyframes stamp-press {
-    0% { transform: scale(1.35, 0.7) rotate(var(--stamp-rot, -2deg)); opacity: 0; }
-    55% { transform: scale(0.94, 1.05) rotate(var(--stamp-rot, -2deg)); opacity: 1; }
-    80% { transform: scale(1.02, 0.98) rotate(var(--stamp-rot, -2deg)); }
-    100% { transform: scale(1) rotate(var(--stamp-rot, -2deg)); opacity: 1; }
+  /* the pad drops, the LED flares hot, then settles to steady lit */
+  @keyframes pad-hit {
+    0% { transform: scale(1.3, 0.72); opacity: 0.4; filter: brightness(2.4) drop-shadow(0 0 10px rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.9)); }
+    45% { transform: scale(0.92, 1.06); opacity: 1; filter: brightness(1.7) drop-shadow(0 0 7px rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.7)); }
+    100% { transform: scale(1); opacity: 1; filter: brightness(1) drop-shadow(0 0 4px rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.45)); }
   }
-  /* a register leaf turns — the new page slides in over the gutter */
-  @keyframes page-turn {
-    from { transform: translateX(34px) rotate(0.5deg); opacity: 0; }
-    to { transform: translateX(0) rotate(0); opacity: 1; }
+  /* the pattern swaps — the new measure slides onto the grid */
+  @keyframes measure-in {
+    from { transform: translateX(30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
   }
-  @keyframes sheet-in {
-    from { transform: translateY(10px); opacity: 0; }
+  @keyframes panel-in {
+    from { transform: translateY(12px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
   @keyframes row-in {
     from { transform: translateY(-4px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
-  /* the intake receipt slides up like a memo slipping under the door */
-  @keyframes receipt-in {
-    from { transform: translateY(16px) rotate(0.6deg); opacity: 0; }
-    to { transform: translateY(0) rotate(0); opacity: 1; }
+  /* a signal card slides in over the deck */
+  @keyframes card-in {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
+  /* the tempo lamp breathes at the machine's rate */
+  @keyframes led-tick {
+    0%, 55%, 100% { opacity: 0.35; }
+    12%, 30% { opacity: 1; }
+  }
+  /* the playhead's column glow */
+  @keyframes play-glow {
+    0%, 100% { box-shadow: inset 0 2px 0 rgb(var(--indigo-rgb) / 0.9), 0 0 0 rgb(var(--indigo-rgb) / 0); }
+    45% { box-shadow: inset 0 2px 0 rgb(var(--indigo-rgb) / 0.9), 0 0 12px rgb(var(--indigo-rgb) / 0.3); }
+  }
+}
+
+html {
+  color-scheme: dark;
 }
 
 html,
@@ -107,62 +125,64 @@ body,
 body {
   font-family: var(--font-ui);
   color: var(--color-ink);
-  background-color: var(--color-cover);
-  /* cloth cover: woven crosshatch + two soft lights */
+  background-color: var(--color-chassis);
+  /* the machine body: brushed dark metal under a soft lamp */
   background-image:
-    radial-gradient(1100px 650px at 28% -10%, rgb(255 255 255 / 0.05), transparent 60%),
-    radial-gradient(900px 600px at 112% 112%, rgb(0 0 0 / 0.28), transparent 55%),
-    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.022) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.022) 0 1px, transparent 1px 3px),
+    radial-gradient(1100px 680px at 30% -12%, rgb(255 255 255 / 0.05), transparent 62%),
+    radial-gradient(900px 620px at 112% 112%, rgb(0 0 0 / 0.45), transparent 55%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.014) 0 1px, transparent 1px 3px),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* ── Register leaf — the open page everything is written on ────── */
-.leaf {
+/* ── The deck — the faceplate panel everything mounts on ─────── */
+.deck {
   position: relative;
-  background-color: var(--color-leaf);
+  background-color: var(--color-deck);
   background-image:
-    linear-gradient(180deg, rgb(255 255 255 / 0.4), transparent 120px),
-    /* the gutter shadow down the left edge — the bound spine side */
-    linear-gradient(90deg, rgb(0 0 0 / 0.09), transparent 26px),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.035'/%3E%3C/svg%3E");
-  box-shadow: var(--shadow-leaf);
-  border-radius: 2px;
+    linear-gradient(180deg, rgb(255 255 255 / 0.045), transparent 110px),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.008) 0 1px, transparent 1px 4px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.03'/%3E%3C/svg%3E");
+  border: 1px solid rgb(255 255 255 / 0.05);
+  border-radius: 8px;
+  box-shadow: var(--shadow-deck);
 }
 
-/* the stitched binding edge — a row of thread marks on the gutter */
-.leaf::before {
+/* the four case screws holding the faceplate down */
+.deck::before {
   content: '';
   position: absolute;
-  top: 14px;
-  bottom: 14px;
-  left: 7px;
-  width: 0;
-  border-left: 2px dotted rgb(var(--ink-rgb) / 0.28);
+  inset: 0;
   pointer-events: none;
+  background-image:
+    radial-gradient(circle 4.5px at 12px 12px, #0c0b08 0 2.4px, #4e4a3a 2.8px 3.8px, transparent 4.2px),
+    radial-gradient(circle 4.5px at calc(100% - 12px) 12px, #0c0b08 0 2.4px, #4e4a3a 2.8px 3.8px, transparent 4.2px),
+    radial-gradient(circle 4.5px at 12px calc(100% - 12px), #0c0b08 0 2.4px, #4e4a3a 2.8px 3.8px, transparent 4.2px),
+    radial-gradient(circle 4.5px at calc(100% - 12px) calc(100% - 12px), #0c0b08 0 2.4px, #4e4a3a 2.8px 3.8px, transparent 4.2px);
 }
 
-/* ── Ledger rows — dense register lines ───────────────────────── */
-.lrow {
+/* ── Channel rows — one strip per routine ─────────────────────── */
+.chan {
   border-bottom: 1px solid var(--color-rule);
   transition: background-color 0.12s ease;
 }
-.lrow:last-child {
+.chan:last-child {
   border-bottom: none;
 }
-.lrow:hover {
-  background: rgb(var(--indigo-rgb) / 0.045);
+.chan:hover {
+  background: rgb(255 255 255 / 0.022);
 }
 
-/* ── The stamped mark — shape carries the state ──────────────────
-   Every completion is a stamp. State lives in the SHAPE first:
-   full = solid round stamp, minimum = small solid pellet,
-   partial = open ring half-inked, missed = faint open ring,
-   exception = struck ring, paused = twin bars, unscheduled = a tick. */
-.mark {
-  --mark-color: var(--color-ink-soft);
+/* ── The pad — a step on the sequencer ──────────────────────────
+   Every recorded day is a pad on the grid. State lives in the
+   SHAPE first: full = lit pad, minimum = smaller lit pad,
+   partial = half-lit, missed = hollow pad with a rest dot,
+   exception = muted (struck) pad, paused = hold bars,
+   unscheduled = an empty slot, future = unprogrammed slot.      */
+.pad {
+  --pad-color: var(--color-ink-soft);
+  --pad-rgb: 168 162 138;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -170,34 +190,106 @@ body {
   width: 26px;
   height: 26px;
   flex: none;
-  color: var(--mark-color);
+  color: var(--pad-color);
 }
-.mark svg {
+.pad svg {
   display: block;
 }
-.mark--full { --mark-color: var(--color-indigo); }
-.mark--minimum { --mark-color: var(--color-indigo); }
-.mark--partial { --mark-color: var(--color-amber); }
-.mark--missed { --mark-color: var(--color-ink-faint); }
-.mark--exception { --mark-color: var(--color-ink-soft); }
-.mark--paused { --mark-color: var(--color-ink-faint); }
-.mark--unscheduled, .mark--future { --mark-color: var(--color-rule-dark); }
+.pad--full { --pad-color: var(--color-acc-ochre); --pad-rgb: var(--acc-ochre-rgb); filter: drop-shadow(0 0 4px rgb(var(--pad-rgb) / 0.45)); }
+.pad--minimum { --pad-color: var(--color-acc-ochre); --pad-rgb: var(--acc-ochre-rgb); filter: drop-shadow(0 0 3px rgb(var(--pad-rgb) / 0.4)); }
+.pad--partial { --pad-color: var(--color-amber); --pad-rgb: var(--amber-rgb); filter: drop-shadow(0 0 3px rgb(var(--pad-rgb) / 0.3)); }
+.pad--missed { --pad-color: var(--color-ink-faint); }
+.pad--exception { --pad-color: var(--color-ink-soft); }
+.pad--paused { --pad-color: var(--color-ink-faint); }
+.pad--unscheduled, .pad--future { --pad-color: var(--color-rule-dark); }
 
-/* accent variants — the routine's own ink color */
-.acc-indigo { --mark-color: var(--color-acc-indigo); }
-.acc-oxblood { --mark-color: var(--color-acc-oxblood); }
-.acc-hunter { --mark-color: var(--color-acc-hunter); }
-.acc-ochre { --mark-color: var(--color-acc-ochre); }
-.acc-plum { --mark-color: var(--color-acc-plum); }
-.acc-teal { --mark-color: var(--color-acc-teal); }
-.acc-slate { --mark-color: var(--color-acc-slate); }
-.acc-rust { --mark-color: var(--color-acc-rust); }
+/* accent variants — the channel's own LED color */
+.acc-indigo { --pad-color: var(--color-acc-indigo); --pad-rgb: var(--acc-indigo-rgb); }
+.acc-oxblood { --pad-color: var(--color-acc-oxblood); --pad-rgb: var(--acc-oxblood-rgb); }
+.acc-hunter { --pad-color: var(--color-acc-hunter); --pad-rgb: var(--acc-hunter-rgb); }
+.acc-ochre { --pad-color: var(--color-acc-ochre); --pad-rgb: var(--acc-ochre-rgb); }
+.acc-plum { --pad-color: var(--color-acc-plum); --pad-rgb: var(--acc-plum-rgb); }
+.acc-teal { --pad-color: var(--color-acc-teal); --pad-rgb: var(--acc-teal-rgb); }
+.acc-slate { --pad-color: var(--color-acc-slate); --pad-rgb: var(--acc-slate-rgb); }
+.acc-rust { --pad-color: var(--color-acc-rust); --pad-rgb: var(--acc-rust-rgb); }
 
-.mark--press {
-  animation: var(--animate-stamp-press);
+.pad--full.acc-indigo, .pad--minimum.acc-indigo,
+.pad--full.acc-oxblood, .pad--minimum.acc-oxblood,
+.pad--full.acc-hunter, .pad--minimum.acc-hunter,
+.pad--full.acc-ochre, .pad--minimum.acc-ochre,
+.pad--full.acc-plum, .pad--minimum.acc-plum,
+.pad--full.acc-teal, .pad--minimum.acc-teal,
+.pad--full.acc-slate, .pad--minimum.acc-slate,
+.pad--full.acc-rust, .pad--minimum.acc-rust {
+  filter: drop-shadow(0 0 4px rgb(var(--pad-rgb) / 0.5));
 }
 
-/* ── Word + date typography ────────────────────────────────────── */
+.pad--hit {
+  animation: var(--animate-pad-hit);
+}
+
+/* ── The hit pad — Today's trigger button ─────────────────────── */
+.padbtn {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #2b2a21, #1d1c16);
+  border: 1px solid #3b392b;
+  box-shadow: var(--shadow-key);
+  cursor: pointer;
+  transition: transform 0.07s ease, box-shadow 0.07s ease, border-color 0.12s;
+}
+.padbtn:hover {
+  border-color: #54503c;
+  background: linear-gradient(180deg, #302e24, #201f18);
+}
+.padbtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0.5px 0 #0d0c08, inset 0 2px 5px rgb(0 0 0 / 0.55);
+}
+.padbtn:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 2px;
+}
+.padbtn[aria-pressed='true'] {
+  border-color: rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.6);
+  box-shadow: 0 2px 0 #0d0c08, 0 0 14px rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.22), inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+
+/* ── Steps — cells on the pattern grid ────────────────────────── */
+.step {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.12s ease, transform 0.1s ease;
+}
+.step:hover { background: rgb(255 255 255 / 0.06); }
+.step:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 1px;
+  z-index: 1;
+}
+.step:active { transform: scale(0.92); }
+/* the playhead is sweeping this step right now */
+.step--play {
+  background: rgb(var(--indigo-rgb) / 0.13);
+  animation: play-glow 0.9s ease both;
+}
+/* today's column — where the song is */
+.step--now {
+  outline: 1px solid rgb(var(--indigo-rgb) / 0.55);
+  outline-offset: -1px;
+}
+
+/* ── Word + display typography ────────────────────────────────── */
 .kicker {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -207,11 +299,11 @@ body {
   color: var(--color-ink-soft);
 }
 
-.datestamp {
-  font-family: var(--font-slab);
+.disp {
+  font-family: var(--font-display);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 .mono {
@@ -219,28 +311,68 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Word stamps — PAUSED / ESTABLISHED / MIN bands ────────────── */
-.wstamp {
+/* engraved silkscreen on the chassis */
+.silk {
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.85), 0 -1px 0 rgb(255 255 255 / 0.05);
+}
+
+/* ── The LCD — the machine's readout screen ───────────────────── */
+.lcd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-lcd-fg);
+  background: linear-gradient(180deg, #171f0c, var(--color-lcd-bg) 55%, #0e1406);
+  border: 1px solid #2e3817;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.65), inset 0 -1px 0 rgb(255 255 255 / 0.04), 0 1px 0 rgb(255 255 255 / 0.04);
+  text-shadow: 0 0 7px rgb(var(--lcd-rgb) / 0.45);
+}
+
+/* ── Status lamps — band labels as lit indicators ─────────────── */
+.lamp {
   font-family: var(--font-mono);
   font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border: 1.6px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: 3px;
-  padding: 0.15em 0.5em;
-  display: inline-block;
-  transform: rotate(-1.5deg);
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='2.6' intercept='-0.35'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='80' height='80' fill='white' filter='url(%23s)'/%3E%3C/svg%3E");
-  mask-size: 80px 80px;
+  padding: 0.2em 0.55em 0.2em 0.5em;
+  background: rgb(0 0 0 / 0.25);
   white-space: nowrap;
 }
-.wstamp--established { color: var(--color-indigo); }
-.wstamp--recovery { color: var(--color-amber); }
-.wstamp--paused, .wstamp--building { color: var(--color-ink-soft); }
-.wstamp--experimenting { color: var(--color-acc-plum); }
+.lamp::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  flex: none;
+}
+.lamp--established { color: var(--color-ok); }
+.lamp--recovery { color: var(--color-amber); }
+.lamp--paused, .lamp--building { color: var(--color-ink-soft); }
+.lamp--paused::before, .lamp--building::before { box-shadow: none; opacity: 0.5; }
+.lamp--experimenting { color: var(--color-acc-plum); }
 
-/* ── Fields — register-office forms ────────────────────────────── */
+/* ── Tempo LED — the running lamp ─────────────────────────────── */
+.led {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-indigo);
+  box-shadow: 0 0 8px rgb(var(--indigo-rgb) / 0.8);
+}
+.led--tick {
+  animation: led-tick 0.9s ease-in-out infinite;
+}
+
+/* ── Fields — recessed input wells ────────────────────────────── */
 .f-label {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -255,129 +387,136 @@ body {
 .f-select,
 .f-textarea {
   width: 100%;
-  background: var(--color-form);
-  border: 1px solid var(--color-rule-dark);
-  border-radius: 2px;
+  background: var(--color-recess);
+  border: 1px solid #3b392b;
+  border-radius: 3px;
   padding: 7px 9px;
   font-family: var(--font-ui);
   font-size: 13.5px;
   color: var(--color-ink);
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.45);
   transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.f-input::placeholder,
+.f-textarea::placeholder {
+  color: var(--color-ink-faint);
 }
 .f-input:focus-visible,
 .f-select:focus-visible,
 .f-textarea:focus-visible {
   outline: none;
   border-color: var(--color-indigo);
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05), 0 0 0 2px rgb(var(--indigo-rgb) / 0.25);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.45), 0 0 0 2px rgb(var(--indigo-rgb) / 0.3);
+}
+.f-input:disabled {
+  opacity: 0.5;
 }
 .f-textarea {
   resize: vertical;
   min-height: 60px;
 }
+input[type='checkbox'] {
+  accent-color: var(--color-indigo);
+}
 
-/* ── Buttons — rubber-stamp actions + quiet ledger buttons ─────── */
+/* ── Buttons — keycaps on the faceplate ───────────────────────── */
 .btn {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border: 1.6px solid var(--color-ink);
-  border-radius: 3px;
+  border: 1px solid #3b392b;
+  border-radius: 4px;
   padding: 6px 12px;
   color: var(--color-ink);
-  background: var(--color-form);
+  background: linear-gradient(180deg, #2b2a21, #1f1e17);
+  box-shadow: var(--shadow-key);
   cursor: pointer;
-  transition: transform 0.1s ease, background-color 0.12s ease, color 0.12s ease, border-color 0.12s;
+  transition: transform 0.07s ease, box-shadow 0.07s ease, background-color 0.12s ease, color 0.12s ease, border-color 0.12s;
 }
-.btn:hover { background: var(--color-stock-dim); }
-.btn:active { transform: translateY(1px) scale(0.98); }
+.btn:hover { background: linear-gradient(180deg, #302e24, #22211a); border-color: #54503c; }
+.btn:active { transform: translateY(2px); box-shadow: 0 0.5px 0 #0d0c08, inset 0 2px 5px rgb(0 0 0 / 0.55); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn:disabled:active { transform: none; }
 .btn:focus-visible { outline: 2px solid var(--color-indigo); outline-offset: 2px; }
 
+/* the lit action key — amber backlight, dark legend */
 .btn--primary {
-  background: var(--color-indigo);
-  border-color: var(--color-indigo-deep);
-  color: var(--color-leaf);
+  background: linear-gradient(180deg, #ffb84a, var(--color-indigo) 60%, #d88a26);
+  border-color: #8a5c16;
+  color: #1c1406;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.25);
+  box-shadow: 0 2px 0 #0d0c08, 0 0 14px rgb(var(--indigo-rgb) / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.35);
 }
-.btn--primary:hover { background: var(--color-indigo-deep); }
+.btn--primary:hover {
+  background: linear-gradient(180deg, #ffc35c, #f4a83a 60%, #de9228);
+  border-color: #a06a1a;
+}
+.btn--primary:active { text-shadow: none; }
 
+/* flush engraved key — quiet transport */
 .btn--quiet {
-  border-color: var(--color-rule-dark);
+  border-color: #333124;
   color: var(--color-ink-soft);
   background: transparent;
+  box-shadow: none;
 }
-.btn--quiet:hover { color: var(--color-ink); background: rgb(var(--ink-rgb) / 0.05); }
+.btn--quiet:hover { color: var(--color-ink); background: rgb(255 255 255 / 0.05); border-color: #4a4533; }
+.btn--quiet:active { transform: translateY(1px); background: rgb(0 0 0 / 0.3); box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.4); }
 
+/* the red key — destructive actions only */
 .btn--danger {
-  border-color: var(--color-amber);
-  color: var(--color-amber);
-  background: transparent;
+  border-color: #6a2c22;
+  color: var(--color-bad);
+  background: linear-gradient(180deg, #2b1b17, #1f1410);
+  box-shadow: var(--shadow-key);
 }
-.btn--danger:hover { background: rgb(var(--amber-rgb) / 0.08); }
+.btn--danger:hover { background: linear-gradient(180deg, #35201a, #241611); border-color: #8a3a2c; }
 
-/* ── Tabs — index tabs along the register's fore-edge ──────────── */
-.rtab {
+/* ── Section keys — the faceplate's selector bank ─────────────── */
+.stab {
   font-family: var(--font-mono);
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgb(241 235 215 / 0.72);
+  color: var(--color-ink-faint);
   padding: 7px 11px;
-  border-radius: 3px 3px 0 0;
+  border-radius: 4px;
   border: 1px solid transparent;
-  border-bottom: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.12s, color 0.12s;
+  transition: background-color 0.12s, color 0.12s, border-color 0.12s;
 }
-.rtab:hover { color: rgb(241 235 215 / 0.95); background: rgb(255 255 255 / 0.05); }
-.rtab:focus-visible { outline: 2px solid rgb(241 235 215 / 0.6); outline-offset: -2px; }
-.rtab[aria-selected='true'] {
-  background: var(--color-leaf);
-  color: var(--color-ink);
-  border-color: var(--color-rule);
+.stab:hover { color: var(--color-ink-soft); background: rgb(255 255 255 / 0.04); }
+.stab:focus-visible { outline: 2px solid rgb(241 235 215 / 0.6); outline-offset: -2px; }
+/* engaged selector — raised lit key */
+.stab[aria-selected='true'] {
+  color: var(--color-indigo);
+  background: linear-gradient(180deg, #2a291f, #1e1d16);
+  border-color: #3b392b;
+  box-shadow: var(--shadow-key), 0 0 10px rgb(var(--indigo-rgb) / 0.18);
+  text-shadow: 0 0 6px rgb(var(--indigo-rgb) / 0.5);
 }
 
-/* ── Heatmap — the mark grid ───────────────────────────────────── */
-.hcell {
-  width: 100%;
-  aspect-ratio: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 2px;
-  cursor: pointer;
-  transition: background-color 0.12s ease, transform 0.1s ease;
-}
-.hcell:hover { background: rgb(var(--ink-rgb) / 0.08); }
-.hcell:focus-visible {
-  outline: 2px solid var(--color-indigo);
-  outline-offset: 1px;
-  z-index: 1;
-}
-.hcell:active { transform: scale(0.92); }
-
-/* ── Sheets & slips ────────────────────────────────────────────── */
-.slip {
+/* ── Sheets & panels ──────────────────────────────────────────── */
+.panel {
   position: relative;
-  background: var(--color-form);
-  border: 1px solid var(--color-rule);
-  box-shadow: var(--shadow-slip);
-  border-radius: 2px;
+  background: linear-gradient(180deg, #28271f, var(--color-panel) 60%, #22211a);
+  border: 1px solid #3a382b;
+  box-shadow: var(--shadow-panel);
+  border-radius: 5px;
 }
-.slip--in {
+.panel--in {
   animation: var(--animate-sheet-in);
 }
 
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  background: rgb(20 18 13 / 0.55);
-  backdrop-filter: blur(1.5px);
+  background: rgb(8 8 5 / 0.65);
+  backdrop-filter: blur(2px);
   z-index: 40;
   animation: row-in 0.15s ease both;
 }
@@ -394,28 +533,22 @@ body {
   .sheet-modal { align-items: center; }
 }
 
-/* ── The date-stamp block — Today's masthead ───────────────────── */
-.datestamp-block {
-  font-family: var(--font-slab);
-  border: 2.5px solid var(--color-indigo);
-  border-radius: 4px;
-  color: var(--color-indigo);
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='3' intercept='-0.5'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='120' height='120' fill='white' filter='url(%23s)'/%3E%3C/svg%3E");
-  mask-size: 120px 120px;
-}
-
-/* progress track on register rows — a thin ink line, not a bar chart */
-.track {
-  height: 3px;
-  background: rgb(var(--ink-rgb) / 0.12);
+/* ── The meter — a segmented LED level bar ────────────────────── */
+.meter {
+  height: 5px;
+  background: rgb(0 0 0 / 0.5);
   border-radius: 2px;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
 }
-.track > i {
+.meter > i {
   display: block;
   height: 100%;
   background: currentColor;
+  box-shadow: 0 0 6px currentColor;
   transition: width 0.3s ease;
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px);
 }
 
 /* ── Reduced motion — law, not suggestion ──────────────────────── */
@@ -436,9 +569,30 @@ html[data-motion='reduced'] *::after {
   transition-duration: 1ms !important;
 }
 
-/* ── Print — the register prints clean ─────────────────────────── */
+/* ── Print — the pattern prints like a set list ────────────────── */
 @media print {
+  :root {
+    --color-chassis: #ffffff;
+    --color-deck: #ffffff;
+    --color-panel: #ffffff;
+    --color-recess: #f4f4f0;
+    --color-ink: #232019;
+    --color-ink-soft: #555040;
+    --color-ink-faint: #8a8272;
+    --color-rule: #d8d3c0;
+    --color-rule-dark: #b0a98c;
+    --color-lcd-bg: #f0f2e4;
+    --color-lcd-fg: #2c3618;
+  }
+  html { color-scheme: light; }
   body { background: #fff; }
-  .leaf { box-shadow: none; }
+  .deck { box-shadow: none; border-color: #ddd; }
+  .deck::before { display: none; }
+  .pad { filter: none !important; }
+  .lamp::before { box-shadow: none; }
+  .led { box-shadow: none; }
+  .lcd { box-shadow: none; text-shadow: none; }
+  .btn, .padbtn { box-shadow: none; }
+  .silk { text-shadow: none; }
   .no-print { display: none !important; }
 }

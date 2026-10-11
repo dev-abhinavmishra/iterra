@@ -7,8 +7,8 @@ import { useRegister } from '../store';
 import { bandFor } from '../lib/bands';
 import { weeklyScorecard } from '../lib/register';
 import { addDaysISO, diffDaysISO, fmtDay, fmtMinutes, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
-import { Mark } from '../components/Mark';
-import { WStamp } from '../components/WStamp';
+import { Pad } from '../components/Pad';
+import { Lamp } from '../components/Lamp';
 import { Field } from '../components/Field';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cx } from '../lib/utils';
@@ -16,7 +16,7 @@ import { cx } from '../lib/utils';
 const PROMPTS = [
   'What made the missed days hard — and what would have made them easier?',
   'Which routine earned its place this week, and which one is asking to be resized?',
-  'Where did the week actually go, compared to where the register expected it to go?',
+  'Where did the week actually go, compared to where the machine expected it to go?',
   'What is the smallest version of the weakest routine that still counts?',
   'Which day was the honest outlier, and what made it different?',
 ];
@@ -59,9 +59,9 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="kicker mb-1">Weekly review</div>
-          <h1 className="datestamp text-2xl">Week of {fmtWeekRange(weekStart)}</h1>
+          <h1 className="disp text-2xl">Week of {fmtWeekRange(weekStart)}</h1>
           {diffDaysISO(weekStart, currentWeek) >= 0 && (
-            <p className="mt-0.5 text-[11.5px] italic text-ink-soft">This week is still being written — the scorecard is provisional.</p>
+            <p className="mt-0.5 text-[11.5px] italic text-ink-soft">This measure is still playing — the scorecard is provisional.</p>
           )}
         </div>
         <div className="flex items-center gap-1 no-print">
@@ -75,10 +75,10 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
       </div>
 
       <div key={weekStart} style={{ animation: 'var(--animate-page-turn)' }}>
-        {/* ── Scorecard ──────────────────────────────────────────── */}
-        <section className="slip mb-5 p-4" aria-label="scorecard">
+        {/* ── The take — the week that was ──────────────────────────────────────────── */}
+        <section className="panel mb-5 p-4" aria-label="scorecard">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-            <span className="kicker">Scorecard</span>
+            <span className="kicker">The take — the week that was</span>
             <span className="mono text-[11px] text-ink-soft">
               {card.hitRate === null
                 ? 'nothing to score this week'
@@ -91,10 +91,10 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
             const band = bandFor(r, s.entries, s.exceptions, s.experiments, today, s.settings.weekStartsOn);
             const unitLabel = r.measure === 'duration' ? 'min' : r.unit || r.measure;
             return (
-              <div key={w.routineId} className="lrow flex items-center gap-3 py-2">
-                <Mark state={w.exempt ? 'exception' : w.hit ? 'full' : 'missed'} accent={r.accent} size={22} />
+              <div key={w.routineId} className="chan flex items-center gap-3 py-2">
+                <Pad state={w.exempt ? 'exception' : w.hit ? 'full' : 'missed'} accent={r.accent} size={22} />
                 <div className="min-w-0 flex-1">
-                  <button className="datestamp text-[14px] hover:underline" onClick={() => openRoutine(r.id)}>
+                  <button className="disp text-[14px] hover:underline" onClick={() => openRoutine(r.id)}>
                     {r.name}
                   </button>
                   <div className="mono text-[10.5px] text-ink-soft">
@@ -105,7 +105,7 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
                         : `${w.actual}/${w.effectiveTarget} ${unitLabel} · ${w.sessions} sessions`}
                   </div>
                 </div>
-                <WStamp band={band.band} />
+                <Lamp band={band.band} />
                 <label className="flex items-center gap-1.5 text-[11px] text-ink-soft">
                   <input
                     type="checkbox"
@@ -121,14 +121,14 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
             );
           })}
           {card.weeks.length === 0 && (
-            <p className="py-3 text-[12.5px] text-ink-faint">No routines in the register yet for this week.</p>
+            <p className="py-3 text-[12.5px] text-ink-faint">No routines patched in yet for this week.</p>
           )}
         </section>
 
         {/* ── Reflection + one adjustment ─────────────────────────── */}
         {reviewed ? (
-          <section className="slip mb-5 p-4" aria-label="filed review">
-            <div className="kicker mb-2">Filed {fmtDay(reviewed.createdAt.slice(0, 10))}</div>
+          <section className="panel mb-5 p-4" aria-label="filed review">
+            <div className="kicker mb-2">Cut {fmtDay(reviewed.createdAt.slice(0, 10))}</div>
             <p className="mb-2 text-[13.5px] italic text-ink-soft">"{reviewed.reflection}"</p>
             {reviewed.adjustment && (
               <p className="text-[13px]">
@@ -138,11 +138,11 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
             )}
           </section>
         ) : filed ? (
-          <section className="slip mb-5 p-4" aria-label="filed review">
-            <p className="datestamp text-[15px] text-indigo">Filed. The register turns the page.</p>
+          <section className="panel mb-5 p-4" aria-label="filed review">
+            <p className="disp text-[15px] text-indigo">Cut. The machine turns the measure.</p>
           </section>
         ) : (
-          <section className="slip mb-5 p-4" aria-label="reflect">
+          <section className="panel mb-5 p-4" aria-label="reflect">
             <div className="kicker mb-2">One honest minute</div>
             <form
               className="space-y-4"
@@ -171,7 +171,7 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
               </Field>
               <div className="flex justify-end">
                 <button type="submit" className="btn btn--primary" disabled={!reflection.trim()}>
-                  File the review
+                  Cut the take
                 </button>
               </div>
             </form>
@@ -182,12 +182,12 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
       {/* ── Past reviews ─────────────────────────────────────────── */}
       {weeksWithHistory.length > 0 && (
         <section aria-label="past reviews">
-          <div className="kicker mb-2">Filed reviews</div>
+          <div className="kicker mb-2">Past takes</div>
           <div className="border-y border-rule">
             {weeksWithHistory.slice(0, 10).map((w) => (
               <button
                 key={w}
-                className={cx('lrow flex w-full items-center justify-between px-2 py-2 text-left', w === weekStart && 'bg-black/5')}
+                className={cx('chan flex w-full items-center justify-between px-2 py-2 text-left', w === weekStart && 'bg-black/5')}
                 onClick={() => setWeekStart(w)}
               >
                 <span className="mono text-[11.5px]">week of {fmtWeekRange(w)}</span>
