@@ -41,7 +41,9 @@ export function timerDeepLink(opts: {
   if (course) params.set('course', course.code);
   params.set('from', 'syllabus');
   params.set('block', block.id);
-  if (typeof window !== 'undefined') params.set('return', window.location.origin);
+  if (typeof window !== 'undefined') {
+    params.set('return', (window as any).iterra?.selfBase?.() ?? window.location.origin);
+  }
   return `${base}/?${params.toString()}`;
 }
 

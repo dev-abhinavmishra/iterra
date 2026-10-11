@@ -20,11 +20,11 @@ import { exportFolio, parseFolioBackup } from '../lib/backup';
 export type { ProposedBlock };
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  timerBaseUrl: 'https://timerstack.vercel.app',
-  inkBaseUrl: 'https://ink-notes.vercel.app',
+  timerBaseUrl: '/apps/timer',
+  inkBaseUrl: '/apps/ink',
   modularBaseUrl: 'https://modularaistack.vercel.app',
-  flashcardsBaseUrl: 'https://flashcards-stack.vercel.app',
-  gradestackBaseUrl: 'https://gradestack.vercel.app',
+  flashcardsBaseUrl: '/apps/flashcards',
+  gradestackBaseUrl: '/apps/gradestack',
   studyWindowStart: '16:00',
   maxBlockMinutes: 90,
   defaultAvailableMinutes: 180,
