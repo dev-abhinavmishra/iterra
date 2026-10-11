@@ -69,13 +69,17 @@ let myLastWriteAt = 0;
     const { notes, activeNoteId } = useStore.getState() as any;
     const live = notes.filter((n: any) => !n.trashedAt);
     const open = live.find((n: any) => n.id === activeNoteId);
-    /* v carries app+id so a sibling desk can offer a real ?note= link */
-    const v = open ? { app: 'ink', id: open.id, title: open.title || 'untitled' } : null;
+    /* v carries app+id so a sibling desk can offer a real ?note= link; v.at
+       is the note's own write time so sibling arbitration follows real edit
+       order, not which frame mounted last (§7). */
+    const v = open ? { app: 'ink', id: open.id, title: open.title || 'untitled', at: open.lastModified ?? Date.now() } : null;
     const j = JSON.stringify(v);
     if (j !== lastCommons) {
       lastCommons = j;
-      myLastWriteAt = Date.now();
-      shared.setField('noteActive', { v, by: 'ink', at: myLastWriteAt });
+      /* myLastWriteAt tracks the note's own write time, matching v.at — a
+         mount-republish of the same note doesn't make us artificially fresher */
+      myLastWriteAt = open?.lastModified ?? Date.now();
+      shared.setField('noteActive', { v, by: 'ink', at: Date.now() });
     }
     const entities = live.slice(0, 50).map((n: any) => ({
       t: 'note', id: n.id, title: n.title || 'untitled', sub: n.folder,
@@ -95,7 +99,7 @@ let myLastWriteAt = 0;
 })();
 
 interface NoteActiveEntry {
-  v: { app: string; id: string; title: string } | null;
+  v: { app: string; id: string; title: string; at?: number } | null;
   by: string;
   at: number;
 }
@@ -119,6 +123,9 @@ export function useOtherNoteActive(): NoteActiveEntry | null {
   const v = entry?.v;
   if (!v || v.app !== 'margin') return null;
   if (!v.id || v.id === activeId) return null;
-  if (entry!.at <= myLastWriteAt || Date.now() - entry!.at > 5 * 60_000) return null;
+  /* arbitrate on the note's own write time (v.at) when present — mount
+     restamps entry.at, but v.at follows real edits (§7). */
+  const theirs = v.at ?? entry!.at;
+  if (theirs <= myLastWriteAt || Date.now() - entry!.at > 5 * 60_000) return null;
   return entry;
 }

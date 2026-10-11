@@ -54,6 +54,7 @@ const App: React.FC = () => {
 
     const [notes, setNotesState] = useState<Note[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [studyRequest, setStudyRequest] = useState<{ kind: 'deck' | 'quiz'; id: string } | null>(null);
 
     const [contextualAttachments, setContextualAttachments] = useState<string[]>([]);
 
@@ -115,14 +116,23 @@ const App: React.FC = () => {
         setMarginSource(() => ({ notes }));
     }, [notes]);
 
-    // inbound: /apps/margin/?note=<id> opens that note in the editor
+    // inbound: /apps/margin/?note=<id> opens that note in the editor;
+    // ?deck=<id> / ?quiz=<id> land in Study on that item (unknown id stays browse)
     useEffect(() => {
         if (!isLoaded) return;
-        const id = new URLSearchParams(window.location.search).get('note');
-        if (!id) return;
-        window.history.replaceState(null, '', window.location.pathname);
-        const note = notes.find(n => n.id === id);
-        if (note) handleOpenNote(note);
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('note');
+        const deck = params.get('deck');
+        const quiz = params.get('quiz');
+        if (id) {
+            window.history.replaceState(null, '', window.location.pathname);
+            const note = notes.find(n => n.id === id);
+            if (note) handleOpenNote(note);
+        } else if (deck || quiz) {
+            window.history.replaceState(null, '', window.location.pathname);
+            setStudyRequest({ kind: deck ? 'deck' : 'quiz', id: (deck || quiz)! });
+            setCurrentView(View.STUDY);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded]);
 
@@ -237,7 +247,7 @@ const App: React.FC = () => {
             case View.HISTORY:
                 return <LibraryView {...libraryProps} onImport={() => {}} filterView={View.HISTORY} />;
             case View.STUDY:
-                return <StudyView notes={notes} onOpenNote={handleOpenNote} />;
+                return <StudyView notes={notes} onOpenNote={handleOpenNote} request={studyRequest} onRequestConsumed={() => setStudyRequest(null)} />;
             case View.ANALYSIS:
                 return <AnalysisView notes={notes} contextualAttachments={contextualAttachments} setContextualAttachments={setContextualAttachments} />;
             case View.RECORDER:

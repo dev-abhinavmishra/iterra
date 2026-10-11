@@ -110,7 +110,9 @@ Also honored:
 - **ink**: `?note=<id>` → select note (set activeNoteId) + navigate home
 - **gradestack**: `?assessment=<id>` → open that test's detail (history/analytics)
 - **proof**: `?problem=<id>` → open problem in the desk
-- **margin**: `?note=<id>` → open the note in the editor view
+- **margin**: `?note=<id>` → open the note in the editor view; `?deck=<id>`
+  → Study opens that deck (review if cards due, else editor); `?quiz=<id>`
+  → Study opens the quiz runner (unknown ids stay on the browse list)
 - **timer**: `?routine=<name>` → open Intervals focused on the named routine
   (standalone — no `from=` gate; unknown names degrade to a plain open)
 - **syllabus**: `?block=<id>` → select that work slip on Today (stashed at
@@ -144,7 +146,7 @@ missing, stale, or written by an app that isn't running — always check `at`.
 | `shared.focus` | timer | all | `{ v: { running, label, blockId, course, endsInMin } \| null, by:'timer', at }` — `course` is the bound link's `?course=` |
 | `shared.today` | syllabus | all | `{ v: { slips, overdue, next } \| null, by:'syllabus', at }` |
 | `shared.activeCourse` | syllabus | all | `{ v: { code, name } \| null, by:'syllabus', at }` |
-| `shared.noteActive` | ink, margin | all | `{ v: { app, id, title } \| null, by, at }` — last opened note |
+| `shared.noteActive` | ink, margin | all | `{ v: { app, id, title, at } \| null, by, at }` — last opened note; `v.at` = the note's own write/access time, `at` = publish time. Readers show the line only when the sibling's `v.at` (fallback `at`) is newer than their own note's write time |
 | `shared.deck` | flashcards | all | `{ v: { deck, due } \| null, by:'flashcards', at }` — active deck |
 | `shared.session` | proof | all | `{ v: { topic, minutes, active } \| null, by:'proof', at }` |
 | `shared.register` | rhythm | all | `{ v: { marked, pending } \| null, by:'rhythm', at }` |
