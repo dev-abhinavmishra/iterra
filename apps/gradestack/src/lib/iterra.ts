@@ -44,6 +44,17 @@ function summary(): GradeSummary | null {
 
 const COURSE_FRESH_MS = 5 * 60_000;
 
+/** Ambient stir emit for UI call sites — same best-effort contract as the
+ *  ambient layer's own feeds. Honest fields only; course is the caller's
+ *  real course value or undefined. */
+export const feed = (text: string, url?: string, course?: string) => {
+  try {
+    (window as any).iterra?.feed?.({ text, url, course });
+  } catch {
+    /* feed is best-effort */
+  }
+};
+
 /**
  * The syllabus' shared.activeCourse while it's fresh — shown as a small
  * context line in the sidebar. Re-reads on doc writes and a slow tick.
@@ -82,7 +93,7 @@ wireIterra();
   if (!it) return;
   const shared = it.doc('shared');
   const indexDoc = it.doc('index.gradestack');
-  let lastCommons = '', lastEntities = '', lastIds: Set<string> | null = null;
+  let lastCommons = '', lastEntities = '', lastIds: Set<string> | null = null, lastTestIds: Set<string> | null = null;
   const publish = () => {
     try {
       publishInner();
@@ -110,9 +121,14 @@ wireIterra();
     const ids = new Set<string>(scans.map((x: any) => String(x.id)));
     if (lastIds) for (const x of scans) if (!lastIds.has(x.id)) {
       const t = tests.find((tt: any) => tt.id === x.testId);
-      it.feed({ text: `marked: ${t?.name ?? 'a sheet'}${x.percentage != null ? ` · ${Math.round(x.percentage)}%` : ''}`, url: '/apps/gradestack/' });
+      it.feed({ text: `marked: ${t?.name ?? 'a sheet'}${x.percentage != null ? ` · ${Math.round(x.percentage)}%` : ''}`, url: '/apps/gradestack/', course: t?.courseName || undefined });
     }
     lastIds = ids;
+    const tids = new Set<string>(tests.map((t: any) => String(t.id)));
+    if (lastTestIds) for (const t of tests) if (!lastTestIds.has(String(t.id))) {
+      it.feed({ text: `assessment built: ${t?.name ?? 'a sheet'}`, url: `/apps/gradestack/?assessment=${t.id}`, course: t?.courseName || undefined });
+    }
+    lastTestIds = tids;
   };
   useStore.subscribe(publish);
   if (useStore.persist?.hasHydrated?.()) publish();

@@ -9,6 +9,7 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { planDay } from '../lib/schedule';
 import { timerDeepLink, proofDeepLink } from '../lib/links';
+import { openDeep } from '../lib/iterra';
 import { BlockSlip } from '../components/BlockSlip';
 import { QuickAdd } from '../components/QuickAdd';
 import {
@@ -115,21 +116,27 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
     if (!intakeBlockId) return;
     const i = queue.findIndex((b) => b.id === intakeBlockId);
     if (i >= 0) setSelIdx(i);
+    else {
+      // slip isn't on today's queue (planned another day) — land on its
+      // commitment card instead of swallowing the deep link.
+      const b = s.blocks[intakeBlockId];
+      if (b?.commitmentId) onInspect(b.commitmentId);
+    }
     s.clearIntakeBlock();
-  }, [intakeBlockId, queue, s]);
+  }, [intakeBlockId, queue, s, onInspect]);
 
   const startInTimer = (b: WorkBlock) => {
     const c = s.commitments[b.commitmentId];
     if (!c) return;
     const url = timerDeepLink({ settings: s.settings, block: b, commitment: c, course: courseById[c.courseId] });
     s.startBlock(b.id, url);
-    window.open(url, '_blank', 'noopener');
+    openDeep(url);
   };
 
   const openInProof = (b: WorkBlock) => {
     const c = s.commitments[b.commitmentId];
     if (!c) return;
-    window.open(proofDeepLink({ block: b, commitment: c, course: courseById[c.courseId] }), '_blank', 'noopener');
+    openDeep(proofDeepLink({ block: b, commitment: c, course: courseById[c.courseId] }));
   };
 
   const acceptAll = () => s.acceptProposals(plan.proposals);

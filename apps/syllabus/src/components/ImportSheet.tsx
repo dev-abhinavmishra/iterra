@@ -38,13 +38,19 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  // prefer an existing course matching the payload's code/name
+  // prefer an existing course matching the payload's code/name — payloads
+  // often carry the course CODE under `course`/`courseName` (e.g. Modular
+  // exports "course":"HIST 140"), so match courseName against codes too,
+  // space-insensitive like the quick-add grammar.
   useEffect(() => {
     if (!payload) return;
+    const norm = (v?: string) => v?.toLowerCase().replace(/\s+/g, '');
     const hit = courses.find(
       (c) =>
-        (payload.code && c.code.toLowerCase() === payload.code.toLowerCase()) ||
-        (payload.courseName && c.name.toLowerCase() === payload.courseName.toLowerCase()),
+        (payload.code && norm(c.code) === norm(payload.code)) ||
+        (payload.courseName &&
+          (c.name.toLowerCase() === payload.courseName.toLowerCase() ||
+            norm(c.code) === norm(payload.courseName))),
     );
     setTarget(hit ? hit.id : 'new');
   }, [payload, courses]);

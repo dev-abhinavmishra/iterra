@@ -102,13 +102,22 @@ export function parseImportPayload(raw: string): ParseResult {
   const dropped = arr.length - rows.length;
   if (!rows.length) return { ok: false, error: 'Every row failed validation — need at least title + due date.', dropped };
   const courseName = typeof obj.courseName === 'string' ? obj.courseName : typeof obj.course === 'string' ? obj.course : undefined;
+  // Modular sends the course CODE under `course` ("HIST 140"); when a
+  // separate courseName is also present, `course` would otherwise be
+  // discarded — promote code-shaped strings into `code` so the course
+  // match/new-course derivation keeps the real code instead of 'IMPORT'.
+  const code =
+    (typeof obj.code === 'string' ? obj.code : undefined) ??
+    (typeof obj.course === 'string' && obj.course.length <= 14 && /[a-z]{2,}\s?\d/i.test(obj.course.trim())
+      ? obj.course.trim().toUpperCase()
+      : undefined);
   return {
     ok: true,
     dropped: dropped > 0 ? dropped : undefined,
     payload: {
       source: typeof obj.source === 'string' ? obj.source : undefined,
       courseName,
-      code: typeof obj.code === 'string' ? obj.code : undefined,
+      code,
       instructor: typeof obj.instructor === 'string' ? obj.instructor : undefined,
       meetingPattern: typeof obj.meetingPattern === 'string' ? obj.meetingPattern : undefined,
       rows,

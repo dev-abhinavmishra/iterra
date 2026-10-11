@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import { Icon, Button, Input, Toggle, PageHeader, Bubble } from '../components/ui';
 import { GradingScale, downloadFile, DEFAULT_SCALE } from '../lib/grading';
 import { firebaseEnabled, signInWithGoogle, logOut, describeAuthError } from '../lib/firebase';
+import { feed } from '../lib/iterra';
 
 const SCALE_ROWS: Array<{ letter: keyof GradingScale; hint: string }> = [
   { letter: 'A', hint: 'excellent' },
@@ -226,7 +227,7 @@ export function Settings() {
         <div className="flex flex-wrap gap-3">
           <Button
             variant="outline" icon="download"
-            onClick={() => downloadFile(`gradestack-backup-${new Date().toISOString().slice(0, 10)}.json`, exportData(), 'application/json')}
+            onClick={() => { downloadFile(`gradestack-backup-${new Date().toISOString().slice(0, 10)}.json`, exportData(), 'application/json'); feed('backup exported', '/apps/gradestack/'); }}
           >
             Export backup (JSON)
           </Button>
