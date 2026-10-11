@@ -104,13 +104,13 @@ export function Dossier({
                     onClick={() =>
                       togglePin({ app, t: e.t, id: e.id, title: e.title || '(untitled)', url: e.url || `/apps/${app}/` })
                     }
-                    aria-label={pinnedUrls.has(e.url || '') ? `unpin ${e.title}` : `pin ${e.title} to the shelf`}
-                    title={pinnedUrls.has(e.url || '') ? 'on the shelf — click to unpin' : 'pin to the shelf'}
+                    aria-label={pinnedUrls.has(e.url || `/apps/${app}/`) ? `unpin ${e.title}` : `pin ${e.title} to the shelf`}
+                    title={pinnedUrls.has(e.url || `/apps/${app}/`) ? 'on the shelf — click to unpin' : 'pin to the shelf'}
                     className={`shrink-0 px-3 py-2.5 text-[12px] focus:outline-none ${
-                      pinnedUrls.has(e.url || '') ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
+                      pinnedUrls.has(e.url || `/apps/${app}/`) ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
                     }`}
                   >
-                    {pinnedUrls.has(e.url || '') ? '◈' : '◇'}
+                    {pinnedUrls.has(e.url || `/apps/${app}/`) ? '◈' : '◇'}
                   </button>
                   <button
                     onClick={() => onGo(e.url || `/apps/${app}/`)}
