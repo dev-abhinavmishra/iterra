@@ -37,9 +37,14 @@ interface FolioState extends FolioData {
   booted: boolean;
   boot: () => void;
   hasOnboarded: () => boolean;
+  // Inbound ?block=<id> deep link: boot stashes the id; TodayView consumes it
+  // to select the slip, then clears it. Not persisted as navigation state.
+  intakeBlockId: string | null;
+  clearIntakeBlock: () => void;
 
   // ── terms ──
   createTerm: (t: Omit<Term, 'id' | 'createdAt'>) => Term;
+  updateTerm: (id: string, patch: Partial<Omit<Term, 'id' | 'createdAt'>>) => void;
   setActiveTerm: (id: string) => void;
 
   // ── courses ──
@@ -88,6 +93,15 @@ interface FolioState extends FolioData {
   resetFolio: () => void;
 }
 
+// Unified activity stream (docs/WIRING.md §7): emit only real state changes.
+const feed = (text: string, url?: string) => {
+  try {
+    (window as any).iterra?.feed?.({ text, url });
+  } catch {
+    /* feed is best-effort */
+  }
+};
+
 const EMPTY_DATA: FolioData = {
   terms: {},
   courses: {},
@@ -109,20 +123,50 @@ export const useFolio = create<FolioState>()(
         const s = get();
         if (s.booted) return;
         set({ booted: true });
-        // Inbound Timer completion: ?completedBlock=<id>&actual=<minutes>
-        if (typeof window !== 'undefined') {
+        // boot() can fire before persist hydration lands — consumeInbound
+        // returns false while its param targets aren't readable yet, and a
+        // one-shot subscription retries once blocks are.
+        const consumeInbound = (): boolean => {
+          if (typeof window === 'undefined') return true;
+          const st = get();
           const q = new URLSearchParams(window.location.search);
           const blockId = q.get('completedBlock');
+          const focusId = q.get('block');
+          if (!blockId && !focusId) return true;
+          const done = q.get('completedBlock') || q.get('block');
+          let consumed = false;
+          // Inbound Timer completion: ?completedBlock=<id>&actual=<minutes>
           const actual = Number(q.get('actual'));
-          if (blockId && s.blocks[blockId]) {
-            get().completeBlock(blockId, Number.isFinite(actual) && actual > 0 ? actual : undefined);
+          if (blockId && st.blocks[blockId]) {
+            st.completeBlock(blockId, Number.isFinite(actual) && actual > 0 ? actual : undefined);
+            const stamped = get().blocks[blockId];
+            const c = stamped ? get().commitments[stamped.commitmentId] : undefined;
+            feed(
+              `timer filed ${stamped?.actualMinutes ?? (Number.isFinite(actual) ? actual : 0)}m into ${c?.title ?? 'a block'}`,
+              `/apps/syllabus/?block=${blockId}`,
+            );
+            consumed = true;
+          }
+          // Search-palette deep link: ?block=<id> → select the slip on Today.
+          if (focusId && st.blocks[focusId]) {
+            set({ intakeBlockId: focusId });
+            consumed = true;
+          }
+          if (consumed) {
             const url = new URL(window.location.href);
             url.search = '';
             window.history.replaceState({}, '', url.toString());
           }
+          return consumed || !done;
+        };
+        if (!consumeInbound()) {
+          const unsub = useFolio.subscribe(() => { if (consumeInbound()) unsub(); });
         }
         maybeNotify(get());
       },
+
+      intakeBlockId: null,
+      clearIntakeBlock: () => set({ intakeBlockId: null }),
 
       hasOnboarded: () => Object.keys(get().courses).length > 0,
 
@@ -134,6 +178,11 @@ export const useFolio = create<FolioState>()(
         }));
         return term;
       },
+
+      updateTerm: (id, patch) =>
+        set((s) => ({
+          terms: s.terms[id] ? { ...s.terms, [id]: { ...s.terms[id], ...patch, id } } : s.terms,
+        })),
 
       setActiveTerm: (id) => set({ activeTermId: id }),
 
@@ -248,6 +297,7 @@ export const useFolio = create<FolioState>()(
           for (const b of made) blocks[b.id] = b;
           return { blocks };
         });
+        feed(`plan generated: ${made.length} slip${made.length === 1 ? '' : 's'}`, '/apps/syllabus/');
         return made;
       },
 
@@ -278,7 +328,7 @@ export const useFolio = create<FolioState>()(
           return { blocks: { ...s.blocks, [id]: moved } };
         }),
 
-      completeBlock: (id, actualMinutes) =>
+      completeBlock: (id, actualMinutes) => {
         set((s) => {
           const b = s.blocks[id];
           if (!b) return s;
@@ -296,7 +346,10 @@ export const useFolio = create<FolioState>()(
               }
             : s.commitments;
           return { blocks, commitments };
-        }),
+        });
+        // 'slip stamped' is emitted by the ambient layer in lib/iterra.ts on
+        // the done transition — no feed write needed here.
+      },
 
       unstampBlock: (id) =>
         set((s) => {

@@ -197,6 +197,9 @@ export const useStore = create<AppState>()(
 
         set((state) => ({ scans: [newScan, ...state.scans] }));
 
+        // 'marked: <name> · %' is emitted by the ambient layer in lib/iterra.ts
+        // on new-scan detection — no feed write needed here.
+
         if (user && db) {
           try { await setDoc(doc(db, 'scans', id), stripUndefined(newScan)); } catch(e) {}
         }

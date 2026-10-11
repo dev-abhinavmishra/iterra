@@ -3,6 +3,7 @@
 // the shell's Today rail. Read-only: the bridge never mutates the store.
 // Contract: docs/WIRING.md §3 — summary shape { slips, overdue, top }.
 
+import { useEffect, useState } from 'react';
 import { useFolio } from '../store';
 import { todayISO } from './utils';
 
@@ -18,21 +19,10 @@ interface FolioSummary {
   top: string | null;
 }
 
-function summary(): FolioSummary | null {
-  const s = useFolio.getState();
-  if (!s.booted) return null;
-
-  const today = todayISO();
-  const blocks = Object.values(s.blocks);
-  const commitments = Object.values(s.commitments);
-
-  const slips = blocks.filter((b) => b.plannedDate === today && b.state !== 'done').length;
-  const overdue = commitments.filter((c) => c.status === 'open' && typeof c.dueAt === 'string' && c.dueAt.slice(0, 10) < today).length;
-
-  // Highest-priority remaining block = the scheduler's max score among slips
-  // still awaiting a stamp (done/deferred no longer compete for next).
-  const remaining = blocks.filter((b) => b.state !== 'done' && b.state !== 'deferred');
-  let top: string | null = null;
+// Highest-priority remaining block = the scheduler's max score among slips
+// still awaiting a stamp (done/deferred no longer compete for next).
+function nextWorkBlock(s: ReturnType<typeof useFolio.getState>) {
+  const remaining = Object.values(s.blocks).filter((b) => b.state !== 'done' && b.state !== 'deferred');
   let best = remaining[0];
   for (const b of remaining) {
     if (
@@ -44,12 +34,62 @@ function summary(): FolioSummary | null {
       best = b;
     }
   }
+  return best ?? null;
+}
+
+function summary(): FolioSummary | null {
+  const s = useFolio.getState();
+  if (!s.booted) return null;
+
+  const today = todayISO();
+  const blocks = Object.values(s.blocks);
+  const commitments = Object.values(s.commitments);
+
+  const slips = blocks.filter((b) => b.plannedDate === today && b.state !== 'done').length;
+  const overdue = commitments.filter((c) => c.status === 'open' && typeof c.dueAt === 'string' && c.dueAt.slice(0, 10) < today).length;
+
+  const best = nextWorkBlock(s);
+  let top: string | null = null;
   if (best) {
     const c = s.commitments[best.commitmentId];
     top = c?.title ?? best.label ?? null;
   }
 
   return { slips, overdue, top };
+}
+
+// ── shared.focus reader (the FOCUS chip on slips) ────────────────────────────
+// Writes to the commons/index docs live in the ambient layer below — this is
+// only the read-side hook BlockSlip uses.
+
+const FOCUS_FRESH_MS = 60_000;
+
+function readFocus(doc: any): { running: boolean; blockId?: string } | null {
+  const f = doc?.get?.()?.focus;
+  if (!f || !f.v || Date.now() - (f.at ?? 0) > FOCUS_FRESH_MS) return null;
+  return f.v;
+}
+
+/**
+ * True while the timer's shared.focus says a session is running on this
+ * block (or any block when blockId is omitted). Re-checks on doc writes and
+ * on a slow tick so a stale signal fades without waiting for a write.
+ */
+export function useSharedFocus(blockId?: string): boolean {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    const doc = window.iterra?.doc?.('shared');
+    if (!doc) return;
+    const check = () => {
+      const f = readFocus(doc);
+      setOn(!!(f?.running && (!blockId || f.blockId === blockId)));
+    };
+    check();
+    const unsub = doc.subscribe(check);
+    const iv = setInterval(check, 15_000);
+    return () => { unsub?.(); clearInterval(iv); };
+  }, [blockId]);
+  return on;
 }
 
 export function wireIterra() {
@@ -87,7 +127,9 @@ wireIterra();
     const blocks = Object.values(s.blocks) as any[];
     const top = blocks.filter((b) => b.state !== 'done' && b.state !== 'deferred')
       .sort((a, b) => b.score - a.score || a.plannedDate.localeCompare(b.plannedDate) || a.order - b.order)[0];
-    const course = top ? (s.courses as any)[top.courseId] : Object.values(s.courses).sort((a: any, b: any) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))[0];
+    // WorkBlock carries commitmentId, not courseId — resolve through it
+    const topCourseId = top ? (s.commitments as any)[top.commitmentId]?.courseId : null;
+    const course = topCourseId ? (s.courses as any)[topCourseId] : Object.values(s.courses).sort((a: any, b: any) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))[0];
     const sum = summary();
     if (sum) {
       const v = {
@@ -101,7 +143,7 @@ wireIterra();
               id: top.id,
               title: (s.commitments as any)[top.commitmentId]?.title ?? top.label ?? 'a block',
               minutes: top.plannedMinutes,
-              course: (s.courses as any)[top.courseId]?.code,
+              course: (s.courses as any)[topCourseId]?.code,
             }
           : null,
       };
@@ -118,7 +160,7 @@ wireIterra();
       .filter((b) => b.state !== 'done' && b.state !== 'deferred')
       .map((b) => {
         const c = (s.commitments as any)[b.commitmentId];
-        const co = (s.courses as any)[b.courseId] || (s.courses as any)[c?.courseId];
+        const co = (s.courses as any)[c?.courseId];
         return { t: 'block', id: b.id, title: c?.title ?? b.label ?? 'a block', sub: co?.code,
           course: co?.code, url: `/apps/syllabus/`, at: Date.now(), _commitment: b.commitmentId };
       });

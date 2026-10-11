@@ -3,6 +3,7 @@
 // for the shell's Today rail. Read-only: the bridge never mutates the store.
 // Contract: docs/WIRING.md §3 — summary shape { lastMark, assessments }.
 
+import { useEffect, useState } from 'react';
 import { useStore } from '../store';
 
 declare global {
@@ -36,6 +37,32 @@ function summary(): GradeSummary | null {
   }
 
   return { lastMark, assessments: tests.length };
+}
+
+// ── shared.activeCourse reader (the course chip in the sidebar) ──────────────
+// Commons/index writes live in the ambient layer below — this is read-side.
+
+const COURSE_FRESH_MS = 5 * 60_000;
+
+/**
+ * The syllabus' shared.activeCourse while it's fresh — shown as a small
+ * context line in the sidebar. Re-reads on doc writes and a slow tick.
+ */
+export function useActiveCourse(): { code: string; name: string } | null {
+  const [course, setCourse] = useState<{ code: string; name: string } | null>(null);
+  useEffect(() => {
+    const doc = window.iterra?.doc?.('shared');
+    if (!doc) return;
+    const check = () => {
+      const f = doc.get()?.activeCourse;
+      setCourse(f && f.v && Date.now() - (f.at ?? 0) < COURSE_FRESH_MS ? f.v : null);
+    };
+    check();
+    const unsub = doc.subscribe(check);
+    const iv = setInterval(check, 30_000);
+    return () => { unsub?.(); clearInterval(iv); };
+  }, []);
+  return course;
 }
 
 export function wireIterra() {
