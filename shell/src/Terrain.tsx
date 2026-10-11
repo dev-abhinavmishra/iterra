@@ -361,12 +361,22 @@ export function Terrain({
                     )}
                   </div>
                   <p className="mt-1.5 text-[14px] font-medium leading-snug text-field-ink">{title}</p>
-                  <button
-                    onClick={() => onGo(url)}
-                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-md bg-moss-700 px-3 py-1.5 text-[12px] font-medium text-atlas-50 hover:bg-moss-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
-                  >
-                    start {mins}m focus →
-                  </button>
+                  <div className="mt-2.5 flex items-center gap-3">
+                    <button
+                      onClick={() => onGo(url)}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-moss-700 px-3 py-1.5 text-[12px] font-medium text-atlas-50 hover:bg-moss-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+                    >
+                      start {mins}m focus →
+                    </button>
+                    {block && (
+                      <button
+                        onClick={() => onGo(`/apps/syllabus/?block=${encodeURIComponent(block)}`)}
+                        className="text-[12px] font-medium text-moss-700 hover:underline focus:outline-none"
+                      >
+                        open the slip
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })()}
