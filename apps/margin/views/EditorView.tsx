@@ -11,6 +11,7 @@ import FindReplace, { unwrapFindMarks } from '../components/editor/FindReplace';
 import VersionHistory from '../components/editor/VersionHistory';
 import AudioPlayer from '../components/editor/AudioPlayer';
 import RelatedNotes from '../components/editor/RelatedNotes';
+import SharedNoteLink from '../components/SharedNoteLink';
 import { runAction } from '../services/aiService';
 import { exportNoteMarkdown, exportNoteHtml } from '../services/exportService';
 import { sanitizeHtml } from '../services/sanitize';
@@ -557,6 +558,16 @@ const EditorView: React.FC<EditorViewProps> = ({
                         onClick={() => onToggleBookmark(note)}
                         title={note.isBookmarked ? 'Unpin note' : 'Pin note'}
                     />
+                    <SharedNoteLink />
+                    <a
+                        href={`/apps/timer/?intent=${encodeURIComponent(note.title || 'study')}&minutes=25&from=margin`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Start a 25-minute focus block on this note in the Instruments"
+                        className="hidden sm:inline-flex items-center gap-1 h-8 px-2 rounded-[var(--r-sm)] font-sans text-[12px] text-ink-3 hover:text-ink hover:bg-[var(--card-2)] transition-colors"
+                    >
+                        focus →
+                    </a>
                     <div className="flex-1" />
                     <IconBtn icon="find_in_page" onClick={() => setFindOpen(true)} title="Find in note (⌘F)" />
                     <IconBtn icon="toc" onClick={() => setPanel(panel === 'outline' ? 'chat' : 'outline')} active={panel === 'outline'} title="Outline" />

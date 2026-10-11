@@ -1,10 +1,19 @@
 /* iterra bridge — the desk reports the open page to the terrain and honors
    inbound /apps/ink/?note=<id> links from sibling places. */
+import { useEffect, useState } from 'react';
 import { useStore } from '../store';
 
 declare global {
   interface Window {
-    iterra?: { register(app: string, opts: { title?: string; summary?: () => unknown }): void };
+    iterra?: {
+    register(app: string, opts: { title?: string; summary?: () => unknown }): void;
+    doc?: (ns: string) => {
+      get: () => unknown;
+      set: (v: unknown) => void;
+      setField: (field: string, v: unknown) => void;
+      subscribe: (cb: (v: unknown) => void) => () => void;
+    };
+  };
   }
 }
 
@@ -42,6 +51,7 @@ export function wireIterra() {
 }
 
 /* ambient layer — commons noteActive, note index, feed on new notes (§7) */
+let myLastWriteAt = 0;
 (() => {
   const it: any = (window as any).iterra;
   if (!it) return;
@@ -59,9 +69,14 @@ export function wireIterra() {
     const { notes, activeNoteId } = useStore.getState() as any;
     const live = notes.filter((n: any) => !n.trashedAt);
     const open = live.find((n: any) => n.id === activeNoteId);
-    const v = open ? { title: open.title || 'untitled' } : null;
+    /* v carries app+id so a sibling desk can offer a real ?note= link */
+    const v = open ? { app: 'ink', id: open.id, title: open.title || 'untitled' } : null;
     const j = JSON.stringify(v);
-    if (j !== lastCommons) { lastCommons = j; shared.setField('noteActive', { v, by: 'ink', at: Date.now() }); }
+    if (j !== lastCommons) {
+      lastCommons = j;
+      myLastWriteAt = Date.now();
+      shared.setField('noteActive', { v, by: 'ink', at: myLastWriteAt });
+    }
     const entities = live.slice(0, 50).map((n: any) => ({
       t: 'note', id: n.id, title: n.title || 'untitled', sub: n.folder,
       url: `/apps/ink/?note=${n.id}`, at: n.lastModified,
@@ -78,3 +93,32 @@ export function wireIterra() {
   if (useStore.persist?.hasHydrated?.()) publish();
   else useStore.persist?.onFinishHydration?.(publish);
 })();
+
+interface NoteActiveEntry {
+  v: { app: string; id: string; title: string } | null;
+  by: string;
+  at: number;
+}
+
+/* commons read: shared.noteActive — show the sibling notes app's active note
+   only when their stamp is fresher than our own last write and not leftover
+   (>5min). Entry carries the sibling's own store id so ?note= resolves. */
+export function useOtherNoteActive(): NoteActiveEntry | null {
+  const [entry, setEntry] = useState<NoteActiveEntry | null>(null);
+  useEffect(() => {
+    const shared = window.iterra?.doc?.('shared');
+    if (!shared) return;
+    const read = (doc: unknown) => {
+      const e = (doc as { noteActive?: NoteActiveEntry } | null)?.noteActive ?? null;
+      setEntry(e && typeof e === 'object' ? e : null);
+    };
+    read(shared.get());
+    return shared.subscribe(read);
+  }, []);
+  const activeId = useStore((s: any) => s.activeNoteId);
+  const v = entry?.v;
+  if (!v || v.app !== 'margin') return null;
+  if (!v.id || v.id === activeId) return null;
+  if (entry!.at <= myLastWriteAt || Date.now() - entry!.at > 5 * 60_000) return null;
+  return entry;
+}

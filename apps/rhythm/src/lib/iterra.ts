@@ -5,6 +5,7 @@
 // a hit lands. Loaded once from main.tsx; no-ops standalone (window.iterra
 // only exists when public/iterra-hub.js ran inside the shell).
 
+import { useEffect, useState } from 'react';
 import { todayISO } from './dates';
 import { entriesOn, isScheduled } from './register';
 import { useRegister } from '../store';
@@ -97,6 +98,11 @@ export function wireIterra() {
     /* feed — a hit landing is terrain news; track newly-appearing entry ids */
     const ids = new Set(Object.keys(s.entries));
     if (lastEntryIds) {
+      /* register completing is the other half of the contract: the day going
+         from open lines to none. Baseline is captured silently below. */
+      if (sum && prevPending !== null && prevPending > 0 && sum.pending === 0 && sum.total > 0) {
+        iterra.feed({ text: `register complete — ${sum.total}/${sum.total} for today`, url: '/apps/rhythm/' });
+      }
       for (const id of ids) {
         if (!lastEntryIds.has(id)) {
           const e = s.entries[id];
@@ -109,11 +115,40 @@ export function wireIterra() {
       }
     }
     lastEntryIds = ids;
+    if (sum) prevPending = sum.pending;
   };
 
   useRegister.subscribe(publishDocs);
+  let prevPending: number | null = null;
   if (useRegister.persist.hasHydrated()) publishDocs();
   else useRegister.persist.onFinishHydration(publishDocs);
 }
 
 wireIterra();
+
+/* commons read: shared.focus — the Instruments' running block. It is written
+   once when the countdown starts, so it stays 'fresh' for the block's own
+   span (endsInMin) plus a small grace; a stopped focus reads stale instantly. */
+interface FocusEntry {
+  v: { label?: string; running?: boolean; endsInMin?: number } | null;
+  by: string;
+  at: number;
+}
+
+export function useSharedFocus(): FocusEntry | null {
+  const [entry, setEntry] = useState<FocusEntry | null>(null);
+  useEffect(() => {
+    const shared = window.iterra?.doc?.('shared');
+    if (!shared) return;
+    const read = (doc: unknown) => {
+      const e = (doc as { focus?: FocusEntry } | null)?.focus ?? null;
+      setEntry(e && typeof e === 'object' ? e : null);
+    };
+    read(shared.get());
+    return shared.subscribe(read);
+  }, []);
+  if (!entry?.v?.running) return null;
+  const spanMs = (entry.v.endsInMin ?? 0) * 60_000 + 60_000;
+  if (Date.now() - entry.at > spanMs) return null;
+  return entry;
+}

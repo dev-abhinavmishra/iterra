@@ -18,6 +18,7 @@ import {
 import { InkBlot, InkDrop, PenNib, PenRest, Spatter, Squiggle, TornEdge } from '../../lib/ink';
 import { PENS, PEN_ORDER, penOf, type PenId } from '../../lib/pens';
 import { useNow } from '../../lib/useNow';
+import { SharedNoteLink } from './SharedNoteLink';
 
 type SaveState = 'idle' | 'saving' | 'saved';
 
@@ -341,6 +342,15 @@ export const Editor: React.FC = () => {
                     {noteDrafts.length} earlier {noteDrafts.length === 1 ? 'draft' : 'drafts'}
                   </button>
                 )}
+                <SharedNoteLink />
+                <a
+                  href={`/apps/timer/?intent=${encodeURIComponent(activeNote.title || 'writing')}&minutes=25&from=ink`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-fountain/70 hover:text-fountain transition-colors"
+                >
+                  focus →
+                </a>
               </div>
 
               <RichEditor

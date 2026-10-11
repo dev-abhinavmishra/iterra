@@ -121,7 +121,7 @@
       var abs;
       try { abs = new URL(a.getAttribute('href') || '', window.location.href); } catch (e) { return; }
       if (abs.origin !== window.location.origin) return;
-      var m = abs.pathname.match(/^\/apps\/([a-z]+)\//);
+      var m = abs.pathname.match(/^\/apps\/([a-z]+)(\/|$)/); // bare '/apps/x' counts too — open() routes it
       // in-frame navigations only get intercepted when they cross to another
       // place (or to _blank) — own-app links behave normally
       if (!m || (m[1] === me && a.target !== '_blank')) return;

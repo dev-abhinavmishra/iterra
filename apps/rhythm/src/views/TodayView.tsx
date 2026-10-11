@@ -14,6 +14,7 @@ import { bandFor } from '../lib/bands';
 import { addDaysISO, fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
 import { EXCEPTION_LABEL, FRICTION_LABEL, cx } from '../lib/utils';
 import { usePlayhead } from '../lib/playhead';
+import { useSharedFocus } from '../lib/iterra';
 import { Pad } from '../components/Pad';
 import { Lamp } from '../components/Lamp';
 import { Sheet } from '../components/Sheet';
@@ -27,6 +28,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
   const courses = useRegister((s) => s.courses);
   const settings = useRegister((s) => s.settings);
   const focusedRoutineName = useRegister((s) => s.focusedRoutineName);
+  const sharedFocus = useSharedFocus();
   const checkIn = useRegister((s) => s.checkIn);
   const logFriction = useRegister((s) => s.logFriction);
   const addException = useRegister((s) => s.addException);
@@ -93,6 +95,12 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
         </div>
         <TodayPace />
       </div>
+
+      {sharedFocus && (
+        <div className="kicker mb-4" aria-label="Focus running">
+          focus running — {sharedFocus.v?.label || 'unnamed block'}
+        </div>
+      )}
 
       {/* ── Live channels ────────────────────────────────────────── */}
       {list.scheduled.length === 0 && list.open.length === 0 && list.paused.length === 0 && (
