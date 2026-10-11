@@ -125,6 +125,20 @@ export function TestHistory() {
                           <Icon name="content_copy" size={17} />
                         </button>
                         <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            /* study session bound to this assessment — the
+                               markbook reaches back into the terrain */
+                            const p = new URLSearchParams({ intent: `study ${t.name || 'assessment'}`, minutes: '25', from: 'gradestack' });
+                            if (t.courseName) p.set('course', t.courseName);
+                            try { (window as any).iterra?.open?.(`/apps/timer/?${p.toString()}`); } catch {}
+                          }}
+                          className="text-faint hover:text-ink p-2 rounded-md transition-colors sm:opacity-0 group-hover:opacity-100"
+                          title="Study in the timer"
+                        >
+                          <Icon name="timer" size={17} />
+                        </button>
+                        <button
                           onClick={(e) => { e.stopPropagation(); setTestToDelete(t.id); }}
                           className="text-faint hover:text-red p-2 rounded-md transition-colors sm:opacity-0 group-hover:opacity-100"
                           title="Delete"
