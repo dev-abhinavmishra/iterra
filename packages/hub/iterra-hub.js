@@ -131,11 +131,15 @@
     }, true);
   }
 
+  var registered = false;
   function register(app, o) {
     me = app;
-    opts = o || {};
+    opts = o || opts || {};
     publishSummary();
     say({ type: 'iterra:hello', app: app, url: window.location.pathname + window.location.search });
+    if (registered) return; // re-registration refreshes summary only —
+    // a second heartbeat/listener would double-write the same presence key
+    registered = true;
     // keep the presence fresh; summaries are cheap (JSON-diffed)
     setInterval(publishSummary, 3000);
     window.addEventListener('focus', publishSummary);

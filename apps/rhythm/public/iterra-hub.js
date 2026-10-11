@@ -131,11 +131,15 @@
     }, true);
   }
 
+  var registered = false;
   function register(app, o) {
     me = app;
-    opts = o || {};
+    opts = o || opts || {};
     publishSummary();
     say({ type: 'iterra:hello', app: app, url: window.location.pathname + window.location.search });
+    if (registered) return; // re-registration refreshes summary only —
+    // a second heartbeat/listener would double-write the same presence key
+    registered = true;
     // keep the presence fresh; summaries are cheap (JSON-diffed)
     setInterval(publishSummary, 3000);
     window.addEventListener('focus', publishSummary);
@@ -199,6 +203,18 @@
     return out;
   }
 
+  /* The activity feed — notable events from any app, newest first, capped
+     at 30: {app,text,url?,at}. Apps call iterra.feed({text,url?}). */
+  var FEED_KEY = DOC_PREFIX + 'feed';
+  function feed(item) {
+    var cur;
+    try { cur = JSON.parse(localStorage.getItem(FEED_KEY) || 'null'); } catch (e) { cur = null; }
+    if (!cur || !Array.isArray(cur.items)) cur = { items: [] };
+    cur.items.unshift({ app: me || '?', text: String(item.text || ''), url: item.url || undefined, at: Date.now() });
+    cur.items = cur.items.slice(0, 30);
+    try { localStorage.setItem(FEED_KEY, JSON.stringify(cur)); } catch (e) {}
+  }
+
   /* Subscribe to sibling presence changes (storage-event driven). */
   function onPresence(cb) {
     var h = function (ev) {
@@ -218,6 +234,7 @@
     doc: doc,
     presence: presence,
     onPresence: onPresence,
+    feed: feed,
     apps: readApps,
     isFramed: function () { return framed; },
   };

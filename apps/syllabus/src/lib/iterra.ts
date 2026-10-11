@@ -75,17 +75,31 @@ wireIterra();
   const publish = () => {
     const s = useFolio.getState();
     if (!s.booted) return;
-    const sum = summary();
-    if (sum) {
-      const v = { slips: sum.slips, overdue: sum.overdue, next: sum.top };
-      const j = JSON.stringify(v);
-      if (j !== lastCommons) { lastCommons = j; shared.setField('today', { v, by: 'syllabus', at: Date.now() }); }
-    }
     // active course = the course of today's top block, else the newest course
     const blocks = Object.values(s.blocks) as any[];
     const top = blocks.filter((b) => b.state !== 'done' && b.state !== 'deferred')
       .sort((a, b) => b.score - a.score || a.plannedDate.localeCompare(b.plannedDate) || a.order - b.order)[0];
     const course = top ? (s.courses as any)[top.courseId] : Object.values(s.courses).sort((a: any, b: any) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))[0];
+    const sum = summary();
+    if (sum) {
+      const v = {
+        slips: sum.slips,
+        overdue: sum.overdue,
+        next: sum.top,
+        // the terrain's next-up card deep-links this straight into a bound
+        // timer session — id is the block id file-back stamps
+        nextBlock: top
+          ? {
+              id: top.id,
+              title: (s.commitments as any)[top.commitmentId]?.title ?? top.label ?? 'a block',
+              minutes: top.plannedMinutes,
+              course: (s.courses as any)[top.courseId]?.code,
+            }
+          : null,
+      };
+      const j = JSON.stringify(v);
+      if (j !== lastCommons) { lastCommons = j; shared.setField('today', { v, by: 'syllabus', at: Date.now() }); }
+    }
     const cv = course ? { code: (course as any).code, name: (course as any).name } : null;
     const cj = JSON.stringify(cv);
     if (cj !== lastCourse) { lastCourse = cj; shared.setField('activeCourse', { v: cv, by: 'syllabus', at: Date.now() }); }

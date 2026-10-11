@@ -196,6 +196,29 @@ export default function App() {
             <>
               <div className="fixed inset-0 z-30" onClick={() => setSwitcherOpen(false)} />
               <div className="absolute left-0 top-full z-40 mt-1 w-64 rounded-lg border border-atlas-300 bg-atlas-50 p-1.5 shadow-[0_16px_40px_-16px_rgba(29,51,42,0.4)]">
+                {/* in this place — the active app's own entities as
+                    quick-jump links (from its index.<app> doc) */}
+                {(indexes[active || ''] || []).length > 0 && (
+                  <div>
+                    <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+                      in this place
+                    </div>
+                    {(indexes[active || ''] || []).slice(0, 6).map((e, i) => (
+                      <button
+                        key={i}
+                        onClick={() => {
+                          setSwitcherOpen(false);
+                          goUrl(e.url || `/apps/${active}/`);
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left hover:bg-moss-100"
+                      >
+                        <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-field-ink">{e.title}</span>
+                        <span className="shrink-0 text-[10px] text-atlas-500">{e.t}</span>
+                      </button>
+                    ))}
+                    <div className="my-1 border-t border-atlas-200" />
+                  </div>
+                )}
                 {PLACES.map((p) => (
                   <button
                     key={p.id}

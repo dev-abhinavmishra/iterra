@@ -55,7 +55,7 @@ wireMargin();
         if (j !== lastCommons) { lastCommons = j; shared.setField('noteActive', { v, by: 'margin', at: Date.now() }); }
         const entities = notes.slice(0, 50).map((n: any) => ({
             t: 'note', id: n.id, title: n.title || 'untitled', sub: n.subject,
-            url: '/apps/margin/', at: new Date(n.lastAccessed || Date.now()).getTime(),
+            url: `/apps/margin/?note=${n.id}`, at: new Date(n.lastAccessed || Date.now()).getTime(),
         }));
         const ej = JSON.stringify(entities);
         if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
