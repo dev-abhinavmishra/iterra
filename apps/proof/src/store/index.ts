@@ -425,6 +425,36 @@ export const useWorkbench = create<WorkbenchState>()(
     {
       name: 'proof.workbench.v1',
       version: 1,
+      /* old/partial blobs: array fields readers iterate unguarded
+         (p.tags crashed LibraryView + selectAllTags — same class as the
+         syllabus dependencies fix upstream) */
+      merge: (persisted, current) => {
+        const s = { ...current, ...(persisted as Partial<WorkbenchState>) };
+        /* settings is a nested object — a persisted {} or partial blob must
+           not blank the defaults (defaultSessionMinutes undefined →
+           rules.minutes NaN → every session built with 0 problems) */
+        s.settings = { ...current.settings, ...(s.settings || {}) };
+        for (const p of Object.values(s.problems || {})) {
+          p.tags = p.tags ?? [];
+          p.hints = p.hints ?? [];
+          p.attachments = p.attachments ?? [];
+          /* answerSpec is a required union — blobs predating it crashed
+             p.answerSpec.kind derefs (LibraryView/AttemptDesk) */
+          p.answerSpec = p.answerSpec ?? { kind: 'steps', steps: [] };
+        }
+        for (const a of Object.values(s.attempts || {})) {
+          a.work = a.work ?? [];
+          a.hintReveals = a.hintReveals ?? [];
+        }
+        for (const sess of Object.values(s.sessions || {})) {
+          sess.problemIds = sess.problemIds ?? [];
+          if (sess.rules) {
+            sess.rules.courseIds = sess.rules.courseIds ?? [];
+            sess.rules.topics = sess.rules.topics ?? [];
+          }
+        }
+        return s;
+      },
       partialize: (s) => ({
         problems: s.problems,
         attempts: s.attempts,

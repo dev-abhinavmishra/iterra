@@ -52,7 +52,7 @@ export function wireIterra() {
          store re-syncs via the persist storage event and would feed the same
          transition again — same text within 15s is one event, not two. */
       if (iterra.feed) {
-        const feedOnce = (text: string) => {
+        const feedOnce = (text: string, course?: string) => {
           const items = iterra.doc?.('feed')?.get()?.items;
           if (
             Array.isArray(items) &&
@@ -63,13 +63,19 @@ export function wireIterra() {
             )
           )
             return;
-          iterra.feed({ text, url: '/apps/proof/' });
+          iterra.feed({ text, url: '/apps/proof/', course });
         };
         for (const sess of sessions) {
           const had = seen.get(sess.id);
           const label = sess.intent ?? sess.rules?.topics?.[0] ?? 'practice';
-          if (seeded && had === undefined) feedOnce(`session started · ${label}`);
-          else if (seeded && had === ACTIVE && sess.completedAt) feedOnce(`session completed · ${label}`);
+          /* stir tags come from the session's problems' real courseId —
+             first problem carrying one wins; never parsed out of the label */
+          const cid = (sess.problemIds ?? [])
+            .map((pid) => s.problems?.[pid]?.courseId)
+            .find(Boolean);
+          const course = cid ? s.courses?.[cid]?.code : undefined;
+          if (seeded && had === undefined) feedOnce(`session started · ${label}`, course);
+          else if (seeded && had === ACTIVE && sess.completedAt) feedOnce(`session completed · ${label}`, course);
           seen.set(sess.id, sess.completedAt ?? ACTIVE);
         }
         seeded = true;

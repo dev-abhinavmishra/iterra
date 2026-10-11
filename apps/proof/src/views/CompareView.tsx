@@ -370,7 +370,7 @@ export function CompareView({
                     : undefined;
                   const url = flashcardsCardsLink(settings, [card], title, course);
                   openDeep(url);
-                  (window as any).iterra?.feed?.({ text: `exported deck: ${title}`, url });
+                  (window as any).iterra?.feed?.({ text: `exported deck: ${title}`, url, course });
                 }}
                 disabled={!repairCue.trim() && !divergence.trim()}
               >

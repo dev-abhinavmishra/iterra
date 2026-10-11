@@ -131,7 +131,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     const url = syllabusReturnUrl(syllabus, actual);
     if (!url) return;
     const iterra = (window as any).iterra;
-    iterra?.feed?.({ text: `filed ${actual}m into ${blockTitle ?? syllabus.block ?? 'block'}`, url });
+    iterra?.feed?.({ text: `filed ${actual}m into ${blockTitle ?? syllabus.block ?? 'block'}`, url, course: syllabus.course });
     // inside the terrain, file-back routes through the shell — the folio
     // wakes with ?completedBlock instead of this frame walking away
     if (iterra?.isFramed?.()) iterra.open(url);
