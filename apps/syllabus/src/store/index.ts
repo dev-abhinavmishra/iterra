@@ -507,6 +507,22 @@ export const useFolio = create<FolioState>()(
     {
       name: 'syllabus.folio.v1',
       version: 1,
+      // Blobs written before array fields existed boot-crash on bare
+      // iteration (c.dependencies is not iterable → white screen).
+      // Backfill them at the merge boundary, once — same class as the
+      // cardfile's loadStore normalize.
+      merge: (persisted, current) => {
+        const p = (persisted || {}) as Partial<FolioData>;
+        const commitments = { ...(p.commitments || {}) };
+        for (const c of Object.values(commitments)) {
+          if (!Array.isArray((c as Commitment).dependencies)) (c as Commitment).dependencies = [];
+        }
+        const blocks = { ...(p.blocks || {}) };
+        for (const b of Object.values(blocks)) {
+          if (!Array.isArray((b as WorkBlock).reasons)) (b as WorkBlock).reasons = [];
+        }
+        return { ...current, ...p, commitments, blocks };
+      },
       partialize: (s) => ({
         terms: s.terms,
         activeTermId: s.activeTermId,
