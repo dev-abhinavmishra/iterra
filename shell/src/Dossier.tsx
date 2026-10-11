@@ -49,7 +49,15 @@ export function Dossier({
   const urlKeys = new Map<string, string>();
   for (const g of byApp) for (const e of g.ents) if (e.url) urlKeys.set(e.url, key);
   const mentions = feed
-    .filter((f) => (unfiled ? false : keyRe.test(f.text)) || (f.url ? urlKeys.has(f.url) : false))
+    .filter(
+      (f) =>
+        (unfiled
+          ? false
+          : keyRe.test(f.text) ||
+            (f.course || '').toLowerCase() === key ||
+            (f.topic || '').toLowerCase() === key) ||
+        (f.url ? urlKeys.has(f.url) : false),
+    )
     .slice(0, 8);
   const nb = (shared.today?.v as any)?.nextBlock;
   const ac = (shared.activeCourse?.v as any);

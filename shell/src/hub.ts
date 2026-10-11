@@ -123,6 +123,10 @@ export interface FeedItem {
   text: string;
   url?: string;
   at: number;
+  /* optional linkage keys — emitters tag the stir with the course/topic it
+     belongs to so dossiers file it without needing the url to resolve */
+  course?: string;
+  topic?: string;
 }
 
 export function readFeed(): FeedItem[] {

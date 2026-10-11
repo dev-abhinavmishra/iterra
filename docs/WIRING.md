@@ -181,12 +181,16 @@ found by text search but never linked.
 
 ### The feed — unified activity stream
 
-`iterra.feed({ text, url? })` appends a notable event to
+`iterra.feed({ text, url?, course?, topic? })` appends a notable event to
 `iterra.doc('feed')` (newest-first, cap 30) — the terrain renders it as the
 activity stream. Emit only real state changes worth seeing across the
 terrain: a block stamped done, a deck imported, a focus session completed,
 an assessment graded, a note created. Not navigation noise. `url` (optional)
 is the `/apps/<name>/...` deep link back to the thing that changed.
+`course`/`topic` (optional) tag the stir with its linkage key — dossiers
+file a stir under its course even when the text never spells the key and
+the url isn't an indexed entity. Pass them whenever the event has a known
+course/topic; never synthesize from titles.
 
 Rules: publish on mount + whenever the underlying state changes (not on a
 timer — presence already heartbeats). Read defensively (`at` freshness,

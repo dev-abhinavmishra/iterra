@@ -210,7 +210,8 @@
   }
 
   /* The activity feed — notable events from any app, newest first, capped
-     at 30: {app,text,url?,at}. Apps call iterra.feed({text,url?}). */
+     at 30: {app,text,url?,course?,topic?,at}. Apps call iterra.feed({text,url?,course?,topic?}) —
+     course/topic tag the stir with its linkage key so dossiers file it. */
   var FEED_KEY = DOC_PREFIX + 'feed';
   function feed(item) {
     var cur;
@@ -224,7 +225,7 @@
       var it0 = cur.items[i];
       if (it0 && it0.app === (me || '?') && it0.text === text && now - it0.at < 2000) return;
     }
-    cur.items.unshift({ app: me || '?', text: text, url: item.url || undefined, at: now });
+    cur.items.unshift({ app: me || '?', text: text, url: item.url || undefined, course: item.course || undefined, topic: item.topic || undefined, at: now });
     cur.items = cur.items.slice(0, 30);
     try { localStorage.setItem(FEED_KEY, JSON.stringify(cur)); } catch (e) {}
   }
