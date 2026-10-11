@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, subscribeShared, type Presence, type SharedField } from './hub';
+import { subscribePresences, subscribeShared, subscribeIndexes, type Presence, type SharedField, type Entity } from './hub';
 import { Terrain } from './Terrain';
+import { Search } from './Search';
 
 /* ── hash routing: '' → terrain, 'p/<place>' → place view ── */
 function parseHash(): string {
@@ -18,6 +19,8 @@ export default function App() {
   const [active, setActive] = useState<string>(() => parseHash());
   const [presences, setPresences] = useState<Record<string, Presence>>({});
   const [shared, setShared] = useState<Record<string, SharedField>>({});
+  const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
+  const [searchOpen, setSearchOpen] = useState(false);
   /* visited places keep their iframes mounted (keep-alive) — the environment
      stays warm: state persists while wandering the terrain. */
   const [frames, setFrames] = useState<Record<string, string>>({});
@@ -26,6 +29,25 @@ export default function App() {
 
   useEffect(() => subscribePresences(setPresences), []);
   useEffect(() => subscribeShared(setShared), []);
+  useEffect(() => subscribeIndexes(setIndexes), []);
+
+  /* ⌘K / ctrl+K or `/` opens the palette — shell chrome has no text inputs
+     of its own so `/` is safe anywhere on the terrain or in chrome */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((o) => !o);
+      } else if (e.key === '/' && !typing) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   useEffect(() => {
     const onHash = () => {
@@ -170,6 +192,18 @@ export default function App() {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="hidden items-center gap-1.5 rounded-md border border-atlas-300 bg-atlas-50 px-2 py-1 text-[11px] text-atlas-500 hover:border-moss-400 hover:text-moss-700 sm:flex"
+            title="Search the terrain (/)"
+          >
+            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.5-3.5" />
+            </svg>
+            search
+            <kbd className="rounded border border-atlas-300 px-1 text-[10px]">/</kbd>
+          </button>
           {timerRunning?.label && active !== 'timer' && (
             <button
               onClick={() => enter('timer')}
@@ -221,6 +255,24 @@ export default function App() {
           <Terrain presences={presences} shared={shared} onEnter={enter} />
         </div>
       ) : null}
+      <Search
+        indexes={indexes}
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onGo={(url) => {
+          if (url.startsWith('#')) {
+            window.location.hash = url.slice(1);
+            return;
+          }
+          // entity deep links go through the same routing as iterra:open
+          const m = url.match(/^\/apps\/([a-z]+)(\/[^?#]*)?(\?[^#]*)?/);
+          if (!m || !PLACE_MAP[m[1]]) return;
+          const [, id, p = '/', q = ''] = m;
+          const full = `/apps/${id}${p}${q}`;
+          setFrames((f) => ({ ...f, [id]: f[id] === full ? `${full}${q ? '&' : '?'}_inav=${Date.now()}` : full }));
+          window.location.hash = `/p/${id}`;
+        }}
+      />
     </div>
   );
 }

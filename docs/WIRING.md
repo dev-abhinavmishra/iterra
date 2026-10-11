@@ -138,6 +138,26 @@ missing, stale, or written by an app that isn't running — always check `at`.
 Each app's public context doc `iterra.doc('<app>')` may carry richer state
 for anyone who wants more than the commons fields.
 
+### The index — entity-level linkage
+
+For cross-app search and "related" surfacing, every app publishes its
+top-level entities to `iterra.doc('index.<app>')` as
+
+```json
+{ "entities": [ { "t": "note|deck|problem|block|routine|assessment|session",
+                  "id": "<stable id>",
+                  "title": "<display title>",
+                  "sub": "<optional context: course code, topic>",
+                  "course": "<optional course code>",
+                  "topic": "<optional topic slug>",
+                  "url": "<optional deep-link path for iterra.open>",
+                  "at": 0 } ] }
+```
+
+Cap ~50 most-recent entities; publish on state change (not a timer). `url`
+must be an `/apps/<name>/...` deep link honoring §6 intake params. The shell
+turns this into a unified palette; apps may read it too.
+
 Rules: publish on mount + whenever the underlying state changes (not on a
 timer — presence already heartbeats). Read defensively (`at` freshness,
 `by` provenance, missing fields). Never read your own writes for authority.

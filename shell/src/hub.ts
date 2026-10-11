@@ -74,3 +74,45 @@ export function subscribeShared(cb: (m: Record<string, SharedField>) => void): (
     window.clearInterval(t);
   };
 }
+
+/* Entity index — apps publish their top-level entities to
+   iterra.doc('index.<app>') (docs/WIRING.md §7). The shell turns it into
+   the unified palette. */
+export interface Entity {
+  t?: string;
+  id?: string;
+  title?: string;
+  sub?: string;
+  course?: string;
+  topic?: string;
+  url?: string;
+  at?: number;
+}
+
+export function readIndexes(): Record<string, Entity[]> {
+  const out: Record<string, Entity[]> = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i) || '';
+    const m = k.match(/^iterra\.v1\.doc\.index\.([a-z]+)$/);
+    if (!m) continue;
+    try {
+      const d = JSON.parse(localStorage.getItem(k) || 'null');
+      out[m[1]] = Array.isArray(d?.entities) ? d.entities : [];
+    } catch { /* ignore */ }
+  }
+  return out;
+}
+
+export function subscribeIndexes(cb: (m: Record<string, Entity[]>) => void): () => void {
+  const emit = () => cb(readIndexes());
+  const onStorage = (ev: StorageEvent) => {
+    if (/^iterra\.v1\.doc\.index\.[a-z]+$/.test(ev.key || '')) emit();
+  };
+  window.addEventListener('storage', onStorage);
+  const t = window.setInterval(emit, 2500);
+  emit();
+  return () => {
+    window.removeEventListener('storage', onStorage);
+    window.clearInterval(t);
+  };
+}
