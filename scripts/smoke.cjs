@@ -44,8 +44,22 @@ const { chromium } = require('playwright-core');
     return { hash: location.hash, frames: [...document.querySelectorAll('iframe')].map((i) => i.getAttribute('src')) };
   });
 
+  // ambient layer — boot each place's frame so its publisher runs, then
+  // assert the commons/index docs land on the bus
+  for (const pl of ['rhythm', 'timer', 'ink']) {
+    await page.evaluate((h) => { location.hash = h; }, `#/p/${pl}`);
+    await new Promise((r) => setTimeout(r, 3500));
+  }
+  const ambient = await page.evaluate(() => {
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith('iterra.v1.doc'));
+    const shared = JSON.parse(localStorage.getItem('iterra.v1.doc.shared') || '{}');
+    const fr = [...document.querySelectorAll('iframe')].find((f) => (f.src || '').includes('/apps/ink/'));
+    const hub = fr && fr.contentWindow ? { doc: !!fr.contentWindow.iterra?.doc, feed: !!fr.contentWindow.iterra?.feed } : 'no-ink-frame';
+    return { keys, sharedFields: Object.keys(shared), hub };
+  });
+
   await page.screenshot({ path: '/tmp/iterra-terrain.png', fullPage: false });
-  console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, errors: errors.slice(0, 8) }, null, 1));
+  console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, ambient, errors: errors.slice(0, 8) }, null, 1));
 
   // real assertions — non-zero exit on failure
   const fails = [];
@@ -58,9 +72,12 @@ const { chromium } = require('playwright-core');
   assert('presence registered', !!presences.syllabus);
   assert('open() routed to timer', openResult.hash === '#/p/timer' && (openResult.frames || []).some((f) => (f || '').startsWith('/apps/timer/')));
   assert('syllabus frame kept alive', (openResult.frames || []).some((f) => (f || '').startsWith('/apps/syllabus/')));
+  assert('ambient docs landing', ambient.keys.length >= 2);
+  assert('commons fields live', ambient.sharedFields.length >= 2);
+  assert('framed hub exposes doc+feed', ambient.hub && ambient.hub.doc === true && ambient.hub.feed === true);
   assert('no page errors', errors.length === 0);
   if (fails.length) { console.error('ASSERT FAIL:', fails.join('; ')); process.exit(1); }
-  console.log('SMOKE PASS: 9/9 assertions');
+  console.log('SMOKE PASS: 12/12 assertions');
   await page.close();
   process.exit(0);
 })().catch((e) => { console.error('SMOKE FAIL', e); process.exit(1); });
