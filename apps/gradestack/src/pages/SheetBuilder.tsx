@@ -58,6 +58,10 @@ export function SheetBuilder() {
   const initialImportPdf = (location.state as { importPdf?: boolean })?.importPdf;
 
   const tests = useStore(state => state.tests);
+  // ?testId can name a deleted or stale assessment — only honor it when the
+  // test actually exists, otherwise "Save changes" would updateTest a ghost
+  // and the sheet the user just built would vanish silently.
+  const editingTest = editingTestId ? tests.find(t => t.id === editingTestId) : undefined;
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isImporting, setIsImporting] = useState(initialImportPdf || false);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
@@ -295,8 +299,8 @@ export function SheetBuilder() {
       answerKey: cleanKey,
     };
 
-    if (editingTestId) {
-      await updateTest(editingTestId, testData);
+    if (editingTest) {
+      await updateTest(editingTest.id, testData);
     } else {
       await addTest(testData);
     }
@@ -531,7 +535,7 @@ export function SheetBuilder() {
             <h2 className="text-headline-md" id="sheet-designer-title">Sheet Builder</h2>
             <p className="text-sm text-pencil mt-0.5">Design the sheet your class will fill in.</p>
           </div>
-          {!editingTestId && (
+          {!editingTest && (
             <button
               onClick={() => setIsImporting(true)}
               className="mt-1 p-2 text-pencil hover:text-mark hover:bg-mark-mist rounded-md transition-all border border-hairline-strong flex flex-col items-center gap-0.5"
@@ -686,7 +690,7 @@ export function SheetBuilder() {
             {isGeneratingPdf ? 'Generating…' : 'Download PDF'}
           </Button>
           <Button variant="outline" icon="save" onClick={handleSave} className="h-11">
-            {editingTestId ? 'Save changes' : 'Save assessment'}
+            {editingTest ? 'Save changes' : 'Save assessment'}
           </Button>
         </div>
       </section>
