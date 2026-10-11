@@ -191,6 +191,49 @@ export default function App() {
                     </span>
                   </button>
                 ))}
+                {/* linked — entities other apps hold on this place's
+                    courses/topics (index.<app> matching on course/topic) */}
+                {(() => {
+                  if (!active) return null;
+                  const keys = new Set<string>();
+                  for (const e of indexes[active] || []) {
+                    if (e.course) keys.add(e.course.toLowerCase());
+                    if (e.topic) keys.add(e.topic.toLowerCase());
+                  }
+                  if (!keys.size) return null;
+                  const related: { app: string; e: Entity }[] = [];
+                  for (const [app, list] of Object.entries(indexes)) {
+                    if (app === active) continue;
+                    for (const e of list || []) {
+                      const ek = [e.course, e.topic].filter(Boolean).map((x) => String(x).toLowerCase());
+                      if (ek.some((k) => keys.has(k))) related.push({ app, e });
+                    }
+                  }
+                  if (!related.length) return null;
+                  return (
+                    <div className="mt-1 border-t border-atlas-200 pt-1.5">
+                      <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+                        linked across the terrain
+                      </div>
+                      {related.slice(0, 5).map(({ app, e }, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setSwitcherOpen(false);
+                            goUrl(e.url || `/apps/${app}/`);
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left hover:bg-moss-100"
+                        >
+                          <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-moss-700">
+                            {PLACE_MAP[app]?.app || app}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-[12.5px] text-field-faint">{e.title}</span>
+                          <span className="shrink-0 text-[10px] text-atlas-500">{e.course || e.topic || ''}</span>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
                 <div className="mt-1 border-t border-atlas-200 pt-1">
                   <button
                     onClick={() => {
@@ -242,7 +285,7 @@ export default function App() {
         </div>
       </div>
     );
-  }, [active, activePlace, frames, switcherOpen, timerRunning, enter, goHome]);
+  }, [active, activePlace, frames, switcherOpen, timerRunning, enter, goHome, goUrl, indexes]);
 
   return (
     <div className="flex h-full flex-col">

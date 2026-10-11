@@ -181,6 +181,44 @@ export function Terrain({
                 </div>
               );
             })()}
+            {/* next up — the terrain's cross-app workflow: read syllabus's
+                shared plan, offer one click into a bound timer session that
+                files back to the folio when it completes */}
+            {(() => {
+              const t = shared.today?.v as any;
+              const nb = t?.nextBlock || null;
+              const title = nb?.title || t?.next || null;
+              if (!title) return null;
+              const mins = nb?.minutes || t?.suggestedMinutes || 25;
+              const course = nb?.course || shared.activeCourse?.v?.code || '';
+              const block = nb?.id || '';
+              const url =
+                `/apps/timer/?intent=${encodeURIComponent(title)}&minutes=${mins}` +
+                `${course ? `&course=${encodeURIComponent(course)}` : ''}` +
+                `&from=syllabus${block ? `&block=${encodeURIComponent(block)}` : ''}` +
+                `&return=${encodeURIComponent('/apps/syllabus')}`;
+              return (
+                <div className="mb-3 rounded-lg border border-moss-400/70 bg-moss-50 p-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-moss-700">
+                      next up
+                    </span>
+                    {course && (
+                      <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-field-faint">
+                        {course}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-[14px] font-medium leading-snug text-field-ink">{title}</p>
+                  <button
+                    onClick={() => onGo(url)}
+                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-md bg-moss-700 px-3 py-1.5 text-[12px] font-medium text-atlas-50 hover:bg-moss-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+                  >
+                    start {mins}m focus →
+                  </button>
+                </div>
+              );
+            })()}
             {/* stirrings — the unified activity feed */}
             {feed.length > 0 && (
               <div className="mb-3 rounded-lg border border-atlas-300 bg-atlas-50/70 p-3.5">
