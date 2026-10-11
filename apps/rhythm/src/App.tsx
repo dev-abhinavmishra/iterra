@@ -36,6 +36,7 @@ export default function App() {
   const markOnboardingSeen = useRegister((s) => s.markOnboardingSeen);
   const motion = useRegister((s) => s.settings.motion);
   const receipt = useRegister((s) => s.receipt);
+  const focusedExperimentId = useRegister((s) => s.focusedExperimentId);
   const dismissReceipt = useRegister((s) => s.dismissReceipt);
   const routineCount = useRegister((s) => Object.keys(s.routines).length);
 
@@ -49,6 +50,11 @@ export default function App() {
   useEffect(() => {
     document.documentElement.dataset.motion = motion;
   }, [motion]);
+
+  /* ?experiment=<id> — land on the Experiments view with that card lit */
+  useEffect(() => {
+    if (focusedExperimentId) setView('experiments');
+  }, [focusedExperimentId]);
 
   if (!booted) {
     return (
@@ -91,7 +97,7 @@ export default function App() {
       {view === 'today' && <TodayView openRoutine={openRoutine} />}
       {view === 'heatmap' && <HeatmapView openRoutine={openRoutine} />}
       {view === 'review' && <ReviewView openRoutine={openRoutine} />}
-      {view === 'experiments' && <ExperimentsView />}
+      {view === 'experiments' && <ExperimentsView focusId={focusedExperimentId} />}
       {view === 'connections' && <ConnectionsView />}
       {view === 'settings' && <SettingsView />}
       {view === 'routine' && routineId && <RoutineView routineId={routineId} />}

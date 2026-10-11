@@ -104,7 +104,7 @@ Already honored: flashcards `?d/?data/?deck/?cards` (incl. `?deck=<id>`
 selecting a library deck — legacy localStorage-key values still fall back;
 `?course=<code>` on `?cards=` persists onto the imported deck so it files
 under that dossier), timer syllabus contract (incl. `?course=<code>`),
-rhythm `?event/?from/?routine`, proof `?completedBlock/from=syllabus`.
+rhythm `?event/?from/?routine/?experiment`, proof `?completedBlock/from=syllabus`.
 
 Also honored:
 - **ink**: `?note=<id>` → select note (set activeNoteId) + navigate home
@@ -113,6 +113,8 @@ Also honored:
 - **margin**: `?note=<id>` → open the note in the editor view; `?deck=<id>`
   → Study opens that deck (review if cards due, else editor); `?quiz=<id>`
   → Study opens the quiz runner (unknown ids stay on the browse list)
+- **rhythm**: `?experiment=<id>` → Experiments view with that card scrolled
+  into view and lit (unknown ids degrade to the plain list)
 - **timer**: `?routine=<name>` → open Intervals focused on the named routine
   (standalone — no `from=` gate; unknown names degrade to a plain open)
 - **syllabus**: `?block=<id>` → select that work slip on Today (stashed at

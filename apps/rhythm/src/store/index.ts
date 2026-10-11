@@ -52,6 +52,7 @@ interface RegisterState extends RegisterData {
   onboardingSeen: boolean;
   receipt: EventReceipt | null;
   focusedRoutineName: string | null;
+  focusedExperimentId: string | null;
   boot: () => void;
   hasOnboarded: () => boolean;
   dismissReceipt: () => void;
@@ -177,6 +178,7 @@ export const useRegister = create<RegisterState>()(
       onboardingSeen: false,
       receipt: null,
       focusedRoutineName: null,
+      focusedExperimentId: null,
 
       boot: () => {
         if (get().booted) return;
@@ -191,6 +193,7 @@ export const useRegister = create<RegisterState>()(
           url.searchParams.delete('event');
           url.searchParams.delete('from');
           url.searchParams.delete('routine');
+          url.searchParams.delete('experiment');
           window.history.replaceState(null, '', url.toString());
         } catch {
           /* replaceState unavailable — still boot */
@@ -215,11 +218,16 @@ export const useRegister = create<RegisterState>()(
                 duplicate: res.kind === 'duplicate',
               },
               focusedRoutineName: link.routineName ?? null,
+              focusedExperimentId: link.experimentId ?? null,
             });
             return;
           }
         }
-        set({ booted: true, focusedRoutineName: link?.routineName ?? null });
+        set({
+          booted: true,
+          focusedRoutineName: link?.routineName ?? null,
+          focusedExperimentId: link?.experimentId ?? null,
+        });
       },
 
       hasOnboarded: () => get().onboardingSeen || Object.keys(get().routines).length > 0,
@@ -545,7 +553,7 @@ export const useRegister = create<RegisterState>()(
       },
 
       resetRegister: () =>
-        set({ ...EMPTY_DATA(), receipt: null, focusedRoutineName: null, onboardingSeen: false }),
+        set({ ...EMPTY_DATA(), receipt: null, focusedRoutineName: null, focusedExperimentId: null, onboardingSeen: false }),
     }),
     {
       name: 'rhythm.register.v1',

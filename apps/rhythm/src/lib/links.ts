@@ -9,6 +9,10 @@
 //     A sibling app deep-links a student to check in — lands on Today with the
 //     named routine focused. Optional; the app is complete without it.
 //
+//   Inbound experiment open: /?experiment=<id>
+//     Lands on the Experiments view with that card scrolled into view and lit;
+//     an unknown id degrades to the plain list.
+//
 // Outbound, Rhythm only renders *source* links — "open the deck this event came
 // from" — using each app's published link format, from configurable base URLs.
 
@@ -18,6 +22,7 @@ import { parseEventParam } from './import';
 export interface InboundLink {
   event?: unknown;
   routineName?: string;
+  experimentId?: string;
   from?: string;
 }
 
@@ -26,8 +31,9 @@ export function parseInboundLink(search: string): InboundLink | null {
   const eventParam = q.get('event');
   const from = q.get('from') || undefined;
   const routineName = q.get('routine') || undefined;
-  if (!eventParam && !from && !routineName) return null;
-  const link: InboundLink = { from, routineName };
+  const experimentId = q.get('experiment') || undefined;
+  if (!eventParam && !from && !routineName && !experimentId) return null;
+  const link: InboundLink = { from, routineName, experimentId };
   if (eventParam) {
     const parsed = parseEventParam(eventParam);
     if (parsed !== null) link.event = parsed;

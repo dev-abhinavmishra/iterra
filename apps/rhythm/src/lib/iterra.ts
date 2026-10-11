@@ -77,18 +77,33 @@ export function wireIterra() {
     }
 
     /* entity index — one row per live channel for the terrain palette */
-    const entities = Object.values(s.routines)
-      .filter((r) => r.status !== 'archived')
-      .slice(0, 50)
-      .map((r) => ({
-        t: 'routine',
-        id: r.id,
-        title: r.name,
-        sub: `${r.target.perWeek}×/wk`,
-        course: r.courseId ? (s.courses[r.courseId]?.code ?? s.courses[r.courseId]?.name) : undefined,
-        url: `/apps/rhythm/?routine=${encodeURIComponent(r.name)}`,
-        at: Date.now(),
-      }));
+    const entities = [
+      ...Object.values(s.routines)
+        .filter((r) => r.status !== 'archived')
+        .map((r) => ({
+          t: 'routine',
+          id: r.id,
+          title: r.name,
+          sub: `${r.target.perWeek}×/wk`,
+          course: r.courseId ? (s.courses[r.courseId]?.code ?? s.courses[r.courseId]?.name) : undefined,
+          url: `/apps/rhythm/?routine=${encodeURIComponent(r.name)}`,
+          at: Date.now(),
+        })),
+      /* experiments are passive rows too — a real persisted doc keyed by its
+         routine, so they carry the routine's course key when it has one */
+      ...Object.values(s.experiments).map((e) => {
+        const cid = s.routines[e.routineId]?.courseId;
+        return {
+          t: 'experiment',
+          id: e.id,
+          title: e.hypothesis,
+          sub: `${e.status} · ${e.change}`,
+          course: cid ? (s.courses[cid]?.code ?? s.courses[cid]?.name) : undefined,
+          url: `/apps/rhythm/?experiment=${encodeURIComponent(e.id)}`,
+          at: Date.now(),
+        };
+      }),
+    ].slice(0, 50);
     const ej = JSON.stringify(entities.map((e) => ({ ...e, at: 0 })));
     if (ej !== lastEntitiesJson) {
       lastEntitiesJson = ej;
