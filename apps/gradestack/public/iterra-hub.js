@@ -84,7 +84,11 @@
   }
 
   function selfBase() {
-    if (framed && me) return '/apps/' + me;
+    // any page served under /apps/<name>/ on this host belongs to the
+    // deployment — return links land there framed or solo, so a standalone
+    // timer can still file back to a standalone syllabus. Upstream apps
+    // (no register call, no /apps/ path) keep the plain origin.
+    if (me && /^\/apps\/[^/]+(\/|$)/.test(window.location.pathname)) return '/apps/' + me;
     return window.location.origin.replace(/\/$/, '');
   }
 
