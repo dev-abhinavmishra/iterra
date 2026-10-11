@@ -4,44 +4,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn, vibrate } from '../lib/utils';
 import { saveSession } from '../lib/stats';
 import { useRoutineRunner, Routine, Phase } from '../hooks/useTimer';
+import { BUILT_INS, loadRoutines, ROUTINES_KEY } from '../lib/routines';
+import { publishRoutineIndex } from '../lib/iterra';
 import { useViewport } from '../hooks/useViewport';
 import { FlipRow, FlipText, Board } from '../components/Flip';
 import { KeyButton } from '../components/KeyButton';
 import { stationChime, flapLand, secondTick } from '../lib/sound';
 import { useRef } from 'react';
-
-const KEY = 'timer.routines.v1';
-const LEGACY_KEY = 'platform.routines.v1';
-
-const BUILT_INS: Routine[] = [
-  { id: 'pomodoro', name: 'Pomodoro', rounds: 4, phases: [
-    { name: 'Focus', seconds: 25 * 60, kind: 'work' },
-    { name: 'Recess', seconds: 5 * 60, kind: 'rest' },
-  ]},
-  { id: 'tabata', name: 'Tabata', rounds: 8, phases: [
-    { name: 'Work', seconds: 20, kind: 'work' },
-    { name: 'Rest', seconds: 10, kind: 'rest' },
-  ]},
-  { id: '5217', name: '52 / 17', rounds: 2, phases: [
-    { name: 'Focus', seconds: 52 * 60, kind: 'work' },
-    { name: 'Recess', seconds: 17 * 60, kind: 'rest' },
-  ]},
-];
-
-function loadRoutines(): Routine[] {
-  try {
-    const data = localStorage.getItem(KEY);
-    if (data) return JSON.parse(data);
-    const legacy = localStorage.getItem(LEGACY_KEY);
-    if (legacy) {
-      const parsed = JSON.parse(legacy);
-      localStorage.setItem(KEY, legacy);
-      localStorage.removeItem(LEGACY_KEY);
-      return parsed;
-    }
-  } catch { /* fall through */ }
-  return [];
-}
 
 function fmtDur(s: number) {
   return s >= 60 ? `${Math.round(s / 60)}m` : `${s}s`;
@@ -144,7 +113,8 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
     const r: Routine = { id: Math.random().toString(36).slice(2, 8), name: name.trim(), phases, rounds };
     const next = [...custom, r];
     setCustom(next);
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(ROUTINES_KEY, JSON.stringify(next));
+    publishRoutineIndex();
     setEditing(false);
     setName(''); setRounds(3);
     setPhases([{ name: 'Work', seconds: 60, kind: 'work' }, { name: 'Rest', seconds: 30, kind: 'rest' }]);
@@ -152,7 +122,8 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
   const deleteCustom = (id: string) => {
     const next = custom.filter(r => r.id !== id);
     setCustom(next);
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(ROUTINES_KEY, JSON.stringify(next));
+    publishRoutineIndex();
   };
 
   const phase = run.phase;

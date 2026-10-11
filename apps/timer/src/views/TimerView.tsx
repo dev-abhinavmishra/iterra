@@ -59,6 +59,50 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
 
   useWakeLock(running || focus);
 
+  /* commons: publish the live focus session (WIRING §7 shared.focus) — on
+     mount + state change, null when the session ends or clears */
+  const endsInMin = running ? Math.max(0, Math.round(cd.secondsLeft / 60)) : 0;
+  useEffect(() => {
+    const doc = (window as any).iterra?.doc?.('shared');
+    if (!doc) return;
+    doc.setField('focus', {
+      v: running
+        ? { running: true, label: isBreak ? 'Break' : intent || label || 'Focus', blockId: syllabus?.block ?? null, endsInMin }
+        : null,
+      by: 'timer',
+      at: Date.now(),
+    });
+  }, [running, isBreak, label, intent, syllabus, endsInMin]);
+
+  /* commons read: shared.today — when this session came in with a block
+     context, show the block title from syllabus's plan (WIRING §7) */
+  const [blockTitle, setBlockTitle] = useState<string | null>(null);
+  useEffect(() => {
+    const blockId = syllabus?.block;
+    if (!blockId) { setBlockTitle(null); return; }
+    const doc = (window as any).iterra?.doc?.('shared');
+    if (!doc) return;
+    const read = (v: any) => {
+      const e = v?.today;
+      let title: string | null = null;
+      if (e && e.by === 'syllabus' && e.v && Number.isFinite(e.at) && Date.now() - e.at < 12 * 60 * 60 * 1000) {
+        const slips = Array.isArray(e.v.slips) ? e.v.slips : [];
+        for (const s of slips) {
+          if (!s || typeof s !== 'object') continue;
+          if (s.id === blockId) { title = s.title ?? s.label ?? null; break; }
+          const blocks = Array.isArray(s.blocks) ? s.blocks : [];
+          const hit = blocks.find((b: any) => b && b.id === blockId);
+          if (hit) { title = hit.label ?? hit.title ?? s.title ?? s.label ?? null; break; }
+        }
+        const next = e.v.next;
+        if (!title && next && (next.id === blockId || next.blockId === blockId)) title = next.title ?? next.label ?? null;
+      }
+      setBlockTitle(title);
+    };
+    read(doc.get());
+    return doc.subscribe(read);
+  }, [syllabus]);
+
   /* ---------- preset plumbing + inbound Syllabus deep link ----------
      The link is captured once per mount (TimerView remounts per preset key,
      so a later Presets pick gets a fresh parse with the params already
@@ -82,7 +126,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       }
       const ms = (link.minutes ?? presetMinutes) * 60000;
       cd.reset(ms);
-      if (link.autostart) cd.start(ms, completeFocus);
+      if (link.autostart) cd.start(ms, completeFocusLive);
       return;
     }
     setSetMinutes(presetMinutes);
@@ -99,6 +143,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     const url = syllabusReturnUrl(syllabus, actual);
     if (!url) return;
     const iterra = (window as any).iterra;
+    iterra?.feed?.({ text: `filed ${actual}m into ${blockTitle ?? syllabus.block ?? 'block'}`, url });
     // inside the terrain, file-back routes through the shell — the folio
     // wakes with ?completedBlock instead of this frame walking away
     if (iterra?.isFramed?.()) iterra.open(url);
@@ -203,6 +248,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     stationChime();
     const recess = isBreak || /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000));
     saveSession({ duration: cd.totalMs / 1000, type: recess ? 'break' : 'focus', label: intent || undefined, preset: label });
+    if (!recess) (window as any).iterra?.feed?.({ text: `completed ${Math.round(cd.totalMs / 60000)}m focus` });
     if (!isBreak && thenBreak > 0) {
       setDone('focus');
       if (chainTimer.current) clearTimeout(chainTimer.current);
@@ -210,7 +256,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
         chainTimer.current = null;
         setDone(null);
         setIsBreak(true);
-        cd.start(thenBreak * 60000, completeBreak);
+        cd.start(thenBreak * 60000, completeBreakLive);
       }, 2600);
     } else {
       setDone(isBreak ? 'break' : 'focus');
@@ -223,11 +269,24 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     setDone('break');
   };
 
+  /* the countdown stores its onComplete for up to an hour while label /
+     intent / cd.totalMs keep re-rendering — wrappers read a ref at call
+     time so the LIVE closure always runs (autostarted links relied on a
+     pre-setLabel closure and misreported the session as recess) */
+  const latestFocus = useRef<() => void>(() => {});
+  const latestBreak = useRef<() => void>(() => {});
+  useEffect(() => {
+    latestFocus.current = completeFocus;
+    latestBreak.current = completeBreak;
+  });
+  const completeFocusLive = () => latestFocus.current();
+  const completeBreakLive = () => latestBreak.current();
+
   const toggle = () => {
     vibrate(running ? 35 : 55);
     if (running) cd.pause();
-    else if (hasTime && cd.remainingMs > 0) cd.resume(isBreak ? completeBreak : completeFocus);
-    else cd.start(setMinutes * 60000, completeFocus);
+    else if (hasTime && cd.remainingMs > 0) cd.resume(isBreak ? completeBreakLive : completeFocusLive);
+    else cd.start(setMinutes * 60000, completeFocusLive);
   };
 
   const resetTimer = () => {
@@ -305,6 +364,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
             <div className="mt-3 flex justify-between items-baseline px-0.5">
               <span className="engraved text-[9px] md:text-[10px]">
                 {intent ? intent.toUpperCase() : 'TIMER TIMEKEEPING'}
+                {blockTitle && <span className="block">{`BLOCK ${blockTitle.toUpperCase()}`}</span>}
               </span>
               <span className="engraved text-[9px] md:text-[10px]">
                 {hasTime ? `${Math.round(cd.progress * 100)}% ELAPSED` : `SET FOR ${fmt(setMinutes * 60)}`}

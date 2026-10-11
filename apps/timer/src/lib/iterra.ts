@@ -2,6 +2,7 @@
    already publish it (document.title "MM:SS — label") plus today's ledger
    minutes. No countdown internals touched. */
 import { getSessions } from './stats';
+import { BUILT_INS, loadRoutines } from './routines';
 
 declare global {
   interface Window {
@@ -32,44 +33,27 @@ export function wireIterra() {
       return { running: runningFromTitle(), todayMin };
     },
   });
+  publishRoutineIndex();
+}
+
+/* index.timer — routines + intervals for the shell palette (WIRING §7).
+   Re-published by IntervalsView when customs change; JSON-diffed. */
+let indexDoc: any;
+let lastIndexJson = '';
+export function publishRoutineIndex() {
+  if (indexDoc === undefined) indexDoc = (window as any).iterra?.doc?.('index.timer') ?? null;
+  if (!indexDoc) return;
+  const entities = [...BUILT_INS, ...loadRoutines()].slice(0, 50).map((r) => ({
+    t: 'routine',
+    id: r.id,
+    title: r.name,
+    url: '/apps/timer/',
+    at: Date.now(),
+  }));
+  const json = JSON.stringify(entities.map((e) => [e.t, e.id, e.title, e.url]));
+  if (json === lastIndexJson) return;
+  lastIndexJson = json;
+  indexDoc.set({ entities });
 }
 
 wireIterra();
-
-/* ambient layer — commons focus, session index, feed on new sessions (§7) */
-(() => {
-  const it: any = (window as any).iterra;
-  if (!it) return;
-  const shared = it.doc('shared');
-  const indexDoc = it.doc('index.timer');
-  let lastFocus = '', lastEntities = '', lastIds: Set<string> | null = null;
-  const publish = () => {
-    try {
-      publishInner();
-    } catch (e) {
-      console.warn("iterra ambient publish failed:", e);
-    }
-  };
-  const publishInner = () => {
-    const run = runningFromTitle();
-    const fv = run ? { running: true, label: run.label, endsInMin: run.endsInMin } : null;
-    const fj = JSON.stringify(fv);
-    if (fj !== lastFocus) { lastFocus = fj; shared.setField('focus', { v: fv, by: 'timer', at: Date.now() }); }
-    const sessions = getSessions();
-    const entities = sessions.slice(-50).map((s: any, i: number) => ({
-      t: 'session', id: `${s.timestamp}-${i}`, title: s.label || 'session',
-      sub: `${Math.round(s.duration / 60)}m`, url: '/apps/timer/', at: s.timestamp,
-    })).reverse();
-    const ej = JSON.stringify(entities);
-    if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
-    const ids = new Set(sessions.map((s: any) => String(s.timestamp)));
-    if (lastIds) for (const s of sessions as any[]) {
-      if (!lastIds.has(String(s.timestamp))) {
-        it.feed({ text: `${Math.max(1, Math.round(s.duration / 60))}m on the instruments${s.label ? ` — ${s.label}` : ''}`, url: '/apps/timer/' });
-      }
-    }
-    lastIds = ids;
-  };
-  setInterval(publish, 3000);
-  publish();
-})();

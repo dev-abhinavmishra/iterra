@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useWorkbench, selectErrorsFor } from '../store';
 import type { Attempt, AttemptResult, ErrorCategory } from '../lib/types';
@@ -34,6 +34,19 @@ export function CompareView({
   onAttempt: (a: Attempt) => void;
 }) {
   const attempt = useWorkbench((s) => s.attempts[attemptId]);
+  // commons read: shared.deck — which deck our last export landed in (WIRING §7)
+  const [landedDeck, setLandedDeck] = useState<string | null>(null);
+  useEffect(() => {
+    const doc = (window as any).iterra?.doc?.('shared');
+    if (!doc) return;
+    const read = (v: any) => {
+      const e = v?.deck;
+      const fresh = e && e.by === 'flashcards' && e.v && Number.isFinite(e.at) && Date.now() - e.at < 10 * 60 * 1000;
+      setLandedDeck(fresh && typeof e.v.deck === 'string' && e.v.deck.startsWith('Proof —') ? e.v.deck : null);
+    };
+    read(doc.get());
+    return doc.subscribe(read);
+  }, []);
   const problem = useWorkbench((s) => (attempt ? s.problems[attempt.problemId] : undefined));
   const rubric = useWorkbench((s) =>
     problem?.answerSpec.kind === 'rubric' ? s.rubrics[problem.answerSpec.rubricId] : undefined,
@@ -350,7 +363,10 @@ export function CompareView({
                     repairCue: repairCue || divergence || problem.topic,
                     problem,
                   });
-                  window.open(flashcardsCardsLink(settings, [card], `Proof — ${problem.topic} misconceptions`), '_blank', 'noopener');
+                  const title = `Proof — ${problem.topic} misconceptions`;
+                  const url = flashcardsCardsLink(settings, [card], title);
+                  window.open(url, '_blank', 'noopener');
+                  (window as any).iterra?.feed?.({ text: `exported deck: ${title}`, url });
                 }}
                 disabled={!repairCue.trim() && !divergence.trim()}
               >
@@ -363,6 +379,9 @@ export function CompareView({
                 <Download size={12} />
               </button>
             </div>
+            {landedDeck && (
+              <div className="mt-2 text-[10.5px] text-[var(--color-ink-faint)]">last export → {landedDeck}</div>
+            )}
           </div>
         </div>
 

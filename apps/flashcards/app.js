@@ -467,6 +467,7 @@ function importSharedDeck(title, rawCards) {
   const d = createDeck(title, rawCards.map(c => newCard(c.q, c.a, c.ex)));
   saveStore();
   selectDeck(d.id);
+  feedIt(`imported ${d.title}`, `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`);
   toast(`Imported “${d.title}” — ${d.cards.length} cards`);
 }
 
@@ -653,6 +654,8 @@ function resetSessions() {
 function renderAll() {
   renderLibrary();
   const d = deck();
+  publishSharedDeck();
+  publishIndex();
   const empty = !d;
   els.emptyStage.hidden = !empty;
   els.deckView.hidden = empty;
@@ -670,11 +673,7 @@ function renderAll() {
   document.title = `${d.title} — flashcards`;
   els.deckTitle.textContent = d.title;
   const s = deckStats(d);
-  els.deckMeta.innerHTML =
-    `<span><b>${s.total}</b> card${s.total === 1 ? '' : 's'}</span>` +
-    `<span><b>${s.mastered}</b> mastered</span>` +
-    `<span>${relTime(d.lastStudiedAt)}</span>` +
-    (d.flipped ? `<span>sides swapped</span>` : '');
+  renderDeckMeta(d);
   els.cardsTabCount.textContent = `(${s.total})`;
 
   const pill = $('starred-filter');
@@ -693,6 +692,71 @@ function renderAll() {
   else if (state.mode === 'quiz') renderQuiz();
   else if (state.mode === 'write') renderWrite();
   else renderEditor();
+}
+
+/* ── commons: shared.deck write + shared.session read (WIRING §7) ── */
+let _sharedDoc;
+function sharedDoc() {
+  if (_sharedDoc === undefined) _sharedDoc = (window.iterra && window.iterra.doc) ? window.iterra.doc('shared') : null;
+  return _sharedDoc;
+}
+
+function feedIt(text, url) {
+  try { window.iterra && window.iterra.feed && window.iterra.feed(url ? { text, url } : { text }); } catch {}
+}
+
+let _indexDoc;
+function indexDoc() {
+  if (_indexDoc === undefined) _indexDoc = (window.iterra && window.iterra.doc) ? window.iterra.doc('index.flashcards') : null;
+  return _indexDoc;
+}
+let lastIndexJson;
+function publishIndex() {
+  const doc = indexDoc();
+  if (!doc) return;
+  const entities = Object.values(state.decks || {}).slice(0, 50).map(d => ({
+    t: 'deck', id: d.id, title: d.title,
+    sub: `${d.cards.filter(c => c.status !== 'mastered').length} due`,
+    url: `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`, at: Date.now(),
+  }));
+  const j = JSON.stringify(entities.map(e => [e.t, e.id, e.title, e.sub, e.url]));
+  if (j === lastIndexJson) return;
+  lastIndexJson = j;
+  doc.set({ entities });
+}
+
+let lastDeckJson;
+function publishSharedDeck() {
+  const doc = sharedDoc();
+  if (!doc) return;
+  const d = deck();
+  const v = d ? { deck: d.title, due: d.cards.filter(c => c.status !== 'mastered').length } : null;
+  const j = JSON.stringify(v);
+  if (j === lastDeckJson) return;   // JSON-diffed — renders don't rewrite
+  lastDeckJson = j;
+  doc.setField('deck', { v, by: 'flashcards', at: Date.now() });
+}
+
+/* deck header line — full meta strip, rebuilt on render + on commons events */
+function renderDeckMeta(d) {
+  const s = deckStats(d);
+  els.deckMeta.innerHTML =
+    `<span><b>${s.total}</b> card${s.total === 1 ? '' : 's'}</span>` +
+    `<span><b>${s.mastered}</b> mastered</span>` +
+    `<span>${relTime(d.lastStudiedAt)}</span>` +
+    (d.flipped ? `<span>sides swapped</span>` : '') +
+    proofCtxSpan(d);
+}
+
+/* "proof session · <topic>" context on decks proof exported — only when the
+   session entry is proof-written, active, and fresh (WIRING §7 defensive reads) */
+function proofCtxSpan(d) {
+  if (!d.title.startsWith('Proof —')) return '';
+  const doc = sharedDoc();
+  const e = doc && doc.get() && doc.get().session;
+  if (!e || e.by !== 'proof' || !e.v || e.v.active !== true ||
+      !Number.isFinite(e.at) || Date.now() - e.at > 10 * 60 * 1000) return '';
+  return `<span>proof session · ${esc(e.v.topic || 'untitled')}</span>`;
 }
 
 function statStripHTML(d) {
@@ -837,7 +901,7 @@ function renderLearn(anim) {
   learnEmptyEl.hidden = true;
 
   if (L.queue.length === 0) {  // session complete
-    if (!L.done) { L.done = true; showLearnResults(); }
+    if (!L.done) { L.done = true; showLearnResults(); feedIt(`learn complete · ${d.title}`); }
     // terminal state — without it the stage freezes on the last card
     // with a stale "1 left" and verdict buttons that do nothing
     const stillNeed = d.cards.filter(c => L.missed.includes(c.id) && c.status !== 'mastered').length;
@@ -953,7 +1017,7 @@ function renderQuiz(anim) {
   quizEmptyEl.hidden = true;
 
   if (Q.idx >= Q.order.length) {  // session complete — terminal state
-    if (!Q.done) { Q.done = true; showQuizResults(); }
+    if (!Q.done) { Q.done = true; showQuizResults(); feedIt(`quiz complete · ${d.title}`); }
     $('quiz-count').textContent = `${Q.order.length} / ${Q.order.length}`;
     $('quiz-progress').style.width = '100%';
     $('quiz-score').textContent = `${Q.correct} correct`;
@@ -1095,7 +1159,7 @@ function renderWrite(anim) {
   $('write-form').style.visibility = '';
 
   if (W.idx >= W.order.length) {  // session complete — terminal state
-    if (!W.done) { W.done = true; showWriteResults(); }
+    if (!W.done) { W.done = true; showWriteResults(); feedIt(`write complete · ${d.title}`); }
     $('write-count').textContent = `${W.order.length} / ${W.order.length}`;
     $('write-progress').style.width = '100%';
     $('write-score').textContent = `${W.correct} right`;
@@ -2039,49 +2103,13 @@ if (window.iterra) {
     title: 'Flashcards',
     summary: () => {
       const decks = Object.values(state.decks || {});
-      if (!decks.length) return { decks: 0 };
       const due = decks.reduce((n, d) =>
         n + d.cards.filter(c => c.status !== 'mastered').length, 0);
       return { decks: decks.length, due };
     },
   });
-}
-
-
-/* ── ambient layer — commons deck, deck index, feed on new decks (§7) ── */
-if (window.iterra) {
-  const it = window.iterra;
-  const shared = it.doc('shared');
-  const indexDoc = it.doc('index.flashcards');
-  let lastCommons = '', lastEntities = '', lastIds = null;
-  const publish = () => {
-    try {
-      publishInner();
-    } catch (e) {
-      console.warn("iterra ambient publish failed:", e);
-    }
-  };
-  const publishInner = () => {
-    const decks = Object.values(state.decks || {});
-    if (!decks.length) return;
-    const active = decks.find(d => d.id === state.activeDeckId) || decks[0];
-    const due = decks.reduce((n, d) => n + d.cards.filter(c => c.status !== 'mastered').length, 0);
-    const v = active ? { deck: active.name, due } : null;
-    const j = JSON.stringify(v);
-    if (j !== lastCommons) { lastCommons = j; shared.setField('deck', { v, by: 'flashcards', at: Date.now() }); }
-    const entities = decks.slice(0, 50).map(d => ({
-      t: 'deck', id: d.id, title: d.name,
-      sub: `${d.cards.filter(c => c.status !== 'mastered').length} due`,
-      url: `/apps/flashcards/?deck=${encodeURIComponent(d.name)}`, at: Date.now(),
-    }));
-    const ej = JSON.stringify(entities.map(e => ({ ...e, at: 0 })));
-    if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
-    const ids = new Set(decks.map(d => d.id));
-    if (lastIds) for (const d of decks) if (!lastIds.has(d.id)) {
-      it.feed({ text: `deck filed: ${d.name} · ${d.cards.length} cards`, url: '/apps/flashcards/' });
-    }
-    lastIds = ids;
-  };
-  setInterval(publish, 3000);
-  publish();
+  const sd = sharedDoc();
+  if (sd) sd.subscribe(() => { const d = deck(); if (d) renderDeckMeta(d); });
+  publishSharedDeck();
+  publishIndex();
 }
