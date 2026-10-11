@@ -316,7 +316,7 @@ export function Terrain({
                   stirrings
                 </div>
                 <ul className="mt-2 space-y-1.5">
-                  {feed.slice(0, 8).map((it, i) => {
+                  {feed.filter((it) => !it.at || Date.now() - it.at < 12 * 60 * 60 * 1000).slice(0, 8).map((it, i) => {
                     const ago = Math.max(0, Date.now() - it.at);
                     const mins = Math.floor(ago / 60000);
                     const when = mins < 1 ? 'now' : mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h`;
