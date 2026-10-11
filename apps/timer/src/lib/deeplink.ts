@@ -16,10 +16,10 @@ export interface SyllabusLink {
 
 export function parseSyllabusLink(search: string): SyllabusLink | null {
   const q = new URLSearchParams(search);
-  // same contract from syllabus (study slips) and proof (practice sessions) —
-  // the `return` param already says where to file back
+  // same contract from any terrain app (study slips, practice sessions,
+  // …) — `from` names the sender, `return` says where to file back
   const from = q.get('from');
-  if (from !== 'syllabus' && from !== 'proof') return null;
+  if (!from || !/^[a-z]{2,16}$/.test(from)) return null;
   const minutes = Number(q.get('minutes'));
   return {
     intent: q.get('intent') || undefined,
