@@ -87,3 +87,14 @@ contract every app and the shell follows.
   ?cards= + timer link, dossier live-focus join (137586b), gradestack
   courseName linkage + proof dedupe fix (fe52695), shell motion layer
   (12d5048 — all reduced-motion gated).
+- Outbound wave (8a1cd82 era): every app now emits the timer intake
+  contract somewhere — flashcards 'Drill in timer…' (Deck ▾, acc7e93),
+  gradestack test-row timer icon ('study <test>'), dossier 'drill <course>'
+  header button (142750c), timer engraves '← <sender>' on bound sessions
+  (c4c71a4 — from= kept by parseSyllabusLink, click returns to sender).
+- Rail additions: 'the ledger' aggregates due-counts from presence
+  summaries (71dbffe); 'due on the terrain' next-up fallback deep-links
+  a due deck when the folio is quiet (8a1cd82); palette searches stirs
+  (a2a04be); mesh contract vitest (b2f9d36, 13/13); syllabus persist
+  merge backfills dependencies/reasons — old blobs booted to a white
+  screen (583479b, child-verified).
