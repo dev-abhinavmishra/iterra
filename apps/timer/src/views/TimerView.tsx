@@ -97,7 +97,12 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     if (!syllabus) return;
     const actual = Math.round((cd.totalMs - cd.remainingMs) / 60000);
     const url = syllabusReturnUrl(syllabus, actual);
-    if (url) window.location.href = url;
+    if (!url) return;
+    const iterra = (window as any).iterra;
+    // inside the terrain, file-back routes through the shell — the folio
+    // wakes with ?completedBlock instead of this frame walking away
+    if (iterra?.isFramed?.()) iterra.open(url);
+    else window.location.href = url;
   };
 
   /* ---------- title bar ---------- */

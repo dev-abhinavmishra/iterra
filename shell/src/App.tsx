@@ -21,6 +21,7 @@ export default function App() {
      stays warm: state persists while wandering the terrain. */
   const [frames, setFrames] = useState<Record<string, string>>({});
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const iframeRefs = useRef<Record<string, HTMLIFrameElement | null>>({});
 
   useEffect(() => subscribePresences(setPresences), []);
 
@@ -58,9 +59,16 @@ export default function App() {
         window.location.hash = `/p/${id}`;
       }
       if (d.type === 'iterra:hello' && typeof d.app === 'string' && PLACE_MAP[d.app]) {
-        // an app booted inside a frame — keep the frame map truthful
-        if (typeof d.url === 'string' && d.url.startsWith(`/apps/${d.app}/`)) {
-          setFrames((f) => (f[d.app] ? f : { ...f, [d.app]: d.url }));
+        const helloApp = d.app as string;
+        const url = typeof d.url === 'string' ? d.url : `/apps/${helloApp}/`;
+        // which mounted frame spoke? if it migrated to another place
+        // (in-frame nav that slipped the intercepts), heal the slot back.
+        const slot = Object.entries(iframeRefs.current).find(([, el]) => el?.contentWindow === ev.source);
+        if (slot && slot[0] !== helloApp) {
+          setFrames((f) => ({ ...f, [helloApp]: url, [slot[0]]: appUrl(slot[0]) }));
+          window.location.hash = `/p/${helloApp}`;
+        } else {
+          setFrames((f) => (f[helloApp] ? f : { ...f, [helloApp]: url }));
         }
       }
     };
@@ -181,6 +189,9 @@ export default function App() {
             {Object.entries(frames).map(([id, src]) => (
               <iframe
                 key={id}
+                ref={(el) => {
+                  iframeRefs.current[id] = el;
+                }}
                 src={src}
                 title={PLACE_MAP[id]?.app || id}
                 className="absolute inset-0 h-full w-full border-0"
