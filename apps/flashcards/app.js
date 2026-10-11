@@ -2046,3 +2046,35 @@ if (window.iterra) {
     },
   });
 }
+
+
+/* ── ambient layer — commons deck, deck index, feed on new decks (§7) ── */
+if (window.iterra) {
+  const it = window.iterra;
+  const shared = it.doc('shared');
+  const indexDoc = it.doc('index.flashcards');
+  let lastCommons = '', lastEntities = '', lastIds = null;
+  const publish = () => {
+    const decks = Object.values(state.decks || {});
+    if (!decks.length) return;
+    const active = decks.find(d => d.id === state.activeDeckId) || decks[0];
+    const due = decks.reduce((n, d) => n + d.cards.filter(c => c.status !== 'mastered').length, 0);
+    const v = active ? { deck: active.name, due } : null;
+    const j = JSON.stringify(v);
+    if (j !== lastCommons) { lastCommons = j; shared.setField('deck', { v, by: 'flashcards', at: Date.now() }); }
+    const entities = decks.slice(0, 50).map(d => ({
+      t: 'deck', id: d.id, title: d.name,
+      sub: `${d.cards.filter(c => c.status !== 'mastered').length} due`,
+      url: `/apps/flashcards/?deck=${encodeURIComponent(d.name)}`, at: Date.now(),
+    }));
+    const ej = JSON.stringify(entities.map(e => ({ ...e, at: 0 })));
+    if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
+    const ids = new Set(decks.map(d => d.id));
+    if (lastIds) for (const d of decks) if (!lastIds.has(d.id)) {
+      it.feed({ text: `deck filed: ${d.name} · ${d.cards.length} cards`, url: '/apps/flashcards/' });
+    }
+    lastIds = ids;
+  };
+  setInterval(publish, 3000);
+  publish();
+}

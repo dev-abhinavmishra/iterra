@@ -62,3 +62,59 @@ export function wireIterra() {
 }
 
 wireIterra();
+
+// ── ambient layer — commons, entity index, feed (WIRING §7) ──────────────────
+(() => {
+  const it: any = (window as any).iterra;
+  if (!it) return;
+  const shared = it.doc('shared');
+  const indexDoc = it.doc('index.syllabus');
+  let lastCommons = '', lastCourse = '', lastEntities = '';
+  let lastBlockStates: Record<string, string> | null = null;
+
+  const publish = () => {
+    const s = useFolio.getState();
+    if (!s.booted) return;
+    const sum = summary();
+    if (sum) {
+      const v = { slips: sum.slips, overdue: sum.overdue, next: sum.top };
+      const j = JSON.stringify(v);
+      if (j !== lastCommons) { lastCommons = j; shared.setField('today', { v, by: 'syllabus', at: Date.now() }); }
+    }
+    // active course = the course of today's top block, else the newest course
+    const blocks = Object.values(s.blocks) as any[];
+    const top = blocks.filter((b) => b.state !== 'done' && b.state !== 'deferred')
+      .sort((a, b) => b.score - a.score || a.plannedDate.localeCompare(b.plannedDate) || a.order - b.order)[0];
+    const course = top ? (s.courses as any)[top.courseId] : Object.values(s.courses).sort((a: any, b: any) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))[0];
+    const cv = course ? { code: (course as any).code, name: (course as any).name } : null;
+    const cj = JSON.stringify(cv);
+    if (cj !== lastCourse) { lastCourse = cj; shared.setField('activeCourse', { v: cv, by: 'syllabus', at: Date.now() }); }
+
+    const entities = (Object.values(s.commitments) as any[])
+      .filter((c) => c.status === 'open')
+      .slice(0, 50)
+      .map((c) => {
+        const co = (s.courses as any)[c.courseId];
+        return { t: 'block', id: c.id, title: c.title, sub: co?.code, course: co?.code,
+          url: `/apps/syllabus/`, at: Date.now() };
+      });
+    const ej = JSON.stringify(entities.map((e) => ({ ...e, at: 0 })));
+    if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
+
+    const states: Record<string, string> = {};
+    for (const b of Object.values(s.blocks) as any[]) states[b.id] = b.state;
+    if (lastBlockStates) {
+      for (const b of Object.values(s.blocks) as any[]) {
+        if (b.state === 'done' && lastBlockStates[b.id] && lastBlockStates[b.id] !== 'done') {
+          const c = (s.commitments as any)[b.commitmentId];
+          it.feed({ text: `slip stamped: ${c?.title ?? b.label ?? 'a block'}`, url: '/apps/syllabus/' });
+        }
+      }
+    }
+    lastBlockStates = states;
+  };
+
+  useFolio.subscribe(publish);
+  publish();
+})();
+

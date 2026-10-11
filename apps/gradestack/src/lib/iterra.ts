@@ -48,3 +48,37 @@ export function wireIterra() {
 }
 
 wireIterra();
+
+/* ambient layer — commons markbook, assessment index, feed on scans (§7) */
+(() => {
+  const it: any = (window as any).iterra;
+  if (!it) return;
+  const shared = it.doc('shared');
+  const indexDoc = it.doc('index.gradestack');
+  let lastCommons = '', lastEntities = '', lastIds: Set<string> | null = null;
+  const publish = () => {
+    const { tests, scans } = useStore.getState() as any;
+    const newest = scans.length ? [...scans].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0] : null;
+    const test = newest ? tests.find((t: any) => t.id === newest.testId) : null;
+    const its = test ? scans.filter((x: any) => x.testId === test.id) : [];
+    const v = test ? { assessment: test.name, scored: its.length, total: its.length } : null;
+    const j = JSON.stringify(v);
+    if (j !== lastCommons) { lastCommons = j; shared.setField('markbook', { v, by: 'gradestack', at: Date.now() }); }
+    const entities = tests.slice(0, 50).map((t: any) => ({
+      t: 'assessment', id: t.id, title: t.name,
+      sub: `${scans.filter((x: any) => x.testId === t.id).length} marked`,
+      url: '/apps/gradestack/', at: t.createdAt || Date.now(),
+    }));
+    const ej = JSON.stringify(entities);
+    if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
+    const ids = new Set<string>(scans.map((x: any) => String(x.id)));
+    if (lastIds) for (const x of scans) if (!lastIds.has(x.id)) {
+      const t = tests.find((tt: any) => tt.id === x.testId);
+      it.feed({ text: `marked: ${t?.name ?? 'a sheet'}${x.percentage != null ? ` · ${Math.round(x.percentage)}%` : ''}`, url: '/apps/gradestack/' });
+    }
+    lastIds = ids;
+  };
+  useStore.subscribe(publish);
+  if (useStore.persist?.hasHydrated?.()) publish();
+  else useStore.persist?.onFinishHydration?.(publish);
+})();

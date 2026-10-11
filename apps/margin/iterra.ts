@@ -33,3 +33,38 @@ export function wireMargin() {
         },
     });
 }
+
+wireMargin();
+
+/* ambient layer — commons noteActive, note index, feed on new notes (§7) */
+(() => {
+    const it: any = (window as any).iterra;
+    if (!it) return;
+    const shared = it.doc('shared');
+    const indexDoc = it.doc('index.margin');
+    let lastCommons = '', lastEntities = '', lastIds: Set<string> | null = null;
+    const publish = () => {
+        if (!source) return;
+        const { notes } = source();
+        if (!notes?.length) return;
+        const last = [...notes].sort(
+            (a, b) => new Date(b.lastAccessed || 0).getTime() - new Date(a.lastAccessed || 0).getTime(),
+        )[0];
+        const v = last?.title ? { title: last.title } : null;
+        const j = JSON.stringify(v);
+        if (j !== lastCommons) { lastCommons = j; shared.setField('noteActive', { v, by: 'margin', at: Date.now() }); }
+        const entities = notes.slice(0, 50).map((n: any) => ({
+            t: 'note', id: n.id, title: n.title || 'untitled', sub: n.subject,
+            url: '/apps/margin/', at: new Date(n.lastAccessed || Date.now()).getTime(),
+        }));
+        const ej = JSON.stringify(entities);
+        if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
+        const ids = new Set<string>(notes.map((n: any) => n.id));
+        if (lastIds) for (const n of notes) if (!lastIds.has(n.id)) {
+            it.feed({ text: `margin note: ${n.title || 'untitled'}`, url: '/apps/margin/' });
+        }
+        lastIds = ids;
+    };
+    setInterval(publish, 3000);
+    publish();
+})();
