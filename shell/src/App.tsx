@@ -4,24 +4,13 @@ import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, t
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 import { Dossier } from './Dossier';
+import { parseHash, appUrl } from './route';
 
-/* ── hash routing: '' → terrain, 'p/<place>' → place view,
-   'c/<key>' → course dossier ── */
-function parseHash(): { place: string; course: string } {
-  const h = window.location.hash.replace(/^#\/?/, '');
-  const c = h.match(/^c\/([^?#]+)/);
-  if (c) return { place: '', course: decodeURIComponent(c[1]) };
-  const m = h.match(/^p\/([a-z]+)/);
-  return { place: m && PLACE_MAP[m[1]] ? m[1] : '', course: '' };
-}
-
-function appUrl(place: string, path = '/'): string {
-  return `/apps/${place}${path}`;
-}
+const readHash = () => parseHash(window.location.hash);
 
 export default function App() {
-  const [active, setActive] = useState<string>(() => parseHash().place);
-  const [course, setCourse] = useState<string>(() => parseHash().course);
+  const [active, setActive] = useState<string>(() => readHash().place);
+  const [course, setCourse] = useState<string>(() => readHash().course);
   const [presences, setPresences] = useState<Record<string, Presence>>({});
   const [shared, setShared] = useState<Record<string, SharedField>>({});
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
@@ -60,7 +49,7 @@ export default function App() {
 
   useEffect(() => {
     const onHash = () => {
-      const { place: id, course: ckey } = parseHash();
+      const { place: id, course: ckey } = readHash();
       setActive(id);
       setCourse(ckey);
       if (id) setFrames((f) => (f[id] ? f : { ...f, [id]: appUrl(id) }));
