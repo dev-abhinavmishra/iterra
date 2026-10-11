@@ -3,7 +3,7 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of ca9d098)
+## State of the terrain (as of fe52695+)
 
 - Branch `devin/iterra-env`, PR #1 open (not merged — Abhinav decides).
 - All 8 apps vendored under `apps/<name>` + wired: build-time base, hub script
@@ -11,7 +11,10 @@ contract every app and the shell follows.
   inbound deep links, ambient commons/index/feed publishers (try/catch'd).
 - `dist/` is gitignored — rebuilt locally for verification
   (`python3 -m http.server 8090 -d dist` + `scripts/smoke.cjs` over CDP 29229).
-- Smoke: 12/12. Children (SWE-2-max) run standing verify/implement queues:
+- Smoke: 14/14 (scripts/smoke.cjs) + focused checks: intake-check.cjs
+  (?block= selects the slip; gradestack courseName groups on dossiers),
+  focus-dossier-check.cjs (bound session → 'focus:' line on the dossier).
+- Children (SWE-2-max) run standing verify/implement queues:
   - `devin-4edd25facad54ca0b834833dc9933ffe` — syllabus + gradestack
   - `devin-a19adc3b30f34c65a10948e003db0905` — proof + timer + flashcards
   - `devin-b0dcadbd314c4cf1a56cec31d9a0e574` — rhythm + ink + margin
@@ -52,7 +55,11 @@ contract every app and the shell follows.
   or the mesh 404s in prod (was silently broken until cfda7c6).
 - Solo (unframed) writers can't overwrite a fresh framed presence (35s TTL).
 - `shared.focus` freshness is 3min (per-minute heartbeats while running);
-  generic commons fields are 10min live / 1h dead.
+  generic commons fields are 10min live / 1h dead. It carries `course`
+  (the bound link's ?course=) + `blockId` — dossiers join on either.
+- Dedupe JSONs MUST serialize every linkage field (course+topic) — a
+  linkage-only change otherwise never republishes (fixed in proof, was
+  already right in cardfile; full-entity stringifiers are fine).
 - feed() dedupes {app,text} within 2s (multi-frame rehydration guard).
 - `iterra.open('#/c/…')` / `'#/p/…'` pass straight to the shell — apps can
   route to terrain surfaces; don't rebase hash routes through URL parsing.
@@ -67,11 +74,16 @@ contract every app and the shell follows.
 
 ## Open threads
 
-- syllabus `?block=` intake — block entities now carry the right ids; the
-  intake (open/highlight that slip) is queued on the syllabus child.
-- Dossier deep-link polish: syllabus entity urls may carry `?block=<id>` once
-  intake lands (entities currently url `/apps/syllabus/`).
-- ink wikilink mesh fallback ([[title]] → index lookup → '#/c/') — queued on
-  the rhythm child.
+- ink/margin have NO real course field in their models (Note = title, tags[],
+  folder / type) — they emit no linkage keys rather than synthesize.
+  Design note (unshipped): a structured course picker on the note is the
+  honest path to notes joining dossiers — needs Abhinav's call.
 - rhythm upstream closed — sibling session exited; its sequencer rehaul
   (c0145cc) is the vendored base; nothing newer to sync.
+- Landed recently (verify before re-doing): ?block= slip intake + ring
+  (2e40d6e), entity urls carry ?block=<id> so dossier/palette/shelf clicks
+  land ON the slip, FOCUS pill on bound slips, Sigma→proof pad links,
+  wikilink mesh fallback (4a551ba), ?deck=<id> deck-select, ?course= on
+  ?cards= + timer link, dossier live-focus join (137586b), gradestack
+  courseName linkage + proof dedupe fix (fe52695), shell motion layer
+  (12d5048 — all reduced-motion gated).

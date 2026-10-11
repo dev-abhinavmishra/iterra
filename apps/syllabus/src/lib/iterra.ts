@@ -162,7 +162,7 @@ wireIterra();
         const c = (s.commitments as any)[b.commitmentId];
         const co = (s.courses as any)[c?.courseId];
         return { t: 'block', id: b.id, title: c?.title ?? b.label ?? 'a block', sub: co?.code,
-          course: co?.code, url: `/apps/syllabus/`, at: Date.now(), _commitment: b.commitmentId };
+          course: co?.code, url: `/apps/syllabus/?block=${encodeURIComponent(b.id)}`, at: Date.now(), _commitment: b.commitmentId };
       });
     const covered = new Set(blockEntities.map((e: any) => e._commitment));
     const entities = [
@@ -184,7 +184,7 @@ wireIterra();
       for (const b of Object.values(s.blocks) as any[]) {
         if (b.state === 'done' && lastBlockStates[b.id] && lastBlockStates[b.id] !== 'done') {
           const c = (s.commitments as any)[b.commitmentId];
-          it.feed({ text: `slip stamped: ${c?.title ?? b.label ?? 'a block'}`, url: '/apps/syllabus/' });
+          it.feed({ text: `slip stamped: ${c?.title ?? b.label ?? 'a block'}`, url: `/apps/syllabus/?block=${encodeURIComponent(b.id)}` });
         }
       }
     }
