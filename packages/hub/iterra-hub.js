@@ -44,7 +44,11 @@
     if (j === lastSummaryJson) return;
     lastSummaryJson = j;
     var map = readApps();
-    map[me] = { app: me, title: (opts && opts.title) || me, summary: s, at: Date.now() };
+    var cur = map[me];
+    // a solo (unframed) copy never overwrites the framed instance's live
+    // presence — the environment's state is the rail's truth
+    if (!framed && cur && cur.framed) return;
+    map[me] = { app: me, title: (opts && opts.title) || me, summary: s, at: Date.now(), framed: framed };
     writeApps(map);
   }
 

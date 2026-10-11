@@ -182,28 +182,32 @@ export default function App() {
 
   return (
     <div className="flex h-full flex-col">
-      {activePlace ? (
-        <>
-          {chrome}
-          <div className="relative flex-1 bg-atlas-200">
-            {Object.entries(frames).map(([id, src]) => (
-              <iframe
-                key={id}
-                ref={(el) => {
-                  iframeRefs.current[id] = el;
-                }}
-                src={src}
-                title={PLACE_MAP[id]?.app || id}
-                className="absolute inset-0 h-full w-full border-0"
-                style={{ display: id === active ? 'block' : 'none' }}
-                allow="clipboard-read; clipboard-write"
-              />
-            ))}
-          </div>
-        </>
-      ) : (
-        <Terrain presences={presences} onEnter={enter} />
-      )}
+      {activePlace ? chrome : null}
+      {/* frames stay mounted even on the terrain home — a running timer or
+          half-written note must survive a trip back to the map */}
+      <div
+        className="relative flex-1 bg-atlas-200"
+        style={{ display: activePlace ? 'block' : 'none' }}
+      >
+        {Object.entries(frames).map(([id, src]) => (
+          <iframe
+            key={id}
+            ref={(el) => {
+              iframeRefs.current[id] = el;
+            }}
+            src={src}
+            title={PLACE_MAP[id]?.app || id}
+            className="absolute inset-0 h-full w-full border-0"
+            style={{ display: id === active ? 'block' : 'none' }}
+            allow="clipboard-read; clipboard-write"
+          />
+        ))}
+      </div>
+      {!activePlace ? (
+        <div className="flex-1 overflow-auto">
+          <Terrain presences={presences} onEnter={enter} />
+        </div>
+      ) : null}
     </div>
   );
 }

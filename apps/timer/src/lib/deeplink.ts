@@ -16,7 +16,10 @@ export interface SyllabusLink {
 
 export function parseSyllabusLink(search: string): SyllabusLink | null {
   const q = new URLSearchParams(search);
-  if (q.get('from') !== 'syllabus') return null;
+  // same contract from syllabus (study slips) and proof (practice sessions) —
+  // the `return` param already says where to file back
+  const from = q.get('from');
+  if (from !== 'syllabus' && from !== 'proof') return null;
   const minutes = Number(q.get('minutes'));
   return {
     intent: q.get('intent') || undefined,
@@ -31,7 +34,9 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
 export function syllabusReturnUrl(link: { returnUrl?: string; block?: string }, actualMinutes: number): string | null {
   if (!link.returnUrl || !link.block) return null;
   try {
-    const u = new URL(link.returnUrl);
+    // returnUrl may be origin-absolute (solo suite) or relative like
+    // '/apps/syllabus' inside the terrain — resolve against this origin
+    const u = new URL(link.returnUrl, window.location.origin);
     u.searchParams.set('completedBlock', link.block);
     u.searchParams.set('actual', String(Math.max(1, Math.round(actualMinutes))));
     return u.toString();
