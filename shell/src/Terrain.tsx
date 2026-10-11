@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PLACES } from './places';
-import type { Presence, SharedField } from './hub';
+import type { Presence, SharedField, FeedItem } from './hub';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 /* presence heartbeats land ~every 10s; past ~3 missed beats the writer is
@@ -63,11 +63,15 @@ function commonsLine(field: string, f: SharedField): { app: string; text: string
 export function Terrain({
   presences,
   shared,
+  feed,
   onEnter,
+  onGo,
 }: {
   presences: Record<string, Presence>;
   shared: Record<string, SharedField>;
+  feed: FeedItem[];
   onEnter: (id: string) => void;
+  onGo: (url: string) => void;
 }) {
   const today = new Date();
   // tick so stale-ness updates without waiting for a storage event
@@ -177,6 +181,35 @@ export function Terrain({
                 </div>
               );
             })()}
+            {/* stirrings — the unified activity feed */}
+            {feed.length > 0 && (
+              <div className="mb-3 rounded-lg border border-atlas-300 bg-atlas-50/70 p-3.5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-field-faint">
+                  stirrings
+                </div>
+                <ul className="mt-2 space-y-1.5">
+                  {feed.slice(0, 8).map((it, i) => {
+                    const ago = Math.max(0, Date.now() - it.at);
+                    const mins = Math.floor(ago / 60000);
+                    const when = mins < 1 ? 'now' : mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h`;
+                    return (
+                      <li key={`${it.at}-${i}`}>
+                        <button
+                          onClick={() => (it.url ? onGo(it.url) : onEnter(it.app))}
+                          className="flex w-full items-baseline gap-2 text-left text-[13px] text-field-faint hover:text-moss-700 focus:outline-none"
+                        >
+                          <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-moss-700">
+                            {it.app}
+                          </span>
+                          <span className="min-w-0 flex-1 truncate">{it.text}</span>
+                          <span className="shrink-0 text-[10px] text-atlas-500">{when}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
             <div className="today-rail max-h-[70vh] space-y-3 overflow-y-auto pr-1">
               {PLACES.map((p) => {
                 const pres = presences[p.id];

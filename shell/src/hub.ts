@@ -116,3 +116,34 @@ export function subscribeIndexes(cb: (m: Record<string, Entity[]>) => void): () 
     window.clearInterval(t);
   };
 }
+
+/* Activity feed — iterra.doc('feed'), newest-first cap 30 (WIRING §7). */
+export interface FeedItem {
+  app: string;
+  text: string;
+  url?: string;
+  at: number;
+}
+
+export function readFeed(): FeedItem[] {
+  try {
+    const d = JSON.parse(localStorage.getItem('iterra.v1.doc.feed') || 'null');
+    return Array.isArray(d?.items) ? d.items : [];
+  } catch {
+    return [];
+  }
+}
+
+export function subscribeFeed(cb: (items: FeedItem[]) => void): () => void {
+  const emit = () => cb(readFeed());
+  const onStorage = (ev: StorageEvent) => {
+    if (ev.key === 'iterra.v1.doc.feed') emit();
+  };
+  window.addEventListener('storage', onStorage);
+  const t = window.setInterval(emit, 2500);
+  emit();
+  return () => {
+    window.removeEventListener('storage', onStorage);
+    window.clearInterval(t);
+  };
+}

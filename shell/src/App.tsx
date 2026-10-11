@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, subscribeShared, subscribeIndexes, type Presence, type SharedField, type Entity } from './hub';
+import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, type Presence, type SharedField, type Entity, type FeedItem } from './hub';
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 
@@ -20,6 +20,7 @@ export default function App() {
   const [presences, setPresences] = useState<Record<string, Presence>>({});
   const [shared, setShared] = useState<Record<string, SharedField>>({});
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
+  const [feed, setFeed] = useState<FeedItem[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   /* visited places keep their iframes mounted (keep-alive) — the environment
      stays warm: state persists while wandering the terrain. */
@@ -30,6 +31,7 @@ export default function App() {
   useEffect(() => subscribePresences(setPresences), []);
   useEffect(() => subscribeShared(setShared), []);
   useEffect(() => subscribeIndexes(setIndexes), []);
+  useEffect(() => subscribeFeed(setFeed), []);
 
   /* ⌘K / ctrl+K or `/` opens the palette — shell chrome has no text inputs
      of its own so `/` is safe anywhere on the terrain or in chrome */
@@ -115,6 +117,21 @@ export default function App() {
 
   const goHome = useCallback(() => {
     window.location.hash = '/';
+  }, []);
+
+  /* shared deep-link router — palette hits, feed items, commons lines all
+     land here; mirrors the iterra:open message path */
+  const goUrl = useCallback((url: string) => {
+    if (url.startsWith('#')) {
+      window.location.hash = url.slice(1);
+      return;
+    }
+    const m = url.match(/^\/apps\/([a-z]+)(\/[^?#]*)?(\?[^#]*)?/);
+    if (!m || !PLACE_MAP[m[1]]) return;
+    const [, id, p = '/', q = ''] = m;
+    const full = `/apps/${id}${p}${q}`;
+    setFrames((f) => ({ ...f, [id]: f[id] === full ? `${full}${q ? '&' : '?'}_inav=${Date.now()}` : full }));
+    window.location.hash = `/p/${id}`;
   }, []);
 
   const activePlace = active ? PLACE_MAP[active] : null;
@@ -252,26 +269,14 @@ export default function App() {
       </div>
       {!activePlace ? (
         <div className="flex-1 overflow-auto">
-          <Terrain presences={presences} shared={shared} onEnter={enter} />
+          <Terrain presences={presences} shared={shared} feed={feed} onEnter={enter} onGo={goUrl} />
         </div>
       ) : null}
       <Search
         indexes={indexes}
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
-        onGo={(url) => {
-          if (url.startsWith('#')) {
-            window.location.hash = url.slice(1);
-            return;
-          }
-          // entity deep links go through the same routing as iterra:open
-          const m = url.match(/^\/apps\/([a-z]+)(\/[^?#]*)?(\?[^#]*)?/);
-          if (!m || !PLACE_MAP[m[1]]) return;
-          const [, id, p = '/', q = ''] = m;
-          const full = `/apps/${id}${p}${q}`;
-          setFrames((f) => ({ ...f, [id]: f[id] === full ? `${full}${q ? '&' : '?'}_inav=${Date.now()}` : full }));
-          window.location.hash = `/p/${id}`;
-        }}
+        onGo={goUrl}
       />
     </div>
   );
