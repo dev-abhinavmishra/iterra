@@ -37,12 +37,14 @@ export function App() {
     setRoute({ view: 'attempt', attemptId, sessionId });
   const openCompare = (attemptId: string) => setRoute({ view: 'compare', compareAttemptId: attemptId });
 
-  // inbound deep links (Syllabus session requests) — once, after boot
+  // inbound deep links (Syllabus session requests, ?problem=<id>) — once, after boot
   useEffect(() => {
     if (!booted) return;
     const inbound = consumeInbound();
     if (inbound?.kind === 'syllabus-session') {
       setRoute({ view: 'session' });
+    } else if (inbound?.kind === 'problem' && inbound.attemptId) {
+      setRoute({ view: 'attempt', attemptId: inbound.attemptId });
     }
   }, [booted, consumeInbound]);
 

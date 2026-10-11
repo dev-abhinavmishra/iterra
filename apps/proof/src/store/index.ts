@@ -22,12 +22,12 @@ import { uid, nowISO } from '../lib/utils';
 import { draftToProblem, type DraftProblem } from '../lib/imports';
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  timerBaseUrl: 'https://timerstack.vercel.app',
-  inkBaseUrl: 'https://ink-notes.vercel.app',
+  timerBaseUrl: '/apps/timer',
+  inkBaseUrl: '/apps/ink',
   modularBaseUrl: 'https://modularaistack.vercel.app',
-  flashcardsBaseUrl: 'https://flashcards-stack.vercel.app',
-  syllabusBaseUrl: 'https://syllabus-folio.vercel.app',
-  gradestackBaseUrl: 'https://gradestack.vercel.app',
+  flashcardsBaseUrl: '/apps/flashcards',
+  syllabusBaseUrl: '/apps/syllabus',
+  gradestackBaseUrl: '/apps/gradestack',
   motion: 'full',
   defaultSessionMinutes: 30,
 };
@@ -122,6 +122,15 @@ export const useWorkbench = create<WorkbenchState>()(
             if (inbound.kind === 'timer-return' && inbound.sessionId) {
               get().fileTimerReturn(inbound.sessionId, inbound.actualMinutes);
               inbound = null;
+            }
+            if (inbound?.kind === 'problem' && inbound.problemId) {
+              const problem = get().problems[inbound.problemId];
+              if (problem) {
+                const attempt = get().startAttempt(problem.id);
+                inbound = { ...inbound, attemptId: attempt.id };
+              } else {
+                inbound = null;
+              }
             }
             const url = new URL(window.location.href);
             url.search = '';
