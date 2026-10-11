@@ -63,7 +63,19 @@ export function Dossier({
       <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-moss-700">
         course dossier
       </div>
-      <h1 className="mb-2 text-[26px] font-semibold tracking-tight text-field-ink">{course}</h1>
+      <div className="mb-2 flex items-baseline gap-2">
+        <h1 className="text-[26px] font-semibold tracking-tight text-field-ink">{course}</h1>
+        <button
+          onClick={() => togglePin({ app: 'terrain', title: `${course} desk`, url: `#/c/${encodeURIComponent(course)}` })}
+          title={pinnedUrls.has(`#/c/${encodeURIComponent(course)}`) ? 'unpin this desk' : 'pin this desk to the shelf'}
+          className={`text-[15px] leading-none focus:outline-none ${
+            pinnedUrls.has(`#/c/${encodeURIComponent(course)}`) ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
+          }`}
+          aria-label="pin desk"
+        >
+          {pinnedUrls.has(`#/c/${encodeURIComponent(course)}`) ? '◈' : '◇'}
+        </button>
+      </div>
       <p className="mb-4 text-[13px] text-field-faint">
         {total === 0
           ? 'nothing on the terrain carries this key yet'
