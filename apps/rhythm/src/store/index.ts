@@ -27,13 +27,13 @@ import { exportRegister, parseRegisterBackup } from '../lib/backup';
 export const DEFAULT_SETTINGS: AppSettings = {
   weekStartsOn: 1,
   motion: 'full',
-  timerBaseUrl: 'https://timerstack.vercel.app',
-  inkBaseUrl: 'https://ink-notes.vercel.app',
+  timerBaseUrl: '/apps/timer',
+  inkBaseUrl: '/apps/ink',
   modularBaseUrl: 'https://modularaistack.vercel.app',
-  flashcardsBaseUrl: 'https://flashcards-stack.vercel.app',
-  gradestackBaseUrl: 'https://gradestack.vercel.app',
-  syllabusBaseUrl: 'https://syllabus-folio.vercel.app',
-  proofBaseUrl: 'https://proof-workbench.vercel.app',
+  flashcardsBaseUrl: '/apps/flashcards',
+  gradestackBaseUrl: '/apps/gradestack',
+  syllabusBaseUrl: '/apps/syllabus',
+  proofBaseUrl: '/apps/proof',
 };
 
 /** A one-time receipt for an event accepted at boot or via import. */
