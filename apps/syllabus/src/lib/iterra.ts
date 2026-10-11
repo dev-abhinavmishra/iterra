@@ -27,7 +27,7 @@ function summary(): FolioSummary | null {
   const commitments = Object.values(s.commitments);
 
   const slips = blocks.filter((b) => b.plannedDate === today && b.state !== 'done').length;
-  const overdue = commitments.filter((c) => c.status === 'open' && c.dueAt.slice(0, 10) < today).length;
+  const overdue = commitments.filter((c) => c.status === 'open' && typeof c.dueAt === 'string' && c.dueAt.slice(0, 10) < today).length;
 
   // Highest-priority remaining block = the scheduler's max score among slips
   // still awaiting a stamp (done/deferred no longer compete for next).
