@@ -306,6 +306,25 @@ export default function App() {
                           <span className="shrink-0 text-[10px] text-atlas-500">{e.course || e.topic || ''}</span>
                         </button>
                       ))}
+                      {[...keys].slice(0, 3).map((k) => (
+                        <button
+                          key={k}
+                          onClick={() => {
+                            setSwitcherOpen(false);
+                            const e = (related[0] && (related[0].e.course || related[0].e.topic)) || '';
+                            const label = e.toLowerCase() === k ? e : k;
+                            window.location.hash = `/c/${encodeURIComponent(label)}`;
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left hover:bg-moss-100"
+                        >
+                          <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-atlas-500">
+                            dossier
+                          </span>
+                          <span className="min-w-0 flex-1 truncate text-[12px] italic text-field-faint">
+                            all of {(related.find((r) => (r.e.course || '').toLowerCase() === k || (r.e.topic || '').toLowerCase() === k)?.e.course) || k} →
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   );
                 })()}
