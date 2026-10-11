@@ -135,6 +135,20 @@
       ev.stopPropagation();
       open(abs.pathname + abs.search + abs.hash);
     }, true);
+
+    /* Terrain chords a focused frame would otherwise eat: ⌘K palette,
+       ⌘0/` home, ⌘1-8 places. Bubble phase so the app's own shortcuts get
+       first claim — a defaultPrevented ⌘K (ink/margin palettes) stays
+       theirs; anything unclaimed goes to the shell. Framed only. */
+    document.addEventListener('keydown', function (ev) {
+      if (!framed || ev.defaultPrevented) return;
+      if (!(ev.metaKey || ev.ctrlKey) || ev.altKey || ev.shiftKey) return;
+      var k = ev.key;
+      var fwd = k === 'k' || k === 'K' || k === '`' || k === '0' || (k >= '1' && k <= '8');
+      if (!fwd) return;
+      ev.preventDefault();
+      say({ type: 'iterra:hotkey', key: k.toLowerCase() });
+    });
   }
 
   var registered = false;

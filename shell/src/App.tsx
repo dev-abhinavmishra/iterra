@@ -97,6 +97,15 @@ export default function App() {
         });
         window.location.hash = `/p/${id}`;
       }
+      if (d.type === 'iterra:hotkey' && typeof d.key === 'string') {
+        // frame-forwarded terrain chords (hub yields to the app's own ⌘K)
+        const k = d.key;
+        if (k === 'k') { setSearchOpen((o) => !o); return; }
+        if (k === '0' || k === '`') { goHome(); return; }
+        const n = Number(k);
+        if (n >= 1 && n <= PLACES.length) enter(PLACES[n - 1].id);
+        return;
+      }
       if (d.type === 'iterra:hello' && typeof d.app === 'string' && PLACE_MAP[d.app]) {
         const helloApp = d.app as string;
         helloRef.current[helloApp] = Date.now();
