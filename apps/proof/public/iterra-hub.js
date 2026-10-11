@@ -25,6 +25,9 @@
   var me = null;
   var opts = {};
   var lastSummaryJson = '';
+  /* pristine window.open, captured before interceptNav patches it — the
+     standalone passthroughs must call the real one or they recurse. */
+  var origWindowOpen = window.open ? window.open.bind(window) : function () {};
 
   function readApps() {
     try { return JSON.parse(localStorage.getItem(APPS_KEY) || '{}'); } catch (e) { return {}; }
@@ -54,10 +57,10 @@
      relative; anything under /apps/<place>/ is routed by the shell, other
      same-origin paths are rebased onto this place. */
   function open(url) {
-    if (!framed) { window.open(url, '_blank', 'noopener'); return; }
+    if (!framed) { origWindowOpen(url, '_blank', 'noopener'); return; }
     var abs;
     try { abs = new URL(url, window.location.href); } catch (e) { return; }
-    if (abs.origin !== window.location.origin) { window.open(abs.href, '_blank', 'noopener'); return; }
+    if (abs.origin !== window.location.origin) { origWindowOpen(abs.href, '_blank', 'noopener'); return; }
     if (!/^\/apps\/[^/]+\//.test(abs.pathname) && me) {
       abs = new URL(selfBase() + abs.pathname + abs.search + abs.hash, window.location.origin);
     }
