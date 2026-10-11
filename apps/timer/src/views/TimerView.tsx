@@ -357,7 +357,13 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                   <button
                     className="block text-left uppercase tracking-inherit opacity-70 hover:opacity-100 transition-opacity"
                     title={`Bound from ${syllabus.from} — return there`}
-                    onClick={() => (window as any).iterra?.open?.(syllabus.from === 'terrain' ? '#/' : `/apps/${syllabus.from}/`)}
+                    onClick={() =>
+                      (window as any).iterra?.open?.(
+                        syllabus.from === 'terrain'
+                          ? (syllabus.course ? `#/c/${encodeURIComponent(syllabus.course)}` : '#/')
+                          : `/apps/${syllabus.from}/`,
+                      )
+                    }
                   >{`← ${syllabus.from}`}</button>
                 )}
               </span>
