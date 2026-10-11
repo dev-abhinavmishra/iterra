@@ -318,24 +318,27 @@ export function Terrain({
               const nb = t?.nextBlock || null;
               const title = nb?.title || t?.next || null;
               if (!title) {
-                /* no folio plan — offer the most-due thing the ledger can
-                   deep-link: a due deck reviews straight into the cardfile */
-                const deckDue = (presences['flashcards']?.summary as any)?.due || 0;
-                const deckEnt = deckDue > 0
-                  ? (indexes['flashcards'] || []).find((e) => e?.url)
-                  : null;
-                if (!deckEnt) return null;
+                /* no folio plan — walk the ledger for the first due thing
+                   that deep-links: a due deck → the cardfile, a due problem
+                   → the workbench, pending marks → the register */
+                const cands: { due: number; ent: any; cta: (n: number) => string }[] = [
+                  { due: (presences['flashcards']?.summary as any)?.due || 0, ent: (indexes['flashcards'] || []).find((e) => e?.url), cta: (n) => `review ${n} card${n === 1 ? '' : 's'} →` },
+                  { due: (presences['proof']?.summary as any)?.due || 0, ent: (indexes['proof'] || []).find((e) => e?.url), cta: () => 'attempt a due problem →' },
+                  { due: (presences['rhythm']?.summary as any)?.pending || 0, ent: (indexes['rhythm'] || []).find((e) => e?.url), cta: (n) => `mark ${n} pending →` },
+                ];
+                const pick = cands.find((c) => c.due > 0 && c.ent);
+                if (!pick) return null;
                 return (
                   <div className="mb-3 rounded-lg border border-atlas-300 bg-atlas-50/70 p-3.5">
                     <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-field-faint">
                       due on the terrain
                     </span>
-                    <p className="mt-1.5 text-[14px] font-medium leading-snug text-field-ink">{deckEnt.title}</p>
+                    <p className="mt-1.5 text-[14px] font-medium leading-snug text-field-ink">{pick.ent.title}</p>
                     <button
-                      onClick={() => onGo(deckEnt.url!)}
+                      onClick={() => onGo(pick.ent.url!)}
                       className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-moss-600 px-3 py-1.5 text-[12px] font-medium text-moss-800 hover:bg-moss-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
                     >
-                      review {deckDue} card{deckDue === 1 ? '' : 's'} →
+                      {pick.cta(pick.due)}
                     </button>
                   </div>
                 );
