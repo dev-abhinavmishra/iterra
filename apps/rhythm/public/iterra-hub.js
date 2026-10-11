@@ -145,22 +145,68 @@
     interceptNav();
   }
 
-  /* Shared per-namespace documents — the hub store siblings can read. */
+  /* Shared per-namespace documents — the hub store siblings can read.
+     Convention: `iterra.doc('shared')` is the commons — every app may read
+     and write namespaced fields there (see docs/WIRING.md §7): e.g.
+     shared.focus (timer), shared.activeCourse (syllabus), shared.noteActive
+     (ink/margin). `iterra.doc('<app>')` is that app's public context doc.
+     `shared` values are plain JSON; writers stamp {v, by, at}. */
   function doc(ns) {
     var key = DOC_PREFIX + ns;
+    var emit = function (v) {
+      try { window.dispatchEvent(new CustomEvent('iterra:doc', { detail: { ns: ns, value: v } })); } catch (e) {}
+    };
     return {
       get: function () {
         try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
       },
       set: function (v) {
         try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {}
+        emit(v);
+      },
+      /* convenience: merge a single field into the doc's object value */
+      setField: function (field, v) {
+        var cur;
+        try { cur = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { cur = null; }
+        if (!cur || typeof cur !== 'object' || Array.isArray(cur)) cur = {};
+        cur[field] = v;
+        try { localStorage.setItem(key, JSON.stringify(cur)); } catch (e) {}
+        emit(cur);
       },
       subscribe: function (cb) {
-        var h = function (ev) { if (ev.key === key) cb(ev.newValue ? JSON.parse(ev.newValue) : null); };
+        var h = function (ev) { if (ev.key === key) { try { cb(ev.newValue ? JSON.parse(ev.newValue) : null); } catch (e) {} } };
+        var h2 = function (ev) { if (ev.detail && ev.detail.ns === ns) { try { cb(ev.detail.value); } catch (e) {} } };
         window.addEventListener('storage', h);
-        return function () { window.removeEventListener('storage', h); };
+        window.addEventListener('iterra:doc', h2);
+        return function () { window.removeEventListener('storage', h); window.removeEventListener('iterra:doc', h2); };
       },
     };
+  }
+
+  /* Read a sibling's live presence entry (or all of them). Entries carry
+     {app,title,summary,at,framed}; a `stale` flag is added when the writer
+     has been quiet >35s — treat stale data as possibly-dead, not current. */
+  function presence(name) {
+    var map = readApps();
+    var now = Date.now();
+    if (name) {
+      var e = map[name] || null;
+      if (e) e = Object.assign({}, e, { stale: now - e.at > 35000 });
+      return e;
+    }
+    var out = {};
+    for (var k in map) { out[k] = Object.assign({}, map[k], { stale: now - map[k].at > 35000 }); }
+    return out;
+  }
+
+  /* Subscribe to sibling presence changes (storage-event driven). */
+  function onPresence(cb) {
+    var h = function (ev) {
+      if (ev.key !== APPS_KEY) return;
+      try { cb(presence()); } catch (e) {}
+    };
+    window.addEventListener('storage', h);
+    return function () { window.removeEventListener('storage', h); };
   }
 
   window.iterra = {
@@ -170,6 +216,8 @@
     selfBase: selfBase,
     interceptNav: interceptNav,
     doc: doc,
+    presence: presence,
+    onPresence: onPresence,
     apps: readApps,
     isFramed: function () { return framed; },
   };

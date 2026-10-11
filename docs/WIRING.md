@@ -111,7 +111,38 @@ To add:
 
 Match each app's existing param-stripping style (`history.replaceState`).
 
-## 7. Dev topology
+## 7. Shared context — the commons
+
+`iterra.doc(ns)` is a per-namespace JSON store backed by the deployment's
+localStorage: `get()`, `set(v)`, `setField(k, v)` (merge one field),
+`subscribe(cb)` (fires for same-window writes and cross-frame storage events;
+returns an unsubscribe). `iterra.presence(name?)` reads sibling presence
+entries with a `stale` flag; `iterra.onPresence(cb)` subscribes to changes.
+
+**The commons** is `iterra.doc('shared')` — an object every app may read and
+write namespaced fields on. Writers stamp `{ v, by, at }` so readers can tell
+who wrote and how fresh it is. Writers must be defensive: fields may be
+missing, stale, or written by an app that isn't running — always check `at`.
+
+| field | writer | readers | shape |
+|---|---|---|---|
+| `shared.focus` | timer | all | `{ v: { running, label, blockId, endsInMin } \| null, by:'timer', at }` |
+| `shared.today` | syllabus | all | `{ v: { slips, overdue, next } \| null, by:'syllabus', at }` |
+| `shared.activeCourse` | syllabus | all | `{ v: { code, name } \| null, by:'syllabus', at }` |
+| `shared.noteActive` | ink, margin | all | `{ v: { app, id, title } \| null, by, at }` — last opened note |
+| `shared.deck` | flashcards | all | `{ v: { deck, due } \| null, by:'flashcards', at }` — active deck |
+| `shared.session` | proof | all | `{ v: { topic, minutes, active } \| null, by:'proof', at }` |
+| `shared.register` | rhythm | all | `{ v: { marked, pending } \| null, by:'rhythm', at }` |
+| `shared.markbook` | gradestack | all | `{ v: { assessment, scored, total } \| null, by:'gradestack', at }` |
+
+Each app's public context doc `iterra.doc('<app>')` may carry richer state
+for anyone who wants more than the commons fields.
+
+Rules: publish on mount + whenever the underlying state changes (not on a
+timer — presence already heartbeats). Read defensively (`at` freshness,
+`by` provenance, missing fields). Never read your own writes for authority.
+
+## 8. Dev topology
 
 Shell dev proxy maps `/apps/<name>` → `localhost:<port>`:
 
@@ -122,7 +153,7 @@ timer 3005 · ink 3006 · flashcards 3007 · margin 3008
 
 `npm run dev:apps` at the root starts every app on its port.
 
-## 8. Verification
+## 9. Verification
 
 Per app: `npm ci && npm run lint && npm run build` must pass.
 No new dependencies in apps. No design changes — same look, same motion.
