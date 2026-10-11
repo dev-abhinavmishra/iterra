@@ -1,0 +1,16 @@
+maintenance: |
+  # React 19 + Vite — incremental install (lockfile is committed)
+  npm install
+knowledge:
+  - name: lint
+    contents: |
+      # eslint flat config — clean before committing
+      npm run lint
+  - name: build
+    contents: |
+      # typecheck + bundle
+      npm run build
+  - name: dev
+    contents: |
+      # dev server (default port 5173)
+      npm run dev

@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitives
+    function isSignedIn() { return request.auth != null; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Validation Blueprint for Test
+    function isValidTest(data) {
+      return data.keys().hasAll(['name', 'date', 'userId', 'createdAt']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.date is string && data.date.size() <= 50 &&
+             (!('numQuestions' in data) || data.numQuestions is number) &&
+             (!('format' in data) || (data.format is string && data.format.size() <= 20)) &&
+             (!('courseName' in data) || (data.courseName is string && data.courseName.size() <= 50)) &&
+             (!('instructorName' in data) || (data.instructorName is string && data.instructorName.size() <= 50)) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.createdAt is number;
+    }
+
+    // Validation Blueprint for Scan
+    function isValidScan(data) {
+      return data.keys().hasAll(['testId', 'studentId', 'rawScore', 'maxScore', 'percentage', 'userId', 'createdAt']) &&
+             data.testId is string && data.testId.size() <= 128 &&
+             data.studentId is string && data.studentId.size() <= 50 &&
+             (!('studentName' in data) || (data.studentName is string && data.studentName.size() <= 100)) &&
+             data.rawScore is number &&
+             data.maxScore is number &&
+             data.percentage is number &&
+             (!('grade' in data) || (data.grade is string && data.grade.size() <= 10)) &&
+             (!('needsReview' in data) || data.needsReview is bool) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.createdAt is number;
+    }
+
+    match /tests/{testId} {
+      // Allow read if user owns the test
+      allow get: if isSignedIn() && isValidId(testId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() && isValidId(testId) &&
+                       isValidTest(incoming()) && incoming().createdAt == request.time.toMillis();
+
+      allow update: if isSignedIn() && isValidId(testId) && existing().userId == request.auth.uid &&
+                       isValidTest(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['name', 'date', 'numQuestions', 'format', 'courseName', 'instructorName', 'sections', 'includeStudentId', 'answerKey']);
+
+      allow delete: if isSignedIn() && isValidId(testId) && existing().userId == request.auth.uid;
+    }
+
+    match /scans/{scanId} {
+      allow get: if isSignedIn() && isValidId(scanId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() && isValidId(scanId) &&
+                       isValidScan(incoming()) && incoming().createdAt == request.time.toMillis() &&
+                       // Relational Gate: Cannot create scan for a test that doesn't belong to player
+                       get(/databases/$(database)/documents/tests/$(incoming().testId)).data.userId == request.auth.uid;
+
+      allow update: if isSignedIn() && isValidId(scanId) && existing().userId == request.auth.uid &&
+                       isValidScan(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().testId == existing().testId &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['studentId', 'studentName', 'rawScore', 'maxScore', 'percentage', 'grade', 'needsReview', 'responses', 'imageData', 'batchName']);
+
+      allow delete: if isSignedIn() && isValidId(scanId) && existing().userId == request.auth.uid;
+    }
+  }
+}

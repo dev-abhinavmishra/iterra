@@ -1,0 +1,19 @@
+# Platform — Time Instruments (Vite + React 19 + Tailwind 4)
+
+maintenance: |
+  npm install
+
+knowledge:
+  - name: dev
+    contents: |
+      npm run dev  # vite --port=3000 --host=0.0.0.0
+  - name: lint
+    contents: |
+      npm run lint  # tsc --noEmit
+  - name: build
+    contents: |
+      npm run build  # vite build
+  - name: notes
+    contents: |
+      # LocalStorage is namespaced platform.* (settings/sessions/presets/alarms/routines, migrates legacy obsidian_*).
+      # Split-flap components live in src/components/Flip.tsx; design tokens in src/index.css (@theme).

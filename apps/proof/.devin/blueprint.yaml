@@ -1,0 +1,6 @@
+# Proof — Vite + React + TS workbench
+initialize:
+  - run: npm install
+maintenance:
+  - run: npm run lint
+  - run: npm test

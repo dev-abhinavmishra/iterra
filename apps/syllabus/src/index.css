@@ -1,0 +1,526 @@
+@import 'tailwindcss';
+
+@theme {
+  /* ── Typography ──────────────────────────────────────────────
+     Archivo  — compact grotesk, controls + UI chrome
+     Zilla Slab — restrained slab serif, course + assessment names
+     IBM Plex Mono — dates, durations, codes, stamps          */
+  --font-ui: 'Archivo', 'Helvetica Neue', system-ui, sans-serif;
+  --font-slab: 'Zilla Slab', 'Iowan Old Style', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+
+  /* ── Desk + stock ────────────────────────────────────────────
+     Ivory administrative stock laid on a quiet slate desk.      */
+  --color-desk: #232529;
+  --color-desk-deep: #1b1d20;
+  --color-desk-edge: #15161a;
+  --color-stock: #f2ecd9;
+  --color-stock-dim: #eae2cb;
+  --color-slip: #f7f2e4; /* planning slips — slightly brighter stock */
+  --color-form: #faf6ea;
+  --color-ink: #33302a;
+  --color-ink-soft: #6d675b;
+  --color-ink-faint: #98917f;
+  --color-rule: #d8d0b6;
+  --color-rule-dark: #b9b09a;
+  --color-late: #9d3226; /* reserved for genuinely late work */
+  --color-ok: #3f5d45;
+
+  /* alpha triplets */
+  --ink-rgb: 51 48 42;
+  --stock-rgb: 242 236 217;
+  --late-rgb: 157 50 38;
+  --ok-rgb: 63 93 69;
+  --desk-rgb: 35 37 41;
+
+  /* ── Course colors — the only large color surfaces (spine tabs) */
+  --color-course-oxblood: #8c4a3a;
+  --color-course-hunter: #47603f;
+  --color-course-navy: #3a5a78;
+  --color-course-ochre: #b0812f;
+  --color-course-plum: #6e4a6e;
+  --color-course-teal: #3d6e6a;
+  --color-course-slate: #596273;
+  --color-course-rust: #a05a2c;
+
+  --course-oxblood-rgb: 140 74 58;
+  --course-hunter-rgb: 71 96 63;
+  --course-navy-rgb: 58 90 120;
+  --course-ochre-rgb: 176 129 47;
+  --course-plum-rgb: 110 74 110;
+  --course-teal-rgb: 61 110 106;
+  --course-slate-rgb: 89 98 115;
+  --course-rust-rgb: 160 90 44;
+
+  --shadow-sheet: 0 1px 0 rgb(255 255 255 / 0.35) inset, 0 10px 28px rgb(0 0 0 / 0.42), 0 2px 6px rgb(0 0 0 / 0.3);
+  --shadow-slip: 0 1px 2px rgb(0 0 0 / 0.18), 0 6px 14px rgb(0 0 0 / 0.14);
+  --shadow-tab: 2px 2px 5px rgb(0 0 0 / 0.35);
+
+  --animate-stamp: stamp 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  --animate-slip-in: slip-in 0.3s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  --animate-block-slide: block-slide 0.45s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+  --animate-sheet-in: sheet-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-deal: deal 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+
+  @keyframes stamp {
+    0% { transform: scale(2.4) rotate(-14deg); opacity: 0; }
+    55% { transform: scale(0.92) rotate(-7deg); opacity: 1; }
+    75% { transform: scale(1.06) rotate(-8.5deg); }
+    100% { transform: scale(1) rotate(-8deg); opacity: 1; }
+  }
+  @keyframes slip-in {
+    from { transform: translateY(-8px) rotate(0.4deg); opacity: 0; }
+    to { transform: translateY(0) rotate(0deg); opacity: 1; }
+  }
+  @keyframes block-slide {
+    from { transform: translateX(-14px); opacity: 0.4; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes sheet-in {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  /* paper dealt onto the desk — slight fan, lands once */
+  @keyframes deal {
+    0% { transform: translateY(-16px) rotate(0.8deg); opacity: 0; }
+    70% { transform: translateY(1px) rotate(-0.15deg); opacity: 1; }
+    100% { transform: translateY(0) rotate(0); opacity: 1; }
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--color-ink);
+  background-color: var(--color-desk);
+  /* slate desk: two soft vignettes + fine grain */
+  background-image:
+    radial-gradient(1200px 700px at 30% -10%, rgb(255 255 255 / 0.055), transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, rgb(0 0 0 / 0.25), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Paper sheet — the folio page everything lives on ─────────── */
+.sheet {
+  position: relative;
+  background-color: var(--color-stock);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.35), transparent 140px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.035'/%3E%3C/svg%3E");
+  box-shadow: var(--shadow-sheet);
+  border-radius: 3px;
+}
+
+.sheet::before {
+  /* top margin rule — institutional forms carry a header line */
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, var(--color-rule-dark), var(--color-rule) 30%, var(--color-rule));
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ── Planning slip — tear-off blocks on the Today desk ────────── */
+.slip {
+  position: relative;
+  background: var(--color-slip);
+  border: 1px solid var(--color-rule);
+  box-shadow: var(--shadow-slip);
+}
+.slip::after {
+  /* perforation strip along the left edge */
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 10px;
+  width: 0;
+  border-left: 1px dashed var(--color-rule-dark);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ── Rubber stamp — completion + date marks ───────────────────── */
+.stamp {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  padding: 0.15em 0.5em;
+  display: inline-block;
+  transform: rotate(-8deg);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='2.6' intercept='-0.35'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='80' height='80' fill='white' filter='url(%23s)'/%3E%3C/svg%3E");
+  mask-size: 80px 80px;
+}
+.stamp--in {
+  animation: var(--animate-stamp);
+}
+
+/* ── Field atoms — institutional forms ────────────────────────── */
+.f-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.f-input,
+.f-select,
+.f-textarea {
+  width: 100%;
+  background: var(--color-form);
+  border: 1px solid var(--color-rule-dark);
+  border-radius: 2px;
+  padding: 7px 9px;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  color: var(--color-ink);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.f-input:focus-visible,
+.f-select:focus-visible,
+.f-textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-ink-soft);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05), 0 0 0 2px rgb(var(--ink-rgb) / 0.18);
+}
+.f-input::placeholder {
+  color: var(--color-ink-faint);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+.btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 2px;
+  border: 1px solid var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-stock);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+.btn:hover {
+  background: #454137;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-rule-dark);
+}
+.btn--ghost:hover {
+  background: rgb(var(--ink-rgb) / 0.07);
+}
+.btn--late {
+  background: var(--color-late);
+  border-color: var(--color-late);
+}
+.btn--late:hover {
+  background: #b03a2b;
+}
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* icon micro-action on slips/rows */
+.xbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.xbtn:hover {
+  background: rgb(var(--ink-rgb) / 0.09);
+  color: var(--color-ink);
+}
+.xbtn:focus-visible {
+  outline: 2px solid var(--color-ink-soft);
+  outline-offset: 1px;
+}
+
+/* ── View divider tabs (top of the folio) ─────────────────────── */
+.dtab {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  padding: 9px 16px 8px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  top: 1px;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+.dtab:hover {
+  color: var(--color-ink);
+  background: rgb(var(--stock-rgb) / 0.5);
+}
+.dtab--on {
+  color: var(--color-ink);
+  background: var(--color-stock);
+  border-color: var(--color-rule-dark);
+}
+.dtab:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: -2px;
+}
+
+/* ── Course tabs on the semester spine ────────────────────────── */
+.ctab {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgb(255 255 255 / 0.92);
+  padding: 14px 7px;
+  border-radius: 0 5px 5px 0;
+  box-shadow: var(--shadow-tab);
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.14s cubic-bezier(0.3, 0.9, 0.4, 1), filter 0.14s;
+  transform: translateX(0);
+}
+.ctab:hover {
+  transform: translateX(4px);
+}
+.ctab--on {
+  transform: translateX(6px);
+  filter: brightness(1.12) saturate(1.1);
+}
+.ctab:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+/* ── Type helpers ─────────────────────────────────────────────── */
+.mono {
+  font-family: var(--font-mono);
+}
+.slab {
+  font-family: var(--font-slab);
+}
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* ruled hairline with optional label — form section separator */
+.hrule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-ink-faint);
+}
+.hrule::before,
+.hrule::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--color-rule);
+}
+
+/* late mark — the ONLY place red is allowed */
+.late {
+  color: var(--color-late);
+}
+
+/* ── Syllabus document surfaces ──────────────────────────────────
+   Printed institutional forms: double rules, § sections, ruled
+   schedule tables. Never lined paper — this is office paperwork. */
+.double-rule {
+  border-top: 1px solid var(--color-ink);
+  height: 3px;
+  border-bottom: 1px solid var(--color-ink);
+}
+
+.syl-sec {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.syl-sec-no {
+  font-family: var(--font-slab);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-ink);
+  flex-shrink: 0;
+}
+
+/* syllabus schedule table — the classic week/item/weight grid */
+.syl-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.syl-table th {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  text-align: left;
+  padding: 5px 8px;
+  border-bottom: 2px solid var(--color-ink);
+}
+.syl-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--color-rule);
+  vertical-align: top;
+}
+.syl-table tr:last-child td {
+  border-bottom: none;
+}
+.syl-table tr.late-row td {
+  color: var(--color-late);
+}
+.syl-table tr.filed-row td {
+  color: var(--color-ink-faint);
+}
+.syl-table .row-hit {
+  cursor: pointer;
+}
+.syl-table .row-hit:hover td {
+  background: rgb(var(--ink-rgb) / 0.04);
+}
+
+/* ── Focus visibility everywhere (WCAG 2.2) ───────────────────── */
+:focus-visible {
+  outline-color: var(--color-ink);
+}
+.sheet :focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.18);
+}
+
+/* ── Calendar grid ────────────────────────────────────────────── */
+.cal-cell {
+  background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.018), transparent 40%);
+  border: 1px solid var(--color-rule);
+}
+.cal-today {
+  box-shadow: inset 0 0 0 2px rgb(var(--ink-rgb) / 0.35);
+}
+
+/* ── Scrollbars (thin, institutional) ─────────────────────────── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule-dark) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-rule-dark);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Reduced motion — one preference, honored everywhere ──────── */
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion='full']) *,
+  html:not([data-motion='full']) *::before,
+  html:not([data-motion='full']) *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ── Print — a syllabus document should print like one ────────── */
+@media print {
+  body {
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .sheet {
+    box-shadow: none;
+    border: none;
+    background: #fff;
+  }
+  .sheet::before {
+    display: none;
+  }
+  main {
+    overflow: visible !important;
+  }
+  .syl-doc {
+    border: none !important;
+    box-shadow: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .syl-doc::after {
+    display: none;
+  }
+  details {
+    display: block;
+  }
+  details > * {
+    display: block;
+  }
+  summary {
+    display: none;
+  }
+  /* keep the document footer joined to the body — no lone orphan on page 2 */
+  .doc-footer {
+    break-before: avoid-page;
+    break-inside: avoid;
+  }
+}

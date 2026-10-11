@@ -1,0 +1,611 @@
+// ── Today — the open register ────────────────────────────────────────────────
+// Acceptance criterion: a manual check-in takes at most two direct actions.
+//   check routine   → press the stamp (1)
+//   amount routine  → press the stamp, confirm the amount (2)
+// A routine "skipped" gets a friction note, not a scolding.
+
+import { useMemo, useState } from 'react';
+import { useRegister } from '../store';
+import type { Routine } from '../lib/types';
+import { dayState, isScheduled, perDayBar, routineWeek } from '../lib/register';
+import { bandFor } from '../lib/bands';
+import { fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
+import { EXCEPTION_LABEL, FRICTION_LABEL } from '../lib/utils';
+import { Mark } from '../components/Mark';
+import { WStamp } from '../components/WStamp';
+import { Sheet } from '../components/Sheet';
+import { Field } from '../components/Field';
+import { Minus, Plus, StickyNote, XCircle } from 'lucide-react';
+
+export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }) {
+  const routines = useRegister((s) => s.routines);
+  const entries = useRegister((s) => s.entries);
+  const exceptions = useRegister((s) => s.exceptions);
+  const courses = useRegister((s) => s.courses);
+  const settings = useRegister((s) => s.settings);
+  const focusedRoutineName = useRegister((s) => s.focusedRoutineName);
+  const checkIn = useRegister((s) => s.checkIn);
+  const logFriction = useRegister((s) => s.logFriction);
+  const addException = useRegister((s) => s.addException);
+  const removeEntry = useRegister((s) => s.removeEntry);
+  const resumeRoutine = useRegister((s) => s.resumeRoutine);
+
+  const today = todayISO();
+  const [amountFor, setAmountFor] = useState<string | null>(null);
+  const [amount, setAmount] = useState('');
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [note, setNote] = useState('');
+  const [frictionFor, setFrictionFor] = useState<string | null>(null);
+  const [frictionKind, setFrictionKind] = useState<string>('tired');
+  const [frictionNote, setFrictionNote] = useState('');
+  const [exceptionOpen, setExceptionOpen] = useState(false);
+  const [justStamped, setJustStamped] = useState<string | null>(null);
+
+  const list = useMemo(() => {
+    const all = Object.values(routines).filter((r) => r.status !== 'archived');
+    const scheduled = all.filter((r) => r.status === 'active' && isScheduled(r, today));
+    const open = all.filter((r) => r.status === 'active' && !isScheduled(r, today));
+    const paused = all.filter((r) => r.status === 'paused');
+    // A deep-linked routine (from a suite app) pins to the top once.
+    if (focusedRoutineName) {
+      const i = scheduled.findIndex((r) => r.name.toLowerCase() === focusedRoutineName.toLowerCase());
+      if (i > 0) scheduled.unshift(scheduled.splice(i, 1)[0]);
+    }
+    return { scheduled, open, paused };
+  }, [routines, today, focusedRoutineName]);
+
+  const stamp = (r: Routine, isMinimum = false) => {
+    if (r.measure === 'check') {
+      const e = checkIn(r.id, { isMinimum });
+      if (e) {
+        setJustStamped(r.id);
+        window.setTimeout(() => setJustStamped((cur) => (cur === r.id ? null : cur)), 400);
+      }
+    } else {
+      setAmountFor(r.id);
+      setAmount(String(isMinimum ? Math.max(1, Math.ceil(perDayBar(r) / 2)) : perDayBar(r)));
+    }
+  };
+
+  const confirmAmount = (r: Routine, isMinimum = false) => {
+    const v = Math.max(0, Number(amount));
+    if (!Number.isFinite(v)) return;
+    checkIn(r.id, { value: v, isMinimum });
+    setAmountFor(null);
+    setJustStamped(r.id);
+    window.setTimeout(() => setJustStamped((cur) => (cur === r.id ? null : cur)), 400);
+  };
+
+  const week = weekStartISO(today, settings.weekStartsOn);
+
+  return (
+    <div>
+      {/* ── Masthead — the office date stamp ─────────────────────── */}
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="kicker mb-1">Today's register — week of {fmtWeekRange(week)}</div>
+          <div
+            className="datestamp-block inline-block px-3 py-1.5 text-2xl leading-none"
+            style={{ transform: 'rotate(-1.2deg)' }}
+          >
+            {fmtDayFull(today)}
+          </div>
+        </div>
+        <TodayPace />
+      </div>
+
+      {/* ── Scheduled rows ───────────────────────────────────────── */}
+      {list.scheduled.length === 0 && list.open.length === 0 && list.paused.length === 0 && (
+        <div className="py-10 text-center">
+          <p className="datestamp text-lg text-ink-soft">The register is empty.</p>
+          <p className="mt-1 text-sm text-ink-faint">Open the register's first routine from Settings or the onboarding sheet.</p>
+        </div>
+      )}
+
+      {list.scheduled.length > 0 && (
+        <section aria-label="Scheduled for today">
+          <div className="divide-y-0 border-y border-rule">
+            {list.scheduled.map((r) => (
+              <RoutineRow
+                key={r.id}
+                routine={r}
+                today={today}
+                weekStart={week}
+                state={dayState(r, today, entries, exceptions, today)}
+                justStamped={justStamped === r.id}
+                amountOpen={amountFor === r.id}
+                amount={amount}
+                courseCode={r.courseId ? courses[r.courseId]?.code : undefined}
+                onStamp={() => stamp(r)}
+                onMinimum={() => stamp(r, true)}
+                onAmount={setAmount}
+                onAmountConfirm={() => confirmAmount(r)}
+                onAmountMinimum={() => confirmAmount(r, true)}
+                onAmountClose={() => setAmountFor(null)}
+                onNote={() => {
+                  setNoteFor(r.id);
+                  setNote('');
+                }}
+                onFriction={() => {
+                  setFrictionFor(r.id);
+                  setFrictionKind('tired');
+                  setFrictionNote('');
+                }}
+                onOpen={() => openRoutine(r.id)}
+                onUndo={() => {
+                  const e = Object.values(entries).find(
+                    (en) => en.routineId === r.id && en.date === today && en.source === 'manual',
+                  );
+                  if (e) removeEntry(e.id);
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Also on the books — unscheduled today, loggable anyway ── */}
+      {list.open.length > 0 && (
+        <section className="mt-6" aria-label="Not scheduled today">
+          <div className="kicker mb-2">Also on the books — not due today</div>
+          <div className="divide-y-0 border-y border-rule opacity-90">
+            {list.open.map((r) => (
+              <RoutineRow
+                key={r.id}
+                routine={r}
+                today={today}
+                weekStart={week}
+                state={dayState(r, today, entries, exceptions, today)}
+                justStamped={justStamped === r.id}
+                amountOpen={amountFor === r.id}
+                amount={amount}
+                courseCode={r.courseId ? courses[r.courseId]?.code : undefined}
+                offday
+                onStamp={() => stamp(r)}
+                onMinimum={() => stamp(r, true)}
+                onAmount={setAmount}
+                onAmountConfirm={() => confirmAmount(r)}
+                onAmountMinimum={() => confirmAmount(r, true)}
+                onAmountClose={() => setAmountFor(null)}
+                onNote={() => {
+                  setNoteFor(r.id);
+                  setNote('');
+                }}
+                onFriction={() => {
+                  setFrictionFor(r.id);
+                  setFrictionKind('tired');
+                  setFrictionNote('');
+                }}
+                onOpen={() => openRoutine(r.id)}
+                onUndo={() => {
+                  const e = Object.values(entries).find(
+                    (en) => en.routineId === r.id && en.date === today && en.source === 'manual',
+                  );
+                  if (e) removeEntry(e.id);
+                }}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Paused — resting in the back of the register ──────────── */}
+      {list.paused.length > 0 && (
+        <section className="mt-6" aria-label="Paused routines">
+          <div className="kicker mb-2">Paused — intentionally set aside</div>
+          <div className="divide-y-0 border-y border-rule">
+            {list.paused.map((r) => (
+              <div key={r.id} className="lrow flex items-center gap-3 px-2 py-2.5">
+                <Mark state="paused" accent={r.accent} title="paused" />
+                <div className="min-w-0 flex-1">
+                  <button onClick={() => openRoutine(r.id)} className="datestamp truncate text-[15px] hover:underline">
+                    {r.name}
+                  </button>
+                  {r.pauseReason && <div className="text-[11px] text-ink-faint">{r.pauseReason}</div>}
+                </div>
+                <button className="btn btn--quiet" onClick={() => resumeRoutine(r.id)}>
+                  Resume
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Day actions ──────────────────────────────────────────── */}
+      <div className="mt-5 flex flex-wrap gap-2 no-print">
+        <button className="btn btn--quiet" onClick={() => setExceptionOpen(true)}>
+          Mark today an exception…
+        </button>
+      </div>
+
+      {/* ── Sheets ───────────────────────────────────────────────── */}
+      {noteFor && (
+        <Sheet title="A note on today's line" onClose={() => setNoteFor(null)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const r = routines[noteFor];
+              if (r && note.trim()) {
+                const entry = checkIn(noteFor, {
+                  value: r.measure === 'check' ? 1 : perDayBar(r),
+                  note,
+                });
+                if (!entry) {
+                  // already stamped — attach the note to today's first entry
+                  const ex = Object.values(entries).find(
+                    (en) => en.routineId === noteFor && en.date === today,
+                  );
+                  if (ex) useRegister.getState().updateEntryNote(ex.id, note);
+                }
+              }
+              setNoteFor(null);
+              setJustStamped(noteFor);
+            }}
+            className="space-y-4"
+          >
+            <Field label="Note (private — stays in this register)">
+              <textarea
+                className="f-textarea"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="e.g. studied in the library, felt easier"
+                autoFocus
+              />
+            </Field>
+            <div className="flex justify-end gap-2">
+              <button type="button" className="btn btn--quiet" onClick={() => setNoteFor(null)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn--primary">
+                File note
+              </button>
+            </div>
+          </form>
+        </Sheet>
+      )}
+
+      {frictionFor && (
+        <Sheet title="Log why it didn't happen" onClose={() => setFrictionFor(null)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              logFriction({
+                routineId: frictionFor,
+                kind: frictionKind as never,
+                note: frictionNote || undefined,
+              });
+              setFrictionFor(null);
+            }}
+            className="space-y-4"
+          >
+            <Field label="What got in the way">
+              <select className="f-select" value={frictionKind} onChange={(e) => setFrictionKind(e.target.value)}>
+                {Object.entries(FRICTION_LABEL).map(([k, l]) => (
+                  <option key={k} value={k}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Note (optional, private)">
+              <input
+                className="f-input"
+                value={frictionNote}
+                onChange={(e) => setFrictionNote(e.target.value)}
+                placeholder="e.g. practice ran late"
+              />
+            </Field>
+            <div className="flex justify-end gap-2">
+              <button type="button" className="btn btn--quiet" onClick={() => setFrictionFor(null)}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn--primary">
+                Log friction
+              </button>
+            </div>
+          </form>
+        </Sheet>
+      )}
+
+      {exceptionOpen && (
+        <ExceptionSheet
+          routines={list.scheduled.concat(list.open)}
+          onClose={() => setExceptionOpen(false)}
+          onAdd={(routineId, kind, noteText) => {
+            addException({ routineId, date: today, kind: kind as never, note: noteText });
+            setExceptionOpen(false);
+          }}
+        />
+      )}
+
+      {/* hidden live region for screen-reader stamp confirmations */}
+      <div aria-live="polite" className="sr-only">
+        {justStamped ? `${routines[justStamped]?.name ?? 'Routine'} stamped` : ''}
+      </div>
+    </div>
+  );
+}
+
+// ── One register row ─────────────────────────────────────────────────────────
+
+function RoutineRow({
+  routine: r,
+  today,
+  weekStart,
+  state,
+  justStamped,
+  amountOpen,
+  amount,
+  courseCode,
+  offday,
+  onStamp,
+  onMinimum,
+  onAmount,
+  onAmountConfirm,
+  onAmountMinimum,
+  onAmountClose,
+  onNote,
+  onFriction,
+  onOpen,
+  onUndo,
+}: {
+  routine: Routine;
+  today: string;
+  weekStart: string;
+  state: ReturnType<typeof dayState>;
+  justStamped: boolean;
+  amountOpen: boolean;
+  amount: string;
+  courseCode?: string;
+  offday?: boolean;
+  onStamp: () => void;
+  onMinimum: () => void;
+  onAmount: (v: string) => void;
+  onAmountConfirm: () => void;
+  onAmountMinimum: () => void;
+  onAmountClose: () => void;
+  onNote: () => void;
+  onFriction: () => void;
+  onOpen: () => void;
+  onUndo: () => void;
+}) {
+  const entries = useRegister((s) => s.entries);
+  const exceptions = useRegister((s) => s.exceptions);
+  const settings = useRegister((s) => s.settings);
+  const wk = routineWeek(r, weekStart, entries, exceptions, today, settings.weekStartsOn);
+  const done = state === 'full' || state === 'minimum' || state === 'partial';
+  const unitLabel = r.measure === 'duration' ? 'min' : r.unit || r.measure;
+
+  const progress =
+    r.measure === 'check'
+      ? `${wk.actual}/${wk.effectiveTarget} days`
+      : `${wk.actual}/${r.target.perWeek} ${unitLabel} this week`;
+
+  return (
+    <div className="lrow px-2 py-2.5">
+      <div className="flex items-center gap-3">
+        {/* the stamp — one press records the day */}
+        <button
+          onClick={onStamp}
+          aria-label={
+            done ? `${r.name} already marked ${state}` : `Mark ${r.name} done`
+          }
+          aria-pressed={done}
+          className="rounded-full focus-visible:outline-2 focus-visible:outline-indigo"
+          style={{ ['--stamp-rot' as never]: '-2deg' }}
+        >
+          <Mark
+            state={done ? state : 'missed'}
+            accent={r.accent}
+            press={justStamped}
+            title={done ? state : `mark ${r.name}`}
+          />
+        </button>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2">
+            <button onClick={onOpen} className="datestamp truncate text-[15px] hover:underline" title="open routine">
+              {r.name}
+            </button>
+            {courseCode && <span className="mono text-[10px] uppercase text-ink-faint">{courseCode}</span>}
+          </div>
+          <div className="mt-0.5 flex items-center gap-2">
+            <span className="mono text-[10.5px] text-ink-soft">{progress}</span>
+            <span className="track w-16 text-indigo" style={{ color: `var(--color-acc-${r.accent})` }}>
+              <i
+                style={{
+                  width: `${Math.min(100, (wk.actual / Math.max(1, wk.effectiveTarget)) * 100)}%`,
+                }}
+              />
+            </span>
+            {r.windowStart && r.windowEnd && (
+              <span className="mono text-[10px] text-ink-faint">
+                {fmtTime(r.windowStart)}–{fmtTime(r.windowEnd)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* row actions — quiet, never loud */}
+        <div className="flex items-center gap-1">
+          {r.minimum && !done && (
+            <button className="btn btn--quiet !px-2 !py-1" onClick={onMinimum} title={`minimum: ${r.minimum.label}`}>
+              min
+            </button>
+          )}
+          {done && (
+            <button className="btn btn--quiet !px-2 !py-1" onClick={onUndo} title="lift today's stamp">
+              lift
+            </button>
+          )}
+          <IconBtn label="note" onClick={onNote}>
+            <StickyNote size={13} />
+          </IconBtn>
+          {!done && (
+            <IconBtn label="didn't happen — log friction" onClick={onFriction}>
+              <XCircle size={13} />
+            </IconBtn>
+          )}
+        </div>
+      </div>
+
+      {/* amount intake — the second action for measured routines */}
+      {amountOpen && (
+        <form
+          className="mt-2 ml-9 flex flex-wrap items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onAmountConfirm();
+          }}
+        >
+          <button
+            type="button"
+            className="btn btn--quiet !px-1.5"
+            aria-label="less"
+            onClick={() => onAmount(String(Math.max(0, Number(amount) - (r.measure === 'duration' ? 5 : 1))))}
+          >
+            <Minus size={12} />
+          </button>
+          <input
+            className="f-input !w-24 text-center"
+            inputMode="numeric"
+            value={amount}
+            onChange={(e) => onAmount(e.target.value)}
+            aria-label={`amount in ${unitLabel}`}
+            autoFocus
+          />
+          <button
+            type="button"
+            className="btn btn--quiet !px-1.5"
+            aria-label="more"
+            onClick={() => onAmount(String(Number(amount) + (r.measure === 'duration' ? 5 : 1)))}
+          >
+            <Plus size={12} />
+          </button>
+          <span className="mono text-[11px] text-ink-soft">{unitLabel}</span>
+          <button type="submit" className="btn btn--primary !px-3 !py-1.5">
+            Stamp
+          </button>
+          {r.minimum && (
+            <button type="button" className="btn btn--quiet !px-2 !py-1.5" onClick={onAmountMinimum}>
+              as minimum
+            </button>
+          )}
+          <button type="button" className="btn btn--quiet !px-2 !py-1.5" onClick={onAmountClose}>
+            ×
+          </button>
+          {offday && <span className="mono text-[10px] text-ink-faint">not a scheduled day — it still counts</span>}
+        </form>
+      )}
+    </div>
+  );
+}
+
+function IconBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="rounded p-1.5 text-ink-faint hover:bg-black/5 hover:text-ink"
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── "On pace" summary — no streaks, just the week's ledger state ─────────────
+
+function TodayPace() {
+  const routines = useRegister((s) => s.routines);
+  const entries = useRegister((s) => s.entries);
+  const exceptions = useRegister((s) => s.exceptions);
+  const experiments = useRegister((s) => s.experiments);
+  const settings = useRegister((s) => s.settings);
+  const today = todayISO();
+
+  const bands = Object.values(routines)
+    .filter((r) => r.status !== 'archived')
+    .map((r) => ({ r, b: bandFor(r, entries, exceptions, experiments, today, settings.weekStartsOn) }));
+
+  const recovering = bands.filter((x) => x.b.band === 'recovery');
+  return (
+    <div className="text-right">
+      <div className="flex flex-wrap justify-end gap-1.5">
+        {bands.slice(0, 4).map(({ r, b }) => (
+          <WStamp key={r.id} band={b.band} />
+        ))}
+      </div>
+      {recovering.length > 0 && (
+        <p className="mt-1.5 max-w-52 text-[11px] leading-snug text-ink-soft">
+          {recovering.length === 1
+            ? `${recovering[0].r.name} is in recovery — the minimum version keeps the line alive.`
+            : `${recovering.length} routines in recovery — minimum versions keep the lines alive.`}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ── Exception sheet ──────────────────────────────────────────────────────────
+
+function ExceptionSheet({
+  routines,
+  onClose,
+  onAdd,
+}: {
+  routines: Routine[];
+  onClose: () => void;
+  onAdd: (routineId: string | 'all', kind: string, note?: string) => void;
+}) {
+  const [routineId, setRoutineId] = useState<string>('all');
+  const [kind, setKind] = useState('travel');
+  const [note, setNote] = useState('');
+  return (
+    <Sheet title="Mark today an exception" onClose={onClose}>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onAdd(routineId, kind, note || undefined);
+        }}
+      >
+        <p className="text-[12px] leading-snug text-ink-soft">
+          Travel, exams, and sick days happen. An exception excuses the day — it is marked on the
+          register, not erased, and it is never counted as a miss.
+        </p>
+        <Field label="Applies to">
+          <select className="f-select" value={routineId} onChange={(e) => setRoutineId(e.target.value)}>
+            <option value="all">Every routine today</option>
+            {routines.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Kind">
+          <select className="f-select" value={kind} onChange={(e) => setKind(e.target.value)}>
+            {Object.entries(EXCEPTION_LABEL).map(([k, l]) => (
+              <option key={k} value={k}>
+                {l}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Note (optional)">
+          <input className="f-input" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. debate tournament in Fresno" />
+        </Field>
+        <div className="flex justify-end gap-2">
+          <button type="button" className="btn btn--quiet" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" className="btn btn--primary">
+            Mark exception
+          </button>
+        </div>
+      </form>
+    </Sheet>
+  );
+}

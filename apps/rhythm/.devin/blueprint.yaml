@@ -1,0 +1,17 @@
+# https://docs.devin.ai/onboard-devin/environment-yaml
+# Commands run from the repo root.
+maintenance: |
+  npm install
+knowledge:
+  - name: dev
+    contents: |
+      npm run dev   # vite dev server on :3000
+  - name: lint
+    contents: |
+      npm run lint  # tsc --noEmit (strict, noUnusedLocals)
+  - name: test
+    contents: |
+      npm test      # vitest run
+  - name: build
+    contents: |
+      npm run build # vite build -> dist/

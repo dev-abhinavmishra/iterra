@@ -1,0 +1,16 @@
+{
+  "name": "iterra",
+  "private": true,
+  "version": "0.1.0",
+  "description": "An integrated study terrain — eight places, one environment.",
+  "scripts": {
+    "sync:hub": "bash scripts/sync-hub.sh",
+    "build": "bash scripts/build.sh",
+    "dev": "cd shell && npm run dev",
+    "dev:apps": "bash scripts/dev-apps.sh",
+    "lint": "cd shell && npm run lint"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  }
+}

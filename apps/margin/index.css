@@ -1,0 +1,332 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+  --font-hand: "Caveat", "Segoe Script", cursive;
+}
+
+/* ---------- "Index" design tokens ---------- */
+:root {
+  --paper: #F4F3EC;
+  --card: #FBFAF4;
+  --card-2: #EFECE2;
+  --ink: #211E19;
+  --ink-2: #5C574B;
+  --ink-3: #8A8375;
+  --line: #DDD8C8;
+  --line-2: #C9C3B2;
+  --mark: #C2420C;
+  --mark-ink: #FBFAF4;
+  --mark-soft: rgba(194, 66, 12, 0.10);
+  --ok: #2F6B3A;
+  --warn: #9A6A00;
+  --bad: #A83226;
+  --tape: rgba(58, 92, 140, 0.12);
+  --rule-blue: #C3CFE4;
+  --margin-red: #D9A493;
+  --hole: rgba(30, 26, 18, 0.18);
+  --r: 8px;
+  --r-lg: 10px;
+  --shadow-card: 0 1px 0 rgba(30, 26, 18, 0.07), 0 10px 28px -20px rgba(30, 26, 18, 0.35);
+  --shadow-lift: 0 1px 0 rgba(30, 26, 18, 0.08), 0 16px 36px -18px rgba(30, 26, 18, 0.45);
+  --shadow-pop: 0 2px 8px rgba(30, 26, 18, 0.10), 0 18px 44px -18px rgba(30, 26, 18, 0.42);
+}
+
+.dark {
+  --paper: #16150F;
+  --card: #201D16;
+  --card-2: #26221A;
+  --ink: #E9E4D6;
+  --ink-2: #A39C8A;
+  --ink-3: #6E6757;
+  --line: #38342A;
+  --line-2: #454034;
+  --mark: #E0582F;
+  --mark-ink: #1B1710;
+  --mark-soft: rgba(224, 88, 47, 0.14);
+  --ok: #5FA96B;
+  --warn: #C99A2E;
+  --bad: #D85C4E;
+  --tape: rgba(120, 160, 210, 0.16);
+  --rule-blue: #38415C;
+  --margin-red: #7C4B3E;
+  --hole: rgba(0, 0, 0, 0.50);
+  --shadow-card: 0 1px 0 rgba(0, 0, 0, 0.30), 0 10px 28px -20px rgba(0, 0, 0, 0.80);
+  --shadow-lift: 0 1px 0 rgba(0, 0, 0, 0.30), 0 16px 36px -16px rgba(0, 0, 0, 0.85);
+  --shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.35), 0 18px 44px -16px rgba(0, 0, 0, 0.85);
+}
+
+html, body, #root { height: 100%; }
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-family: var(--font-sans);
+}
+
+/* Text selection is a swipe of highlighter, not a system block. */
+::selection { background: rgba(243, 208, 91, 0.55); color: var(--ink); }
+.dark ::selection { background: rgba(197, 152, 48, 0.38); color: var(--ink); }
+
+/* The caret is a pen nib — vermilion like the margin rule. */
+input, textarea, [contenteditable] { caret-color: var(--mark); }
+
+/* ---------- Semantic utilities ---------- */
+.bg-paper { background-color: var(--paper); }
+.bg-card { background-color: var(--card); }
+.bg-card-2 { background-color: var(--card-2); }
+.text-ink { color: var(--ink); }
+.text-ink-2 { color: var(--ink-2); }
+.text-ink-3 { color: var(--ink-3); }
+.bg-mark { background-color: var(--mark); }
+.text-mark { color: var(--mark); }
+.bg-mark-soft { background-color: var(--mark-soft); }
+.text-ok { color: var(--ok); }
+.text-warn { color: var(--warn); }
+.text-bad { color: var(--bad); }
+.bg-ok { background-color: var(--ok); }
+.bg-bad { background-color: var(--bad); }
+.border-line { border-color: var(--line); }
+.border-line-2 { border-color: var(--line-2); }
+.shadow-card { box-shadow: var(--shadow-card); }
+.shadow-lift { box-shadow: var(--shadow-lift); }
+.shadow-pop { box-shadow: var(--shadow-pop); }
+.font-serif { font-family: var(--font-serif); }
+.font-sans { font-family: var(--font-sans); }
+.font-mono { font-family: var(--font-mono); }
+.font-hand { font-family: var(--font-hand); font-weight: 500; }
+
+/* ---------- Loose-leaf notebook motif ----------
+   The whole app is a ruled field notebook: pen-blue rules scroll with the
+   text, a vermilion margin rule runs down the left edge, and punched holes
+   dot the binding side on wide screens. The ruler class goes on the view's
+   scrolling element so the lines move with the page. */
+/* Paper grain: a whisper of fibre noise under the rules. */
+.page-lines {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 27px,
+      var(--rule-blue) 27px,
+      var(--rule-blue) 28px
+    );
+  background-attachment: local;
+}
+@media (min-width: 1024px) {
+  .page-lines {
+    background-image:
+      radial-gradient(circle 5px, var(--hole) 0 5px, transparent 6px),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(var(--margin-red), var(--margin-red)),
+      repeating-linear-gradient(0deg, transparent 0, transparent 27px, var(--rule-blue) 27px, var(--rule-blue) 28px);
+    background-size: 14px 300px, auto, 1px 100%, auto;
+    background-position: 19px 120px, 0 0, 52px 0, 0 0;
+    background-repeat: repeat-y, repeat, no-repeat, repeat;
+  }
+}
+
+/* A card face: red header rule, pen-blue rules beneath — an index card. */
+.card-ruled {
+  background-image:
+    linear-gradient(var(--margin-red), var(--margin-red)),
+    repeating-linear-gradient(0deg, transparent 0, transparent 23px, var(--rule-blue) 23px, var(--rule-blue) 24px);
+  background-size: 100% 1px, auto;
+  background-position: 0 4px, 0 14px;
+  background-repeat: no-repeat, repeat;
+  background-attachment: local;
+}
+
+/* Ruled sheet without the header rule — ledger pages, answer sheets. */
+.sheet-ruled {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 23px,
+    var(--rule-blue) 23px,
+    var(--rule-blue) 24px
+  );
+  background-attachment: local;
+}
+
+/* ---------- Ink ----------
+   Headings aren't rendered, they're written: the clip reveals the text
+   left-to-right like a pen tracking across the page while a whisper of
+   blur settles out of the wet ink. */
+@keyframes ink-write {
+  from {
+    clip-path: inset(-0.05em 100% -0.2em -0.05em);
+    opacity: 0.45;
+    filter: blur(0.6px);
+  }
+  55% { filter: blur(0.2px); }
+  to {
+    clip-path: inset(-0.05em -0.15em -0.2em -0.05em);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+.ink-write {
+  display: inline-block;
+  animation: ink-write 0.9s cubic-bezier(0.25, 0.7, 0.3, 1) var(--ink-delay, 0s) both;
+}
+
+/* A stroke drawn under the words once they're written — ragged ends,
+   like a pen that pressed harder at the start. */
+.ink-underline { position: relative; }
+.ink-underline::after {
+  content: '';
+  position: absolute;
+  left: 0.02em;
+  right: 0.04em;
+  bottom: -0.14em;
+  height: 0.08em;
+  min-height: 2px;
+  background: var(--mark);
+  opacity: 0.75;
+  border-radius: 999px;
+  clip-path: polygon(0 45%, 14% 10%, 38% 40%, 64% 5%, 88% 35%, 100% 20%, 100% 78%, 82% 95%, 55% 65%, 30% 100%, 8% 75%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: ink-stroke 0.55s cubic-bezier(0.3, 0.75, 0.35, 1) calc(var(--ink-delay, 0s) + 0.75s) forwards;
+}
+@keyframes ink-stroke { to { transform: scaleX(1); } }
+
+/* Washi tape holding a pinned card to the page. */
+.tape { position: relative; }
+.tape::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 72px;
+  height: 20px;
+  transform: translateX(-50%) rotate(-2.5deg);
+  background: linear-gradient(105deg, rgba(244, 219, 115, 0.9), rgba(233, 197, 83, 0.8));
+  opacity: 0.85;
+  clip-path: polygon(3% 12%, 97% 2%, 100% 80%, 94% 100%, 4% 93%, 0 76%);
+  box-shadow: 0 1px 2px rgba(30, 26, 18, 0.14);
+  z-index: 12;
+  pointer-events: none;
+}
+.dark .tape::before {
+  background: linear-gradient(105deg, rgba(212, 175, 74, 0.55), rgba(190, 152, 55, 0.45));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* Old name kept for the card footer strip. */
+.rule-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 27px,
+    var(--line) 27px,
+    var(--line) 28px
+  );
+}
+
+/* Ruled body text — lines land just under each line box so writing reads as
+   if it were done on the page itself. em-based so it tracks font size. */
+.note-body.ruled,
+.ruled-body {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent calc(1.65em - 1px),
+    var(--rule-blue) calc(1.65em - 1px),
+    var(--rule-blue) 1.65em
+  );
+  background-position: 0 0.4em;
+  background-attachment: local;
+}
+
+/* Material Symbols: thin, consistent, deliberate. */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 350, 'GRAD' 0, 'opsz' 20;
+  font-size: 20px;
+  user-select: none;
+}
+.icon-fill { font-variation-settings: 'FILL' 1, 'wght' 350, 'GRAD' 0, 'opsz' 20; }
+
+/* Paper edge for interactive cards: lift, don't glow. */
+.paper-card {
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+.paper-card:hover {
+  transform: translateY(-2px) rotate(0.35deg);
+  box-shadow: var(--shadow-lift);
+}
+.paper-card:active { transform: scale(0.99); }
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 7px; height: 7px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+
+/* Focus: visible, quiet. */
+:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; border-radius: 2px; }
+
+/* Caret + cursor blink */
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+.cursor-blink { animation: blink 1s step-end infinite; }
+
+/* Keyframes used across the app */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise { animation: rise 200ms ease both; }
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.pop-in { animation: pop-in 140ms ease both; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.fade-in { animation: fade-in 160ms ease both; }
+
+/* Flashcard 3D helpers */
+.perspective-1000 { perspective: 1000px; }
+.transform-style-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.rotate-y-180 { transform: rotateY(180deg); }
+
+/* 3D flip for cards */
+.flip-inner { transition: transform 450ms cubic-bezier(0.3, 1.3, 0.4, 1); transform-style: preserve-3d; }
+
+/* Note content typography (rendered note HTML + contentEditable) */
+.note-body { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.65; }
+.note-body h1 { font-family: var(--font-serif); font-weight: 700; font-size: 1.9em; line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 0.4em; }
+.note-body h2 { font-family: var(--font-serif); font-weight: 650; font-size: 1.4em; line-height: 1.25; margin: 1.1em 0 0.4em; }
+.note-body h3 { font-family: var(--font-serif); font-weight: 650; font-size: 1.15em; margin: 0.9em 0 0.35em; }
+.note-body p { margin: 0 0 0.7em; }
+.note-body ul { list-style: disc; padding-left: 1.4em; margin: 0 0 0.7em; }
+.note-body ol { list-style: decimal; padding-left: 1.4em; margin: 0 0 0.7em; }
+.note-body li { margin: 0.15em 0; }
+.note-body blockquote { border-left: 2px solid var(--mark); padding-left: 0.9em; margin: 1em 0; font-style: italic; color: var(--ink-2); }
+.note-body b, .note-body strong { font-weight: 700; color: var(--mark); }
+.note-body i, .note-body em { color: var(--ink); }
+.note-body code { font-family: var(--font-mono); font-size: 0.85em; background: var(--card-2); border: 1px solid var(--line); border-radius: 4px; padding: 0.1em 0.35em; }
+.note-body pre { font-family: var(--font-mono); font-size: 0.82em; background: var(--card-2); border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px; overflow-x: auto; margin: 0 0 0.8em; }
+.note-body pre code { background: transparent; border: 0; padding: 0; }
+.note-body hr { border: 0; border-top: 1px solid var(--line-2); margin: 1.4em 0; }
+.note-body mark { background: var(--tape); padding: 0 0.15em; border-radius: 2px; }
+.note-body table { width: 100%; border-collapse: collapse; margin: 0.9em 0; font-family: var(--font-sans); font-size: 0.85em; }
+.note-body th { text-align: left; font-weight: 600; border-bottom: 1px solid var(--line-2); padding: 6px 8px; color: var(--ink-2); }
+.note-body td { border-bottom: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+.note-body a { color: var(--mark); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+/* Kill all custom animation for reduced-motion users */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

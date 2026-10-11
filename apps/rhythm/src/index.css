@@ -1,0 +1,444 @@
+@import 'tailwindcss';
+
+@theme {
+  /* ── Typography ──────────────────────────────────────────────
+     Source Sans 3 — humanist sans, everyday reading + controls
+     Zilla Slab    — slab numerals for dates, the date-stamp voice
+     IBM Plex Mono — precise totals, codes, timestamps           */
+  --font-ui: 'Source Sans 3', 'Segoe UI', system-ui, sans-serif;
+  --font-slab: 'Zilla Slab', 'Iowan Old Style', Georgia, serif;
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, monospace;
+
+  /* ── The cover + the stock ───────────────────────────────────
+     A cloth-bound attendance register on a dark desk. The cover is
+     charcoal cloth with a woven crosshatch; the leaves are cream
+     ledger paper. Indigo is the registrar's ink.                 */
+  --color-cover: #232019;
+  --color-cover-deep: #1a1812;
+  --color-cover-edge: #14120d;
+  --color-stock: #f1ebd7;
+  --color-stock-dim: #e8e1c8;
+  --color-leaf: #f6f1df; /* the open register leaf — brightest paper */
+  --color-form: #faf6e9;
+  --color-ink: #2e2b23;
+  --color-ink-soft: #665f4e;
+  --color-ink-faint: #968d74;
+  --color-rule: #d6cdb0;
+  --color-rule-dark: #b1a783;
+
+  --color-indigo: #46527a; /* registrar's ink */
+  --color-indigo-deep: #36415f;
+  --color-amber: #8a6420; /* recovery — caution, not alarm */
+  --color-ok: #44603f;
+
+  /* alpha triplets */
+  --ink-rgb: 46 43 35;
+  --stock-rgb: 241 235 215;
+  --indigo-rgb: 70 82 122;
+  --amber-rgb: 138 100 32;
+  --ok-rgb: 68 96 63;
+  --cover-rgb: 35 32 25;
+
+  /* ── Routine accents — stamped-ink palette, muted by law ────── */
+  --color-acc-indigo: #46527a;
+  --color-acc-oxblood: #84463c;
+  --color-acc-hunter: #4b6142;
+  --color-acc-ochre: #a07830;
+  --color-acc-plum: #6b4a66;
+  --color-acc-teal: #3f6864;
+  --color-acc-slate: #5a6272;
+  --color-acc-rust: #96562e;
+
+  --acc-indigo-rgb: 70 82 122;
+  --acc-oxblood-rgb: 132 70 60;
+  --acc-hunter-rgb: 75 97 66;
+  --acc-ochre-rgb: 160 120 48;
+  --acc-plum-rgb: 107 74 102;
+  --acc-teal-rgb: 63 104 100;
+  --acc-slate-rgb: 90 98 114;
+  --acc-rust-rgb: 150 86 46;
+
+  --shadow-leaf: 0 1px 0 rgb(255 255 255 / 0.3) inset, 0 12px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+  --shadow-slip: 0 1px 2px rgb(0 0 0 / 0.16), 0 6px 14px rgb(0 0 0 / 0.13);
+  --shadow-stamp: 0 1px 1px rgb(0 0 0 / 0.18);
+
+  /* ── Motion — restrained, material, once ──────────────────────
+     A stamp compresses once when pressed; week pages slide like a
+     register leaf turning. Nothing loops, nothing bounces twice. */
+  --animate-stamp-press: stamp-press 0.34s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  --animate-page-turn: page-turn 0.32s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+  --animate-sheet-in: sheet-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-row-in: row-in 0.22s ease both;
+  --animate-receipt-in: receipt-in 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+
+  /* the stamp lands squashed, rebounds a hair, settles flat */
+  @keyframes stamp-press {
+    0% { transform: scale(1.35, 0.7) rotate(var(--stamp-rot, -2deg)); opacity: 0; }
+    55% { transform: scale(0.94, 1.05) rotate(var(--stamp-rot, -2deg)); opacity: 1; }
+    80% { transform: scale(1.02, 0.98) rotate(var(--stamp-rot, -2deg)); }
+    100% { transform: scale(1) rotate(var(--stamp-rot, -2deg)); opacity: 1; }
+  }
+  /* a register leaf turns — the new page slides in over the gutter */
+  @keyframes page-turn {
+    from { transform: translateX(34px) rotate(0.5deg); opacity: 0; }
+    to { transform: translateX(0) rotate(0); opacity: 1; }
+  }
+  @keyframes sheet-in {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes row-in {
+    from { transform: translateY(-4px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  /* the intake receipt slides up like a memo slipping under the door */
+  @keyframes receipt-in {
+    from { transform: translateY(16px) rotate(0.6deg); opacity: 0; }
+    to { transform: translateY(0) rotate(0); opacity: 1; }
+  }
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--color-ink);
+  background-color: var(--color-cover);
+  /* cloth cover: woven crosshatch + two soft lights */
+  background-image:
+    radial-gradient(1100px 650px at 28% -10%, rgb(255 255 255 / 0.05), transparent 60%),
+    radial-gradient(900px 600px at 112% 112%, rgb(0 0 0 / 0.28), transparent 55%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.022) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.022) 0 1px, transparent 1px 3px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Register leaf — the open page everything is written on ────── */
+.leaf {
+  position: relative;
+  background-color: var(--color-leaf);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.4), transparent 120px),
+    /* the gutter shadow down the left edge — the bound spine side */
+    linear-gradient(90deg, rgb(0 0 0 / 0.09), transparent 26px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.035'/%3E%3C/svg%3E");
+  box-shadow: var(--shadow-leaf);
+  border-radius: 2px;
+}
+
+/* the stitched binding edge — a row of thread marks on the gutter */
+.leaf::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 7px;
+  width: 0;
+  border-left: 2px dotted rgb(var(--ink-rgb) / 0.28);
+  pointer-events: none;
+}
+
+/* ── Ledger rows — dense register lines ───────────────────────── */
+.lrow {
+  border-bottom: 1px solid var(--color-rule);
+  transition: background-color 0.12s ease;
+}
+.lrow:last-child {
+  border-bottom: none;
+}
+.lrow:hover {
+  background: rgb(var(--indigo-rgb) / 0.045);
+}
+
+/* ── The stamped mark — shape carries the state ──────────────────
+   Every completion is a stamp. State lives in the SHAPE first:
+   full = solid round stamp, minimum = small solid pellet,
+   partial = open ring half-inked, missed = faint open ring,
+   exception = struck ring, paused = twin bars, unscheduled = a tick. */
+.mark {
+  --mark-color: var(--color-ink-soft);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  color: var(--mark-color);
+}
+.mark svg {
+  display: block;
+}
+.mark--full { --mark-color: var(--color-indigo); }
+.mark--minimum { --mark-color: var(--color-indigo); }
+.mark--partial { --mark-color: var(--color-amber); }
+.mark--missed { --mark-color: var(--color-ink-faint); }
+.mark--exception { --mark-color: var(--color-ink-soft); }
+.mark--paused { --mark-color: var(--color-ink-faint); }
+.mark--unscheduled, .mark--future { --mark-color: var(--color-rule-dark); }
+
+/* accent variants — the routine's own ink color */
+.acc-indigo { --mark-color: var(--color-acc-indigo); }
+.acc-oxblood { --mark-color: var(--color-acc-oxblood); }
+.acc-hunter { --mark-color: var(--color-acc-hunter); }
+.acc-ochre { --mark-color: var(--color-acc-ochre); }
+.acc-plum { --mark-color: var(--color-acc-plum); }
+.acc-teal { --mark-color: var(--color-acc-teal); }
+.acc-slate { --mark-color: var(--color-acc-slate); }
+.acc-rust { --mark-color: var(--color-acc-rust); }
+
+.mark--press {
+  animation: var(--animate-stamp-press);
+}
+
+/* ── Word + date typography ────────────────────────────────────── */
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.datestamp {
+  font-family: var(--font-slab);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Word stamps — PAUSED / ESTABLISHED / MIN bands ────────────── */
+.wstamp {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1.6px solid currentColor;
+  border-radius: 3px;
+  padding: 0.15em 0.5em;
+  display: inline-block;
+  transform: rotate(-1.5deg);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.55' numOctaves='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='2.6' intercept='-0.35'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='80' height='80' fill='white' filter='url(%23s)'/%3E%3C/svg%3E");
+  mask-size: 80px 80px;
+  white-space: nowrap;
+}
+.wstamp--established { color: var(--color-indigo); }
+.wstamp--recovery { color: var(--color-amber); }
+.wstamp--paused, .wstamp--building { color: var(--color-ink-soft); }
+.wstamp--experimenting { color: var(--color-acc-plum); }
+
+/* ── Fields — register-office forms ────────────────────────────── */
+.f-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  display: block;
+  margin-bottom: 4px;
+}
+.f-input,
+.f-select,
+.f-textarea {
+  width: 100%;
+  background: var(--color-form);
+  border: 1px solid var(--color-rule-dark);
+  border-radius: 2px;
+  padding: 7px 9px;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  color: var(--color-ink);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.f-input:focus-visible,
+.f-select:focus-visible,
+.f-textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-indigo);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05), 0 0 0 2px rgb(var(--indigo-rgb) / 0.25);
+}
+.f-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* ── Buttons — rubber-stamp actions + quiet ledger buttons ─────── */
+.btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1.6px solid var(--color-ink);
+  border-radius: 3px;
+  padding: 6px 12px;
+  color: var(--color-ink);
+  background: var(--color-form);
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.12s ease, color 0.12s ease, border-color 0.12s;
+}
+.btn:hover { background: var(--color-stock-dim); }
+.btn:active { transform: translateY(1px) scale(0.98); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn:focus-visible { outline: 2px solid var(--color-indigo); outline-offset: 2px; }
+
+.btn--primary {
+  background: var(--color-indigo);
+  border-color: var(--color-indigo-deep);
+  color: var(--color-leaf);
+}
+.btn--primary:hover { background: var(--color-indigo-deep); }
+
+.btn--quiet {
+  border-color: var(--color-rule-dark);
+  color: var(--color-ink-soft);
+  background: transparent;
+}
+.btn--quiet:hover { color: var(--color-ink); background: rgb(var(--ink-rgb) / 0.05); }
+
+.btn--danger {
+  border-color: var(--color-amber);
+  color: var(--color-amber);
+  background: transparent;
+}
+.btn--danger:hover { background: rgb(var(--amber-rgb) / 0.08); }
+
+/* ── Tabs — index tabs along the register's fore-edge ──────────── */
+.rtab {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(241 235 215 / 0.72);
+  padding: 7px 11px;
+  border-radius: 3px 3px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.12s, color 0.12s;
+}
+.rtab:hover { color: rgb(241 235 215 / 0.95); background: rgb(255 255 255 / 0.05); }
+.rtab:focus-visible { outline: 2px solid rgb(241 235 215 / 0.6); outline-offset: -2px; }
+.rtab[aria-selected='true'] {
+  background: var(--color-leaf);
+  color: var(--color-ink);
+  border-color: var(--color-rule);
+}
+
+/* ── Heatmap — the mark grid ───────────────────────────────────── */
+.hcell {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 0.12s ease, transform 0.1s ease;
+}
+.hcell:hover { background: rgb(var(--ink-rgb) / 0.08); }
+.hcell:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 1px;
+  z-index: 1;
+}
+.hcell:active { transform: scale(0.92); }
+
+/* ── Sheets & slips ────────────────────────────────────────────── */
+.slip {
+  position: relative;
+  background: var(--color-form);
+  border: 1px solid var(--color-rule);
+  box-shadow: var(--shadow-slip);
+  border-radius: 2px;
+}
+.slip--in {
+  animation: var(--animate-sheet-in);
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(20 18 13 / 0.55);
+  backdrop-filter: blur(1.5px);
+  z-index: 40;
+  animation: row-in 0.15s ease both;
+}
+.sheet-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+}
+@media (min-width: 640px) {
+  .sheet-modal { align-items: center; }
+}
+
+/* ── The date-stamp block — Today's masthead ───────────────────── */
+.datestamp-block {
+  font-family: var(--font-slab);
+  border: 2.5px solid var(--color-indigo);
+  border-radius: 4px;
+  color: var(--color-indigo);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='3' intercept='-0.5'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='120' height='120' fill='white' filter='url(%23s)'/%3E%3C/svg%3E");
+  mask-size: 120px 120px;
+}
+
+/* progress track on register rows — a thin ink line, not a bar chart */
+.track {
+  height: 3px;
+  background: rgb(var(--ink-rgb) / 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.track > i {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  transition: width 0.3s ease;
+}
+
+/* ── Reduced motion — law, not suggestion ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion='full']) *,
+  html:not([data-motion='full']) *::before,
+  html:not([data-motion='full']) *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+html[data-motion='reduced'] *,
+html[data-motion='reduced'] *::before,
+html[data-motion='reduced'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}
+
+/* ── Print — the register prints clean ─────────────────────────── */
+@media print {
+  body { background: #fff; }
+  .leaf { box-shadow: none; }
+  .no-print { display: none !important; }
+}
