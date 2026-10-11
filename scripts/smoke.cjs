@@ -86,8 +86,48 @@ const { chromium } = require('playwright-core');
     return { key, rendered, pinWorked: !!pin };
   });
 
+  // workflow card — whichever of next-up / due-on-the-terrain wins, its
+  // primary CTA must route into an app frame. (The live folio publisher may
+  // restore shared.today after reload, so accept either card.)
+  await page.evaluate(() => {
+    location.hash = '#/';
+    const apps = JSON.parse(localStorage.getItem('iterra.v1.apps') || '{}');
+    apps.proof = { ...(apps.proof || {}), summary: { ...(apps.proof?.summary || {}), due: 3 }, ts: Date.now() };
+    localStorage.setItem('iterra.v1.apps', JSON.stringify(apps));
+    const idx = JSON.parse(localStorage.getItem('iterra.v1.doc.index.proof') || '{}');
+    idx.entities = [{ t: 'problem', id: 'p9', title: 'integration by parts', url: '/apps/proof/?problem=p9', at: Date.now() }];
+    localStorage.setItem('iterra.v1.doc.index.proof', JSON.stringify(idx));
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await new Promise((r) => setTimeout(r, 1500));
+  const ledgerRes = await page.evaluate(async () => {
+    const btn = [...document.querySelectorAll('button')].find((b) =>
+      /attempt a due problem|review \d+ card|mark \d+ pending|start \d+m focus/i.test(b.textContent || ''));
+    if (!btn) return { rendered: false };
+    btn.click();
+    await new Promise((r) => setTimeout(r, 1200));
+    return { rendered: true, cta: (btn.textContent || '').trim(), hash: location.hash, frames: [...document.querySelectorAll('iframe')].map((f) => f.src || '') };
+  });
+
+  // next-up slip link — a bound block should offer "open the slip" → ?block=
+  await page.evaluate(() => {
+    location.hash = '#/';
+    const sh = JSON.parse(localStorage.getItem('iterra.v1.doc.shared') || '{}');
+    sh.today = { v: { nextBlock: { id: 'b7', title: 'ps7 drill', course: 'MTH', minutes: 20 } }, by: 'syllabus', at: Date.now() };
+    localStorage.setItem('iterra.v1.doc.shared', JSON.stringify(sh));
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await new Promise((r) => setTimeout(r, 1500));
+  const slipLink = await page.evaluate(async () => {
+    const btn = [...document.querySelectorAll('button')].find((b) => /open the slip/i.test(b.textContent || ''));
+    if (!btn) return { rendered: false };
+    btn.click();
+    await new Promise((r) => setTimeout(r, 1200));
+    return { rendered: true, hash: location.hash, frames: [...document.querySelectorAll('iframe')].map((f) => f.src || '') };
+  });
+
   await page.screenshot({ path: '/tmp/iterra-terrain.png', fullPage: false });
-  console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, senderChip, ambient, dossier, errors: errors.slice(0, 8) }, null, 1));
+  console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, senderChip, ambient, dossier, ledgerRes, slipLink, errors: errors.slice(0, 8) }, null, 1));
 
   // real assertions — non-zero exit on failure
   const fails = [];
@@ -106,9 +146,11 @@ const { chromium } = require('playwright-core');
   assert('framed hub exposes doc+feed', ambient.hub && ambient.hub.doc === true && ambient.hub.feed === true);
   assert('dossier renders', dossier.rendered === true);
   assert('shelf pin writes', dossier.pinWorked === true);
+  assert('workflow card routes', ledgerRes.rendered === true && /^#\/p\//.test(ledgerRes.hash || '') && (ledgerRes.frames || []).some((f) => (f || '').includes('/apps/')));
+  assert('open the slip link', slipLink.rendered === true && slipLink.hash === '#/p/syllabus' && (slipLink.frames || []).some((f) => (f || '').includes('?block=')));
   assert('no page errors', errors.length === 0);
   if (fails.length) { console.error('ASSERT FAIL:', fails.join('; ')); process.exit(1); }
-  console.log('SMOKE PASS: 15/15 assertions');
+  console.log('SMOKE PASS: 17/17 assertions');
   await page.close();
   process.exit(0);
 })().catch((e) => { console.error('SMOKE FAIL', e); process.exit(1); });
