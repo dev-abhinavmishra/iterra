@@ -36,7 +36,10 @@ export function Dossier({
     }))
     .filter((g) => g.ents.length > 0);
   const total = byApp.reduce((n, g) => n + g.ents.length, 0);
-  const mentions = feed.filter((f) => f.text.toLowerCase().includes(key)).slice(0, 8);
+  /* stirs that mention the key — word-boundary so 'mth' doesn't match
+     'smith'; short keys would otherwise flood the section */
+  const keyRe = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+  const mentions = feed.filter((f) => keyRe.test(f.text)).slice(0, 8);
   const nb = (shared.today?.v as any)?.nextBlock;
   const ac = (shared.activeCourse?.v as any);
   /* live focus: a running timer session files under this dossier when it
