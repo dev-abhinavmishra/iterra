@@ -112,7 +112,7 @@ export function wireIterra() {
           entities.push({
             t: 'problem',
             id: p.id,
-            title: docToText(p.promptDoc, 80) || 'untitled',
+            title: (typeof p.promptDoc === 'string' ? docToText(p.promptDoc, 80) : '') || 'untitled',
             sub: p.topic,
             course: courseCode,
             topic: p.topic || undefined,
