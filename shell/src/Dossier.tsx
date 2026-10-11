@@ -64,11 +64,17 @@ export function Dossier({
         course dossier
       </div>
       <h1 className="mb-2 text-[26px] font-semibold tracking-tight text-field-ink">{course}</h1>
-      <p className="mb-8 text-[13px] text-field-faint">
+      <p className="mb-4 text-[13px] text-field-faint">
         {total === 0
           ? 'nothing on the terrain carries this key yet'
           : `${total} ${total === 1 ? 'thing' : 'things'} across ${byApp.length} ${byApp.length === 1 ? 'place' : 'places'}`}
       </p>
+      <button
+        onClick={() => onGo(`/apps/timer/?intent=${encodeURIComponent(`drill ${course}`)}&minutes=25&course=${encodeURIComponent(course)}&from=terrain`)}
+        className="mb-8 rounded-full border border-moss-400/70 bg-moss-50 px-3.5 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-100"
+      >
+        drill {course} →
+      </button>
       {total === 0 && knownKeys.length > 0 && (
         <div className="mb-8 flex flex-wrap items-baseline gap-1.5 text-[12px] text-field-faint">
           <span>the terrain does know:</span>
