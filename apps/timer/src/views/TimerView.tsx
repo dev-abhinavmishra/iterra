@@ -44,7 +44,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   const [customMin, setCustomMin] = useState(25);
   const [done, setDone] = useState<null | 'focus' | 'break'>(null);
   const [keyFlash, setKeyFlash] = useState<string | null>(null);
-  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string } | null>(null);
+  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string } | null>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -67,7 +67,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     if (!doc) return;
     doc.setField('focus', {
       v: running
-        ? { running: true, label: isBreak ? 'Break' : intent || label || 'Focus', blockId: syllabus?.block ?? null, endsInMin }
+        ? { running: true, label: isBreak ? 'Break' : intent || label || 'Focus', blockId: syllabus?.block ?? null, course: syllabus?.course ?? null, endsInMin }
         : null,
       by: 'timer',
       at: Date.now(),
@@ -106,7 +106,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       setIsBreak(false);
       setDone(null);
       if (link.intent) setIntent(link.intent);
-      setSyllabus({ block: link.block, returnUrl: link.returnUrl });
+      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course });
       const url = new URL(window.location.href);
       if (url.search) {
         url.search = '';

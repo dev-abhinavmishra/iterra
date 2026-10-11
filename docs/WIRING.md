@@ -100,14 +100,20 @@ degrades gracefully either way.
 
 ## 6. Inbound deep links (read at boot, strip after consuming)
 
-Already honored: flashcards `?d/?data/?deck/?cards`, timer syllabus contract,
+Already honored: flashcards `?d/?data/?deck/?cards` (incl. `?deck=<id>`
+selecting a library deck — legacy localStorage-key values still fall back;
+`?course=<code>` on `?cards=` persists onto the imported deck so it files
+under that dossier), timer syllabus contract (incl. `?course=<code>`),
 rhythm `?event/?from/?routine`, proof `?completedBlock/from=syllabus`.
 
-To add:
+Also honored:
 - **ink**: `?note=<id>` → select note (set activeNoteId) + navigate home
 - **gradestack**: `?assessment=<id>` → open that test's detail (history/analytics)
 - **proof**: `?problem=<id>` → open problem in the desk
 - **margin**: `?note=<id>` → open the note in the editor view
+- **syllabus**: `?block=<id>` → select that work slip on Today (stashed at
+  boot, consumed once blocks hydrate — the subscribe-retry guards the
+  persist-hydration race)
 
 Match each app's existing param-stripping style (`history.replaceState`).
 
@@ -126,7 +132,7 @@ missing, stale, or written by an app that isn't running — always check `at`.
 
 | field | writer | readers | shape |
 |---|---|---|---|
-| `shared.focus` | timer | all | `{ v: { running, label, blockId, endsInMin } \| null, by:'timer', at }` |
+| `shared.focus` | timer | all | `{ v: { running, label, blockId, course, endsInMin } \| null, by:'timer', at }` — `course` is the bound link's `?course=` |
 | `shared.today` | syllabus | all | `{ v: { slips, overdue, next } \| null, by:'syllabus', at }` |
 | `shared.activeCourse` | syllabus | all | `{ v: { code, name } \| null, by:'syllabus', at }` |
 | `shared.noteActive` | ink, margin | all | `{ v: { app, id, title } \| null, by, at }` — last opened note |
@@ -193,12 +199,21 @@ timer — presence already heartbeats). Read defensively (`at` freshness,
 Use `iterra.index*`/`iterra.presence` rather than reading `iterra.v1.*` keys
 directly — the doc naming is an implementation detail.
 
+**Mesh fallback for unresolved in-app links** — when an app's own link target
+doesn't exist locally, it may ask the indexes before falling back to its own
+create/empty behavior. Ink's `[[wikilink]]` is the pattern: local note title
+first, then any sibling entity by title (opens `e.url`), then a course/topic
+key (opens `#/c/<key>`), and only then the ghost-create. Reads are
+best-effort — a standalone build always misses and keeps native behavior.
+
 ### Terrain surfaces that consume the mesh
 
 - **Commons strip** (terrain home rail): one line per fresh field, click → writer.
 - **Desks row**: every course/topic key found across indexes → `#/c/<key>`.
 - **Dossier** `#/c/<key>`: all entities carrying that key (grouped by place),
-  commons mentions, stirrings mentioning it.
+  commons mentions (next-up block, active course, a *live focus session*
+  whose `course` or bound `blockId` resolves under the key), stirrings
+  mentioning it.
 - **Next up / in session**: `shared.today.v.nextBlock` → bound timer URL;
   `shared.focus` supersedes while a session runs (<3m fresh).
 - **Palette** (`⌘K`/`/`): places + every entity; browse groups by course/topic,

@@ -39,6 +39,16 @@ export function Dossier({
   const mentions = feed.filter((f) => f.text.toLowerCase().includes(key)).slice(0, 8);
   const nb = (shared.today?.v as any)?.nextBlock;
   const ac = (shared.activeCourse?.v as any);
+  /* live focus: a running timer session files under this dossier when it
+     carries the course key, or when its bound block's entity does. Commons
+     entries older than the live window read as dead — ignore them. */
+  const fv = (shared.focus?.v as any);
+  const focusLive =
+    fv?.running === true && Date.now() - (shared.focus?.at || 0) < 10 * 60 * 1000;
+  const focusIds = new Set(byApp.flatMap((g) => g.ents.map((e) => e.id)));
+  const focusMatch =
+    focusLive &&
+    ((fv.course && String(fv.course).toLowerCase() === key) || (fv.blockId && focusIds.has(fv.blockId)));
   const knownKeys = [...new Set(
     Object.values(indexes).flatMap((list) =>
       (list || []).flatMap((e) => [e.course, e.topic].filter(Boolean) as string[]),
@@ -74,9 +84,17 @@ export function Dossier({
         </div>
       )}
 
-      {(nb?.course && String(nb.course).toLowerCase() === key) || (ac && String(ac.code || ac).toLowerCase() === key) ? (
+      {(nb?.course && String(nb.course).toLowerCase() === key) || (ac && String(ac.code || ac).toLowerCase() === key) || focusMatch ? (
         <div className="mb-6 rounded-lg border border-moss-400/70 bg-moss-50 p-3.5">
           <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-moss-700">live in the commons</div>
+          {focusMatch && (
+            <button
+              onClick={() => onGo('/apps/timer/')}
+              className="mt-1.5 block text-[13px] font-medium text-moss-700 hover:underline"
+            >
+              focus: {fv.label || 'Focus'} · {typeof fv.endsInMin === 'number' ? `${fv.endsInMin}m left` : 'running'}
+            </button>
+          )}
           {nb?.course && String(nb.course).toLowerCase() === key && nb?.title && (
             <div className="mt-1.5 text-[13px] text-field-ink">
               next up: {nb.title}
