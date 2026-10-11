@@ -11,6 +11,8 @@ export interface SyllabusLink {
   course?: string;
   block?: string;
   returnUrl?: string;
+  /** which terrain app bound this session (syllabus, flashcards, terrain…) */
+  from?: string;
   autostart: boolean;
 }
 
@@ -27,6 +29,7 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
     course: q.get('course') || undefined,
     block: q.get('block') || undefined,
     returnUrl: q.get('return') || undefined,
+    from,
     autostart: q.get('autostart') === '1',
   };
 }

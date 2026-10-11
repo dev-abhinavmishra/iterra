@@ -44,7 +44,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   const [customMin, setCustomMin] = useState(25);
   const [done, setDone] = useState<null | 'focus' | 'break'>(null);
   const [keyFlash, setKeyFlash] = useState<string | null>(null);
-  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string } | null>(null);
+  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string } | null>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -106,7 +106,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       setIsBreak(false);
       setDone(null);
       if (link.intent) setIntent(link.intent);
-      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course });
+      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course, from: link.from });
       const url = new URL(window.location.href);
       if (url.search) {
         url.search = '';
@@ -353,6 +353,13 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
               <span className="engraved text-[9px] md:text-[10px]">
                 {intent ? intent.toUpperCase() : 'TIMER TIMEKEEPING'}
                 {blockTitle && <span className="block">{`BLOCK ${blockTitle.toUpperCase()}`}</span>}
+                {syllabus?.from && (
+                  <button
+                    className="block text-left uppercase tracking-inherit opacity-70 hover:opacity-100 transition-opacity"
+                    title={`Bound from ${syllabus.from} — return there`}
+                    onClick={() => (window as any).iterra?.open?.(syllabus.from === 'terrain' ? '#/' : `/apps/${syllabus.from}/`)}
+                  >{`← ${syllabus.from}`}</button>
+                )}
               </span>
               <span className="engraved text-[9px] md:text-[10px]">
                 {hasTime ? `${Math.round(cd.progress * 100)}% ELAPSED` : `SET FOR ${fmt(setMinutes * 60)}`}
