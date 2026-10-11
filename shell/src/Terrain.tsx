@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
 import type { Presence, SharedField, FeedItem, Entity } from './hub';
+import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 /* presence heartbeats land ~every 10s; past ~3 missed beats the writer is
@@ -88,6 +89,8 @@ export function Terrain({
   }, []);
   const timerEntry = presences['timer'];
   const timerRunning = isStale(timerEntry) ? null : (timerEntry?.summary as any)?.running;
+  const [pins, setPins] = useState<ShelfPin[]>([]);
+  useEffect(() => subscribeShelf(setPins), []);
 
   return (
     <div className="terrain-map min-h-full">
@@ -187,6 +190,36 @@ export function Terrain({
                 </div>
               );
             })()}
+            {/* the shelf — terrain-level pins from dossier rows */}
+            {pins.length > 0 && (
+              <div className="mb-3 rounded-lg border border-atlas-300 bg-atlas-50/70 p-3.5">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-field-faint">
+                  on the shelf
+                </div>
+                <ul className="mt-2 space-y-1">
+                  {pins.slice(0, 6).map((p) => (
+                    <li key={p.url} className="flex items-baseline gap-1.5">
+                      <button
+                        onClick={() => onGo(p.url)}
+                        className="flex min-w-0 flex-1 items-baseline gap-2 text-left text-[13px] text-field-faint hover:text-moss-700 focus:outline-none"
+                      >
+                        <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-moss-700">
+                          {PLACE_MAP[p.app]?.app || p.app}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate">{p.title}</span>
+                      </button>
+                      <button
+                        onClick={() => togglePin(p)}
+                        aria-label={`unpin ${p.title}`}
+                        className="shrink-0 px-1 text-[11px] text-moss-700 hover:text-field-faint focus:outline-none"
+                      >
+                        ◈
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {/* desks — every course/topic key the terrain knows, one click
                 into its dossier */}
             {(() => {

@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { PLACE_MAP } from './places';
 import type { Entity, FeedItem, SharedField } from './hub';
+import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 
 /* course dossier — everything the terrain knows about one course/topic key:
    each app's entities that carry it, commons fields pointing at it, and the
@@ -22,6 +24,9 @@ export function Dossier({
   onHome: () => void;
 }) {
   const key = course.toLowerCase();
+  const [pins, setPins] = useState<ShelfPin[]>([]);
+  useEffect(() => subscribeShelf(setPins), []);
+  const pinnedUrls = new Set(pins.map((p) => p.url));
   const byApp = Object.entries(indexes)
     .map(([app, list]) => ({
       app,
@@ -81,20 +86,39 @@ export function Dossier({
           <ul className="overflow-hidden rounded-lg border border-atlas-300 bg-atlas-50">
             {ents.map((e, i) => (
               <li key={`${e.id}-${i}`} className={i ? 'border-t border-atlas-200' : ''}>
-                <button
-                  onClick={() => onGo(e.url || `/apps/${app}/`)}
-                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-moss-50"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13.5px] text-field-ink">{e.title}</span>
-                    {(e.sub || e.t) && (
-                      <span className="block truncate text-[11px] text-atlas-500">
-                        {[e.t, e.sub].filter(Boolean).join(' · ')}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-[11px] text-atlas-500">→</span>
-                </button>
+                <div className="flex w-full items-center hover:bg-moss-50">
+                  <button
+                    onClick={() => onGo(e.url || `/apps/${app}/`)}
+                    className="flex min-w-0 flex-1 items-center gap-3 px-4 py-2.5 text-left"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13.5px] text-field-ink">{e.title}</span>
+                      {(e.sub || e.t) && (
+                        <span className="block truncate text-[11px] text-atlas-500">
+                          {[e.t, e.sub].filter(Boolean).join(' · ')}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() =>
+                      togglePin({ app, t: e.t, id: e.id, title: e.title || '(untitled)', url: e.url || `/apps/${app}/` })
+                    }
+                    aria-label={pinnedUrls.has(e.url || '') ? `unpin ${e.title}` : `pin ${e.title} to the shelf`}
+                    title={pinnedUrls.has(e.url || '') ? 'on the shelf — click to unpin' : 'pin to the shelf'}
+                    className={`shrink-0 px-3 py-2.5 text-[12px] focus:outline-none ${
+                      pinnedUrls.has(e.url || '') ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
+                    }`}
+                  >
+                    {pinnedUrls.has(e.url || '') ? '◈' : '◇'}
+                  </button>
+                  <button
+                    onClick={() => onGo(e.url || `/apps/${app}/`)}
+                    className="shrink-0 px-3 py-2.5 text-[11px] text-atlas-500 hover:text-moss-700"
+                  >
+                    →
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
