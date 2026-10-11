@@ -163,7 +163,7 @@ For cross-app search and "related" surfacing, every app publishes its
 top-level entities to `iterra.doc('index.<app>')` as
 
 ```json
-{ "entities": [ { "t": "note|deck|problem|block|routine|assessment|session",
+{ "entities": [ { "t": "note|deck|quiz|problem|block|routine|experiment|assessment|session",
                   "id": "<stable id>",
                   "title": "<display title>",
                   "sub": "<optional context: course code, topic>",
