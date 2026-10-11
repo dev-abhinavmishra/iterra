@@ -36,6 +36,13 @@ wireIterra();
   const indexDoc = it.doc('index.proof');
   let lastCommons = '', lastEntities = '', lastIds: Set<string> | null = null;
   const publish = () => {
+    try {
+      publishInner();
+    } catch (e) {
+      console.warn("iterra ambient publish failed:", e);
+    }
+  };
+  const publishInner = () => {
     const s: any = useWorkbench.getState();
     if (!s.booted) return;
     const active = Object.values(s.sessions || {}).find((x: any) => x && !x.endedAt) as any;

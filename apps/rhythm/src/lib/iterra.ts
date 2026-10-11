@@ -55,6 +55,13 @@ export function wireIterra() {
   let lastEntryIds: Set<string> | null = null;
 
   const publishDocs = () => {
+    try {
+      publishDocsInner();
+    } catch (e) {
+      console.warn("iterra ambient publish failed:", e);
+    }
+  };
+  const publishDocsInner = () => {
     const s = useRegister.getState();
     const sum = summary();
 

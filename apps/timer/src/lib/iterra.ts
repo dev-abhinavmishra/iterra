@@ -44,6 +44,13 @@ wireIterra();
   const indexDoc = it.doc('index.timer');
   let lastFocus = '', lastEntities = '', lastIds: Set<string> | null = null;
   const publish = () => {
+    try {
+      publishInner();
+    } catch (e) {
+      console.warn("iterra ambient publish failed:", e);
+    }
+  };
+  const publishInner = () => {
     const run = runningFromTitle();
     const fv = run ? { running: true, label: run.label, endsInMin: run.endsInMin } : null;
     const fj = JSON.stringify(fv);

@@ -44,6 +44,13 @@ wireMargin();
     const indexDoc = it.doc('index.margin');
     let lastCommons = '', lastEntities = '', lastIds: Set<string> | null = null;
     const publish = () => {
+    try {
+      publishInner();
+    } catch (e) {
+      console.warn("iterra ambient publish failed:", e);
+    }
+  };
+  const publishInner = () => {
         if (!source) return;
         const { notes } = source();
         if (!notes?.length) return;

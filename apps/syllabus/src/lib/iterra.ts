@@ -73,6 +73,14 @@ wireIterra();
   let lastBlockStates: Record<string, string> | null = null;
 
   const publish = () => {
+    try {
+      publishInner();
+    } catch (e) {
+      // ambient writes must never take the app down — surface once, keep going
+      console.warn('iterra ambient publish failed:', e);
+    }
+  };
+  const publishInner = () => {
     const s = useFolio.getState();
     if (!s.booted) return;
     // active course = the course of today's top block, else the newest course

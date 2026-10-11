@@ -49,6 +49,13 @@ export function wireIterra() {
   const indexDoc = it.doc('index.ink');
   let lastCommons = '', lastEntities = '', lastIds: Set<string> | null = null;
   const publish = () => {
+    try {
+      publishInner();
+    } catch (e) {
+      console.warn("iterra ambient publish failed:", e);
+    }
+  };
+  const publishInner = () => {
     const { notes, activeNoteId } = useStore.getState() as any;
     const live = notes.filter((n: any) => !n.trashedAt);
     const open = live.find((n: any) => n.id === activeNoteId);

@@ -2055,6 +2055,13 @@ if (window.iterra) {
   const indexDoc = it.doc('index.flashcards');
   let lastCommons = '', lastEntities = '', lastIds = null;
   const publish = () => {
+    try {
+      publishInner();
+    } catch (e) {
+      console.warn("iterra ambient publish failed:", e);
+    }
+  };
+  const publishInner = () => {
     const decks = Object.values(state.decks || {});
     if (!decks.length) return;
     const active = decks.find(d => d.id === state.activeDeckId) || decks[0];

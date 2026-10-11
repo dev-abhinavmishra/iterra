@@ -57,6 +57,13 @@ wireIterra();
   const indexDoc = it.doc('index.gradestack');
   let lastCommons = '', lastEntities = '', lastIds: Set<string> | null = null;
   const publish = () => {
+    try {
+      publishInner();
+    } catch (e) {
+      console.warn("iterra ambient publish failed:", e);
+    }
+  };
+  const publishInner = () => {
     const { tests, scans } = useStore.getState() as any;
     const newest = scans.length ? [...scans].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0] : null;
     const test = newest ? tests.find((t: any) => t.id === newest.testId) : null;
