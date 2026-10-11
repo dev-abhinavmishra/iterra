@@ -24,7 +24,9 @@ export function timerDeepLink(opts: {
   if (course) params.set('course', course.code);
   params.set('from', 'proof');
   params.set('block', session.id);
-  if (typeof window !== 'undefined') params.set('return', window.location.origin);
+  if (typeof window !== 'undefined') {
+    params.set('return', (window as any).iterra?.selfBase?.() ?? window.location.origin);
+  }
   return `${base}/?${params.toString()}`;
 }
 
@@ -95,9 +97,12 @@ export function inkNoteMarkdown(opts: {
 
 /** Parse inbound params Proof understands (called once in boot). */
 export interface InboundLink {
-  kind: 'timer-return' | 'syllabus-session';
+  kind: 'timer-return' | 'syllabus-session' | 'problem';
   sessionId?: string;
   actualMinutes?: number;
+  // problem deep link (?problem=<id>) — attemptId is stamped at boot:
+  problemId?: string;
+  attemptId?: string;
   // syllabus-session prefill:
   topic?: string;
   minutes?: number;
@@ -114,6 +119,10 @@ export function parseInbound(search: string): InboundLink | null {
       sessionId: completed,
       actualMinutes: Number(q.get('actual')) || undefined,
     };
+  }
+  const problem = q.get('problem');
+  if (problem) {
+    return { kind: 'problem', problemId: problem };
   }
   if (q.get('from') === 'syllabus' || q.get('intent') || q.get('topic') || q.get('minutes')) {
     return {
