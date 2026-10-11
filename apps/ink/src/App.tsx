@@ -10,7 +10,7 @@ import { OrganizationInsights } from './components/organization/OrganizationInsi
 
 function App() {
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route element={<MainLayout />}>
           <Route path="/" element={
