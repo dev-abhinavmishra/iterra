@@ -39,6 +39,11 @@ export function Dossier({
   const mentions = feed.filter((f) => f.text.toLowerCase().includes(key)).slice(0, 8);
   const nb = (shared.today?.v as any)?.nextBlock;
   const ac = (shared.activeCourse?.v as any);
+  const knownKeys = [...new Set(
+    Object.values(indexes).flatMap((list) =>
+      (list || []).flatMap((e) => [e.course, e.topic].filter(Boolean) as string[]),
+    ),
+  )].filter((k) => k.toLowerCase() !== key).slice(0, 6);
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -54,6 +59,20 @@ export function Dossier({
           ? 'nothing on the terrain carries this key yet'
           : `${total} ${total === 1 ? 'thing' : 'things'} across ${byApp.length} ${byApp.length === 1 ? 'place' : 'places'}`}
       </p>
+      {total === 0 && knownKeys.length > 0 && (
+        <div className="mb-8 flex flex-wrap items-baseline gap-1.5 text-[12px] text-field-faint">
+          <span>the terrain does know:</span>
+          {knownKeys.map((k) => (
+            <button
+              key={k}
+              onClick={() => onGo(`#/c/${encodeURIComponent(k)}`)}
+              className="rounded-full border border-atlas-300 px-2.5 py-0.5 text-[11px] text-moss-700 hover:bg-moss-50"
+            >
+              {k}
+            </button>
+          ))}
+        </div>
+      )}
 
       {(nb?.course && String(nb.course).toLowerCase() === key) || (ac && String(ac.code || ac).toLowerCase() === key) ? (
         <div className="mb-6 rounded-lg border border-moss-400/70 bg-moss-50 p-3.5">
