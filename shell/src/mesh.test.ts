@@ -69,4 +69,12 @@ describe('stirrings feed', () => {
     store['iterra.v1.doc.feed'] = 'zzz';
     expect(readFeed()).toEqual([]);
   });
+  it('stirs may carry course/topic linkage keys (dossiers file on them)', () => {
+    store['iterra.v1.doc.feed'] = JSON.stringify({
+      items: [{ app: 'syllabus', text: 'filed 25m', course: 'MTH', at: 9 }],
+    });
+    const f = readFeed()[0];
+    expect(f.course).toBe('MTH');
+    expect(f.topic).toBeUndefined();
+  });
 });
