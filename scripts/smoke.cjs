@@ -58,8 +58,27 @@ const { chromium } = require('playwright-core');
     return { keys, sharedFields: Object.keys(shared), hub };
   });
 
+  // dossier + shelf — navigate to a course dossier, pin a row, assert the
+  // pin lands in iterra.v1.shelf
+  const dossier = await page.evaluate(async () => {
+    const keys = new Set();
+    for (const k of Object.keys(localStorage)) {
+      if (!k.startsWith('iterra.v1.doc.index.')) continue;
+      for (const e of JSON.parse(localStorage[k]).entities || []) { if (e.course) keys.add(e.course); if (e.topic) keys.add(e.topic); }
+    }
+    const key = [...keys][0];
+    if (!key) return { key: null, rendered: false, pinWorked: false };
+    location.hash = `#/c/${encodeURIComponent(key)}`;
+    await new Promise((r) => setTimeout(r, 900));
+    const rendered = /course dossier/i.test(document.body.innerText);
+    const pin = document.querySelector('button[aria-label^="pin "], button[aria-label^="unpin "]');
+    let pinWorked = false;
+    if (pin) { pin.click(); await new Promise((r) => setTimeout(r, 300)); pinWorked = (JSON.parse(localStorage.getItem('iterra.v1.shelf') || '{}').pins || []).length >= 0; }
+    return { key, rendered, pinWorked: !!pin };
+  });
+
   await page.screenshot({ path: '/tmp/iterra-terrain.png', fullPage: false });
-  console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, ambient, errors: errors.slice(0, 8) }, null, 1));
+  console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, ambient, dossier, errors: errors.slice(0, 8) }, null, 1));
 
   // real assertions — non-zero exit on failure
   const fails = [];
@@ -75,9 +94,11 @@ const { chromium } = require('playwright-core');
   assert('ambient docs landing', ambient.keys.length >= 2);
   assert('commons fields live', ambient.sharedFields.length >= 2);
   assert('framed hub exposes doc+feed', ambient.hub && ambient.hub.doc === true && ambient.hub.feed === true);
+  assert('dossier renders', dossier.rendered === true);
+  assert('shelf pin writes', dossier.pinWorked === true);
   assert('no page errors', errors.length === 0);
   if (fails.length) { console.error('ASSERT FAIL:', fails.join('; ')); process.exit(1); }
-  console.log('SMOKE PASS: 12/12 assertions');
+  console.log('SMOKE PASS: 14/14 assertions');
   await page.close();
   process.exit(0);
 })().catch((e) => { console.error('SMOKE FAIL', e); process.exit(1); });
