@@ -1571,6 +1571,7 @@ function openImportModal() {
     const d = createDeck(title.value.trim() || 'Untitled deck', cards.map(c => newCard(c.q, c.a, c.ex)));
     closeModal();
     saveStore(); selectDeck(d.id);
+    feedIt(`deck made: ${d.title}`, `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`, d.course);
     toast(`Created “${d.title}” — ${d.cards.length} cards`);
   });
 }

@@ -236,7 +236,10 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     stationChime();
     const recess = isBreak || /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000));
     saveSession({ duration: cd.totalMs / 1000, type: recess ? 'break' : 'focus', label: intent || undefined, preset: label });
-    if (!recess) (window as any).iterra?.feed?.({ text: `completed ${Math.round(cd.totalMs / 60000)}m focus` });
+    /* standalone complete → 'completed Nm' stir; a session bound for
+       file-back emits only its 'filed Xm' (the file-back IS its stir) */
+    const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
+    if (!recess && !willFileBack) (window as any).iterra?.feed?.({ text: `completed ${Math.round(cd.totalMs / 60000)}m ${label || 'focus'}`, course: syllabus?.course });
     if (!isBreak && thenBreak > 0) {
       setDone('focus');
       if (chainTimer.current) clearTimeout(chainTimer.current);
