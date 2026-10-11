@@ -55,8 +55,9 @@
     var map = readApps();
     var cur = map[me];
     // a solo (unframed) copy never overwrites the framed instance's live
-    // presence — the environment's state is the rail's truth
-    if (!framed && cur && cur.framed) return;
+    // presence — but a framed entry gone stale (>35s, writer dead) no
+    // longer blocks solo publication
+    if (!framed && cur && cur.framed && Date.now() - (cur.at || 0) < 35000) return;
     map[me] = { app: me, title: (opts && opts.title) || me, summary: s, at: Date.now(), framed: framed };
     writeApps(map);
   }
@@ -74,7 +75,9 @@
     var abs;
     try { abs = new URL(url, window.location.href); } catch (e) { return; }
     if (abs.origin !== window.location.origin) { origWindowOpen(abs.href, '_blank', 'noopener'); return; }
-    if (!/^\/apps\/[^/]+\//.test(abs.pathname) && me) {
+    // '/apps/<name>' with or without a trailing slash both count as place
+    // paths — selfBase() emits the bare form and file-back relies on it
+    if (!/^\/apps\/[^/]+(\/|$)/.test(abs.pathname) && me) {
       abs = new URL(selfBase() + abs.pathname + abs.search + abs.hash, window.location.origin);
     }
     say({ type: 'iterra:open', from: me || undefined, url: abs.pathname + abs.search + abs.hash });
@@ -95,6 +98,9 @@
     var origOpen = window.open;
     window.open = function (url, target, features) {
       var u = String(url || '');
+      // popup-document pattern (window.open('') + doc.write) can't be
+      // shell-routed — pass it straight through to a real blank window
+      if (u.trim() === '' || u === 'about:blank') return origOpen.call(window, url, target, features);
       var abs;
       try { abs = new URL(u, window.location.href); } catch (e) { abs = null; }
       if (abs && abs.origin === window.location.origin) {

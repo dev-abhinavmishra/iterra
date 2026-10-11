@@ -17,6 +17,9 @@ export interface Presence {
   title: string;
   summary: unknown;
   at: number;
+  /** true when the entry was published from inside the terrain frame —
+      solo copies also publish but may not overwrite a fresh framed entry */
+  framed?: boolean;
 }
 
 export function readPresences(): Record<string, Presence> {

@@ -46,6 +46,21 @@ const { chromium } = require('playwright-core');
 
   await page.screenshot({ path: '/tmp/iterra-terrain.png', fullPage: false });
   console.log(JSON.stringify({ home, inPlace, presenceKeys: Object.keys(presences), presences, openResult, errors: errors.slice(0, 8) }, null, 1));
+
+  // real assertions — non-zero exit on failure
+  const fails = [];
+  const assert = (name, cond) => { if (!cond) fails.push(name); };
+  assert('terrain title', home.title.includes('iterra'));
+  assert('8 place cards', home.cards.filter((c) => c.includes('enter')).length >= 8);
+  assert('place hash routed', inPlace.hash === '#/p/syllabus');
+  assert('frame mounted', inPlace.frames.some((f) => (f.src || '').startsWith('/apps/syllabus/')));
+  assert('framed iterra present', inPlace.framedIt === true);
+  assert('presence registered', !!presences.syllabus);
+  assert('open() routed to timer', openResult.hash === '#/p/timer' && (openResult.frames || []).some((f) => (f || '').startsWith('/apps/timer/')));
+  assert('syllabus frame kept alive', (openResult.frames || []).some((f) => (f || '').startsWith('/apps/syllabus/')));
+  assert('no page errors', errors.length === 0);
+  if (fails.length) { console.error('ASSERT FAIL:', fails.join('; ')); process.exit(1); }
+  console.log('SMOKE PASS: 9/9 assertions');
   await page.close();
   process.exit(0);
 })().catch((e) => { console.error('SMOKE FAIL', e); process.exit(1); });

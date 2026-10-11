@@ -55,12 +55,21 @@ export default function App() {
         }
         const [, id, p = '/', q = ''] = m;
         const url = `/apps/${id}${p}${q}`;
-        setFrames((f) => ({ ...f, [id]: url }));
+        setFrames((f) => {
+          // identical src => React no-ops and the nav is lost; bust it with a
+          // nonce the app ignores so a repeat link still re-navigates
+          if (f[id] === url) {
+            return { ...f, [id]: `${url}${q ? '&' : '?'}_inav=${Date.now()}` };
+          }
+          return { ...f, [id]: url };
+        });
         window.location.hash = `/p/${id}`;
       }
       if (d.type === 'iterra:hello' && typeof d.app === 'string' && PLACE_MAP[d.app]) {
         const helloApp = d.app as string;
-        const url = typeof d.url === 'string' ? d.url : `/apps/${helloApp}/`;
+        const raw = typeof d.url === 'string' ? d.url : '';
+        // only trust hello urls that actually point at the claimed place
+        const url = raw.startsWith(`/apps/${helloApp}`) ? raw : `/apps/${helloApp}/`;
         // which mounted frame spoke? if it migrated to another place
         // (in-frame nav that slipped the intercepts), heal the slot back.
         const slot = Object.entries(iframeRefs.current).find(([, el]) => el?.contentWindow === ev.source);
