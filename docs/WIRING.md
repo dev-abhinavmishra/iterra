@@ -206,8 +206,25 @@ directly — the doc naming is an implementation detail.
 - **Switcher**: "in this place" (own entities) + "linked across the terrain"
   (sibling entities sharing this place's keys) + dossier links.
 - **Stirrings rail**: feed items deep-link via `url`.
+- **The shelf** (`iterra.v1.shelf`): terrain-level pins — dossier rows carry a
+  ◇ toggle; pinned entities ride the home rail and show ◈ in the palette.
+  Shell-owned chrome state; apps don't write it.
 - `feed()` dedupes identical {app,text} emits within 2s (multi-frame
   rehydration guard).
+
+### Navigating to terrain surfaces from inside an app
+
+`iterra.open()` accepts hash routes and passes them to the shell verbatim —
+apps can send the user to a dossier or the terrain itself:
+
+| call | lands |
+|---|---|
+| `iterra.open('#/c/MTH')` | course dossier for key `MTH` |
+| `iterra.open('#/p/syllabus')` | that place, framed |
+| `iterra.open('#/')` | home terrain |
+
+Use these rather than `location.hash` — inside a frame, `#` alone only
+rewrites the frame's own url.
 
 ## 8. Dev topology
 
