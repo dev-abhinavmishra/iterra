@@ -73,4 +73,5 @@ contract every app and the shell follows.
   intake lands (entities currently url `/apps/syllabus/`).
 - ink wikilink mesh fallback ([[title]] → index lookup → '#/c/') — queued on
   the rhythm child.
-- rhythm is vendored mid-development — re-sync when upstream lands.
+- rhythm upstream closed — sibling session exited; its sequencer rehaul
+  (c0145cc) is the vendored base; nothing newer to sync.
