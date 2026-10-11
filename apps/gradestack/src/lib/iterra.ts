@@ -101,6 +101,8 @@ wireIterra();
     const entities = tests.slice(0, 50).map((t: any) => ({
       t: 'assessment', id: t.id, title: t.name,
       sub: `${scans.filter((x: any) => x.testId === t.id).length} marked`,
+      // Test.courseName is the mark book's own course field — real linkage
+      course: typeof t.courseName === 'string' && t.courseName.trim() ? t.courseName : undefined,
       url: `/apps/gradestack/?assessment=${t.id}`, at: t.createdAt || Date.now(),
     }));
     const ej = JSON.stringify(entities);

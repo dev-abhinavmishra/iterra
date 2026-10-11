@@ -120,7 +120,7 @@ export function wireIterra() {
             at: Date.now(),
           });
         }
-        const json = JSON.stringify(entities.map((e) => [e.t, e.id, e.title, e.sub, e.url]));
+        const json = JSON.stringify(entities.map((e) => [e.t, e.id, e.title, e.sub, e.course, e.topic, e.url]));
         if (json !== lastIndexJson) {
           lastIndexJson = json;
           indexDoc.set({ entities });
