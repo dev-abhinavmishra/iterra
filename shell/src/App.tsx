@@ -399,7 +399,7 @@ export default function App() {
             title={PLACE_MAP[id]?.app || id}
             className="frame-fade absolute inset-0 h-full w-full border-0"
             style={{ display: id === active ? 'block' : 'none' }}
-            allow="clipboard-read; clipboard-write"
+            allow={id === 'margin' ? 'clipboard-read; clipboard-write; microphone' : 'clipboard-read; clipboard-write'}
           />
         ))}
         {unanswered && unanswered === active && (
