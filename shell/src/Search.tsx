@@ -52,7 +52,7 @@ export function Search({
           app,
           kind: 'entity',
           label: e.title,
-          sub: [e.t, e.sub || e.course || e.topic].filter(Boolean).join(' · '),
+          sub: [e.t, e.sub, e.course, e.topic].filter(Boolean).join(' · '),
           url: e.url || `#/p/${app}`,
         });
       }
