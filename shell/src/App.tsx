@@ -22,11 +22,13 @@ export default function App() {
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [unanswered, setUnanswered] = useState<string | null>(null); // mounted place that never said hello
   /* visited places keep their iframes mounted (keep-alive) — the environment
      stays warm: state persists while wandering the terrain. */
   const [frames, setFrames] = useState<Record<string, string>>({});
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const iframeRefs = useRef<Record<string, HTMLIFrameElement | null>>({});
+  const helloRef = useRef<Record<string, number>>({});
 
   useEffect(() => subscribePresences(setPresences), []);
   useEffect(() => subscribeShared(setShared), []);
@@ -93,6 +95,8 @@ export default function App() {
       }
       if (d.type === 'iterra:hello' && typeof d.app === 'string' && PLACE_MAP[d.app]) {
         const helloApp = d.app as string;
+        helloRef.current[helloApp] = Date.now();
+        setUnanswered((u) => (u === helloApp ? null : u));
         const raw = typeof d.url === 'string' ? d.url : '';
         // only trust hello urls that actually point at the claimed place
         const url = raw.startsWith(`/apps/${helloApp}`) ? raw : `/apps/${helloApp}/`;
@@ -156,6 +160,21 @@ export default function App() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [enter, goHome]);
+
+  /* watchdog: a mounted frame should say iterra:hello within a few seconds;
+     if it never does (dead dev server, 404, crashed app) surface a slim
+     notice instead of showing a silent dead frame forever. The hello must
+     postdate THIS mount — an older hello can't vouch for a fresh reload. */
+  useEffect(() => {
+    setUnanswered(null);
+    if (!active || !frames[active]) return;
+    const mountedAt = Date.now();
+    const t = window.setTimeout(() => {
+      if ((helloRef.current[active] || 0) < mountedAt) setUnanswered(active);
+    }, 7000);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, frames[active || '']]);
 
   const activePlace = active ? PLACE_MAP[active] : null;
   const timerEntry = presences['timer'];
@@ -355,6 +374,29 @@ export default function App() {
             allow="clipboard-read; clipboard-write"
           />
         ))}
+        {unanswered && unanswered === active && (
+          <div className="absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-3 rounded-full border border-atlas-400 bg-atlas-50/95 px-4 py-1.5 text-[12px] text-field-faint shadow-md">
+            <span>
+              <span className="font-medium text-field-ink">{PLACE_MAP[unanswered]?.place}</span> isn't answering
+            </span>
+            <button
+              onClick={() =>
+                setFrames((f) => ({ ...f, [unanswered]: `${appUrl(unanswered)}?_inav=${Date.now()}` }))
+              }
+              className="font-medium text-moss-700 hover:underline"
+            >
+              retry
+            </button>
+            <a
+              href={frames[unanswered] || appUrl(unanswered)}
+              target="_blank"
+              rel="noreferrer"
+              className="text-field-faint hover:text-moss-700 hover:underline"
+            >
+              open solo ↗
+            </a>
+          </div>
+        )}
       </div>
       {!activePlace ? (
         <div className="flex-1 overflow-auto">
