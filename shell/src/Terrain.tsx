@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PLACES } from './places';
-import type { Presence, SharedField, FeedItem } from './hub';
+import type { Presence, SharedField, FeedItem, Entity } from './hub';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 /* presence heartbeats land ~every 10s; past ~3 missed beats the writer is
@@ -67,12 +67,14 @@ function commonsLine(field: string, f: SharedField): { app: string; text: string
 export function Terrain({
   presences,
   shared,
+  indexes,
   feed,
   onEnter,
   onGo,
 }: {
   presences: Record<string, Presence>;
   shared: Record<string, SharedField>;
+  indexes: Record<string, Entity[]>;
   feed: FeedItem[];
   onEnter: (id: string) => void;
   onGo: (url: string) => void;
@@ -182,6 +184,34 @@ export function Terrain({
                       </li>
                     ))}
                   </ul>
+                </div>
+              );
+            })()}
+            {/* desks — every course/topic key the terrain knows, one click
+                into its dossier */}
+            {(() => {
+              const keys = new Map<string, string>();
+              for (const list of Object.values(indexes || {})) {
+                for (const e of list || []) {
+                  const k = e?.course || e?.topic;
+                  if (k && !keys.has(k.toLowerCase())) keys.set(k.toLowerCase(), k);
+                }
+              }
+              if (!keys.size) return null;
+              return (
+                <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                  <span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+                    desks
+                  </span>
+                  {[...keys.values()].slice(0, 8).map((k) => (
+                    <button
+                      key={k}
+                      onClick={() => onGo(`#/c/${encodeURIComponent(k)}`)}
+                      className="rounded-full border border-atlas-300 bg-atlas-50 px-2.5 py-1 text-[11px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700 focus:outline-none"
+                    >
+                      {k}
+                    </button>
+                  ))}
                 </div>
               );
             })()}
