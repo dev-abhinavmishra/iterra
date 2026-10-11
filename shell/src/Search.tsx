@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PLACE_MAP } from './places';
 import type { Entity } from './hub';
-import { subscribeShelf, type ShelfPin } from './shelf';
+import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 import { readFeed, subscribeFeed, type FeedItem } from './hub';
 
 interface Hit {
@@ -156,6 +156,13 @@ export function Search({
               if (e.key === 'ArrowDown') { e.preventDefault(); setSel((s) => Math.min(s + 1, hits.length - 1)); }
               if (e.key === 'ArrowUp') { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
               if (e.key === 'Enter' && hits[sel]) { onGo(hits[sel].url); onClose(); }
+              /* ⌘P / ctrl+p shelves the selected hit — the palette can pin,
+                 not just show what's pinned */
+              if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p' && hits[sel]) {
+                e.preventDefault();
+                const h = hits[sel];
+                togglePin({ app: h.app, title: h.label, url: h.url });
+              }
             }}
             placeholder="search the terrain — notes, decks, blocks, sessions…"
             className="w-full bg-transparent text-[14px] text-field-ink placeholder-atlas-500 focus:outline-none"
@@ -167,7 +174,7 @@ export function Search({
           <span className="text-atlas-300">·</span>
           <span className="tracking-wide">⌘0 terrain</span>
           <span className="text-atlas-300">·</span>
-          <span className="tracking-wide">↑↓ choose · ↵ go</span>
+          <span className="tracking-wide">↑↓ choose · ↵ go · ⌘P pin</span>
         </div>
         <ul className="max-h-[52vh] overflow-y-auto py-1.5">
           {hits.length ? (
