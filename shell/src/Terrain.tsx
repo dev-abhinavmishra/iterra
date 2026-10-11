@@ -1,27 +1,33 @@
+import { useEffect, useState } from 'react';
 import { PLACES } from './places';
 import type { Presence } from './hub';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+/* presence heartbeats land ~every 10s; past ~3 missed beats the writer is
+   gone (tab closed, frame dead) — show it dimmed, live-dots off */
+const STALE_MS = 35000;
+const isStale = (p: Presence | undefined) => !p || Date.now() - p.at > STALE_MS;
 
-function StatusLine({ p }: { p: Presence | undefined }) {
+function StatusLine({ p, stale }: { p: Presence | undefined; stale: boolean }) {
   if (!p || !p.summary) return <span className="text-atlas-500 italic">quiet</span>;
   const s = p.summary as Record<string, any>;
+  const dim = stale ? 'opacity-60' : '';
   if (s.running?.label) {
     return (
-      <span className="flex items-center gap-1.5 text-moss-700">
-        <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-moss-600" />
+      <span className={`flex items-center gap-1.5 ${stale ? 'text-field-faint' : 'text-moss-700'} ${dim}`}>
+        {!stale && <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-moss-600" />}
         {s.running.label}
       </span>
     );
   }
-  if (s.top) return <span className="text-field-faint">next: {s.top}</span>;
-  if (s.open) return <span className="text-field-faint">open: {s.open}</span>;
-  if (s.last) return <span className="text-field-faint">last: {s.last}</span>;
-  if (s.lastMark?.name) return <span className="text-field-faint">marked: {s.lastMark.name}</span>;
-  if (s.due) return <span className="text-field-faint">{s.due} due</span>;
-  if (s.marked != null && s.total != null) return <span className="text-field-faint">{s.marked}/{s.total} marked</span>;
-  if (s.slips != null) return <span className="text-field-faint">{s.slips} slips today</span>;
-  if (s.notes) return <span className="text-field-faint">{s.notes} notes</span>;
+  if (s.top) return <span className={`text-field-faint ${dim}`}>next: {s.top}</span>;
+  if (s.open) return <span className={`text-field-faint ${dim}`}>open: {s.open}</span>;
+  if (s.last) return <span className={`text-field-faint ${dim}`}>last: {s.last}</span>;
+  if (s.lastMark?.name) return <span className={`text-field-faint ${dim}`}>marked: {s.lastMark.name}</span>;
+  if (s.due) return <span className={`text-field-faint ${dim}`}>{s.due} due</span>;
+  if (s.marked != null && s.total != null) return <span className={`text-field-faint ${dim}`}>{s.marked}/{s.total} marked</span>;
+  if (s.slips != null) return <span className={`text-field-faint ${dim}`}>{s.slips} slips today</span>;
+  if (s.notes) return <span className={`text-field-faint ${dim}`}>{s.notes} notes</span>;
   return <span className="text-atlas-500 italic">quiet</span>;
 }
 
@@ -33,7 +39,14 @@ export function Terrain({
   onEnter: (id: string) => void;
 }) {
   const today = new Date();
-  const timerRunning = (presences['timer']?.summary as any)?.running;
+  // tick so stale-ness updates without waiting for a storage event
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const h = setInterval(() => setTick((t) => t + 1), STALE_MS / 2);
+    return () => clearInterval(h);
+  }, []);
+  const timerEntry = presences['timer'];
+  const timerRunning = isStale(timerEntry) ? null : (timerEntry?.summary as any)?.running;
 
   return (
     <div className="terrain-map min-h-full">
@@ -84,7 +97,7 @@ export function Terrain({
                   <p className="mt-0.5 text-[12px] font-medium uppercase tracking-[0.1em] text-moss-700">{p.app}</p>
                   <p className="mt-2 text-[13px] leading-snug text-field-faint">{p.tagline}</p>
                   <div className="mt-3 border-t border-dashed border-atlas-300 pt-2.5 text-[12px]">
-                    <StatusLine p={presences[p.id]} />
+                    <StatusLine p={presences[p.id]} stale={isStale(presences[p.id])} />
                   </div>
                 </button>
               ))}
@@ -98,8 +111,9 @@ export function Terrain({
             </h2>
             <div className="today-rail max-h-[70vh] space-y-3 overflow-y-auto pr-1">
               {PLACES.map((p) => {
-                const s = presences[p.id]?.summary;
-                const items = p.today(s);
+                const pres = presences[p.id];
+                const stale = isStale(pres);
+                const items = stale ? [] : p.today(pres?.summary);
                 return (
                   <button
                     key={p.id}
@@ -123,7 +137,9 @@ export function Terrain({
                           </li>
                         ))
                       ) : (
-                        <li className="text-[12px] italic text-atlas-500">nothing stirring</li>
+                        <li className="text-[12px] italic text-atlas-500">
+                          {stale && pres ? 'last seen earlier' : 'nothing stirring'}
+                        </li>
                       )}
                     </ul>
                   </button>

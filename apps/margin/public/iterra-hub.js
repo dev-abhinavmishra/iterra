@@ -25,6 +25,7 @@
   var me = null;
   var opts = {};
   var lastSummaryJson = '';
+  var lastWriteAt = 0;
   /* pristine window.open, captured before interceptNav patches it — the
      standalone passthroughs must call the real one or they recurse. */
   var origWindowOpen = window.open ? window.open.bind(window) : function () {};
@@ -41,8 +42,16 @@
     var s;
     try { s = opts.summary() || null; } catch (e) { s = null; }
     var j = JSON.stringify(s);
-    if (j === lastSummaryJson) return;
-    lastSummaryJson = j;
+    // heartbeat: identical summaries still refresh `at` every ~10s so the
+    // rail can tell a live-but-static place from a dead one's last state
+    if (j === lastSummaryJson) {
+      var now = Date.now();
+      if (now - lastWriteAt < 10000) return;
+      lastWriteAt = now;
+    } else {
+      lastSummaryJson = j;
+      lastWriteAt = Date.now();
+    }
     var map = readApps();
     var cur = map[me];
     // a solo (unframed) copy never overwrites the framed instance's live

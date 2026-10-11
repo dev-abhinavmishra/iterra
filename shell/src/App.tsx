@@ -85,7 +85,9 @@ export default function App() {
   }, []);
 
   const activePlace = active ? PLACE_MAP[active] : null;
-  const timerRunning = (presences['timer']?.summary as any)?.running;
+  const timerEntry = presences['timer'];
+  const timerRunning =
+    timerEntry && Date.now() - timerEntry.at < 35000 ? (timerEntry.summary as any)?.running : null;
 
   const chrome = useMemo(() => {
     if (!activePlace) return null;
