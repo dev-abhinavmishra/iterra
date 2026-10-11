@@ -85,7 +85,7 @@ export function wireIterra() {
         id: r.id,
         title: r.name,
         sub: `${r.target.perWeek}×/wk`,
-        course: r.courseId ? s.courses[r.courseId]?.code : undefined,
+        course: r.courseId ? (s.courses[r.courseId]?.code ?? s.courses[r.courseId]?.name) : undefined,
         url: `/apps/rhythm/?routine=${encodeURIComponent(r.name)}`,
         at: Date.now(),
       }));

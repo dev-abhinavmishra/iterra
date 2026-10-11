@@ -117,6 +117,31 @@ const openLinkAt = (editor: Editor): { from: number; to: number; query: string }
   return { from, to: $from.pos, query: between };
 };
 
+/** Terrain mesh fallback for an unresolved [[title]] — first any sibling
+ *  index entity whose title matches, then a course/topic key → dossier.
+ *  Returns true when the mesh answered; a miss keeps ink's ghost-creation.
+ *  Reads are best-effort: standalone (no iterra) always returns false. */
+const openMesh = (title: string): boolean => {
+  const it = (window as unknown as { iterra?: { indexes?: () => Record<string, { title?: string; url?: string; course?: string; topic?: string }[]>; open?: (url: string) => void } }).iterra;
+  if (!it?.indexes || !it?.open) return false;
+  const lower = title.toLowerCase();
+  try {
+    const idx = it.indexes() || {};
+    for (const list of Object.values(idx)) {
+      const hit = (list || []).find(e => (e.title || '').trim().toLowerCase() === lower);
+      if (hit?.url) { it.open(hit.url); return true; }
+    }
+    for (const list of Object.values(idx)) {
+      const hit = (list || []).find(e => (e.course || '').toLowerCase() === lower || (e.topic || '').toLowerCase() === lower);
+      if (!hit) continue;
+      const key = (hit.course || '').toLowerCase() === lower ? hit.course! : hit.topic!;
+      it.open('#/c/' + key);
+      return true;
+    }
+  } catch { /* mesh reads are best-effort — never block a wikilink click */ }
+  return false;
+};
+
 /** Renders [[note titles]] in fountain-blue and opens (or starts) the named page on click. */
 const WikiLinks = Extension.create({
   name: 'wikiLinks',
@@ -151,7 +176,7 @@ const WikiLinks = Extension.create({
                 const { notes, setActiveNote, addNote } = useStore.getState();
                 const target = notes.find(n => !n.trashedAt && (n.title.trim() || 'Untitled').toLowerCase() === title.toLowerCase());
                 if (target) setActiveNote(target.id);
-                else addNote({ title });
+                else if (!openMesh(title)) addNote({ title });
                 return true;
               }
             }
