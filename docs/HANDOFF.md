@@ -3,7 +3,7 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of fe52695+)
+## State of the terrain (as of 002eb3f)
 
 - Branch `devin/iterra-env`, PR #1 open (not merged — Abhinav decides).
 - All 8 apps vendored under `apps/<name>` + wired: build-time base, hub script
@@ -11,9 +11,9 @@ contract every app and the shell follows.
   inbound deep links, ambient commons/index/feed publishers (try/catch'd).
 - `dist/` is gitignored — rebuilt locally for verification
   (`python3 -m http.server 8090 -d dist` + `scripts/smoke.cjs` over CDP 29229).
-- Smoke: 14/14 (scripts/smoke.cjs) + focused checks: intake-check.cjs
-  (?block= selects the slip; gradestack courseName groups on dossiers),
-  focus-dossier-check.cjs (bound session → 'focus:' line on the dossier).
+- Smoke: 15/15 (scripts/smoke.cjs — now asserts the timer sender chip) +
+  focused checks: intake-check.cjs, focus-dossier-check.cjs,
+  drill-check/dossier-drill-check/markbook-drill-check.cjs.
 - Children (SWE-2-max) run standing verify/implement queues:
   - `devin-4edd25facad54ca0b834833dc9933ffe` — syllabus + gradestack
   - `devin-a19adc3b30f34c65a10948e003db0905` — proof + timer + flashcards
@@ -31,9 +31,11 @@ contract every app and the shell follows.
 - `shell/src/` — App.tsx (hash routes `#/` `#/p/<id>` `#/c/<course>`, frames
   keep-alive map, iterra:open/hello handlers incl. `#/` route pass-through,
   watchdog, ⌘ keys, switcher), Terrain.tsx (commons strip, shelf, desks chips,
-  next-up/in-session, stirrings), Search.tsx (palette + course groups),
-  Dossier.tsx (course pages w/ per-row pins), shelf.ts (pins, `iterra.v1.shelf`),
-  hub.ts (LS subscribers).
+  next-up/in-session, stirrings, the ledger), Search.tsx (palette + course
+  groups + stir search + ⌘P pins), Dossier.tsx (course + 'unfiled' pages w/
+  per-row pins, url-resolved stirs, live-focus join), shelf.ts, hub.ts.
+- Dossier sentinel: `#/c/unfiled` groups every entity with no course AND no
+  topic — keyless notes have a home; no drill button, no text-key stirs.
 - Commons `iterra.doc('shared')` fields — see WIRING §7 table.
 - Terrain surfaces: commons rail, shelf pins (◇ on dossier rows), desks chips,
   dossiers `#/c/<key>`, next-up→bound timer, in-session card, stirrings feed,
@@ -71,6 +73,16 @@ contract every app and the shell follows.
   visible label instead.
 - `page.goto('#/…')` hash-only navigations don't reload/remount — drive
   `location.hash` in-page when verifying SPA routes.
+- `crypto.randomUUID()` throws on non-secure contexts (http:// LAN) and
+  unmounts whole routes — guard it (gradestack lib/uid.ts; syllabus had its
+  own in utils.ts).
+- Stir matching is word-boundary on text PLUS url→entity resolution — a
+  stir linking a coursed entity's url files under its dossier even when the
+  text never spells the key.
+- Feed doc shape is `{items:[]}` not a bare array — seeded probes that
+  JSON.parse it as a list crash before the assertion.
+- localStorage writes in-page don't fire storage events to the same window —
+  probe feed/index state by writing + reload, or drive the hub API itself.
 
 ## Open threads
 
@@ -87,6 +99,13 @@ contract every app and the shell follows.
   ?cards= + timer link, dossier live-focus join (137586b), gradestack
   courseName linkage + proof dedupe fix (fe52695), shell motion layer
   (12d5048 — all reduced-motion gated).
+- Newest wave (002eb3f era): palette ⌘P pins the selected hit (4316705);
+  dossier stirs resolve feed urls→entity keys (1ad6124); proof routes
+  /apps/* launches in-place via openDeep (3a080a0 — same escape fix is
+  in-flight for syllabus TodayView via its child); 'unfiled' dossier +
+  palette 'the unfiled →' route (002eb3f); gradestack guarded uid
+  (002eb3f — plain-http /builder crash). Smoke asserts the sender chip
+  (86375a5).
 - Outbound wave (8a1cd82 era): every app now emits the timer intake
   contract somewhere — flashcards 'Drill in timer…' (Deck ▾, acc7e93),
   gradestack test-row timer icon ('study <test>'), dossier 'drill <course>'
