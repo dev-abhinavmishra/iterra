@@ -158,6 +158,14 @@ Cap ~50 most-recent entities; publish on state change (not a timer). `url`
 must be an `/apps/<name>/...` deep link honoring §6 intake params. The shell
 turns this into a unified palette; apps may read it too.
 
+**`course`/`topic` are the linkage keys.** The shell surfaces entities from
+other apps that share a course or topic with the active place (case-
+insensitive match on either field) — in the place switcher ("linked across
+the terrain") and in palette grouping. Always populate `course` when the
+entity belongs to a course (the same short code syllabus uses, e.g. `MTH`),
+and `topic` when it's bound to a topic — an entity with neither can be
+found by text search but never linked.
+
 ### The feed — unified activity stream
 
 `iterra.feed({ text, url? })` appends a notable event to
