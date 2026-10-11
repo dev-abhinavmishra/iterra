@@ -105,6 +105,9 @@ selecting a library deck — legacy localStorage-key values still fall back;
 `?course=<code>` on `?cards=` persists onto the imported deck so it files
 under that dossier), timer syllabus contract (incl. `?course=<code>`),
 rhythm `?event/?from/?routine/?experiment`, proof `?completedBlock/from=syllabus`.
+(rhythm's `?event` takes base64url JSON validated via `normalizeEvent` — it is
+a dormant intake today: no in-suite app emits to it; the feed/index mesh is
+the shared channel instead.)
 
 Also honored:
 - **ink**: `?note=<id>` → select note (set activeNoteId) + navigate home
