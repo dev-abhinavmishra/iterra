@@ -36,6 +36,13 @@ function loadStore() {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) state.decks = JSON.parse(raw) || {};
+    // stored decks may come from older/foreign shapes (a stray 'name'
+    // field, missing cards) — normalize so one bad deck can't kill boot
+    for (const [id, d] of Object.entries(state.decks)) {
+      if (!d || typeof d !== 'object') { delete state.decks[id]; continue; }
+      if (typeof d.title !== 'string' || !d.title) d.title = d.name || 'Untitled deck';
+      if (!Array.isArray(d.cards)) d.cards = [];
+    }
   } catch { state.decks = {}; }
 }
 
