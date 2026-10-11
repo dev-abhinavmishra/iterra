@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { MobileHeader } from './components/MobileHeader';
 import { Dashboard } from './pages/Dashboard';
@@ -12,8 +12,23 @@ import { useStore } from './store';
 
 function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const theme = useStore(state => state.theme);
+
+  // Inbound suite link: ?assessment=<id> → open that test's analytics page,
+  // then strip the param so it can't re-fire. Unknown ids are ignored.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const id = q.get('assessment');
+    if (!id) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete('assessment');
+    window.history.replaceState({}, '', url.toString());
+    if (useStore.getState().tests.some((t) => t.id === id)) {
+      navigate(`/analytics?testId=${id}`);
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -62,7 +77,7 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <AppLayout />
     </Router>
   );
