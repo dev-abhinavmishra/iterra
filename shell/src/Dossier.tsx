@@ -36,10 +36,16 @@ export function Dossier({
     }))
     .filter((g) => g.ents.length > 0);
   const total = byApp.reduce((n, g) => n + g.ents.length, 0);
-  /* stirs that mention the key — word-boundary so 'mth' doesn't match
-     'smith'; short keys would otherwise flood the section */
+  /* stirs that mention the key — word-boundary on the text so 'mth' doesn't
+     match 'smith', plus url resolution: a stir linking an entity that files
+     here counts even when its text never spells the key ('slip stamped:
+     ps4 problem set' → /apps/syllabus/?block=… → that block's course). */
   const keyRe = new RegExp(`\\b${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-  const mentions = feed.filter((f) => keyRe.test(f.text)).slice(0, 8);
+  const urlKeys = new Map<string, string>();
+  for (const g of byApp) for (const e of g.ents) if (e.url) urlKeys.set(e.url, key);
+  const mentions = feed
+    .filter((f) => keyRe.test(f.text) || (f.url ? urlKeys.has(f.url) : false))
+    .slice(0, 8);
   const nb = (shared.today?.v as any)?.nextBlock;
   const ac = (shared.activeCourse?.v as any);
   /* live focus: a running timer session files under this dossier when it
