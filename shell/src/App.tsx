@@ -134,6 +134,29 @@ export default function App() {
     window.location.hash = `/p/${id}`;
   }, []);
 
+  /* ⌘1..8 jumps straight to a place (PLACES order), ⌘0/⌘` back to the
+     terrain — iframe keystrokes never reach the shell, so these can't
+     collide with an app's own shortcuts */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (e.key === '0' || e.key === '`') {
+        e.preventDefault();
+        goHome();
+        return;
+      }
+      const n = Number(e.key);
+      if (n >= 1 && n <= PLACES.length) {
+        e.preventDefault();
+        enter(PLACES[n - 1].id);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [enter, goHome]);
+
   const activePlace = active ? PLACE_MAP[active] : null;
   const timerEntry = presences['timer'];
   const timerRunning =

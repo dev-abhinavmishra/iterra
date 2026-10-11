@@ -111,6 +111,13 @@ export function Search({
           />
           <kbd className="rounded border border-atlas-300 px-1.5 py-0.5 text-[10px] text-atlas-500">esc</kbd>
         </div>
+        <div className="flex items-center gap-2 border-t border-atlas-200 px-4 py-1.5 text-[10px] text-atlas-500">
+          <span className="tracking-wide">⌘1–8 places</span>
+          <span className="text-atlas-300">·</span>
+          <span className="tracking-wide">⌘0 terrain</span>
+          <span className="text-atlas-300">·</span>
+          <span className="tracking-wide">↑↓ choose · ↵ go</span>
+        </div>
         <ul className="max-h-[52vh] overflow-y-auto py-1.5">
           {hits.length ? (
             hits.map((h, i) => (
