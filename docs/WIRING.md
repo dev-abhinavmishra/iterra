@@ -111,6 +111,8 @@ Also honored:
 - **gradestack**: `?assessment=<id>` → open that test's detail (history/analytics)
 - **proof**: `?problem=<id>` → open problem in the desk
 - **margin**: `?note=<id>` → open the note in the editor view
+- **timer**: `?routine=<name>` → open Intervals focused on the named routine
+  (standalone — no `from=` gate; unknown names degrade to a plain open)
 - **syllabus**: `?block=<id>` → select that work slip on Today (stashed at
   boot, consumed once blocks hydrate — the subscribe-retry guards the
   persist-hydration race)

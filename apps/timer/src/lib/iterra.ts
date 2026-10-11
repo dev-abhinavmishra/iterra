@@ -49,7 +49,8 @@ export function publishRoutineIndex() {
     title: r.name,
     // only real fields — Routine has no course today, but a custom one might
     course: (r as { course?: string }).course || undefined,
-    url: '/apps/timer/',
+    // ?routine=<name> intake — dossier rows + palette hits land ON the routine
+    url: '/apps/timer/?routine=' + encodeURIComponent(r.name),
     at: Date.now(),
   }));
   const json = JSON.stringify(entities.map((e) => [e.t, e.id, e.title, (e as { course?: string }).course, e.url]));

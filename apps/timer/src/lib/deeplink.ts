@@ -34,12 +34,24 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
   };
 }
 
+/* Routine intake — standalone (unlike the syllabus link, no `from=` gate):
+   any app, palette hit or dossier row can point at a named interval routine
+   via ?routine=<name>. IntervalsView focuses the matching card; unknown
+   names degrade to a plain open. */
+export function parseRoutineLink(search: string): string | null {
+  const name = new URLSearchParams(search).get('routine')?.trim();
+  return name || null;
+}
+
 export function syllabusReturnUrl(link: { returnUrl?: string; block?: string }, actualMinutes: number): string | null {
   if (!link.returnUrl || !link.block) return null;
   try {
     // returnUrl may be origin-absolute (solo suite) or relative like
     // '/apps/syllabus' inside the terrain — resolve against this origin
     const u = new URL(link.returnUrl, window.location.origin);
+    // http(s) only — a javascript:/data: return param would execute on the
+    // file-back navigation (window.location.href); intake params are hostile
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
     u.searchParams.set('completedBlock', link.block);
     u.searchParams.set('actual', String(Math.max(1, Math.round(actualMinutes))));
     return u.toString();

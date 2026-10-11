@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, MotionConfig } from 'motion/react';
 import { Timer, Watch, Clock, Repeat2, LayoutGrid, BarChart3, Settings } from 'lucide-react';
 import { cn, vibrate } from '@/src/lib/utils';
@@ -12,6 +12,7 @@ import PresetsView from './views/PresetsView';
 import StatsView from './views/StatsView';
 import SettingsView from './views/SettingsView';
 import { BootSequence } from './components/BootSequence';
+import { parseRoutineLink } from './lib/deeplink';
 
 type View = 'timer' | 'stopwatch' | 'clock' | 'intervals' | 'presets' | 'stats' | 'settings';
 
@@ -26,6 +27,19 @@ const NAV: { id: View; label: string; icon: React.ReactNode }[] = [
 ];
 
 export default function App() {
+  /* ?routine=<name> intake — captured before TimerView's effect strips the
+     query, consumed once: navigate Intervals + focus the named routine. */
+  const pendingRoutine = useRef(parseRoutineLink(window.location.search));
+  const [focusRoutine, setFocusRoutine] = useState<string | null>(null);
+  useEffect(() => {
+    if (!pendingRoutine.current) return;
+    setFocusRoutine(pendingRoutine.current);
+    go('intervals');
+    const url = new URL(window.location.href);
+    url.searchParams.delete('routine');
+    window.history.replaceState({}, '', url.toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [view, setView] = useState<View>('timer');
   const [preset, setPreset] = useState<{ minutes: number; name?: string; n: number }>({ minutes: 25, n: 0 });
   const [focusMode, setFocusMode] = useState(false);
@@ -138,6 +152,7 @@ export default function App() {
         <div className={cn('view-fold-in flex-1 flex-col w-full', view === 'intervals' ? 'flex' : 'hidden')}>
           {mounted.has('intervals') && (
             <IntervalsView
+              focusRoutine={focusRoutine}
               active={view === 'intervals'}
               onRequestView={() => requestView('intervals')}
               onTakeover={up => reportTakeover('intervals', up)}

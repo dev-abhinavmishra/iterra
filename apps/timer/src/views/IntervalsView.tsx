@@ -29,12 +29,15 @@ function fmt(totalSec: number) {
 const routineTotal = (r: Routine) => r.phases.reduce((a, p) => a + p.seconds, 0) * r.rounds;
 const routineWork = (r: Routine) => r.phases.filter(p => p.kind !== 'rest').reduce((a, p) => a + p.seconds, 0) * r.rounds;
 
-export default function IntervalsView({ active = true, onRequestView, onTakeover }: {
+export default function IntervalsView({ active = true, onRequestView, onTakeover, focusRoutine }: {
   active?: boolean;                    // false while another view is on screen
   onRequestView?: () => void;          // ask the shell to surface this view
   onTakeover?: (up: boolean) => void;  // report takeover up/down to the shell
+  focusRoutine?: string | null;        // ?routine=<name> intake — focus this card
 }) {
   const run = useRoutineRunner();
+  const [focusedId, setFocusedId] = useState<string | null>(null);
+  const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
   const vp = useViewport();
   const [custom, setCustom] = useState<Routine[]>(loadRoutines);
   const [editing, setEditing] = useState(false);
@@ -233,6 +236,16 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
 
   /* ============ PICKER / EDITOR ============ */
   const all = [...BUILT_INS, ...custom];
+
+  // ?routine=<name> intake — scroll + ring the named routine; unknown names
+  // degrade to a plain open (silent, per the intake contract)
+  useEffect(() => {
+    if (!focusRoutine) return;
+    const match = all.find(r => r.name.toLowerCase() === focusRoutine.toLowerCase());
+    if (!match) return;
+    setFocusedId(match.id);
+    cardRefs.current.get(match.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [focusRoutine]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 py-6">
       <div className="mb-10">
@@ -249,11 +262,12 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
         {all.map((r, i) => (
           <motion.div
             key={r.id}
+            ref={el => { cardRefs.current.set(r.id, el); }}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06, type: 'spring', stiffness: 260, damping: 24 }}
             whileHover={{ y: -3, transition: { type: 'spring', stiffness: 400, damping: 22 } }}
-            className="panel-wall p-5 flex flex-col group relative"
+            className={cn('panel-wall p-5 flex flex-col group relative', focusedId === r.id && 'ring-2 ring-[color:var(--color-signal)]')}
           >
             {custom.some(c => c.id === r.id) && (
               <button
