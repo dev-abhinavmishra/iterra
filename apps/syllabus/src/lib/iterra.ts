@@ -112,14 +112,27 @@ wireIterra();
     const cj = JSON.stringify(cv);
     if (cj !== lastCourse) { lastCourse = cj; shared.setField('activeCourse', { v: cv, by: 'syllabus', at: Date.now() }); }
 
-    const entities = (Object.values(s.commitments) as any[])
-      .filter((c) => c.status === 'open')
-      .slice(0, 50)
-      .map((c) => {
-        const co = (s.courses as any)[c.courseId];
-        return { t: 'block', id: c.id, title: c.title, sub: co?.code, course: co?.code,
-          url: `/apps/syllabus/`, at: Date.now() };
+    /* index — work blocks carry the id cross-app bindings reference
+       (?block=<blockId> on bound sessions); commitments fill the rest */
+    const blockEntities = (Object.values(s.blocks) as any[])
+      .filter((b) => b.state !== 'done' && b.state !== 'deferred')
+      .map((b) => {
+        const c = (s.commitments as any)[b.commitmentId];
+        const co = (s.courses as any)[b.courseId] || (s.courses as any)[c?.courseId];
+        return { t: 'block', id: b.id, title: c?.title ?? b.label ?? 'a block', sub: co?.code,
+          course: co?.code, url: `/apps/syllabus/`, at: Date.now(), _commitment: b.commitmentId };
       });
+    const covered = new Set(blockEntities.map((e: any) => e._commitment));
+    const entities = [
+      ...blockEntities.map(({ _commitment, ...e }: any) => e),
+      ...(Object.values(s.commitments) as any[])
+        .filter((c) => c.status === 'open' && !covered.has(c.id))
+        .map((c) => {
+          const co = (s.courses as any)[c.courseId];
+          return { t: 'block', id: c.id, title: c.title, sub: co?.code, course: co?.code,
+            url: `/apps/syllabus/`, at: Date.now() };
+        }),
+    ].slice(0, 50);
     const ej = JSON.stringify(entities.map((e) => ({ ...e, at: 0 })));
     if (ej !== lastEntities) { lastEntities = ej; indexDoc.set({ entities }); }
 
