@@ -117,6 +117,13 @@ Also honored:
 
 Match each app's existing param-stripping style (`history.replaceState`).
 
+**Outbound bound-drill links** (emit the timer's intake contract above —
+`?intent=<label>&minutes=<n>&course=<code>&from=<app>`; `?block=`/`?return=`
+only when there is a real block to file back to):
+- **flashcards** Deck ▾ → "Drill in timer…" (`drill <deck>`, carries `deck.course`)
+- **gradestack** test-row timer icon (`study <test>`, carries `courseName`)
+- **shell dossier** "drill \<course\>" header button (`from=terrain`)
+
 ## 7. Shared context — the commons
 
 `iterra.doc(ns)` is a per-namespace JSON store backed by the deployment's
