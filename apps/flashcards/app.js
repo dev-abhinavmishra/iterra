@@ -1805,6 +1805,16 @@ function wireMenu() {
     saveStore(); selectDeck(copy.id);
     toast('Deck duplicated');
   });
+  $('menu-drill').addEventListener('click', () => {
+    menu.hidden = true;
+    const d = deck();
+    const p = new URLSearchParams({ intent: `drill ${d.title}`, minutes: '25', from: 'flashcards' });
+    if (d.course) p.set('course', d.course);
+    const url = `/apps/timer/?${p.toString()}`;
+    try { (window.iterra && iterra.open) ? iterra.open(url) : window.open(url, '_blank'); }
+    catch { window.open(url, '_blank'); }
+    toast('Sent the deck to the timer');
+  });
   $('menu-share-text').addEventListener('click', () => { menu.hidden = true; copyAsText(); });
   $('menu-export-json').addEventListener('click', () => { menu.hidden = true; exportJson(); });
   $('menu-export-csv').addEventListener('click', () => { menu.hidden = true; exportCsv(); });
