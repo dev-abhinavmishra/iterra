@@ -567,7 +567,7 @@ export function Terrain({
                           </button>
                         </div>
                         {stirSend === i && (
-                          <div className="anim-fade ml-[4.5rem] mt-1 flex flex-wrap gap-1.5">
+                          <div className="anim-pop ml-[4.5rem] mt-1 flex flex-wrap gap-1.5">
                             {STIR_SENDS.map((t) => (
                               <button
                                 key={t.to}

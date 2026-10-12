@@ -182,7 +182,11 @@ export function Ambient({
             <button onClick={() => onEnter('timer')} className="flex items-baseline gap-1.5" title="open the instruments">
               <span className="max-w-36 truncate font-medium text-field-ink">{f!.label || 'Focus'}</span>
               <span className="font-mono text-[11.5px] tabular-nums text-moss-700">
-                {f!.paused ? `paused ${fmtClock(secLeft)}` : fmtClock(secLeft)}
+                {/* the split-flap in miniature — each second the digits
+                    drop into place like a flap card (anim-tick, keyed) */}
+                {f!.paused
+                  ? `paused ${fmtClock(secLeft)}`
+                  : <span key={Math.floor(secLeft)} className="anim-tick">{fmtClock(secLeft)}</span>}
               </span>
               {typeof f!.totalMin === 'number' && (
                 <span className="hidden text-[10px] text-atlas-400 sm:inline">
@@ -291,7 +295,7 @@ export function Ambient({
           {qsOpen && (
             <>
               <div className="fixed inset-0 z-30" onClick={() => setQsOpen(false)} />
-              <div className="anim-rise absolute bottom-full right-0 z-40 mb-1 w-48 rounded-lg border border-atlas-300 bg-atlas-50 p-1.5 shadow-[0_16px_40px_-16px_rgba(29,51,42,0.4)]">
+              <div className="anim-pop absolute bottom-full right-0 z-40 mb-1 w-48 rounded-lg border border-atlas-300 bg-atlas-50 p-1.5 shadow-[0_16px_40px_-16px_rgba(29,51,42,0.4)]" style={{ transformOrigin: 'bottom right' }}>
                 <div className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
                   start a session for
                 </div>

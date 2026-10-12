@@ -501,6 +501,33 @@ export function registerAdapter() {
     },
     wake: () => mirrorFolio(),
   });
+
+  /* register marks nudge the folio: a 'routine.logged' event for a bound
+     course bumps the next open commitment's loggedMinutes + lastWorkedAt —
+     effort recorded on the register shows up on the folio's own ledger. */
+  it.events?.on?.('routine.logged', (rec: any) => {
+    try {
+      const p = rec?.payload ?? {};
+      const s = useFolio.getState();
+      const rawKey = String(p.courseId ?? '');
+      const localId = rawKey.startsWith(COURSE_KEY) ? rawKey.slice(COURSE_KEY.length) : rawKey;
+      const course =
+        (localId && s.courses[localId]) ||
+        Object.values(s.courses).find(
+          (c) => p.course && String(c.code).toLowerCase() === String(p.course).toLowerCase(),
+        );
+      if (!course) return;
+      const open = Object.values(s.commitments)
+        .filter((c) => c.courseId === course.id && c.status === 'open')
+        .sort((a, b) => a.dueAt.localeCompare(b.dueAt));
+      if (!open[0]) return;
+      const mins = Math.max(1, Math.round(Number(p.minutes) || 10));
+      s.updateCommitment(open[0].id, {
+        loggedMinutes: (open[0].loggedMinutes || 0) + mins,
+        lastWorkedAt: new Date().toISOString(),
+      });
+    } catch { /* a nudge is best-effort — never throw into the event bus */ }
+  });
 }
 
 registerAdapter();

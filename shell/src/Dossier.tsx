@@ -348,16 +348,18 @@ export function Dossier({
             the desk — {display}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
+            {/* verbs stagger in on mount — the desk arrives in rhythm, not all at once */}
             <button
               onClick={startSession}
-              className="rounded-md bg-moss-700 px-3 py-1.5 text-[12px] font-medium text-atlas-50 hover:bg-moss-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+              className="anim-stir rounded-md bg-moss-700 px-3 py-1.5 text-[12px] font-medium text-atlas-50 hover:bg-moss-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
             >
               start a session →
             </button>
             {dueCards.length > 0 && (
               <button
                 onClick={() => onGo('/apps/flashcards/')}
-                className="rounded-md border border-moss-400/70 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-50"
+                className="anim-stir rounded-md border border-moss-400/70 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-50"
+                style={{ animationDelay: '40ms' }}
               >
                 review {dueCards.length} due card{dueCards.length === 1 ? '' : 's'} →
               </button>
@@ -365,14 +367,16 @@ export function Dossier({
             {nextCommit && (
               <button
                 onClick={() => onGo(nextCommit.url || '/apps/syllabus/')}
-                className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                style={{ animationDelay: '80ms' }}
               >
                 next: {nextCommit.title} →
               </button>
             )}
             <button
               onClick={planRegister}
-              className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              style={{ animationDelay: '120ms' }}
               title="file the next commitment on rhythm's register as a routine"
             >
               plan on the register →
@@ -380,7 +384,8 @@ export function Dossier({
             {pendingCommits.length > 1 && (
               <button
                 onClick={planWeek}
-                className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                style={{ animationDelay: '160ms' }}
                 title={`one weekly routine tracking ${pendingCommits.length} open commitments`}
               >
                 week ({pendingCommits.length}) → register
@@ -389,7 +394,8 @@ export function Dossier({
             {dueCards.length > 0 && (
               <button
                 onClick={queueCards}
-                className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                style={{ animationDelay: '200ms' }}
                 title="queue card review as a register routine"
               >
                 queue {dueCards.length} cards →
@@ -397,7 +403,8 @@ export function Dossier({
             )}
             <button
               onClick={benchCommit}
-              className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              style={{ animationDelay: '240ms' }}
               title="file the next commitment as a problem on the workbench"
             >
               to the bench →
@@ -573,7 +580,7 @@ export function Dossier({
                       ⇥
                     </button>
                     {rowSend === `${app}-${e.id}-${i}` && (
-                      <span className="anim-rise absolute right-0 top-full z-30 w-40 rounded-md border border-atlas-300 bg-atlas-50 p-1 shadow-[0_12px_30px_-12px_rgba(29,51,42,0.45)]">
+                      <span className="anim-pop absolute right-0 top-full z-30 w-40 rounded-md border border-atlas-300 bg-atlas-50 p-1 shadow-[0_12px_30px_-12px_rgba(29,51,42,0.45)]">
                         {ROW_SENDS.map((t) => (
                           <button
                             key={t.to}

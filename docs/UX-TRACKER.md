@@ -47,8 +47,8 @@ and e2e-verified where the surface is user-visible.
 - [ ] 33 Bulk send — select several hits, one target (stretch)
 - [x] 34 Send result → "open it" chip (deep-link toast on delivery)
 - [x] 35 Queued sends show "delivers when opened" state, not silent
-- [ ] 36 routine.completed → nudge the linked syllabus commitment's progress note
-- [ ] 37 session.completed bound to a routine course auto-marks the register (verify intakeRaw path)
+- [x] 36 routine.completed → nudge the linked syllabus commitment's progress note
+- [x] 37 session.completed bound to a routine course auto-marks the register (verify intakeRaw path)
 - [x] 38 session minutes → logged on the commitment (shipped)
 - [ ] 39 exam study-plan → also offered as a rhythm routine scaffold
 - [ ] 40 gradestack grade row → course dossier link
@@ -124,11 +124,11 @@ and e2e-verified where the surface is user-visible.
 
 ## F. Motion + designed feel
 
-- [ ] 101 Ambient rail anim-rise consistent with the terrain's motion system
-- [ ] 102 Countdown digits borrow the timer's split-flap character in miniature
+- [x] 101 Ambient rail anim-rise consistent with the terrain's motion system
+- [x] 102 Countdown digits borrow the timer's split-flap character in miniature
 - [x] 103 Session pill breathes in the final minute
-- [ ] 104 Send-to menu springs (not pop-in)
-- [ ] 105 Dossier verbs stagger on mount
+- [x] 104 Send-to menu springs (not pop-in)
+- [x] 105 Dossier verbs stagger on mount
 
 ---
 Waves: **1** = A (ambient rail + timer control + paused commons).

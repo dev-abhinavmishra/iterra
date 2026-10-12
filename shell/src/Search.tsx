@@ -369,7 +369,7 @@ export function Search({
                         <span className="text-[11px] text-atlas-500">{i === sel ? '↵' : '→'}</span>
                       </button>
                       {sendForKey === hitId(h) && (
-                        <div className="anim-rise border-t border-atlas-200 bg-atlas-100/60 px-4 py-1.5">
+                        <div className="anim-pop border-t border-atlas-200 bg-atlas-100/60 px-4 py-1.5" style={{ transformOrigin: 'top left' }}>
                           {h.entity && (
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pb-1.5 text-[10.5px] text-atlas-500">
                               <span className="font-semibold uppercase tracking-[0.1em] text-moss-700">{h.entity.type}</span>
