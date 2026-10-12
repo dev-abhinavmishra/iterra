@@ -40,7 +40,7 @@ create index on iterra_entities (updatedAt);
 -- anonymous-auth path margin already uses.
 ```
 
-## Adapter sketch (lives in margin's adapter file, shared code)
+## Implementation (wired — margin's adapter attaches at boot)
 
 ```ts
 import { supabase } from '../services/supabaseClient';
@@ -73,8 +73,8 @@ export function attachItterraSync() {
 }
 ```
 
-Call `attachItterraSync()` once at margin boot (guarded — it no-ops with no
-client). One frame owning the adapter is enough: BroadcastChannel delivers
+`attachItterraSync()` runs inside `registerAdapter()` (guarded — no-ops
+with no client and no `it.sync`). One frame owning the adapter is enough: BroadcastChannel delivers
 remote merges to every other frame on the origin.
 
 ## Honest limits

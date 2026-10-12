@@ -13,6 +13,43 @@
 import type { Deck, Note, Quiz } from './types';
 import { getAllDecks, getAllQuizzes, saveNote } from './services/storageService';
 import { marginNotes, onMarginSnapshot } from './iterra';
+import { supabase } from './services/supabaseClient';
+
+/* ── whole-store sync (docs/SYNC.md) — margin already owns a Supabase
+   client for its usage counters; when the env vars exist we ALSO attach
+   the canonical store's remote mirror. One frame owning the adapter is
+   enough: BroadcastChannel carries remote merges to every sibling. */
+let syncAttached = false;
+function attachItterraSync() {
+  const it = window.iterra;
+  if (syncAttached || !it?.sync?.attach || !supabase) return;
+  syncAttached = true;
+  it.sync.attach({
+    name: 'supabase',
+    pull: async (since: number) => {
+      const { data, error } = await supabase
+        .from('iterra_entities')
+        .select('body')
+        .gt('updatedAt', since);
+      if (error) throw error;
+      return (data ?? []).map((r: any) => r.body);
+    },
+    put: async (e: any) => {
+      await supabase.from('iterra_entities').upsert({
+        key: e.key ?? `${e.app}:${e.type}:${e.id}`,
+        app: e.app,
+        type: e.type,
+        courseId: e.courseId ?? null,
+        updatedAt: e.updatedAt ?? Date.now(),
+        body: e,
+      });
+    },
+    remove: async (key: string) => {
+      await supabase.from('iterra_entities').delete().eq('key', key);
+    },
+    onConflict: (_l: any, r: any) => r,
+  });
+}
 
 declare const window: any;
 
@@ -207,6 +244,8 @@ export function registerAdapter() {
     },
     wake: () => { drain(); },
   });
+
+  attachItterraSync();
 }
 
 /* iterra.ts side-imports this module, and this module imports back from
