@@ -7,7 +7,7 @@ import { selectLinksFor } from '../store';
 import { useShallow } from 'zustand/react/shallow';
 import { remainingMinutes, reversePlan } from '../lib/schedule';
 import { appBadge } from '../lib/links';
-import { openDeep } from '../lib/iterra';
+import { openDeep, sendCommitmentToRegister } from '../lib/iterra';
 import { courseColorVar } from '../lib/colors';
 import { fmtMinutes, stampDate, todayISO, isoAtTime, cn } from '../lib/utils';
 import type { Commitment, CommitmentType } from '../lib/types';
@@ -94,25 +94,14 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
 
   // transfer UX: file this commitment ONTO rhythm's register — it lands as a
   // real routine (due-date window, minutes as the minimum) so planning
-  // happens where marks happen.
+  // happens where marks happen. The §2 row verb shares this exact send.
   const planOnRegister = async () => {
     const it = (window as any).iterra;
-    if (!it?.send) return;
-    const res = await it.send({
-      to: 'rhythm',
-      action: 'routine.plan',
-      payload: {
-        name: commitment.title,
-        courseId: `syllabus:course:${commitment.courseId}`,
-        course: course?.code,
-        dueAt: commitment.dueAt,
-        minutes: commitment.estimatedMinutes || undefined,
-      },
-    });
+    const res = await sendCommitmentToRegister(commitment, course?.code);
     const url = res?.ok ? res.url : null;
     if (!url) return;
     try {
-      if (it.open) it.open(url);
+      if (it?.open) it.open(url);
       else openDeep(url);
     } catch {
       /* navigation is best-effort */

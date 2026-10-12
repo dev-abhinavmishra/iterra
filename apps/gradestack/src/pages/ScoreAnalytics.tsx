@@ -4,7 +4,8 @@ import { useStore } from '../store';
 import { Icon, Button, Chip, EmptyState, PageHeader } from '../components/ui';
 import { normalizeAnswer, optionsFor, formatsForTest, csvEscape, downloadFile } from '../lib/grading';
 import { feed } from '../lib/iterra';
-import { useCourseLoggedMinutes, fmtLoggedMinutes } from '../lib/iterra-adapter';
+import { useCourseLoggedMinutes, fmtLoggedMinutes, folioUrlFor } from '../lib/iterra-adapter';
+import { openTerrain } from '../components/terrain';
 
 export function ScoreAnalytics() {
   const location = useLocation();
@@ -150,6 +151,24 @@ export function ScoreAnalytics() {
         </Link>
       </PageHeader>
 
+      {/* weights carried in from the syllabus registry via weights.import —
+          the chip names the folio as their source and links back to it */}
+      {test.weights && Object.keys(test.weights).length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 -mt-4 mb-6">
+          <Chip tone="neutral">
+            weights · {Object.entries(test.weights).map(([k, v]) => `${k} ${v}`).join(' · ')}
+          </Chip>
+          <button
+            type="button"
+            onClick={() => void folioUrlFor(test.courseName).then(openTerrain)}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm border border-mark/40 text-mark-deep bg-mark-mist/60 dark:text-mark text-[11px] font-semibold hover:border-mark transition-colors"
+            title="These categories came from the syllabus folio"
+          >
+            from the folio →
+          </button>
+        </div>
+      )}
+
       {/* The numbers that matter, as ledger lines */}
       <div className="doc mb-6">
         <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-hairline">
@@ -158,7 +177,16 @@ export function ScoreAnalytics() {
             <p className="font-display text-4xl font-bold text-ink mt-1">{numScanned > 0 ? `${avgPct.toFixed(1)}%` : '—'}</p>
             <div className="mt-3"><div className="w-full bg-hairline rounded-full h-1"><div className="h-full bg-mark rounded-full transition-all duration-700" style={{ width: `${avgPct}%` }} /></div></div>
             {loggedMinutes != null && (
-              <p className="text-xs text-pencil mt-3">{fmtLoggedMinutes(loggedMinutes)} logged in Timer</p>
+              /* the course's logged minutes reach back to the session list —
+                 WIRING §7: siblings navigate via iterra.open */
+              <button
+                type="button"
+                onClick={() => openTerrain('/apps/timer/')}
+                className="text-xs text-pencil mt-3 hover:text-mark-deep hover:underline underline-offset-2 transition-colors"
+                title="Open the Timer sessions these minutes came from"
+              >
+                {fmtLoggedMinutes(loggedMinutes)} logged in Timer →
+              </button>
             )}
           </div>
           <div className="px-6 py-5">

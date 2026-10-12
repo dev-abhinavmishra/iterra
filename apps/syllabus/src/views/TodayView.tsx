@@ -9,7 +9,7 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { planDay } from '../lib/schedule';
 import { timerDeepLink, proofDeepLink } from '../lib/links';
-import { openDeep } from '../lib/iterra';
+import { openDeep, useDueCardsCount, useTodayLoggedMinutes } from '../lib/iterra';
 import { BlockSlip } from '../components/BlockSlip';
 import { QuickAdd } from '../components/QuickAdd';
 import {
@@ -39,6 +39,8 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
   const [selIdx, setSelIdx] = useState(0);
   const [deferFor, setDeferFor] = useState<WorkBlock | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const dueCards = useDueCardsCount();
+  const loggedToday = useTodayLoggedMinutes();
 
   const courseById = useMemo(() => Object.fromEntries(courses.map((c) => [c.id, c])), [courses]);
   const openCommitments = useMemo(
@@ -176,6 +178,31 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
           </div>
         </div>
       </div>
+
+      {/* terrain bridges — sibling state read from the canonical store:
+          cardfile's due cards and today's logged timer minutes (WIRING §7) */}
+      {((dueCards ?? 0) > 0 || (loggedToday ?? 0) > 0) && (
+        <div className="flex items-center justify-center gap-2 -mt-3 mb-4">
+          {(dueCards ?? 0) > 0 && (
+            <button
+              className="mono text-[10px] font-semibold tracking-[0.08em] uppercase border border-[color:var(--color-rule-dark)] rounded-[3px] px-2 py-1 text-[color:var(--color-ink-soft)] hover:text-[color:var(--color-ink)] hover:border-[color:var(--color-ink-faint)] transition-colors"
+              onClick={() => openDeep('/apps/flashcards/')}
+              title="Review due cards in Flashcards"
+            >
+              {dueCards} card{dueCards === 1 ? '' : 's'} due →
+            </button>
+          )}
+          {(loggedToday ?? 0) > 0 && (
+            <button
+              className="mono text-[10px] font-semibold tracking-[0.08em] uppercase border border-[color:var(--color-rule-dark)] rounded-[3px] px-2 py-1 text-[color:var(--color-ink-soft)] hover:text-[color:var(--color-ink)] hover:border-[color:var(--color-ink-faint)] transition-colors"
+              onClick={() => openDeep('/apps/timer/')}
+              title="See today's logged sessions in Timer"
+            >
+              {fmtMinutes(loggedToday ?? 0)} logged →
+            </button>
+          )}
+        </div>
+      )}
 
       {/* quick intake strip */}
       <QuickAdd courses={courses} autoFocusKey="n" />

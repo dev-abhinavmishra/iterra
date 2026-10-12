@@ -428,6 +428,29 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
 
   stripIntakeParam(rec?.id);
   const made = proposals.length ? s.acceptProposals(proposals) : [];
+
+  /* the plan also lands on the register: a 'study <anchor>' routine scoped
+     to the exam date, same cadence the blocks propose — so the habit loop
+     sees it, not just the folio. Best-effort; a dead rhythm never fails
+     the plan itself. */
+  try {
+    if (made.length && it.send) {
+      it.send({
+        to: 'rhythm',
+        action: 'routine.plan',
+        payload: {
+          name: `study ${anchor.title}`,
+          course: course.code || course.name,
+          courseId: courseKey,
+          dueAt: `${target}T23:59:00`,
+          perWeek: Math.min(7, Math.max(1, Math.round(days))),
+          minutes: size,
+          unit: 'min',
+        },
+      }).catch(() => {});
+    }
+  } catch { /* scaffold is best-effort */ }
+
   return { url: made.length ? '/apps/syllabus/' : null };
 }
 

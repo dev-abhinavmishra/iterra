@@ -44,14 +44,14 @@ and e2e-verified where the surface is user-visible.
 - [x] 30 deck → dossier review shortcut (due badge on deck → review)
 - [x] 31 Send-to on dossier entity rows (⇥ on each row)
 - [x] 32 Send-to on terrain rail entries
-- [ ] 33 Bulk send — select several hits, one target (stretch)
+- [x] 33 Bulk send — select several hits, one target (stretch)
 - [x] 34 Send result → "open it" chip (deep-link toast on delivery)
 - [x] 35 Queued sends show "delivers when opened" state, not silent
 - [x] 36 routine.completed → nudge the linked syllabus commitment's progress note
 - [x] 37 session.completed bound to a routine course auto-marks the register (verify intakeRaw path)
 - [x] 38 session minutes → logged on the commitment (shipped)
-- [ ] 39 exam study-plan → also offered as a rhythm routine scaffold
-- [ ] 40 gradestack grade row → course dossier link
+- [x] 39 exam study-plan → also offered as a rhythm routine scaffold
+- [x] 40 gradestack grade row → course dossier link
 
 ## C. Shell chrome + navigation
 
@@ -83,16 +83,16 @@ and e2e-verified where the surface is user-visible.
 
 ## D. In-app bridge surfaces — each app shows its siblings
 
-- [ ] 66 syllabus Today: "N cards due" chip → review
-- [ ] 67 syllabus Today: "Nm logged today" chip → sessions
-- [ ] 68 commitment row: "plan on the register" (with the drawer's Focus)
-- [ ] 69 commitment row: "make a card" send
+- [x] 66 syllabus Today: "N cards due" chip → review
+- [x] 67 syllabus Today: "Nm logged today" chip → sessions
+- [x] 68 commitment row: "plan on the register" (with the drawer's Focus)
+- [x] 69 commitment row: "make a card" send
 - [x] 70 rhythm day cell: source-app badge on ingested events
 - [x] 71 rhythm routine detail: linked course dossier
 - [x] 72 rhythm: "from the folio" inbox — recent commitments as routine scaffolds
-- [ ] 73 gradestack grade row: "N cards due" chip
-- [ ] 74 gradestack: logged-minutes links through to the session list
-- [ ] 75 gradestack weights chip: source syllabus course link
+- [x] 73 gradestack grade row: "N cards due" chip
+- [x] 74 gradestack: logged-minutes links through to the session list
+- [x] 75 gradestack weights chip: source syllabus course link
 - [x] 76 flashcards deck header: course dossier link
 - [x] 77 flashcards deck: "session for this deck" bound timer start
 - [x] 78 flashcards deck: "log a review" → register
