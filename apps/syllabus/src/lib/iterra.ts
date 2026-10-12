@@ -172,7 +172,8 @@ wireIterra();
         .map((c) => {
           const co = (s.courses as any)[c.courseId];
           return { t: 'block', id: c.id, title: c.title, sub: co?.code, course: co?.code,
-            url: `/apps/syllabus/`, at: Date.now() };
+            // commitments land on their drawer via the ?commitment= intake
+            url: `/apps/syllabus/?commitment=${encodeURIComponent(c.id)}`, at: Date.now() };
         }),
     ].slice(0, 50);
     const ej = JSON.stringify(entities.map((e) => ({ ...e, at: 0 })));

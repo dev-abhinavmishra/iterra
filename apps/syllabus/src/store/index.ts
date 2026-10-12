@@ -41,6 +41,8 @@ interface FolioState extends FolioData {
   // to select the slip, then clears it. Not persisted as navigation state.
   intakeBlockId: string | null;
   clearIntakeBlock: () => void;
+  intakeCommitmentId: string | null;
+  clearIntakeCommitment: () => void;
 
   // ── terms ──
   createTerm: (t: Omit<Term, 'id' | 'createdAt'>) => Term;
@@ -132,8 +134,9 @@ export const useFolio = create<FolioState>()(
           const q = new URLSearchParams(window.location.search);
           const blockId = q.get('completedBlock');
           const focusId = q.get('block');
-          if (!blockId && !focusId) return true;
-          const done = q.get('completedBlock') || q.get('block');
+          const commitmentId = q.get('commitment');
+          if (!blockId && !focusId && !commitmentId) return true;
+          const done = q.get('completedBlock') || q.get('block') || q.get('commitment');
           let consumed = false;
           // Inbound Timer completion: ?completedBlock=<id>&actual=<minutes>
           const actual = Number(q.get('actual'));
@@ -153,6 +156,11 @@ export const useFolio = create<FolioState>()(
             set({ intakeBlockId: focusId });
             consumed = true;
           }
+          // Index-entity deep link: ?commitment=<id> → open its drawer.
+          if (commitmentId && st.commitments[commitmentId]) {
+            set({ intakeCommitmentId: commitmentId });
+            consumed = true;
+          }
           if (consumed) {
             const url = new URL(window.location.href);
             url.search = '';
@@ -170,6 +178,8 @@ export const useFolio = create<FolioState>()(
 
       intakeBlockId: null,
       clearIntakeBlock: () => set({ intakeBlockId: null }),
+      intakeCommitmentId: null,
+      clearIntakeCommitment: () => set({ intakeCommitmentId: null }),
 
       hasOnboarded: () => Object.keys(get().courses).length > 0,
 
@@ -179,6 +189,7 @@ export const useFolio = create<FolioState>()(
           terms: { ...s.terms, [term.id]: term },
           activeTermId: term.id,
         }));
+        feed(`term filed: ${term.name}`, '/apps/syllabus/');
         return term;
       },
 
@@ -201,6 +212,7 @@ export const useFolio = create<FolioState>()(
           createdAt: new Date().toISOString(),
         };
         set((st) => ({ courses: { ...st.courses, [course.id]: course } }));
+        feed(`course filed: ${course.code}`, '/apps/syllabus/', course.code);
         return course;
       },
 
@@ -363,7 +375,8 @@ export const useFolio = create<FolioState>()(
         return block;
       },
 
-      rescheduleBlock: (id, date, startHHMM) =>
+      rescheduleBlock: (id, date, startHHMM) => {
+        const before = get().blocks[id];
         set((s) => {
           const b = s.blocks[id];
           // A stamped slip is a filed record — it never silently un-stamps.
@@ -377,7 +390,16 @@ export const useFolio = create<FolioState>()(
             carriedFrom: b.carriedFrom ?? (b.plannedDate !== date ? b.plannedDate : b.carriedFrom),
           };
           return { blocks: { ...s.blocks, [id]: moved } };
-        }),
+        });
+        if (before && before.state !== 'done' && before.plannedDate !== date) {
+          const c = get().commitments[before.commitmentId];
+          feed(
+            `slip moved to ${date}: ${before.label ?? c?.title ?? 'a block'}`,
+            `/apps/syllabus/?block=${encodeURIComponent(id)}`,
+            c ? get().courses[c.courseId]?.code : undefined,
+          );
+        }
+      },
 
       completeBlock: (id, actualMinutes) => {
         set((s) => {
@@ -578,13 +600,17 @@ export const useFolio = create<FolioState>()(
           const data = parseFolioBackup(text);
           if (!data.settings) data.settings = DEFAULT_SETTINGS;
           set({ ...data });
+          feed('folio restored', '/apps/syllabus/');
           return { ok: true };
         } catch (e) {
           return { ok: false, error: e instanceof Error ? e.message : 'Import failed' };
         }
       },
 
-      resetFolio: () => set({ ...EMPTY_DATA, settings: { ...get().settings } }),
+      resetFolio: () => {
+        set({ ...EMPTY_DATA, settings: { ...get().settings } });
+        feed('folio struck', '/apps/syllabus/');
+      },
     }),
     {
       name: 'syllabus.folio.v1',

@@ -10,6 +10,16 @@ import { uid } from './lib/uid';
 const stripUndefined = <T extends object>(o: T): T =>
   Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as T;
 
+/* Terrain stir emit — same contract as lib/iterra's feed(), kept local so
+   store.ts never imports lib/iterra.ts (which imports this store → cycle). */
+const stir = (text: string, url?: string, course?: string) => {
+  try {
+    (window as any).iterra?.feed?.({ text, url, course });
+  } catch {
+    /* feed is best-effort */
+  }
+};
+
 export type QuestionFormat = 'A-D' | 'A-E' | 'TF' | 'A-D-M' | 'A-E-M' | 'SA';
 
 export interface TestSection {
@@ -68,6 +78,9 @@ interface AppState {
   setGeminiKey: (key: string) => void;
   setTests: (tests: Test[]) => void;
   setScans: (scans: Scan[]) => void;
+  /* ids pulled in by the last mergeRemote — the ambient watcher skips their
+     stir emits so a sign-in sync doesn't spam the feed per-record */
+  _mergedIds: Set<string> | null;
   mergeRemote: (tests: Test[], scans: Scan[]) => void;
   addTest: (test: Omit<Test, 'id' | 'date' | 'createdAt' | 'userId'>) => Promise<Test>;
   duplicateTest: (id: string) => Promise<Test | null>;
@@ -101,6 +114,7 @@ export const useStore = create<AppState>()(
       setGeminiKey: (geminiKey) => set({ geminiKey }),
       setTests: (tests) => set({ tests }),
       setScans: (scans) => set({ scans }),
+      _mergedIds: null,
 
       /* Merge server data with anything created locally while signed out,
          then push the local-only items up so nothing is lost on sign-in.
@@ -112,11 +126,14 @@ export const useStore = create<AppState>()(
         const user = auth?.currentUser;
 
         if (user && state.dataOwnerUid && state.dataOwnerUid !== user.uid) {
+          const adopted = remoteTests.length + remoteScans.length;
           set({
             tests: remoteTests.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
             scans: remoteScans.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
             dataOwnerUid: user.uid,
+            _mergedIds: new Set([...remoteTests, ...remoteScans].map((x) => x.id)),
           });
+          if (adopted) stir(`register synced: ${adopted} record${adopted === 1 ? '' : 's'}`, '/apps/gradestack/');
           return;
         }
 
@@ -127,7 +144,14 @@ export const useStore = create<AppState>()(
 
         const tests = [...remoteTests, ...localOnlyTests].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         const scans = [...remoteScans, ...localOnlyScans].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        set({ tests, scans, ...(user ? { dataOwnerUid: user.uid } : {}) });
+        // ids arriving from the cloud — watcher's per-record stirs suppressed
+        const incoming = new Set([...remoteTests, ...remoteScans].map((x) => x.id));
+        set({ tests, scans, ...(user ? { dataOwnerUid: user.uid } : {}), ...(incoming.size ? { _mergedIds: incoming } : {}) });
+        // count only records the merge actually pulls in — a repeat sync of
+        // identical remote data isn't a transition worth announcing
+        const synced = remoteTests.filter(t => !state.tests.some(l => l.id === t.id)).length
+          + remoteScans.filter(x => !state.scans.some(l => l.id === x.id)).length;
+        if (synced) stir(`register synced: ${synced} record${synced === 1 ? '' : 's'}`, '/apps/gradestack/');
 
         if (user) {
           localOnlyTests.forEach(t => {
@@ -172,10 +196,14 @@ export const useStore = create<AppState>()(
       deleteTest: async (id) => {
         // Cascade: a test's scans go with it — otherwise they orphan forever.
         const orphanIds = get().scans.filter(s => s.testId === id).map(s => s.id);
+        const gone = get().tests.find(t => t.id === id);
         set((state) => ({
           tests: state.tests.filter(t => t.id !== id),
           scans: state.scans.filter(s => s.testId !== id),
         }));
+        if (gone) {
+          stir(`assessment withdrawn: ${gone.name}`, '/apps/gradestack/', gone.courseName || undefined);
+        }
         if (auth?.currentUser && db) {
           try {
             await Promise.all([
@@ -207,14 +235,25 @@ export const useStore = create<AppState>()(
       },
 
       deleteScan: async (id) => {
+        const gone = get().scans.find(s => s.id === id);
         set((state) => ({ scans: state.scans.filter(s => s.id !== id) }));
+        if (gone) {
+          const t = get().tests.find(tt => tt.id === gone.testId);
+          stir(`sheet struck: ${gone.studentName}`, '/apps/gradestack/', t?.courseName || undefined);
+        }
         if (auth?.currentUser && db) {
           try { await deleteDoc(doc(db, 'scans', id)); } catch(e) {}
         }
       },
 
       deleteScans: async (ids) => {
+        const gone = get().scans.filter(s => ids.includes(s.id));
         set((state) => ({ scans: state.scans.filter(s => !ids.includes(s.id)) }));
+        if (gone.length) {
+          const testIds = new Set(gone.map(s => s.testId));
+          const t = testIds.size === 1 ? get().tests.find(tt => tt.id === gone[0].testId) : undefined;
+          stir(`sheets struck: ${gone.length}`, '/apps/gradestack/', t?.courseName || undefined);
+        }
         if (auth?.currentUser && db) {
           try {
             await Promise.all(ids.map(id => deleteDoc(doc(db, 'scans', id))));
@@ -223,9 +262,21 @@ export const useStore = create<AppState>()(
       },
 
       updateScan: async (id, updates) => {
+        const before = get().scans.find(s => s.id === id);
         set((state) => ({
           scans: state.scans.map(s => s.id === id ? { ...s, ...updates } : s)
         }));
+        // needsReview → cleared is the review-correct signature: emit the
+        // re-scored result, not mere edits (name tweaks keep the flag).
+        if (before?.needsReview && updates.needsReview === false) {
+          const after = get().scans.find(s => s.id === id) ?? { ...before, ...updates };
+          const t = get().tests.find(tt => tt.id === before.testId);
+          stir(
+            `scan reviewed: ${after.studentName}${after.percentage != null ? ` · ${Math.round(after.percentage)}%` : ''}`,
+            `/apps/gradestack/?assessment=${before.testId}`,
+            t?.courseName || undefined,
+          );
+        }
         if (auth?.currentUser && db) {
           try { await updateDoc(doc(db, 'scans', id), stripUndefined(updates)); } catch(e) {}
         }
@@ -233,6 +284,7 @@ export const useStore = create<AppState>()(
 
       updateTest: async (id, updates) => {
         const { gradingScale, partialCredit } = get();
+        let regradedCount = 0;
         set((state) => {
           const updatedTests = state.tests.map(t => t.id === id ? { ...t, ...updates } : t);
 
@@ -242,6 +294,7 @@ export const useStore = create<AppState>()(
             updatedScans = state.scans.map(scan => {
               if (scan.testId === id && scan.responses) {
                 const result = gradeResponses(scan.responses, updates.answerKey, scan.maxScore, gradingScale, partialCredit);
+                regradedCount++;
                 return {
                   ...scan,
                   rawScore: result.rawScore,
@@ -272,6 +325,15 @@ export const useStore = create<AppState>()(
           return { tests: updatedTests, scans: updatedScans };
         });
 
+        if (updates.answerKey && regradedCount > 0) {
+          const t = get().tests.find(tt => tt.id === id);
+          stir(
+            `key amended: ${t?.name ?? 'a sheet'} → ${regradedCount} sheet${regradedCount === 1 ? '' : 's'} re-graded`,
+            `/apps/gradestack/?assessment=${id}`,
+            t?.courseName || undefined,
+          );
+        }
+
         if (auth?.currentUser && db) {
           try { await updateDoc(doc(db, 'tests', id), stripUndefined(updates)); } catch(e) {}
         }
@@ -282,14 +344,18 @@ export const useStore = create<AppState>()(
       regradeAll: async () => {
         const { gradingScale, partialCredit, tests } = get();
         const keyByTest = new Map(tests.map(t => [t.id, t.answerKey]));
+        let regraded = 0;
         set((state) => ({
           scans: state.scans.map(scan => {
             if (!scan.responses) return scan;
             const key = keyByTest.get(scan.testId);
             const result = gradeResponses(scan.responses, key, scan.maxScore, gradingScale, partialCredit);
+            regraded++;
             return { ...scan, rawScore: result.rawScore, percentage: result.percentage, grade: result.grade, needsReview: result.needsReview };
           })
         }));
+        // scale/policy re-application is a register-wide transition
+        if (regraded) stir(`register re-graded: ${regraded} sheet${regraded === 1 ? '' : 's'}`, '/apps/gradestack/');
         if (auth?.currentUser && db) {
           const scans = get().scans;
           Promise.all(scans.map(s =>
@@ -334,6 +400,8 @@ export const useStore = create<AppState>()(
             ...(typeof data.settings?.partialCredit === 'boolean' ? { partialCredit: data.settings.partialCredit } : {}),
             ...(theme === 'system' || theme === 'light' || theme === 'dark' ? { theme } : {}),
           });
+          const n = newTests.length + newScans.length;
+          if (n) stir(`register restored: ${n} record${n === 1 ? '' : 's'}`, '/apps/gradestack/');
           if (user && db) {
             newTests.forEach(t => {
               setDoc(doc(db, 'tests', t.id), stripUndefined(t)).catch(() => {});
@@ -351,6 +419,7 @@ export const useStore = create<AppState>()(
       clearAllData: async () => {
         const state = get();
         const user = auth?.currentUser;
+        const had = state.tests.length + state.scans.length;
 
         set({
           tests: [],
@@ -361,6 +430,7 @@ export const useStore = create<AppState>()(
           geminiKey: '',
           dataOwnerUid: user?.uid ?? null,
         });
+        if (had) stir(`register struck: ${had} record${had === 1 ? '' : 's'}`, '/apps/gradestack/');
 
         if (user && db) {
           const deletePromises = [
