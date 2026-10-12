@@ -96,7 +96,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       totalMin: Math.round(cd.totalMs / 60000),
       break: isBreak || undefined,
     };
-    doc.setField('focus', {
+    const beat = () => doc.setField('focus', {
       v: running
         ? { ...base, running: true, endsAt: Date.now() + cd.remainingMs }
         : paused
@@ -105,6 +105,14 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       by: 'timer',
       at: Date.now(),
     });
+    beat();
+    /* a paused session never ticks — remainingMs is frozen, so without a
+       heartbeat `at` ages out of the rail's 15-min freshness window and a
+       genuinely live pause vanishes. Re-stamp while paused; a dead page
+       stops beating and still expires on schedule. */
+    if (!paused) return;
+    const iv = setInterval(beat, 60000);
+    return () => clearInterval(iv);
   }, [running, paused, isBreak, label, intent, syllabus, remainingSec, cd.totalMs, cd.remainingMs]);
 
   /* commons read: index.syllabus — when this session came in bound to a
