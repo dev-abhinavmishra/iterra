@@ -568,6 +568,7 @@
       lsWrite('entities', b);
     }).then(function () {
       _notify('entity', { op: 'put', entity: e });
+      syncPush(e);
       return { ok: true, entity: e };
     }).catch(function (err) {
       /* IDB mid-flight failure → drop to LS and retry once */
@@ -633,6 +634,7 @@
       lsWrite('entities', b);
     }).then(function () {
       _notify('entity', { op: 'remove', key: key });
+      syncPushRemove(key);
       return { ok: true };
     });
   }
@@ -963,6 +965,81 @@
     });
   }
 
+  /* ── optional sync adapter ──
+     The store is local-first; sync is opt-in behind one interface so the
+     WHOLE store can sync, not just margin's tables. Any adapter
+     (Supabase or otherwise) implements:
+
+       adapter = {
+         name: 'supabase',
+         // called once on attach — return entities newer than `since`
+         pull: (since) => Promise<Entity[]>,
+         // called on every local entity put/remove
+         put: (entity) => Promise<void>,
+         remove: (key) => Promise<void>,           // optional
+         onConflict: (local, remote) => remote,    // optional resolver
+       }
+
+     iterra.sync.attach(adapter) wires it: pulls remote entities newer than
+     the local clock, merges them through storePut (validation + quarantine
+     still apply — bad remote data can't bypass the contract), then mirrors
+     every subsequent local put/remove outward. One adapter at a time;
+     attach() again replaces it. */
+  var _sync = { adapter: null, attachedAt: 0, lastPull: 0, error: null };
+
+  function syncAttach(adapter) {
+    if (!adapter || typeof adapter.pull !== 'function' || typeof adapter.put !== 'function') {
+      return Promise.resolve({ ok: false, error: 'adapter needs pull(since) and put(entity)' });
+    }
+    _sync.adapter = adapter;
+    _sync.attachedAt = Date.now();
+    _sync.error = null;
+    return storeList({}).then(function (all) {
+      var newest = 0;
+      for (var i = 0; i < all.length; i++) if ((all[i].updatedAt || 0) > newest) newest = all[i].updatedAt;
+      return adapter.pull(newest).then(function (remote) {
+        remote = remote || [];
+        var chain = Promise.resolve();
+        remote.forEach(function (re) {
+          chain = chain.then(function () {
+            /* resolver may swap the remote copy; validation still gates it */
+            var merged = typeof adapter.onConflict === 'function' ? adapter.onConflict(null, re) : re;
+            if (merged) return storePut(merged).then(function () {});
+          });
+        });
+        return chain.then(function () {
+          _sync.lastPull = Date.now();
+          return { ok: true, pulled: remote.length, adapter: adapter.name || 'sync' };
+        });
+      }).catch(function (e) {
+        _sync.error = String(e && e.message || e);
+        return { ok: false, error: _sync.error };
+      });
+    });
+  }
+
+  function syncPush(entity) {
+    var a = _sync.adapter;
+    if (!a) return;
+    try { a.put(entity); } catch (e) { _sync.error = String(e && e.message || e); }
+  }
+
+  function syncPushRemove(key) {
+    var a = _sync.adapter;
+    if (!a || typeof a.remove !== 'function') return;
+    try { a.remove(key); } catch (e) { _sync.error = String(e && e.message || e); }
+  }
+
+  function syncStatus() {
+    return {
+      attached: !!_sync.adapter,
+      adapter: _sync.adapter ? (_sync.adapter.name || 'sync') : null,
+      attachedAt: _sync.attachedAt || null,
+      lastPull: _sync.lastPull || null,
+      error: _sync.error,
+    };
+  }
+
   /* feed() also journals into the events store as a 'stir' — new code should
      call iterra.events.emit() directly; this stays the compat path. */
   var _feedOrig = feed;
@@ -1035,6 +1112,7 @@
     },
     send: send,
     adapter: adapter,
+    sync: { attach: syncAttach, status: syncStatus },
     core: { version: SCHEMA_V, eventTypes: EVENT_TYPES, entityTypes: ENTITY_TYPES },
   };
 })();
