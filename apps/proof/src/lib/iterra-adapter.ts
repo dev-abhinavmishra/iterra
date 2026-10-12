@@ -233,9 +233,25 @@ async function onDivergence(err: ErrorRecord, s = useWorkbench.getState()) {
   }
 }
 
+/* intake drains can race the workbench's own boot — a queued send landing
+   on a cold frame must wait for booted state, not fake-deliver. Throw on
+   timeout so the hub's intake retry releases the claim and re-drains. */
+function whenBooted(timeoutMs = 9000): Promise<void> {
+  const t0 = Date.now();
+  return new Promise((res, rej) => {
+    const tick = () => {
+      if (useWorkbench.getState().booted) return res();
+      if (Date.now() - t0 > timeoutMs) return rej(new Error('proof workbench not booted'));
+      setTimeout(tick, 120);
+    };
+    tick();
+  });
+}
+
 /* step.append: fold the sent entity into the current open attempt as a
    reference step; no open attempt → null (nothing honest to append to) */
 async function onStepAppend(rec: { entity?: { key?: string; title?: string } }) {
+  await whenBooted();
   const s = useWorkbench.getState();
   if (!s.booted) return null;
   const ent = rec?.entity;
@@ -244,7 +260,14 @@ async function onStepAppend(rec: { entity?: { key?: string; title?: string } }) 
     .filter((a) => !a.submittedAt)
     .sort((x, y) => String(y.startedAt).localeCompare(String(x.startedAt)))[0];
   if (!open) return null;
-  s.addStep(open.id, { text: stepRefText(ent) });
+  const text = stepRefText(ent);
+  /* the hub may hand one intake record to several racing drains — the ref
+     text is deterministic, so a duplicate run finds the step already
+     there instead of stacking copies (same pattern margin uses for its
+     intake-derived note id) */
+  if (!(open.work || []).some((w) => w?.text === text)) {
+    s.addStep(open.id, { text });
+  }
   return { url: `/apps/proof/?attempt=${encodeURIComponent(open.id)}` };
 }
 
@@ -284,6 +307,7 @@ export function registerAdapter() {
          source?} → a real Problem on the bench: a margin note, a syllabus
          weak topic, or a dossier click files the next rep here. */
       'problem.create': async (rec: any) => {
+        await whenBooted();
         const s = useWorkbench.getState();
         if (!s.booted) return null;
         const p = rec?.payload ?? {};
@@ -291,7 +315,12 @@ export function registerAdapter() {
         if (!prompt) return { ok: false };
         const bound = await boundCourse(p.course, p.courseId);
         const diff = Number(p.difficulty);
+        /* deterministic id from the intake record — the hub can invoke one
+           delivery through several racing drains; a re-run upserts the same
+           problem instead of filing a second copy (margin's intake-<id>
+           note does the same) */
         const problem = s.addProblem({
+          id: typeof rec?.id === 'string' && rec.id ? `p_${rec.id}` : undefined,
           courseId: bound.courseId,
           topic: String(p.topic || bound.course || 'from the terrain').trim(),
           promptDoc: prompt,

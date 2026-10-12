@@ -922,6 +922,42 @@
       return won;
     });
   }
+  /* a handler declined by throwing or returning {retry:true}: the record
+     was never delivered — release the claim (attempts++ for observability)
+     so a later drain can deliver it. Pending means pending: the queue
+     does not fake delivery when the target isn't ready. */
+  function intakeRelease(id, err) {
+    return openDB().then(function (d) {
+      var apply = function (cur) {
+        if (!cur || cur.delivered) return null;
+        delete cur.claimedBy;
+        delete cur.claimedAt;
+        cur.attempts = (cur.attempts || 0) + 1;
+        if (err) cur.lastError = String(err).slice(0, 200);
+        return cur;
+      };
+      if (d) {
+        return idbTx(d, 'intakes', 'readwrite', function (s) {
+          var rq = s.get(id);
+          rq.onsuccess = function () {
+            var cur = apply(rq.result);
+            if (cur) s.put(cur);
+          };
+        });
+      }
+      var b = lsRead('intakes');
+      var cur = apply(b[id]);
+      if (cur) { b[id] = cur; lsWrite('intakes', b); }
+    });
+  }
+  var _retryTimers = {};
+  function scheduleRedrain(app) {
+    if (_retryTimers[app]) return;
+    _retryTimers[app] = setTimeout(function () {
+      _retryTimers[app] = null;
+      drainIntakes(app, function () {});
+    }, 4000);
+  }
   function drainIntakes(app, done) {
     if (typeof done !== 'function') done = function () {};
     if (_drainBusy[app]) {
@@ -980,25 +1016,60 @@
           if (!claimed) { next(); return; }
           var h = _deliveries[app + ':' + rec.action] || _deliveries[app + ':*'];
           var finish = function (result) {
-            intakeResolve(rec.id, result).then(function () {
-              /* {toast} contract — a handler may return a one-line toast the
-                 terrain surfaces wherever the resolve landed (ambient rail
-                 reads intake.resolved events). */
-              if (result && typeof result.toast === 'string') {
-                try { emit('intake.resolved', { to: rec.to, action: rec.action, toast: result.toast, by: me || undefined }); } catch (e) {}
-              }
+            /* {toast} contract — a handler may return a one-line toast the
+               terrain surfaces wherever the resolve landed (ambient rail
+               reads intake.resolved events). The emit must SETTLE before
+               the launched-record navigation below: location.assign
+               unloads the page and a fire-and-forget emit loses the race —
+               the toast would never surface (the original dead-emit bug). */
+            var settled = [Promise.resolve(intakeResolve(rec.id, result)).catch(function () {})];
+            if (result && typeof result.toast === 'string') {
+              try {
+                settled.push(Promise.resolve(eventEmit('intake.resolved', { to: rec.to, action: rec.action, toast: result.toast, url: result.url || undefined, by: me || undefined })).catch(function () {}));
+              } catch (e) {}
+            }
+            Promise.all(settled).then(function () {
               if (launchedFor && rec.id === launchedFor && result && result.url) {
                 try { window.location.assign(result.url); return; } catch (e) {}
               }
               next();
-            });
+            }, function () { next(); });
           };
-          if (!h) { finish(undefined); return; }
+          var retry = function (e) {
+            /* 'not ready' is not 'delivered': release the claim so the
+               record stays pending, and schedule a bounded re-drain — a
+               boot drain racing store hydration lands on the retry, not
+               on the user re-entering the place. */
+            intakeRelease(rec.id, e && (e.message || String(e))).then(function () {
+              if ((rec.attempts || 0) < 8) scheduleRedrain(app);
+              next();
+            }, function () { next(); });
+          };
+          /* no handler registered for this action → stays pending (the
+             documented contract), not a fake delivery. */
+          if (!h) { retry(new Error('no handler for ' + rec.action)); return; }
+          /* a handler may hang forever (e.g. awaiting courses.resolve from
+             an unmounted app) — bound it so the claim can't be held
+             hostage: timeout → release + retry like any 'not ready'. */
+          var settled = false;
+          var htimeout = setTimeout(function () {
+            if (!settled) { settled = true; retry(new Error('handler timed out')); }
+          }, 20000);
+          var done_ = function (fn, arg) {
+            if (settled) return;
+            settled = true;
+            clearTimeout(htimeout);
+            fn(arg);
+          };
           try {
             var r = h(rec);
-            if (r && typeof r.then === 'function') r.then(finish, function () { finish(undefined); });
-            else finish(r);
-          } catch (e) { finish(undefined); }
+            if (r && typeof r.then === 'function') r.then(function (v) {
+              if (v && v.retry === true) done_(retry, new Error('retry requested'));
+              else done_(finish, v);
+            }, function (e) { done_(retry, e); });
+            else if (r && r.retry === true) done_(retry, new Error('retry requested'));
+            else done_(finish, r);
+          } catch (e) { done_(retry, e); }
         }, function () { next(); });
       };
       next();

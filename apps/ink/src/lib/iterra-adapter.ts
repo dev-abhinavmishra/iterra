@@ -12,6 +12,20 @@ import { useStore } from '../store';
 import { extractText } from './notes';
 import type { Note } from '../store';
 
+/* intake drains can race the desk's persist hydration — a mutation made
+   pre-hydration is stomped when persisted state lands. Await it; throw on
+   timeout so the hub releases the claim and a later drain delivers. */
+function whenHydrated(timeoutMs = 9000): Promise<void> {
+  const p: any = (useStore as any).persist;
+  if (!p?.hasHydrated || p.hasHydrated()) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const done = () => { clearTimeout(t); clearInterval(poll); res(); };
+    const t = setTimeout(() => { clearInterval(poll); rej(new Error('ink store not hydrated')); }, timeoutMs);
+    const poll = setInterval(() => { if (p.hasHydrated()) done(); }, 150);
+    p.onFinishHydration?.(done);
+  });
+}
+
 declare const window: any;
 
 /* ── pure helpers (contract-tested) ─────────────────────────────────────── */
@@ -182,10 +196,19 @@ export function registerAdapter() {
     intakes: {
       /* {entity,payload:{text?}} → a new page on the desk, opened via the
          existing ?note= deep link. */
-      'note.create': (rec: any) => {
+      'note.create': async (rec: any) => {
+        /* a boot drain can claim the intake before zustand persist has
+           rehydrated — a note written now would be stomped by hydration.
+           Wait; throw on timeout so the hub releases the claim. */
+        await whenHydrated();
         const title = rec?.entity?.title || `From ${rec?.from ?? 'the terrain'}`;
         const text = typeof rec?.payload?.text === 'string' ? rec.payload.text.trim() : '';
+        /* deterministic page id from the intake record — the hub can hand
+           one record to several racing drains; a re-run resolves to the
+           page it already made instead of cloning it (margin/proof do the
+           same with their intake-derived ids) */
         const id = useStore.getState().addNote({
+          id: typeof rec?.id === 'string' && rec.id ? `intake-${rec.id}` : undefined,
           title,
           content: intakeDoc(rec),
           wordCount: text ? text.split(/\s+/).length : 0,

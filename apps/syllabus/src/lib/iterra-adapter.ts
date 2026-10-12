@@ -305,9 +305,25 @@ const parseHHMM = (v: string): number => {
  *  weak proof topics get one block each, timer history sizes the blocks.
  *  Blocks are written through acceptProposals so they land as real slips —
  *  dedup, ordering, and the 'plan generated' stir all come free. */
+/* a boot drain can claim an intake before the folio's store has booted —
+   waiting is honest, fake-delivering isn't: throw on timeout so the hub
+   releases the claim and a later drain delivers for real. */
+function whenBooted(timeoutMs = 9000): Promise<void> {
+  const t0 = Date.now();
+  return new Promise((res, rej) => {
+    const tick = () => {
+      if (useFolio.getState().booted) return res();
+      if (Date.now() - t0 > timeoutMs) return rej(new Error('syllabus folio not booted'));
+      setTimeout(tick, 120);
+    };
+    tick();
+  });
+}
+
 export async function studyPlan(rec: any): Promise<{ url: string | null }> {
   const it = window.iterra;
   if (!it?.store?.list) return { url: null };
+  await whenBooted();
   const s = useFolio.getState();
   const p = rec?.payload ?? rec?.entity?.data ?? {};
 
@@ -476,7 +492,8 @@ export function registerAdapter() {
          slip on the folio: the rhythm app files routine sessions here so
          'what's planned' and 'what was done' live on the same ledger.
          Hangs on a found-or-filed commitment in the resolved course. */
-      'block.plan': (rec: any) => {
+      'block.plan': async (rec: any) => {
+        await whenBooted();
         const s = useFolio.getState();
         const p = rec?.payload ?? {};
         const rawKey = String(p.courseId ?? '');
