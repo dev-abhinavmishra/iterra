@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PLACE_MAP } from './places';
-import type { Entity, FeedItem, SharedField } from './hub';
+import type { Entity, FeedItem, SharedField, StoreEntity } from './hub';
+import { sendTo } from './hub';
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 
 /* course dossier — everything the terrain knows about one course/topic key:
@@ -9,6 +10,7 @@ import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 export function Dossier({
   course,
   indexes,
+  entities,
   shared,
   feed,
   onGo,
@@ -17,6 +19,7 @@ export function Dossier({
 }: {
   course: string;
   indexes: Record<string, Entity[]>;
+  entities: StoreEntity[];
   shared: Record<string, SharedField>;
   feed: FeedItem[];
   onGo: (url: string) => void;
@@ -27,19 +30,90 @@ export function Dossier({
   /* 'unfiled' is a sentinel dossier: every entity with no course AND no
      topic lands here — notes that can't file under a class still group. */
   const unfiled = key === 'unfiled';
+
+  /* the canonical course entity — the registry id everything else files
+     under. Resolved by code (the dossier key IS the code) or by the
+     courseId every store entity carries. */
+  const courseEnt = useMemo(
+    () =>
+      (entities || []).find(
+        (e) =>
+          e.type === 'course' &&
+          ((e.data?.code as string) || e.course || e.title || '').toLowerCase() === key,
+      ) || null,
+    [entities, key],
+  );
+  const courseId = courseEnt?.key;
+  /* everything the store files under this course — mounted or not */
+  const courseEnts = useMemo(
+    () =>
+      (entities || []).filter(
+        (e) =>
+          (courseId && e.courseId === courseId) ||
+          (!unfiled && (e.course || '').toLowerCase() === key) ||
+          (unfiled && !e.courseId && !e.course && !e.topic),
+      ),
+    [entities, courseId, key, unfiled],
+  );
+  /* actionable dossier — the four verbs: start a session, review what's
+     due, open the next assignment, see the grade state. All from the
+     canonical store, no app needs to be mounted. */
+  const dueCards = courseEnts.filter(
+    (e) => e.type === 'card' && typeof (e.data?.dueAt as number) === 'number' && (e.data!.dueAt as number) <= Date.now(),
+  );
+  const nextCommit = courseEnts
+    .filter((e) => e.type === 'commitment' && e.data && e.data.status !== 'done' && e.data.status !== 'completed')
+    .sort((a, b) => ((a.data?.dueAt as number) || Infinity) - ((b.data?.dueAt as number) || Infinity))[0];
+  const sessions = courseEnts.filter((e) => e.type === 'session');
+  const sessionMins = sessions.reduce((n, e) => n + ((e.data?.minutes as number) || 0), 0);
+  const grades = courseEnts.filter((e) => e.type === 'grade');
+  const [sent, setSent] = useState<string | null>(null);
+  const startSession = async () => {
+    const r = await sendTo({
+      to: 'timer',
+      action: 'timer.start',
+      payload: {
+        label: nextCommit?.title || `drill ${course}`,
+        minutes: (nextCommit?.data?.estimatedMinutes as number) || 25,
+        commitmentId: nextCommit?.id,
+        courseId,
+        course,
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? 'session queued for the instruments' : `couldn't start — ${r.error || 'no hub'}`);
+    window.setTimeout(() => setSent(null), 4000);
+  };
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
   const pinnedUrls = new Set(pins.map((p) => p.url));
-  const byApp = Object.entries(indexes)
-    .map(([app, list]) => ({
-      app,
-      ents: (list || []).filter(
-        (e) => e?.title && (unfiled
+  /* rows come from the canonical store first (mounted or not), with the
+     index mirror folded in for writers that haven't migrated */
+  const byApp = useMemo(() => {
+    const seen = new Set<string>();
+    const groups = new Map<string, Entity[]>();
+    const push = (app: string, e: Entity) => {
+      const sig = `${e.url || ''}|${e.title}|${e.id || ''}`;
+      if (seen.has(sig)) return;
+      seen.add(sig);
+      if (!groups.has(app)) groups.set(app, []);
+      groups.get(app)!.push(e);
+    };
+    for (const e of courseEnts) {
+      if (!e.title) continue;
+      push(e.app, { t: e.type, id: e.id, title: e.title, sub: e.sub, course: e.course, topic: e.topic, url: e.url });
+    }
+    for (const [app, list] of Object.entries(indexes)) {
+      for (const e of list || []) {
+        if (!e?.title) continue;
+        const files = unfiled
           ? !e.course && !e.topic
-          : (e.course || '').toLowerCase() === key || (e.topic || '').toLowerCase() === key),
-      ),
-    }))
-    .filter((g) => g.ents.length > 0);
+          : (e.course || '').toLowerCase() === key || (e.topic || '').toLowerCase() === key;
+        if (files) push(app, e);
+      }
+    }
+    return [...groups.entries()].map(([app, ents]) => ({ app, ents }));
+  }, [courseEnts, indexes, key, unfiled]);
   const total = byApp.reduce((n, g) => n + g.ents.length, 0);
   /* stirs that mention the key — word-boundary on the text so 'mth' doesn't
      match 'smith', plus url resolution: a stir linking an entity that files
@@ -103,13 +177,47 @@ export function Dossier({
           ? (unfiled ? 'everything on the terrain is filed under a key' : 'nothing on the terrain carries this key yet')
           : `${total} ${total === 1 ? 'thing' : 'things'} across ${byApp.length} ${byApp.length === 1 ? 'place' : 'places'}`}
       </p>
+      {/* the actionable dossier — one desk, four verbs, no app-hopping.
+          Every verb reads the canonical store, so it works even when the
+          owning app has never been mounted this session. */}
       {!unfiled && (
-        <button
-          onClick={() => onGo(`/apps/timer/?intent=${encodeURIComponent(`drill ${course}`)}&minutes=25&course=${encodeURIComponent(course)}&from=terrain`)}
-          className="mb-8 rounded-full border border-moss-400/70 bg-moss-50 px-3.5 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-100"
-        >
-          drill {course} →
-        </button>
+        <div className="mb-8 rounded-lg border border-moss-400/70 bg-moss-50/70 p-3.5">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-moss-700">
+            the desk — {course}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              onClick={startSession}
+              className="rounded-md bg-moss-700 px-3 py-1.5 text-[12px] font-medium text-atlas-50 hover:bg-moss-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+            >
+              start a session →
+            </button>
+            {dueCards.length > 0 && (
+              <button
+                onClick={() => onGo('/apps/flashcards/')}
+                className="rounded-md border border-moss-400/70 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-50"
+              >
+                review {dueCards.length} due card{dueCards.length === 1 ? '' : 's'} →
+              </button>
+            )}
+            {nextCommit && (
+              <button
+                onClick={() => onGo(nextCommit.url || '/apps/syllabus/')}
+                className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              >
+                next: {nextCommit.title} →
+              </button>
+            )}
+            <span className="text-[11.5px] text-atlas-500">
+              {[
+                sessionMins > 0 ? `${sessionMins}m logged` : null,
+                grades.length ? `${grades.length} grade${grades.length === 1 ? '' : 's'} on the book` : null,
+                sessions.length && !sessionMins ? `${sessions.length} sessions` : null,
+              ].filter(Boolean).join(' · ') || (courseId ? 'registered on the folio' : 'no folio entry yet')}
+            </span>
+          </div>
+          {sent && <div className="anim-fade mt-2 text-[11.5px] text-moss-700">{sent}</div>}
+        </div>
       )}
       {total === 0 && knownKeys.length > 0 && (
         <div className="mb-8 flex flex-wrap items-baseline gap-1.5 text-[12px] text-field-faint">

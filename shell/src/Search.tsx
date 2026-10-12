@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PLACE_MAP } from './places';
-import type { Entity } from './hub';
+import type { Entity, StoreEntity } from './hub';
+import { sendTo } from './hub';
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 import { readFeed, subscribeFeed, type FeedItem } from './hub';
 
@@ -11,17 +12,35 @@ interface Hit {
   url: string;
   kind: 'entity' | 'place' | 'stir';
   key?: string;
+  /* canonical-store provenance — sendable */
+  skey?: string;
+  stype?: string;
+  entity?: StoreEntity;
 }
+
+/* the shared send-to menu — every object in any app can be handed to a
+   sibling action (docs/ADAPTER.md intake catalogue). Order reads as a
+   sentence: make it a card, file it as a note, attach it, log it. */
+const SEND_TARGETS: { to: string; action: string; label: string }[] = [
+  { to: 'flashcards', action: 'cards.create', label: 'a flashcards card' },
+  { to: 'margin', action: 'note.create', label: 'a margin note' },
+  { to: 'ink', action: 'note.create', label: 'an ink page' },
+  { to: 'proof', action: 'step.append', label: 'a proof step' },
+  { to: 'rhythm', action: 'log.activity', label: 'a mark on the register' },
+  { to: 'timer', action: 'timer.start', label: 'a focus session' },
+];
 
 /* unified palette — every app's published index + the places themselves.
    Opens with ⌘K or `/`, arrows move, enter goes. */
 export function Search({
   indexes,
+  entities,
   open,
   onClose,
   onGo,
 }: {
   indexes: Record<string, Entity[]>;
+  entities: StoreEntity[];
   open: boolean;
   onClose: () => void;
   onGo: (url: string) => void;
@@ -32,6 +51,8 @@ export function Search({
   const [sel, setSel] = useState(0);
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
+  const [sendFor, setSendFor] = useState<Hit | null>(null);
+  const [sentNote, setSentNote] = useState<string | null>(null);
   const pinned = useMemo(() => {
     const s = new Set<string>();
     for (const p of pins) {
@@ -48,6 +69,8 @@ export function Search({
     if (open) {
       setQ('');
       setSel(0);
+      setSendFor(null);
+      setSentNote(null);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
@@ -62,9 +85,30 @@ export function Search({
       url: `#/p/${p.id}`,
     }));
     const ents: Hit[] = [];
+    const seen = new Set<string>();
+    /* canonical store first — the truth, uncapped. Every entity every app
+       wrote lives here, including apps that never mounted this session. */
+    for (const e of entities || []) {
+      if (!e?.title) continue;
+      const sig = `${e.url || ''}|${e.title}`;
+      seen.add(sig);
+      ents.push({
+        app: e.app,
+        kind: 'entity',
+        label: e.title,
+        sub: [e.type, e.sub, e.course, e.topic].filter(Boolean).join(' · '),
+        url: e.url || `#/p/${e.app}`,
+        key: e.course || e.topic || undefined,
+        skey: e.key,
+        stype: e.type,
+        entity: e,
+      });
+    }
+    /* index rows not mirrored in the store yet (older writers) still show */
     for (const [app, list] of Object.entries(indexes)) {
       for (const e of list || []) {
         if (!e?.title) continue;
+        if (seen.has(`${e.url || ''}|${e.title}`)) continue;
         ents.push({
           app,
           kind: 'entity',
@@ -87,7 +131,7 @@ export function Search({
         }))
       : [];
     const all = [...places, ...ents, ...stirs];
-    if (!needle) return all.slice(0, 30);
+    if (!needle) return all.slice(0, 60);
     const rank = (h: Hit) => {
       const l = h.label.toLowerCase();
       const s = h.sub.toLowerCase();
@@ -97,13 +141,13 @@ export function Search({
       if (h.app.includes(needle)) return 3;
       return 9;
     };
+    /* no row cap on store results — the scroll list is the budget */
     return all
       .map((h) => ({ h, r: rank(h) }))
       .filter((x) => x.r < 9)
       .sort((a, b) => a.r - b.r || a.h.label.localeCompare(b.h.label))
-      .slice(0, 30)
       .map((x) => x.h);
-  }, [q, indexes, feed]);
+  }, [q, indexes, entities, feed]);
 
   /* browse mode (no query): group entities under their course/topic so one
      class's blocks, decks, notes and sessions read as one dossier */
@@ -128,6 +172,34 @@ export function Search({
   }, [hits, q]);
 
   useEffect(() => setSel(0), [hits.length]);
+
+  /* the global send-to: hand the store entity to a sibling action. When
+     the target is live it delivers direct; otherwise it queues as a
+     pending intake the target's adapter drains on boot. */
+  const doSend = async (h: Hit, t: { to: string; action: string; label: string }) => {
+    setSendFor(null);
+    if (!h.entity) return;
+    const r = await sendTo({ to: t.to, action: t.action, entity: h.entity });
+    if (!r.ok) {
+      setSentNote(`couldn't send — ${r.error || "the hub isn't answering"}`);
+      return;
+    }
+    const place = PLACE_MAP[t.to]?.place || t.to;
+    setSentNote(
+      r.delivered === 'direct'
+        ? `sent to ${place} — ${r.url ? 'it answered' : 'delivered'}`
+        : `filed for ${place} — it picks it up next visit`,
+    );
+    window.setTimeout(() => setSentNote((n) => (n ? null : n)), 5000);
+    if (r.url) {
+      /* a delivered intake hands back where it landed — offer the jump */
+      window.setTimeout(() => {
+        setSentNote(null);
+        onGo(r.url!);
+        onClose();
+      }, 1400);
+    }
+  };
 
   if (!open) return null;
   return (
@@ -163,6 +235,13 @@ export function Search({
                 const h = hits[sel];
                 togglePin({ app: h.app, title: h.label, url: h.url });
               }
+              /* → or Tab on a store-backed hit opens the send-to menu —
+                 any object can be handed to a sibling action */
+              if ((e.key === 'ArrowRight' || e.key === 'Tab') && hits[sel]?.entity) {
+                e.preventDefault();
+                setSendFor((cur) => (cur === hits[sel] ? null : hits[sel]));
+              }
+              if (e.key === 'ArrowLeft' && sendFor) { e.preventDefault(); setSendFor(null); }
             }}
             placeholder="search the terrain — notes, decks, blocks, sessions…"
             className="w-full bg-transparent text-[14px] text-field-ink placeholder-atlas-500 focus:outline-none"
@@ -174,8 +253,13 @@ export function Search({
           <span className="text-atlas-300">·</span>
           <span className="tracking-wide">⌘0 terrain</span>
           <span className="text-atlas-300">·</span>
-          <span className="tracking-wide">↑↓ choose · ↵ go · ⌘P pin</span>
+          <span className="tracking-wide">↑↓ choose · ↵ go · ⌘P pin · → send to</span>
         </div>
+        {sentNote && (
+          <div className="anim-fade flex items-center gap-2 border-t border-atlas-200 bg-moss-50/60 px-4 py-1.5 text-[11.5px] text-moss-700">
+            <span className="min-w-0 flex-1 truncate">{sentNote}</span>
+          </div>
+        )}
         <ul className="max-h-[52vh] overflow-y-auto py-1.5">
           {hits.length ? (
             groups.map((g, gi) => (
@@ -217,8 +301,44 @@ export function Search({
                         {pinned.has(h.url) && (
                           <span className="shrink-0 text-[11px] text-moss-700" title="on the shelf">◈</span>
                         )}
+                        {h.entity && (
+                          <button
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              setSel(i);
+                              setSendFor((cur) => (cur === h ? null : h));
+                            }}
+                            title="send to another place (s)"
+                            className={`shrink-0 rounded px-1 text-[11px] focus:outline-none ${
+                              sendFor === h ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
+                            }`}
+                          >
+                            ⇥
+                          </button>
+                        )}
                         <span className="text-[11px] text-atlas-500">{i === sel ? '↵' : '→'}</span>
                       </button>
+                      {sendFor === h && (
+                        <div className="anim-rise border-t border-atlas-200 bg-atlas-100/60 px-4 py-1.5">
+                          <div className="pb-1 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+                            send “{h.label}” to…
+                          </div>
+                          <div className="flex flex-wrap gap-1.5 pb-1">
+                            {SEND_TARGETS.map((t) => (
+                              <button
+                                key={`${t.to}:${t.action}`}
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  doSend(h, t);
+                                }}
+                                className="rounded-full border border-atlas-300 bg-atlas-50 px-2.5 py-1 text-[11px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+                              >
+                                {t.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>

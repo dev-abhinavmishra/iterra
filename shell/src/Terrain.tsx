@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import type { Presence, SharedField, FeedItem, Entity } from './hub';
+import type { Presence, SharedField, FeedItem, Entity, StoreEntity } from './hub';
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -69,6 +69,7 @@ export function Terrain({
   presences,
   shared,
   indexes,
+  entities,
   feed,
   onEnter,
   onGo,
@@ -76,6 +77,7 @@ export function Terrain({
   presences: Record<string, Presence>;
   shared: Record<string, SharedField>;
   indexes: Record<string, Entity[]>;
+  entities: StoreEntity[];
   feed: FeedItem[];
   onEnter: (id: string) => void;
   onGo: (url: string) => void;
@@ -158,14 +160,36 @@ export function Terrain({
                 presence summary (deck due, proofs due, late slips, pending
                 marks); a place that owes nothing stays quiet */}
             {(() => {
-              const owes: { app: string; text: string; stale: boolean }[] = [];
+              /* the ledger — every line carries a verb: review what's due,
+                 attempt a problem, mark the register, open the slip. The
+                 verbs read the canonical store, so the action is real even
+                 when the owning app has never mounted this session. */
+              const dueStore = (type: string) =>
+                (entities || []).filter(
+                  (e) => e.type === type && typeof (e.data?.dueAt as number) === 'number' && (e.data!.dueAt as number) <= Date.now(),
+                );
+              const storeDue = {
+                cards: dueStore('card').length,
+                commitments: (entities || []).filter(
+                  (e) =>
+                    e.type === 'commitment' &&
+                    e.data &&
+                    e.data.status !== 'done' &&
+                    e.data.status !== 'completed' &&
+                    typeof (e.data.dueAt as number) === 'number' &&
+                    (e.data.dueAt as number) < Date.now(),
+                ).length,
+              };
+              const owes: { app: string; text: string; stale: boolean; verb: string; url?: string }[] = [];
               const num = (x: unknown) => (typeof x === 'number' && x > 0 ? x : 0);
               const s = (app: string) => (presences[app]?.summary as any) || {};
               const stale = (app: string) => isStale(presences[app]);
-              if (num(s('flashcards').due)) owes.push({ app: 'flashcards', text: `${s('flashcards').due} cards due`, stale: stale('flashcards') });
-              if (num(s('proof').due)) owes.push({ app: 'proof', text: `${s('proof').due} proofs due`, stale: stale('proof') });
-              if (num(s('syllabus').overdue)) owes.push({ app: 'syllabus', text: `${s('syllabus').overdue} slips late`, stale: stale('syllabus') });
-              if (num(s('rhythm').pending)) owes.push({ app: 'rhythm', text: `${s('rhythm').pending} marks pending`, stale: stale('rhythm') });
+              const cardDue = Math.max(num(s('flashcards').due), storeDue.cards);
+              if (cardDue) owes.push({ app: 'flashcards', text: `${cardDue} cards due`, stale: stale('flashcards'), verb: 'review', url: '/apps/flashcards/' });
+              if (num(s('proof').due)) owes.push({ app: 'proof', text: `${s('proof').due} proofs due`, stale: stale('proof'), verb: 'attempt', url: '/apps/proof/' });
+              const slips = Math.max(num(s('syllabus').overdue), storeDue.commitments);
+              if (slips) owes.push({ app: 'syllabus', text: `${slips} slips late`, stale: stale('syllabus'), verb: 'open', url: '/apps/syllabus/' });
+              if (num(s('rhythm').pending)) owes.push({ app: 'rhythm', text: `${s('rhythm').pending} marks pending`, stale: stale('rhythm'), verb: 'mark', url: '/apps/rhythm/' });
               if (!owes.length) return null;
               return (
                 <div className="anim-fade mb-3 rounded-lg border border-atlas-300 bg-atlas-50/70 p-3.5">
@@ -174,17 +198,23 @@ export function Terrain({
                   </div>
                   <ul className="mt-2 space-y-1">
                     {owes.map((o) => (
-                      <li key={o.app}>
+                      <li key={o.app} className="flex items-baseline gap-2">
                         <button
-                          onClick={() => onEnter(o.app)}
-                          className={`flex w-full items-baseline gap-2 text-left text-[13px] hover:text-moss-700 focus:outline-none ${
+                          onClick={() => (o.url ? onGo(o.url) : onEnter(o.app))}
+                          className={`flex min-w-0 flex-1 items-baseline gap-2 text-left text-[13px] hover:text-moss-700 focus:outline-none ${
                             o.stale ? 'text-atlas-500' : 'text-field-faint'
                           }`}
                         >
                           <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-moss-700">
                             {PLACE_MAP[o.app]?.app || o.app}
                           </span>
-                          <span>{o.text}</span>
+                          <span className="min-w-0 flex-1">{o.text}</span>
+                        </button>
+                        <button
+                          onClick={() => (o.url ? onGo(o.url) : onEnter(o.app))}
+                          className="shrink-0 rounded-full border border-atlas-300 bg-atlas-50 px-2 py-0.5 text-[10.5px] font-medium text-moss-700 hover:bg-moss-50 focus:outline-none"
+                        >
+                          {o.verb} →
                         </button>
                       </li>
                     ))}

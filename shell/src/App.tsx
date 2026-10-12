@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, type Presence, type SharedField, type Entity, type FeedItem } from './hub';
+import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity } from './hub';
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 import { Dossier } from './Dossier';
@@ -15,6 +15,10 @@ export default function App() {
   const [shared, setShared] = useState<Record<string, SharedField>>({});
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
   const [feed, setFeed] = useState<FeedItem[]>([]);
+  /* the canonical store — every entity every app has ever written,
+     whether or not its frame has ever mounted. The palette, the dossier
+     and the rails read THIS; the index docs stay the thin mirror. */
+  const [entities, setEntities] = useState<StoreEntity[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [unanswered, setUnanswered] = useState<string | null>(null); // mounted place that never said hello
   /* visited places keep their iframes mounted (keep-alive) — the environment
@@ -28,6 +32,15 @@ export default function App() {
   useEffect(() => subscribeShared(setShared), []);
   useEffect(() => subscribeIndexes(setIndexes), []);
   useEffect(() => subscribeFeed(setFeed), []);
+  useEffect(() => {
+    const pull = () => {
+      const it = (window as any).iterra;
+      if (!it?.store?.list) return;
+      it.store.list({}).then((list: StoreEntity[]) => setEntities(list || [])).catch(() => {});
+    };
+    pull();
+    return subscribeStore(pull);
+  }, []);
 
   /* ⌘K / ctrl+K or `/` opens the palette — shell chrome has no text inputs
      of its own so `/` is safe anywhere on the terrain or in chrome */
@@ -53,6 +66,12 @@ export default function App() {
       setActive(id);
       setCourse(ckey);
       if (id) setFrames((f) => (f[id] ? f : { ...f, [id]: appUrl(id) }));
+      /* keep-alive frames must refresh from the store on focus — wake
+         the frame so its adapter re-reads instead of showing a stale view */
+      if (id) {
+        const el = iframeRefs.current[id];
+        if (el) window.setTimeout(() => wakeFrame(el), 60);
+      }
     };
     window.addEventListener('hashchange', onHash);
     onHash();
@@ -441,6 +460,7 @@ export default function App() {
             <Dossier
               course={course}
               indexes={indexes}
+              entities={entities}
               shared={shared}
               feed={feed}
               onGo={goUrl}
@@ -448,12 +468,13 @@ export default function App() {
               onHome={goHome}
             />
           ) : (
-            <Terrain presences={presences} shared={shared} indexes={indexes} feed={feed} onEnter={enter} onGo={goUrl} />
+            <Terrain presences={presences} shared={shared} indexes={indexes} entities={entities} feed={feed} onEnter={enter} onGo={goUrl} />
           )}
         </div>
       ) : null}
       <Search
         indexes={indexes}
+        entities={entities}
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onGo={goUrl}

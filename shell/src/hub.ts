@@ -8,8 +8,144 @@ declare global {
       open(url: string): void;
       doc(ns: string): { get(): unknown; set(v: unknown): void; subscribe(cb: (v: unknown) => void): () => void };
       isFramed(): boolean;
+      store?: {
+        put(e: Record<string, unknown>): Promise<{ ok: boolean; entity?: StoreEntity; error?: string }>;
+        get(key: string): Promise<StoreEntity | null>;
+        list(q?: { app?: string; type?: string; courseId?: string }): Promise<StoreEntity[]>;
+        search(text: string): Promise<StoreEntity[]>;
+        remove(key: string): Promise<{ ok: boolean }>;
+        subscribe(cb: (kind: string, data: unknown) => void): () => void;
+      };
+      courses?: {
+        list(): Promise<StoreEntity[]>;
+        byCode(code: string): Promise<StoreEntity | null>;
+      };
+      send?(opts: SendOpts): Promise<SendResult>;
+      events?: {
+        emit(type: string, payload?: Record<string, unknown>): Promise<{ ok: boolean }>;
+        list(q?: { type?: string; app?: string; limit?: number }): Promise<StoreEvent[]>;
+        on(match: string | string[], cb: (rec: StoreEvent) => void): () => void;
+      };
     };
   }
+}
+
+/* ── canonical store client (the hub's shared layer — WIRING §8/ADAPTER) ── */
+
+export interface StoreEntity {
+  key: string;
+  app: string;
+  type: string;
+  id: string;
+  courseId?: string;
+  course?: string;
+  topic?: string;
+  title?: string;
+  sub?: string;
+  url?: string;
+  lang?: string;
+  data?: Record<string, unknown>;
+  createdAt?: number;
+  updatedAt?: number;
+  v?: number;
+}
+
+export interface StoreEvent {
+  seq?: number;
+  type: string;
+  app: string;
+  payload?: Record<string, unknown>;
+  at: number;
+}
+
+export interface SendOpts {
+  to: string;
+  action: string;
+  entity?: Partial<StoreEntity>;
+  payload?: Record<string, unknown>;
+}
+
+export interface SendResult {
+  ok: boolean;
+  id?: string;
+  delivered?: 'direct' | 'queued';
+  url?: string | null;
+  error?: string;
+}
+
+/** every entity in the canonical store, newest-updated first. No cap —
+    this is the truth, not the published index mirror. */
+export async function storeListAll(): Promise<StoreEntity[]> {
+  const it = window.iterra;
+  if (!it?.store?.list) return [];
+  try {
+    return (await it.store.list({})) || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function storeSearch(q: string): Promise<StoreEntity[]> {
+  const it = window.iterra;
+  if (!it?.store?.search || !q.trim()) return [];
+  try {
+    return (await it.store.search(q.trim())) || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function storeList(q: { app?: string; type?: string; courseId?: string }): Promise<StoreEntity[]> {
+  const it = window.iterra;
+  if (!it?.store?.list) return [];
+  try {
+    return (await it.store.list(q)) || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function storeCourses(): Promise<StoreEntity[]> {
+  const it = window.iterra;
+  if (!it?.courses?.list) return [];
+  try {
+    return (await it.courses.list()) || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function sendTo(opts: SendOpts): Promise<SendResult> {
+  const it = window.iterra;
+  if (!it?.send) return { ok: false, error: 'no hub' };
+  try {
+    return await it.send(opts);
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
+/** wake a keep-alive frame so its adapter refreshes from the store */
+export function wakeFrame(frame: HTMLIFrameElement | null | undefined) {
+  try {
+    frame?.contentWindow?.postMessage({ type: 'iterra:wake' }, window.location.origin);
+  } catch { /* cross-origin or dead frame — nothing to wake */ }
+}
+
+/** subscribe to canonical-store changes (entity puts/removes, events,
+    links, intake writes). Re-read via storeList / storeSearch — the
+    callback payload is just a poke. */
+export function subscribeStore(cb: () => void): () => void {
+  const it = window.iterra;
+  if (it?.store?.subscribe) {
+    try {
+      return it.store.subscribe(() => cb());
+    } catch { /* fall through to polling */ }
+  }
+  /* no store subscribe (old hub) — poll the shared surface like the
+     other subscribers do */
+  const t = window.setInterval(cb, 2500);
+  return () => window.clearInterval(t);
 }
 
 export interface Presence {
