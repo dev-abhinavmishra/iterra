@@ -1,4 +1,6 @@
-// dossier-drill: #/c/<course> 'drill <course>' button → framed timer consumes intent+course
+// dossier-drill: #/c/<course> 'start a session →' verb → timer.start send
+// resolves (direct if timer mounted, else a queued ?intake= the timer drains
+// on boot) and lands the user on the instruments bound to the course.
 const { chromium } = require('playwright-core');
 
 (async () => {
@@ -17,14 +19,29 @@ const { chromium } = require('playwright-core');
     window.location.hash = '/c/mth';
   });
   await page.waitForTimeout(1200);
-  const btn = await page.evaluate(() => [...document.querySelectorAll('button')].find((b) => /^drill MTH →$/.test(b.textContent.trim())));
-  console.log('drill button rendered:', !!btn);
-  await page.click('button:has-text("drill MTH →")');
-  await page.waitForTimeout(2500);
-
-  const tFrame = page.frames().find((f) => f.url().includes('/apps/timer/'));
-  const body = tFrame ? await tFrame.evaluate(() => document.body.innerText.slice(0, 500)) : '';
-  console.log('timer mounted:', !!tFrame, '| intent:', /drill MTH/i.test(body), '| course:', /\bMTH\b/.test(body), '| errs:', errs.join(';') || 'none');
+  const btnInfo = await page.evaluate(() => {
+    const b = [...document.querySelectorAll('button')].find((x) => /^start a session →$/.test(x.textContent.trim()));
+    return { rendered: !!b, buttons: [...document.querySelectorAll('button')].map((x) => x.textContent.trim()).filter(Boolean).slice(0, 15) };
+  });
+  console.log('start-session button rendered:', btnInfo.rendered, '| visible buttons:', btnInfo.buttons.join(' · '));
+  if (!btnInfo.rendered) { console.error('FAIL: no start-session verb on the dossier'); process.exit(1); }
+  await page.click('button:has-text("start a session →")');
+  // delivery may be direct (warm frame) or a queued ?intake= the cold frame
+  // drains then navigates to the bound deep link — poll for the outcome.
+  let tFrame, body = '', fsrc = '';
+  for (let i = 0; i < 12; i++) {
+    await page.waitForTimeout(800);
+    tFrame = page.frames().find((f) => f.url().includes('/apps/timer/'));
+    if (tFrame) {
+      try { body = await tFrame.evaluate(() => document.body.innerText); fsrc = tFrame.url(); } catch { /* mid-nav */ }
+      if (/drill mth|← terrain|elapsed/i.test(body) || /intake=|intent=/i.test(fsrc)) break;
+    }
+  }
+  const state = { hash: await page.evaluate(() => location.hash) };
+  console.log('timer mounted:', !!tFrame, '| hash:', state.hash, '| src:', fsrc);
+  console.log('| bound session:', /drill mth|← terrain|elapsed/i.test(body), '| errs:', errs.join(';') || 'none');
+  const ok = !!tFrame && state.hash === '#/p/timer' && /drill mth|← terrain|elapsed|intake=|intent=/i.test(fsrc + body);
+  console.log(ok ? 'PASS' : 'FAIL');
   await page.close();
-  await browser.close();
-})();
+  process.exit(ok ? 0 : 1);
+})().catch((e) => { console.error('FAIL', e); process.exit(1); });
