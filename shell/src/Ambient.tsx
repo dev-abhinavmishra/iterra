@@ -94,7 +94,12 @@ export function Ambient({
     [entities],
   );
   const reg = shared.register?.v as { marked?: number; total?: number; pending?: number } | undefined;
-  const note = shared.noteActive?.v as { title?: string; url?: string } | undefined;
+  /* noteActive claims 'the page open on the desk' — present tense, so the
+     same 5-min window the sibling readers (useOtherNoteActive) apply.
+     Live desks re-stamp `at` (margin every 3s publish, ink's 2-min beat);
+     a dead desk's stamp ages out instead of lingering forever. */
+  const noteFresh = now - (shared.noteActive?.at || 0) < 5 * 60 * 1000;
+  const note = (noteFresh ? shared.noteActive?.v : undefined) as { title?: string; url?: string } | undefined;
 
   /* ── session-end toast: a new session entity lands → celebrate it ── */
   const [toast, setToast] = useState<{ text: string; url?: string } | null>(null);
