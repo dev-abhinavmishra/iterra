@@ -209,7 +209,7 @@ A **bulk filing is one event, not N** — per-record stirs are suppressed
 during a filing wave and the caller emits one summary stir; suppressed
 records still index. Syllabus pattern: `beginBulkFeed()`/`endBulkFeed()`
 (module-level depth gate in the store) + `stir()` for the summary
-(`commitments filed: N · <code>`, `commitments seeded: N`, `courses
+(`commitments filed: N · <code>`, `commitments seeded: N · <code>`, `courses
 filed: N`). Gradestack pattern: `_mergedIds`, a transient un-partialed
 store field the ambient watcher skips emit for; mergeRemote/importData
 populate it (`register synced: N`, `register restored: N`).
