@@ -150,14 +150,17 @@ export const useFolio = create<FolioState>()(
           // Inbound Timer completion: ?completedBlock=<id>&actual=<minutes>
           const actual = Number(q.get('actual'));
           if (blockId && st.blocks[blockId]) {
+            const wasDone = st.blocks[blockId].state === 'done';
             st.completeBlock(blockId, Number.isFinite(actual) && actual > 0 ? actual : undefined);
             const stamped = get().blocks[blockId];
             const c = stamped ? get().commitments[stamped.commitmentId] : undefined;
-            feed(
-              `timer filed ${stamped?.actualMinutes ?? (Number.isFinite(actual) ? actual : 0)}m into ${c?.title ?? 'a block'}`,
-              `/apps/syllabus/?block=${blockId}`,
-              c ? get().courses[c.courseId]?.code : undefined,
-            );
+            if (!wasDone) {
+              feed(
+                `timer filed ${stamped?.actualMinutes ?? (Number.isFinite(actual) ? actual : 0)}m into ${c?.title ?? 'a block'}`,
+                `/apps/syllabus/?block=${blockId}`,
+                c ? get().courses[c.courseId]?.code : undefined,
+              );
+            }
             consumed = true;
           }
           // Search-palette deep link: ?block=<id> → select the slip on Today.
@@ -429,7 +432,10 @@ export const useFolio = create<FolioState>()(
       completeBlock: (id, actualMinutes) => {
         set((s) => {
           const b = s.blocks[id];
-          if (!b) return s;
+          /* a done block stays stamped — a re-fired ?completedBlock link
+             (duplicate navigation, tab restore) must not double-count
+             loggedMinutes on the commitment */
+          if (!b || b.state === 'done') return s;
           const actual = actualMinutes ?? b.actualMinutes ?? b.plannedMinutes;
           const c = s.commitments[b.commitmentId];
           const blocks = { ...s.blocks, [id]: { ...b, state: 'done' as const, actualMinutes: actual, completedAt: new Date().toISOString() } };
