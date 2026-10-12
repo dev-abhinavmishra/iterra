@@ -443,7 +443,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({
           <Btn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} icon={List} title="List" />
           <Btn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} icon={ListOrdered} title="Numbered list" />
           <Btn active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} icon={Quote} title="Quote" />
-          {(window as unknown as { iterra?: { send?: unknown } }).iterra?.send && (
+          {!!(window as unknown as { iterra?: { send?: unknown } }).iterra?.send && (
             <>
               <span className="w-px h-4 bg-paper/15 mx-1" />
               <span className="relative">
