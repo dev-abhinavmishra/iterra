@@ -853,11 +853,24 @@
   function drainIntakes(app, done) {
     intakesPending(app).then(function (rows) {
       var i = 0;
+      /* a frame launched at ?intake=<id> exists to receive that intake —
+         the handler's result.url is where delivery lands (e.g. a bound
+         autostart timer, the new note). Navigate only for that record so a
+         routine boot draining background intakes isn't hijacked. */
+      var launchedFor = null;
+      try { launchedFor = new URLSearchParams(window.location.search).get('intake'); } catch (e) {}
       var next = function () {
         if (i >= rows.length) { done(); return; }
         var rec = rows[i++];
         var h = _deliveries[app + ':' + rec.action] || _deliveries[app + ':*'];
-        var finish = function (result) { intakeResolve(rec.id, result).then(next); };
+        var finish = function (result) {
+          intakeResolve(rec.id, result).then(function () {
+            if (launchedFor && rec.id === launchedFor && result && result.url) {
+              try { window.location.assign(result.url); return; } catch (e) {}
+            }
+            next();
+          });
+        };
         if (!h) { finish(undefined); return; }
         try {
           var r = h(rec);

@@ -540,7 +540,7 @@ const sendSelection = (editor: Editor, to: 'margin' | 'flashcards' | 'proof'): v
     to === 'margin'
       ? { to, action: 'note.create', entity, payload: { text: sel } }
       : to === 'flashcards'
-        ? { to, action: 'cards.create', entity, payload: { cards: [{ q: sel, a: '' }], deckTitle: pageTitle } }
+        ? { to, action: 'cards.create', entity, payload: { cards: [{ q: `from “${pageTitle}” — recall`, a: sel }], deckTitle: pageTitle } }
         : { to, action: 'step.append', entity: { app: 'ink', type: 'note', id: page?.id ?? 'page', title: sel } };
   Promise.resolve(it.send(opts))
     .then((res: any) => {

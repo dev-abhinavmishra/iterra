@@ -51,7 +51,11 @@ export function Search({
   const [sel, setSel] = useState(0);
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
-  const [sendFor, setSendFor] = useState<Hit | null>(null);
+  /* sendFor tracks a hit by its stable identity (entity key / url), not the
+     object — hits rebuild on every store poll, so `sendFor === h` never
+     survives a refresh and the menu would die the moment it opened. */
+  const [sendForKey, setSendForKey] = useState<string | null>(null);
+  const hitId = (h: Hit) => h.skey || h.url;
   const [sentNote, setSentNote] = useState<string | null>(null);
   const pinned = useMemo(() => {
     const s = new Set<string>();
@@ -69,7 +73,7 @@ export function Search({
     if (open) {
       setQ('');
       setSel(0);
-      setSendFor(null);
+      setSendForKey(null);
       setSentNote(null);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
@@ -177,7 +181,7 @@ export function Search({
      the target is live it delivers direct; otherwise it queues as a
      pending intake the target's adapter drains on boot. */
   const doSend = async (h: Hit, t: { to: string; action: string; label: string }) => {
-    setSendFor(null);
+    setSendForKey(null);
     if (!h.entity) return;
     const r = await sendTo({ to: t.to, action: t.action, entity: h.entity });
     if (!r.ok) {
@@ -239,9 +243,9 @@ export function Search({
                  any object can be handed to a sibling action */
               if ((e.key === 'ArrowRight' || e.key === 'Tab') && hits[sel]?.entity) {
                 e.preventDefault();
-                setSendFor((cur) => (cur === hits[sel] ? null : hits[sel]));
+                setSendForKey((cur) => (hits[sel] && cur === hitId(hits[sel]) ? null : hits[sel] ? hitId(hits[sel]) : cur));
               }
-              if (e.key === 'ArrowLeft' && sendFor) { e.preventDefault(); setSendFor(null); }
+              if (e.key === 'ArrowLeft' && sendForKey) { e.preventDefault(); setSendForKey(null); }
             }}
             placeholder="search the terrain — notes, decks, blocks, sessions…"
             className="w-full bg-transparent text-[14px] text-field-ink placeholder-atlas-500 focus:outline-none"
@@ -306,11 +310,11 @@ export function Search({
                             onClick={(ev) => {
                               ev.stopPropagation();
                               setSel(i);
-                              setSendFor((cur) => (cur === h ? null : h));
+                              setSendForKey((cur) => (cur === hitId(h) ? null : hitId(h)));
                             }}
                             title="send to another place (s)"
                             className={`shrink-0 rounded px-1 text-[11px] focus:outline-none ${
-                              sendFor === h ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
+                              sendForKey === hitId(h) ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
                             }`}
                           >
                             ⇥
@@ -318,7 +322,7 @@ export function Search({
                         )}
                         <span className="text-[11px] text-atlas-500">{i === sel ? '↵' : '→'}</span>
                       </button>
-                      {sendFor === h && (
+                      {sendForKey === hitId(h) && (
                         <div className="anim-rise border-t border-atlas-200 bg-atlas-100/60 px-4 py-1.5">
                           <div className="pb-1 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
                             send “{h.label}” to…

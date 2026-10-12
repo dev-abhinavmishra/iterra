@@ -209,4 +209,9 @@ export function registerAdapter() {
   });
 }
 
-if (typeof window !== 'undefined') registerAdapter();
+/* iterra.ts side-imports this module, and this module imports back from
+   iterra.ts — a cycle. Module-eval order puts US first, so registerAdapter
+   must not run at eval time: onMarginSnapshot touches iterra.ts module
+   state (its listener Set) before that body has evaluated — a TDZ crash
+   that took the whole app down. A microtask runs after the graph settles. */
+if (typeof window !== 'undefined') queueMicrotask(registerAdapter);

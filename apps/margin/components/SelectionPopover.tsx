@@ -158,8 +158,8 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                     ...(course ? { course } : {}),
                     ...(courseId ? { courseId } : {}),
                     cards: [{
-                        q: sel.length <= 120 ? sel : `Explain: ${sel.slice(0, 117)}…`,
-                        a: '',
+                        q: `from “${noteTitle}” — recall`,
+                        a: sel.length <= 300 ? sel : `${sel.slice(0, 297)}…`,
                     }],
                     deckTitle: noteTitle,
                 },

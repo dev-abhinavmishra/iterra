@@ -32,24 +32,32 @@ export function Dossier({
   const unfiled = key === 'unfiled';
 
   /* the canonical course entity — the registry id everything else files
-     under. Resolved by code (the dossier key IS the code) or by the
-     courseId every store entity carries. */
+     under. Resolved three ways: by display code (the dossier key IS the
+     code for humans), by canonical key (#/c/syllabus:course:<id> — the
+     route an entity's own url produces), or by the courseId entities
+     carry when no course entity is reachable. */
   const courseEnt = useMemo(
     () =>
       (entities || []).find(
         (e) =>
           e.type === 'course' &&
-          ((e.data?.code as string) || e.course || e.title || '').toLowerCase() === key,
+          (((e.data?.code as string) || e.course || e.title || '').toLowerCase() === key ||
+            (e.key || '').toLowerCase() === key),
       ) || null,
     [entities, key],
   );
   const courseId = courseEnt?.key;
+  /* what humans see — the registry code when the entity resolved, else
+     the route's raw param */
+  const display =
+    ((courseEnt?.data?.code as string) || courseEnt?.title || course) as string;
   /* everything the store files under this course — mounted or not */
   const courseEnts = useMemo(
     () =>
       (entities || []).filter(
         (e) =>
           (courseId && e.courseId === courseId) ||
+          (e.courseId || '').toLowerCase() === key ||
           (!unfiled && (e.course || '').toLowerCase() === key) ||
           (unfiled && !e.courseId && !e.course && !e.topic),
       ),
@@ -73,7 +81,7 @@ export function Dossier({
       to: 'timer',
       action: 'timer.start',
       payload: {
-        label: nextCommit?.title || `drill ${course}`,
+        label: nextCommit?.title || `drill ${display}`,
         minutes: (nextCommit?.data?.estimatedMinutes as number) || 25,
         commitmentId: nextCommit?.id,
         courseId,
@@ -160,9 +168,9 @@ export function Dossier({
         {unfiled ? 'the unfiled' : 'course dossier'}
       </div>
       <div className="mb-2 flex items-baseline gap-2">
-        <h1 className="text-[26px] font-semibold tracking-tight text-field-ink">{unfiled ? 'unfiled' : course}</h1>
+        <h1 className="text-[26px] font-semibold tracking-tight text-field-ink">{unfiled ? 'unfiled' : display}</h1>
         <button
-          onClick={() => togglePin({ app: 'terrain', title: `${course} desk`, url: `#/c/${encodeURIComponent(course)}` })}
+          onClick={() => togglePin({ app: 'terrain', title: `${display} desk`, url: `#/c/${encodeURIComponent(course)}` })}
           title={pinnedUrls.has(`#/c/${encodeURIComponent(course)}`) ? 'unpin this desk' : 'pin this desk to the shelf'}
           className={`text-[15px] leading-none focus:outline-none ${
             pinnedUrls.has(`#/c/${encodeURIComponent(course)}`) ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
@@ -183,7 +191,7 @@ export function Dossier({
       {!unfiled && (
         <div className="mb-8 rounded-lg border border-moss-400/70 bg-moss-50/70 p-3.5">
           <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-moss-700">
-            the desk — {course}
+            the desk — {display}
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <button
