@@ -131,6 +131,12 @@ contract every app and the shell follows.
   `?scanId=` deep link, ink `addNote` honors caller ids (idempotent
   re-delivery). Check: scripts/intake-matrix-check.cjs — all 14
   documented actions asserting real target-side effects, 17/17.
+  Follow-ups: store.get miss → null (was truthy IDBRequest), drain nav
+  same-origin gated, intakeResolve can't double-stamp, rhythm wake
+  reconciles remote removes, timer binding is one-shot + file-back
+  survives chained recess (files captured focus minutes), shell
+  'waking <place>…' boot chip + 'N waiting' chip turns rose at
+  attempts>=3 (lastError on hover), send.delivered event emitted.
 - Landed recently (verify before re-doing): ?block= slip intake + ring
   (2e40d6e), entity urls carry ?block=<id> so dossier/palette/shelf clicks
   land ON the slip, FOCUS pill on bound slips, Sigma→proof pad links,

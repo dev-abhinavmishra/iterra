@@ -1043,6 +1043,11 @@
                unloads the page and a fire-and-forget emit loses the race —
                the toast would never surface (the original dead-emit bug). */
             var settled = [Promise.resolve(intakeResolve(rec.id, result)).catch(function () {})];
+            /* journal every delivery — send.delivered is the always-on
+               record; intake.resolved below carries the optional toast */
+            try {
+              settled.push(Promise.resolve(eventEmit('send.delivered', { to: rec.to, action: rec.action, id: rec.id, url: (result && result.url) || undefined, by: me || undefined })).catch(function () {}));
+            } catch (e) {}
             if (result && typeof result.toast === 'string') {
               try {
                 settled.push(Promise.resolve(eventEmit('intake.resolved', { to: rec.to, action: rec.action, toast: result.toast, url: result.url || undefined, by: me || undefined })).catch(function () {}));
