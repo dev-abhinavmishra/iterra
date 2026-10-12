@@ -175,6 +175,32 @@ export function inTerrain(): boolean {
   return !!(it?.open && (typeof it.isFramed !== 'function' || it.isFramed()));
 }
 
+/* Pending timer.control ops — TimerView drains entries whose state
+   precondition holds; entries older than 30s are stale steering and drop.
+   localStorage-backed: an op that lands right before the ?intake= landing
+   navigates the frame must survive the reload, not die with module state. */
+const TIMER_OPS_KEY = 'timer.ops.v1';
+export function queuedTimerControls(): { op: string; at: number }[] {
+  try {
+    const arr = JSON.parse(localStorage.getItem(TIMER_OPS_KEY) || '[]');
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+export function pushTimerControl(op: string) {
+  try {
+    const arr = queuedTimerControls();
+    arr.push({ op, at: Date.now() });
+    localStorage.setItem(TIMER_OPS_KEY, JSON.stringify(arr.slice(-8)));
+  } catch { /* full/blocked storage — the live event path still works */ }
+}
+export function dequeueTimerControl(entry: { op: string; at: number }) {
+  try {
+    localStorage.setItem(TIMER_OPS_KEY, JSON.stringify(
+      queuedTimerControls().filter((x) => !(x.op === entry.op && x.at === entry.at)),
+    ));
+  } catch { /* best-effort */ }
+}
+
 export function openTerrain(url: string) {
   hub()?.open?.(url);
 }
@@ -242,10 +268,14 @@ export function registerAdapter() {
       'timer.start': onTimerStart,
       /* steer a live session from anywhere in the terrain: the ambient
          rail's ❚❚/▶/✓ sends {op} here; TimerView's own listener executes
-         it against the real countdown. Ops: pause | resume | finish. */
+         it against the real countdown. Ops: pause | resume | finish.
+         The op queues BEFORE dispatch — an op landing while the view is
+         still mounting (the ?intake= landing just navigated this frame)
+         would otherwise dispatch into nothing yet report delivered. */
       'timer.control': async (rec: { payload?: { op?: string } }) => {
         const op = rec?.payload?.op;
         if (op !== 'pause' && op !== 'resume' && op !== 'finish') return { ok: false };
+        pushTimerControl(op);
         window.dispatchEvent(new CustomEvent('timer:control', { detail: { op } }));
         return { url: '/apps/timer/' };
       },

@@ -11,7 +11,7 @@ import { RotaryDial } from '../components/RotaryDial';
 import { KeyButton } from '../components/KeyButton';
 import { stationChime, secondTick, flapLand } from '../lib/sound';
 import { parseSyllabusLink, syllabusReturnUrl } from '../lib/deeplink';
-import { boundCourseCode, inTerrain, openTerrain, recentCourses, type RecentCourse } from '../lib/iterra-adapter';
+import { boundCourseCode, inTerrain, openTerrain, recentCourses, queuedTimerControls, dequeueTimerControl, type RecentCourse } from '../lib/iterra-adapter';
 
 const QUICK = [5, 10, 15, 25, 30, 45, 60, 90];
 
@@ -395,27 +395,59 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
      adapter intake 'timer.control' re-dispatches {op} here. pause /
      resume run the same code path as the Space key; finish logs the
      elapsed minutes then clears (a sub-minute session just clears). */
+  /* returns whether the op actually applied — an op arriving before the
+     countdown is armed stays queued so the drain retries it when state
+     catches up (the ?intake= landing race) */
+  const applyOp = (op: string): boolean => {
+    const jot = (type: 'session.paused' | 'session.resumed') => {
+      const it = (window as any).iterra;
+      try {
+        it?.events?.emit?.(type, {
+          label: label ?? undefined, courseId: syllabus?.courseId ?? undefined,
+          course: syllabus?.course ?? undefined, remainingSec: Math.round(cd.remainingMs / 1000),
+        });
+      } catch { /* journal best-effort */ }
+    };
+    if (op === 'pause' && running) { cd.pause(); jot('session.paused'); return true; }
+    if (op === 'resume' && !running && hasTime && cd.remainingMs > 0) {
+      cd.resume(isBreak ? completeBreakLive : completeFocusLive);
+      jot('session.resumed');
+      return true;
+    }
+    if (op === 'finish' && hasTime) { finishEarly(); return true; }
+    return false;
+  };
+
   useEffect(() => {
     const onCtl = (e: Event) => {
       const op = (e as CustomEvent<{ op?: string }>).detail?.op;
-      const jot = (type: 'session.paused' | 'session.resumed') => {
-        const it = (window as any).iterra;
-        try {
-          it?.events?.emit?.(type, {
-            label: label ?? undefined, courseId: syllabus?.courseId ?? undefined,
-            course: syllabus?.course ?? undefined, remainingSec: Math.round(cd.remainingMs / 1000),
-          });
-        } catch { /* journal best-effort */ }
-      };
-      if (op === 'pause' && running) { cd.pause(); jot('session.paused'); }
-      else if (op === 'resume' && !running && hasTime && cd.remainingMs > 0) {
-        cd.resume(isBreak ? completeBreakLive : completeFocusLive);
-        jot('session.resumed');
+      if (!op) return;
+      /* applied → consume the queued copy so the drain can't re-run it;
+         not applicable yet → leave queued for the drain below */
+      if (applyOp(op)) {
+        const entry = queuedTimerControls().find((x) => x.op === op);
+        if (entry) dequeueTimerControl(entry);
       }
-      else if (op === 'finish' && hasTime) finishEarly();
     };
     window.addEventListener('timer:control', onCtl);
     return () => window.removeEventListener('timer:control', onCtl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, hasTime, isBreak, cd.remainingMs]);
+
+  /* drain ops that arrived while this view wasn't listening — each fires
+     once its state precondition holds (running flips true after the link
+     consume re-arms the countdown); stale ops >30s drop — a steering op
+     that old no longer means anything */
+  useEffect(() => {
+    const now = Date.now();
+    for (const entry of queuedTimerControls()) {
+      if (now - entry.at > 30000) { dequeueTimerControl(entry); continue; }
+      const applicable =
+        (entry.op === 'pause' && running) ||
+        (entry.op === 'resume' && !running && hasTime && cd.remainingMs > 0) ||
+        (entry.op === 'finish' && hasTime);
+      if (applicable && applyOp(entry.op)) dequeueTimerControl(entry);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, hasTime, isBreak, cd.remainingMs]);
 
