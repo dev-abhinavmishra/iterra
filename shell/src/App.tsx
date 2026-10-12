@@ -491,7 +491,7 @@ export default function App() {
               onHome={goHome}
             />
           ) : (
-            <Terrain presences={presences} shared={shared} indexes={indexes} entities={entities} feed={feed} onEnter={enter} onGo={goUrl} />
+            <Terrain presences={presences} mounted={Object.keys(frames)} shared={shared} indexes={indexes} entities={entities} feed={feed} onEnter={enter} onGo={goUrl} />
           )}
         </div>
       ) : null}

@@ -43,9 +43,13 @@ function commonsLine(field: string, f: SharedField): { app: string; text: string
     case 'focus':
       // tighter staleness than generic commons: a running session rewrites
       // every minute — >3m old means the instruments tab died mid-session
-      return v.running && f.at && Date.now() - f.at < 3 * 60 * 1000
-        ? { app: 'timer', text: `focus: ${v.label || 'in session'}${v.endsInMin != null ? ` · ${v.endsInMin}m left` : ''}` }
-        : null;
+      if (!(v.running || v.paused) || !f.at || Date.now() - f.at >= 3 * 60 * 1000) return null;
+      const leftMin = v.endsAt
+        ? Math.max(0, Math.ceil((v.endsAt - Date.now()) / 60000))
+        : v.paused && typeof v.remainingSec === 'number'
+          ? Math.round(v.remainingSec / 60)
+          : null;
+      return { app: 'timer', text: `focus: ${v.label || 'in session'}${v.paused ? ' · paused' : ''}${leftMin != null ? ` · ${leftMin}m left` : ''}` };
     case 'today':
       return v.slips != null ? { app: 'syllabus', text: `${v.slips} slips · ${v.overdue || 0} late${v.next ? ` — next: ${v.next}` : ''}` } : null;
     case 'activeCourse':
@@ -67,6 +71,7 @@ function commonsLine(field: string, f: SharedField): { app: string; text: string
 
 export function Terrain({
   presences,
+  mounted,
   shared,
   indexes,
   entities,
@@ -75,6 +80,7 @@ export function Terrain({
   onGo,
 }: {
   presences: Record<string, Presence>;
+  mounted?: string[];
   shared: Record<string, SharedField>;
   indexes: Record<string, Entity[]>;
   entities: StoreEntity[];
@@ -136,15 +142,22 @@ export function Terrain({
                     <span className="block h-9 w-9 text-moss-700 transition-colors group-hover:text-moss-600">
                       {p.glyph}
                     </span>
-                    <span className="mt-1 text-[11px] uppercase tracking-[0.14em] text-atlas-500 group-hover:text-moss-600">
+                    <span className="mt-1 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-atlas-500 group-hover:text-moss-600">
+                      {mounted?.includes(p.id) && (
+                        <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-moss-500" title="warm — this place is still mounted" />
+                      )}
                       enter →
                     </span>
                   </div>
                   <h3 className="font-place mt-3 text-lg leading-tight text-field-ink">{p.place}</h3>
                   <p className="mt-0.5 text-[12px] font-medium uppercase tracking-[0.1em] text-moss-700">{p.app}</p>
                   <p className="mt-2 text-[13px] leading-snug text-field-faint">{p.tagline}</p>
-                  <div className="mt-3 border-t border-dashed border-atlas-300 pt-2.5 text-[12px]">
+                  <div className="mt-3 flex items-baseline justify-between gap-2 border-t border-dashed border-atlas-300 pt-2.5 text-[12px]">
                     <StatusLine p={presences[p.id]} stale={isStale(presences[p.id])} />
+                    <span className="shrink-0 text-[10.5px] text-atlas-400">
+                      {(entities || []).filter((e) => e.app === p.id).length || ''}
+                      {(entities || []).some((e) => e.app === p.id) ? ' filed' : ''}
+                    </span>
                   </div>
                 </button>
               ))}

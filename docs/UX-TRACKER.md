@@ -58,8 +58,8 @@ and e2e-verified where the surface is user-visible.
 - [x] 41 Place switcher: warm/cold dot per place (mounted frame vs not)
 - [x] 42 Switcher live badges: running timer · due count · pending marks
 - [x] 43 Cycle places chord (⌘⇧→/←) — if it doesn't collide
-- [ ] 44 Chrome breadcrumb: place → its course dossier
-- [ ] 45 Palette verb section: "start", "review", "plan" queries surface actions, not just entities
+- [x] 44 Chrome breadcrumb: place → its course dossier
+- [x] 45 Palette verb section: "start", "review", "plan" queries surface actions, not just entities
 - [x] 46 Palette send-to keyed by stable identity (shipped — survives polls)
 - [ ] 47 Palette entity detail: selected hit → field drawer + action verbs
 - [ ] 48 Palette recency: empty query shows recent entities first
