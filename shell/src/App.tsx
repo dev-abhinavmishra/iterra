@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, pendingIntakes, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity } from './hub';
+import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, pendingIntakes, firstPendingIntake, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity } from './hub';
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 import { Dossier } from './Dossier';
@@ -25,6 +25,8 @@ export default function App() {
   /* visited places keep their iframes mounted (keep-alive) — the environment
      stays warm: state persists while wandering the terrain. */
   const [frames, setFrames] = useState<Record<string, string>>({});
+  const framesRef = useRef<Record<string, string>>({});
+  framesRef.current = frames;
   const [switcherOpen, setSwitcherOpen] = useState(false);
   /* queued sends parked in each app's intake — surfaced as 'N waiting'
      badges so a transfer that will deliver on next open isn't silent */
@@ -81,7 +83,15 @@ export default function App() {
       const { place: id, course: ckey } = readHash();
       setActive(id);
       setCourse(ckey);
-      if (id) setFrames((f) => (f[id] ? f : { ...f, [id]: appUrl(id) }));
+      /* mount at the deepest pending ?intake= when one exists — a bare
+         mount drains the queue without ever landing on the result.url,
+         so 'delivers when opened' would silently evaporate (e.g. a queued
+         timer.start resolving to its bound autostart link). */
+      if (id && !framesRef.current[id]) {
+        firstPendingIntake(id).then((pid) => {
+          setFrames((f) => (f[id] ? f : { ...f, [id]: pid ? `/apps/${id}/?intake=${pid}` : appUrl(id) }));
+        });
+      }
       /* keep-alive frames must refresh from the store on focus — wake
          the frame so its adapter re-reads instead of showing a stale view */
       if (id) {
@@ -129,14 +139,23 @@ export default function App() {
         }
         const [, id, p = '/', q = ''] = m;
         const url = `/apps/${id}${p}${q}`;
-        setFrames((f) => {
-          // identical src => React no-ops and the nav is lost; bust it with a
-          // nonce the app ignores so a repeat link still re-navigates
-          if (f[id] === url) {
-            return { ...f, [id]: `${url}${q ? '&' : '?'}_inav=${Date.now()}` };
-          }
-          return { ...f, [id]: url };
-        });
+        if (!q && !framesRef.current[id]) {
+          /* bare open onto a cold place with queued intakes — mount at the
+             intake URL so the boot drain lands on result.url instead of
+             evaporating it (same rule as hash entry). */
+          firstPendingIntake(id).then((pid) => {
+            setFrames((f) => (f[id] ? f : { ...f, [id]: pid ? `/apps/${id}/?intake=${pid}` : url }));
+          });
+        } else {
+          setFrames((f) => {
+            // identical src => React no-ops and the nav is lost; bust it with a
+            // nonce the app ignores so a repeat link still re-navigates
+            if (f[id] === url) {
+              return { ...f, [id]: `${url}${q ? '&' : '?'}_inav=${Date.now()}` };
+            }
+            return { ...f, [id]: url };
+          });
+        }
         window.location.hash = `/p/${id}`;
       }
       if (d.type === 'iterra:hotkey' && typeof d.key === 'string') {
@@ -159,7 +178,16 @@ export default function App() {
         // (in-frame nav that slipped the intercepts), heal the slot back.
         const slot = Object.entries(iframeRefs.current).find(([, el]) => el?.contentWindow === ev.source);
         if (slot && slot[0] !== helloApp) {
-          setFrames((f) => ({ ...f, [helloApp]: url, [slot[0]]: appUrl(slot[0]) }));
+          const backId = slot[0];
+          /* the vacated slot remounts its app fresh — if that app has queued
+             intakes, boot it at ?intake=<id> so the drain lands on result.url. */
+          firstPendingIntake(backId).then((pid) => {
+            setFrames((f) => ({
+              ...f,
+              [helloApp]: url,
+              [backId]: pid ? `/apps/${backId}/?intake=${pid}` : appUrl(backId),
+            }));
+          });
           window.location.hash = `/p/${helloApp}`;
         } else {
           setFrames((f) => (f[helloApp] ? f : { ...f, [helloApp]: url }));

@@ -880,6 +880,7 @@
      pending intakes newest-oldest order preserved (at-sorted), calls the
      handler per record, resolves with whatever the handler returns. */
   var _deliveries = {};
+  var _launchChecked = false;
   function drainIntakes(app, done) {
     intakesPending(app).then(function (rows) {
       var i = 0;
@@ -889,6 +890,20 @@
          routine boot draining background intakes isn't hijacked. */
       var launchedFor = null;
       try { launchedFor = new URLSearchParams(window.location.search).get('intake'); } catch (e) {}
+      if (launchedFor && !_launchChecked) {
+        _launchChecked = true;
+        if (!rows.some(function (r) { return r.id === launchedFor; })) {
+          /* launched at ?intake=<id> but the record already resolved — a
+             drain on another mount beat the sender's 'direct' deadline and
+             nobody navigated to the result. Land on it once so this reload
+             doesn't evaporate the delivery. */
+          intakeGet(launchedFor).then(function (rec) {
+            if (rec && rec.to === app && rec.delivered && rec.result && rec.result.url) {
+              try { window.location.assign(rec.result.url); } catch (e) {}
+            }
+          });
+        }
+      }
       var next = function () {
         if (i >= rows.length) { done(); return; }
         var rec = rows[i++];

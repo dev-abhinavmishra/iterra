@@ -126,6 +126,20 @@ export async function sendTo(opts: SendOpts): Promise<SendResult> {
 }
 
 /** wake a keep-alive frame so its adapter refreshes from the store */
+/* oldest pending intake id for a place — a cold frame mounts AT
+   '?intake=<id>' so its boot-drain lands on the delivered result
+   (a bare mount would resolve the send without ever showing it). */
+export async function firstPendingIntake(app: string): Promise<string | null> {
+  const it = (window as any).iterra;
+  if (!it?.intakes?.pending) return null;
+  try {
+    const rows = await it.intakes.pending(app);
+    return rows?.[0]?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /* queued sends waiting in each app's intake — the switcher badge shows
    'N waiting' so a queued transfer is visible, not silent. */
 export async function pendingIntakes(): Promise<Record<string, number>> {
