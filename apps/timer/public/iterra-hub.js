@@ -120,6 +120,7 @@
       if (u.trim() === '' || u === 'about:blank') return origOpen.call(window, url, target, features);
       var abs;
       try { abs = new URL(u, window.location.href); } catch (e) { abs = null; }
+      if (abs && abs.protocol !== 'http:' && abs.protocol !== 'https:' && abs.protocol !== 'mailto:') return null;
       if (abs && abs.origin === window.location.origin) {
         open(abs.pathname + abs.search + abs.hash);
         return { closed: false, focus: function () {}, close: function () {}, location: { href: abs.href } };
