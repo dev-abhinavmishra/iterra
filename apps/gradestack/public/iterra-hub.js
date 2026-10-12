@@ -428,6 +428,8 @@
     try { localStorage.setItem(LS_BUCKET_PREFIX + bucket, JSON.stringify(obj)); } catch (e) {}
   }
   var LS_CAPS = { entities: 2000, events: 400, links: 2000, intakes: 100, meta: 100 };
+  /* IDB keeps a deeper journal than the LS fallback, still bounded. */
+  var IDB_EVENT_CAP = 2000;
 
   /* ── validation + quarantine ── */
 
@@ -677,6 +679,23 @@
         emit() journals every event to the events store AND mirrors notable
         ones to the feed doc (same shape the terrain reads today). ── */
 
+  /* the journal is lossy by design — cap IDB like the LS path so
+     events.list() (which loads all rows) stays bounded. Runs inside the
+     write tx: count + ascending cursor deletes the oldest seqs. */
+  function capEventsStore(s) {
+    var count = s.count();
+    count.onsuccess = function () {
+      var excess = count.result - IDB_EVENT_CAP;
+      if (excess <= 0) return;
+      var cur = s.openCursor(); /* ascending seq — oldest first */
+      cur.onsuccess = function () {
+        var c = cur.result;
+        if (!c || excess <= 0) return;
+        c.delete(); excess--; c.continue();
+      };
+    };
+  }
+
   function eventEmit(type, payload) {
     var v = validateEvent(type, payload);
     if (!v.ok) return Promise.resolve(v);
@@ -686,7 +705,7 @@
     };
     return openDB().then(function (d) {
       if (d) {
-        return idbTx(d, 'events', 'readwrite', function (s) { s.add(rec); });
+        return idbTx(d, 'events', 'readwrite', function (s) { s.add(rec); capEventsStore(s); });
       }
       var b = lsRead('events');
       var seq = (b._seq || 0) + 1;
@@ -1283,12 +1302,14 @@
     /* journal only — no re-emit to feed (that would double-write) */
     openDB().then(function (d) {
       var rec = { type: 'stir', app: me || '?', payload: { text: item && item.text, url: item && item.url, course: item && item.course, topic: item && item.topic }, at: Date.now() };
-      if (d) { idbTx(d, 'events', 'readwrite', function (s) { s.add(rec); }).then(function () { _notify('event', rec); }); return; }
+      if (d) { idbTx(d, 'events', 'readwrite', function (s) { s.add(rec); capEventsStore(s); }).then(function () { _notify('event', rec); }); return; }
       var b = lsRead('events');
       var seq = (b._seq || 0) + 1;
       b._seq = seq;
       rec.seq = seq;
       b[seq] = rec;
+      var keys = Object.keys(b).filter(function (k) { return k !== '_seq'; }).map(Number).sort(function (a, b2) { return b2 - a; });
+      for (var i = LS_CAPS.events; i < keys.length; i++) delete b[keys[i]];
       lsWrite('events', b);
       _notify('event', rec);
     });
