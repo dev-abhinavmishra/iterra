@@ -142,7 +142,10 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       /* the link fully describes the session it arms — no break param
          means no chained recess, not whatever the user last dialed */
       setThenBreak(link.thenBreak ?? 0);
-      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId });
+      /* a returnUrl the file-back gate would reject stays out of state —
+         otherwise it renders a dead 'file back' button */
+      const returnUrl = link.returnUrl && syllabusReturnUrl(link, 1) ? link.returnUrl : undefined;
+      setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId });
       const url = new URL(window.location.href);
       if (url.search) {
         url.search = '';

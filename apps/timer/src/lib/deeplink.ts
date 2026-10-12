@@ -63,6 +63,15 @@ export function syllabusReturnUrl(link: { returnUrl?: string; block?: string }, 
     // http(s) only — a javascript:/data: return param would execute on the
     // file-back navigation (window.location.href); intake params are hostile
     if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    // file-back only ever targets a sibling app — a same-origin /apps path
+    // or a loopback dev port (producers use iterra.selfBase()). Anything
+    // else means the ?return= param was crafted to navigate away.
+    const loopback =
+      u.hostname === 'localhost' ||
+      u.hostname === '127.0.0.1' ||
+      u.hostname === '[::1]' ||
+      u.hostname.endsWith('.localhost');
+    if (u.origin !== window.location.origin && !loopback) return null;
     u.searchParams.set('completedBlock', link.block);
     u.searchParams.set('actual', String(Math.max(1, Math.round(actualMinutes))));
     return u.toString();

@@ -85,16 +85,24 @@ describe('syllabusReturnUrl', () => {
     expect(syllabusReturnUrl({}, 30)).toBeNull();
   });
 
-  it('builds completedBlock + actual on the return origin', () => {
-    (globalThis as any).window = { location: { origin: 'http://app.example' } };
+  it('builds completedBlock + actual on a loopback return origin', () => {
+    // standalone dev topology: syllabus on :3003 files back cross-origin
+    (globalThis as any).window = { location: { origin: 'http://localhost:3005' } };
     const url = syllabusReturnUrl(
-      { returnUrl: 'http://shell.example/apps/syllabus/', block: 'b_9' },
+      { returnUrl: 'http://localhost:3003/apps/syllabus/', block: 'b_9' },
       30,
     );
     const u = new URL(url!);
-    expect(u.origin).toBe('http://shell.example');
+    expect(u.origin).toBe('http://localhost:3003');
     expect(u.searchParams.get('completedBlock')).toBe('b_9');
     expect(u.searchParams.get('actual')).toBe('30');
+  });
+
+  it('rejects external-origin returns — only sibling apps file back', () => {
+    (globalThis as any).window = { location: { origin: 'http://localhost:8090' } };
+    for (const bad of ['https://evil.example', 'http://shell.example/apps/syllabus', '//cdn.example/x']) {
+      expect(syllabusReturnUrl({ returnUrl: bad, block: 'b1' }, 10)).toBeNull();
+    }
   });
 
   it('resolves terrain-relative returns against this origin', () => {
