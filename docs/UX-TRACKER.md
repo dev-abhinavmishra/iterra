@@ -93,21 +93,21 @@ and e2e-verified where the surface is user-visible.
 - [ ] 73 gradestack grade row: "N cards due" chip
 - [ ] 74 gradestack: logged-minutes links through to the session list
 - [ ] 75 gradestack weights chip: source syllabus course link
-- [ ] 76 flashcards deck header: course dossier link
-- [ ] 77 flashcards deck: "session for this deck" bound timer start
-- [ ] 78 flashcards deck: "log a review" → register
-- [ ] 79 flashcards card: source backlink (note / attempt) via links.for
+- [x] 76 flashcards deck header: course dossier link
+- [x] 77 flashcards deck: "session for this deck" bound timer start
+- [x] 78 flashcards deck: "log a review" → register
+- [x] 79 flashcards card: source backlink (note / attempt) via links.for
 - [ ] 80 timer session list: bound commitment → syllabus jump
 - [ ] 81 timer: quick-start chips for recent courses
 - [ ] 82 timer takeover banner → the session's dossier
-- [ ] 83 margin note: "in deck · N" chip via links.for
-- [ ] 84 margin note: "open in ink" (note.create to ink)
-- [ ] 85 ink page: backlink chips (in margin · in deck)
-- [ ] 86 ink: course binder quick-link
-- [ ] 87 proof attempt: retest-card state chip (scheduled / due)
-- [ ] 88 proof: weak topic → due cards chip
-- [ ] 89 proof step: send to margin note
-- [ ] 90 every app: "open in terrain" uses canonical deep-links
+- [x] 83 margin note: "in deck · N" chip via links.for
+- [x] 84 margin note: "open in ink" (note.create to ink)
+- [x] 85 ink page: backlink chips (in margin · in deck)
+- [x] 86 ink: course binder quick-link
+- [x] 87 proof attempt: retest-card state chip (scheduled / due)
+- [x] 88 proof: weak topic → due cards chip
+- [x] 89 proof step: send to margin note
+- [x] 90 every app: "open in terrain" uses canonical deep-links
 
 ## E. Contracts + data layer
 

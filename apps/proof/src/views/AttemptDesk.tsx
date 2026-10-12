@@ -9,6 +9,7 @@ import { DocView } from '../components/DocView';
 import { DrawPad } from '../components/DrawPad';
 import { ProofRail, ConfidencePicker, HINT_LABELS } from '../components/ProofRail';
 import { DiffMeter } from '../components/DiffMeter';
+import { RetestChip, ToMarginButton } from '../components/TerrainChips';
 import type { ViewKey } from '../components/TopTabs';
 import {
   Lightbulb, Send, Timer, Plus, Trash2, ImagePlus, PenLine, CheckCheck,
@@ -125,6 +126,7 @@ export function AttemptDesk({
             {course && <span className="chip">{course.code}</span>}
             <DiffMeter level={problem.difficulty} />
             {session && <span className="chip chip--violet">session · {(session.problemIds.indexOf(problem.id) + 1) || '—'}/{session.problemIds.length}</span>}
+            <RetestChip attemptId={attempt.id} />
           </div>
           <div className="flex items-center gap-3">
             <span className="mono text-[13px] tabular-nums text-[var(--color-ink-soft)]" aria-label="elapsed time">
@@ -138,6 +140,7 @@ export function AttemptDesk({
               </button>
             )}
             {session?.timerUrl && <span className="chip" title="linked Timer session">⏱ linked</span>}
+            <ToMarginButton attempt={attempt} problem={problem} />
           </div>
         </div>
 
