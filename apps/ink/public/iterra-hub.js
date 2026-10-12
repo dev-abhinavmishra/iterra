@@ -557,6 +557,15 @@
         drainIntakes(d.to || me || '', function () {});
       }
     });
+    /* a dying page releases its claims instead of orphaning them for the
+       60s stale window — pagehide still lets started IDB writes flush.
+       Quiet: nothing failed, so no attempts++/lastError noise. */
+    window.addEventListener('pagehide', function () {
+      var ids = Object.keys(_claimed);
+      for (var i = 0; i < ids.length; i++) {
+        try { intakeRelease(ids[i], null, { quiet: true }); } catch (e) {}
+      }
+    });
   } catch (e) {}
   _subs.wake = [];
 
@@ -885,6 +894,7 @@
   }
 
   function intakeResolve(id, result) {
+    delete _claimed[id];
     return openDB().then(function (d) {
       var write = function (cur) {
         /* a claim that went stale (>60s) can be taken by another page and
@@ -928,6 +938,7 @@
      late callers coalesce into a follow-up pass. */
   var _instance = 'pg-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
   var _drainBusy = {}, _drainMore = {}, _drainWaiters = {};
+  var _claimed = {}; /* ids this page holds — released quietly on pagehide */
   var CLAIM_STALE_MS = 60000;
   /* atomically claim a pending record for this page: get + conditional
      put inside one readwrite tx so concurrent drains (other tabs, other
@@ -942,6 +953,7 @@
       cur.claimedBy = _instance;
       cur.claimedAt = now;
       won = true;
+      _claimed[id] = 1;
       return cur;
     };
     return openDB().then(function (d) {
@@ -963,15 +975,22 @@
   /* a handler declined by throwing or returning {retry:true}: the record
      was never delivered — release the claim (attempts++ for observability)
      so a later drain can deliver it. Pending means pending: the queue
-     does not fake delivery when the target isn't ready. */
-  function intakeRelease(id, err) {
+     does not fake delivery when the target isn't ready. opts.quiet skips
+     the attempt bookkeeping (pagehide release — nothing failed). */
+  function intakeRelease(id, err, opts) {
+    delete _claimed[id];
     return openDB().then(function (d) {
       var apply = function (cur) {
         if (!cur || cur.delivered) return null;
+        /* only release our own claim — a claim that went stale may have
+           been taken by another page whose delivery must not be broken */
+        if (cur.claimedBy && cur.claimedBy !== _instance) return null;
         delete cur.claimedBy;
         delete cur.claimedAt;
-        cur.attempts = (cur.attempts || 0) + 1;
-        if (err) cur.lastError = String(err).slice(0, 200);
+        if (!opts || !opts.quiet) {
+          cur.attempts = (cur.attempts || 0) + 1;
+          if (err) cur.lastError = String(err).slice(0, 200);
+        }
         return cur;
       };
       if (d) {
