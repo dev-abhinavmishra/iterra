@@ -344,8 +344,12 @@ export default function App() {
 
   const chrome = useMemo(() => {
     if (!activePlace) return null;
+    /* relative z-30 lifts the whole topbar subtree above the keep-alive
+       frames — without it the switcher dropdown (z-40 inside a fading
+       ancestor) paints under the app iframe and its invisible backdrop
+       swallows every page click */
     return (
-      <div className="anim-fade flex h-12 shrink-0 items-center gap-3 border-b border-atlas-300 bg-atlas-50 px-3 sm:px-4">
+      <div className="anim-fade relative z-30 flex h-12 shrink-0 items-center gap-3 border-b border-atlas-300 bg-atlas-50 px-3 sm:px-4">
         <button
           onClick={goHome}
           className="flex items-center gap-2 rounded-md px-2 py-1 text-[13px] font-medium text-moss-700 hover:bg-moss-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
