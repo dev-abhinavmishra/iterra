@@ -71,6 +71,7 @@ Emit only types in the catalogue — others are rejected.
 | `step.append` | proof | `{entity}` → attach as a step/reference |
 | `log.activity` | rhythm | `{payload:{kind,minutes?,course?,courseId?,label?,at?}}` |
 | `timer.start` | timer | `{payload:{label?, minutes?, commitmentId?, course?, courseId?}}` → focused session bound to it |
+| `timer.control` | timer | `{payload:{op:'pause'|'resume'|'finish'}}` → steers the live session (finish logs elapsed only) |
 | `problem.retest` | flashcards | alias of `cards.create` for a diverged attempt |
 | `weights.import` | gradestack | `{payload:{courseId}}` → pull categories/weights from syllabus |
 | `study-plan.request` | syllabus | `{payload:{courseId, examId?}}` → open generated plan |

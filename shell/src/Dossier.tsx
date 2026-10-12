@@ -257,7 +257,7 @@ export function Dossier({
               onClick={() => onGo('/apps/timer/')}
               className="mt-1.5 block text-[13px] font-medium text-moss-700 hover:underline"
             >
-              focus: {fv.label || 'Focus'} · {typeof fv.endsInMin === 'number' ? `${fv.endsInMin}m left` : 'running'}
+              focus: {fv.label || 'Focus'} · {fv.endsAt ? `${Math.max(0, Math.ceil((fv.endsAt - Date.now()) / 60000))}m left` : fv.paused ? `paused ${Math.round((fv.remainingSec || 0) / 60)}m` : 'running'}
             </button>
           )}
           {nb?.course && String(nb.course).toLowerCase() === key && nb?.title && (

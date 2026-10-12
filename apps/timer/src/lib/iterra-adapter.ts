@@ -171,7 +171,18 @@ export function registerAdapter() {
     name: 'timer',
     title: 'Timer',
     summary: timerSummary,
-    intakes: { 'timer.start': onTimerStart },
+    intakes: {
+      'timer.start': onTimerStart,
+      /* steer a live session from anywhere in the terrain: the ambient
+         rail's ❚❚/▶/✓ sends {op} here; TimerView's own listener executes
+         it against the real countdown. Ops: pause | resume | finish. */
+      'timer.control': async (rec: { payload?: { op?: string } }) => {
+        const op = rec?.payload?.op;
+        if (op !== 'pause' && op !== 'resume' && op !== 'finish') return { ok: false };
+        window.dispatchEvent(new CustomEvent('timer:control', { detail: { op } }));
+        return { url: '/apps/timer/' };
+      },
+    },
     wake: () => {
       publishRoutineIndex();
       void backfillSessions();

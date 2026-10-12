@@ -4,6 +4,7 @@ import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, s
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 import { Dossier } from './Dossier';
+import { Ambient } from './Ambient';
 import { parseHash, appUrl } from './route';
 
 const readHash = () => parseHash(window.location.hash);
@@ -477,6 +478,16 @@ export default function App() {
         entities={entities}
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
+        onGo={goUrl}
+      />
+      {/* the ambient rail — live environment state (running session,
+          what's due, what's next, warm frames) floats over every
+          surface, frames included */}
+      <Ambient
+        entities={entities}
+        mounted={Object.keys(frames)}
+        activePlace={active}
+        onEnter={enter}
         onGo={goUrl}
       />
     </div>

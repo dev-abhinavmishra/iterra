@@ -339,7 +339,7 @@ export function Terrain({
                       onClick={() => onGo('/apps/timer/')}
                       className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-moss-600 px-3 py-1.5 text-[12px] font-medium text-moss-800 hover:bg-moss-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
                     >
-                      {foc.endsInMin != null ? `${foc.endsInMin}m left · ` : ''}instruments →
+                      {foc.endsAt ? `${Math.max(0, Math.ceil((foc.endsAt - Date.now()) / 60000))}m left · ` : ''}instruments →
                     </button>
                   </div>
                 );

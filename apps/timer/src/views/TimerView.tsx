@@ -59,20 +59,34 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
 
   useWakeLock(running || focus);
 
-  /* commons: publish the live focus session (WIRING §7 shared.focus) — on
-     mount + state change, null when the session ends or clears */
-  const endsInMin = running ? Math.max(0, Math.round(cd.secondsLeft / 60)) : 0;
+  /* commons: publish the live focus session (WIRING §7 shared.focus).
+     A running session carries endsAt — every frame computes its own
+     second-accurate countdown without a republish. A PAUSED session
+     stays visible ({paused, remainingSec}) — the ambient rail shows
+     'paused · 12m' rather than the session vanishing. Null only when
+     the timer is cleared or back at the top, never merely stopped. */
+  const remainingSec = cd.secondsLeft;
+  const paused = hasTime && !running && !done && cd.remainingMs < cd.totalMs;
   useEffect(() => {
     const doc = (window as any).iterra?.doc?.('shared');
     if (!doc) return;
+    const base = {
+      label: isBreak ? 'Break' : intent || label || 'Focus',
+      blockId: syllabus?.block ?? null,
+      course: syllabus?.course ?? null,
+      totalMin: Math.round(cd.totalMs / 60000),
+      break: isBreak || undefined,
+    };
     doc.setField('focus', {
       v: running
-        ? { running: true, label: isBreak ? 'Break' : intent || label || 'Focus', blockId: syllabus?.block ?? null, course: syllabus?.course ?? null, endsInMin }
-        : null,
+        ? { ...base, running: true, endsAt: Date.now() + cd.remainingMs }
+        : paused
+          ? { ...base, paused: true, remainingSec }
+          : null,
       by: 'timer',
       at: Date.now(),
     });
-  }, [running, isBreak, label, intent, syllabus, endsInMin]);
+  }, [running, paused, isBreak, label, intent, syllabus, remainingSec, cd.totalMs, cd.remainingMs]);
 
   /* commons read: index.syllabus — when this session came in bound to a
      block, resolve the block's real title from the folio's entity index
@@ -295,6 +309,41 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     setIsBreak(false);
     setDone(null);
   };
+
+  /* finish early: log only the minutes actually run — completeFocus
+     would stamp the full preset duration and lie about the session */
+  const finishEarly = () => {
+    const elapsedSec = Math.round((cd.totalMs - cd.remainingMs) / 1000);
+    if (elapsedSec >= 60) {
+      saveSession({
+        duration: elapsedSec,
+        type: isBreak ? 'break' : 'focus',
+        label: intent || undefined,
+        preset: label,
+        course: syllabus?.course,
+        courseId: syllabus?.courseId,
+        commitmentId: syllabus?.commitmentId,
+      });
+    }
+    resetTimer();
+  };
+
+  /* the ambient rail steers this session from anywhere in the terrain:
+     adapter intake 'timer.control' re-dispatches {op} here. pause /
+     resume run the same code path as the Space key; finish logs the
+     elapsed minutes then clears (a sub-minute session just clears). */
+  useEffect(() => {
+    const onCtl = (e: Event) => {
+      const op = (e as CustomEvent<{ op?: string }>).detail?.op;
+      if (op === 'pause' && running) cd.pause();
+      else if (op === 'resume' && !running && hasTime && cd.remainingMs > 0)
+        cd.resume(isBreak ? completeBreakLive : completeFocusLive);
+      else if (op === 'finish' && hasTime) finishEarly();
+    };
+    window.addEventListener('timer:control', onCtl);
+    return () => window.removeEventListener('timer:control', onCtl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, hasTime, isBreak, cd.remainingMs]);
 
   const applyMinutes = (m: number) => {
     setSetMinutes(m);
