@@ -265,11 +265,25 @@ export async function planRoutine(p: RoutinePlanFields): Promise<Routine | null>
   const cid = await projectCourse(p as Record<string, unknown>);
   const due = typeof p.dueAt === 'string' ? p.dueAt.slice(0, 10) : undefined;
   const minutes = Number(p.minutes) > 0 ? Math.round(Number(p.minutes)) : undefined;
-  const routine = useRegister.getState().addRoutine({
+  const perWeek = Math.max(1, Math.min(14, Math.round(Number(p.perWeek) || 1)));
+  /* identical re-plans are a no-op — an intake retried mid-delivery or a
+     second 'plan on the register' tap returns the live routine instead
+     of stacking a twin on the register */
+  const s = useRegister.getState();
+  const existing = Object.values(s.routines).find(
+    (r) =>
+      r.status === 'active' &&
+      r.name === name &&
+      (r.courseId || '') === (cid || '') &&
+      r.target.perWeek === perWeek &&
+      (r.windowEnd || '') === (due || ''),
+  );
+  if (existing) return existing;
+  const routine = s.addRoutine({
     name,
     measure: 'count',
     unit: p.unit || (minutes ? 'min' : 'times'),
-    perWeek: Math.max(1, Math.min(14, Math.round(Number(p.perWeek) || 1))),
+    perWeek,
     weekdays: [0, 1, 2, 3, 4, 5, 6],
     minimumLabel: minutes ? `${minutes}m` : undefined,
     courseId: cid || undefined,
