@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity } from './hub';
+import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, pendingIntakes, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity } from './hub';
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 import { Dossier } from './Dossier';
@@ -26,10 +26,21 @@ export default function App() {
      stays warm: state persists while wandering the terrain. */
   const [frames, setFrames] = useState<Record<string, string>>({});
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  /* queued sends parked in each app's intake — surfaced as 'N waiting'
+     badges so a transfer that will deliver on next open isn't silent */
+  const [intakes, setIntakes] = useState<Record<string, number>>({});
+  const [cheatOpen, setCheatOpen] = useState(false);
   const iframeRefs = useRef<Record<string, HTMLIFrameElement | null>>({});
   const helloRef = useRef<Record<string, number>>({});
 
   useEffect(() => subscribePresences(setPresences), []);
+  useEffect(() => {
+    let alive = true;
+    const pull = () => pendingIntakes().then((m) => { if (alive) setIntakes(m); });
+    pull();
+    const t = window.setInterval(pull, 4000);
+    return () => { alive = false; window.clearInterval(t); };
+  }, []);
   useEffect(() => subscribeShared(setShared), []);
   useEffect(() => subscribeIndexes(setIndexes), []);
   useEffect(() => subscribeFeed(setFeed), []);
@@ -55,6 +66,10 @@ export default function App() {
       } else if (e.key === '/' && !typing) {
         e.preventDefault();
         setSearchOpen(true);
+      } else if (e.key === '?' && !typing) {
+        setCheatOpen((v) => !v);
+      } else if (e.key === 'Escape') {
+        setCheatOpen(false);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -292,6 +307,13 @@ export default function App() {
                       <span className="block text-[13px] font-medium text-field-ink">{p.place}</span>
                       <span className="block text-[11px] uppercase tracking-[0.1em] text-field-faint">{p.app}</span>
                     </span>
+                    {intakes[p.id] ? (
+                      <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800" title="queued sends deliver on open">
+                        {intakes[p.id]} waiting
+                      </span>
+                    ) : frames[p.id] ? (
+                      <span className="live-dot h-1.5 w-1.5 shrink-0 rounded-full bg-moss-500" title="warm — frame mounted" />
+                    ) : null}
                   </button>
                 ))}
                 {/* linked — entities other apps hold on this place's
@@ -490,6 +512,30 @@ export default function App() {
         onEnter={enter}
         onGo={goUrl}
       />
+      {cheatOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-field-ink/20" onClick={() => setCheatOpen(false)} />
+          <div className="anim-rise fixed left-1/2 top-24 z-50 w-80 -translate-x-1/2 rounded-lg border border-atlas-300 bg-atlas-50 p-4 shadow-[0_20px_50px_-20px_rgba(29,51,42,0.5)]">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">keys on the terrain</div>
+            <div className="mt-2.5 space-y-1.5 text-[12.5px]">
+              {([
+                ['⌘K / ctrl+K / `/`', 'the palette — every entity, uncapped, send-to on a hit'],
+                ['?', 'this sheet'],
+                ['esc', 'close'],
+                ['space (instruments)', 'start / pause the session'],
+              ] as [string, string][]).map(([k, d]) => (
+                <div key={k} className="flex items-baseline gap-3">
+                  <span className="w-32 shrink-0 rounded bg-atlas-100 px-1.5 py-0.5 text-center font-mono text-[11px] text-field-ink">{k}</span>
+                  <span className="text-field-faint">{d}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 border-t border-atlas-200 pt-2.5 text-[11.5px] text-field-faint">
+              the ambient rail keeps a running session in view on every surface — pause, resume, or finish it without leaving the place you're in.
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }

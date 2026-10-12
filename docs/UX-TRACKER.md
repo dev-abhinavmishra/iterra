@@ -9,36 +9,36 @@ and e2e-verified where the surface is user-visible.
 
 ## A. Ambient presence — "it's running, and I can see it anywhere"
 
-- [ ] 1  Persistent ambient rail on every surface — app frames, terrain, dossier (a floating dock; the chrome bar's lone timer pill was the seed)
-- [ ] 2  Live session pill with a real ticking countdown (shared.focus endsInMin + at → seconds countdown)
-- [ ] 3  Paused sessions stay visible — publish {paused:true, remainingMin}, not null ("paused · 12m")
-- [ ] 4  Pause / resume a running session from the rail — `timer.control` intake → TimerView listener
-- [ ] 5  Stop a session from the rail (reset → clears the pill)
-- [ ] 6  Jump to the running session (pill → bound timer place URL)
-- [ ] 7  Break state reads distinctly ("break · Nm" — different chip tone)
-- [ ] 8  Session-end toast anywhere in the terrain ("focus · 25m — ps4 logged" on session entity arrival)
-- [ ] 9  Due-cards badge: live due count → click opens flashcards review
-- [ ] 10 Next-commitment chip: nearest non-done commitment → jump to syllabus
-- [ ] 11 Register chip: today's pending marks (shared.register marked/total) → open rhythm
-- [ ] 12 noteActive chip: the page open in ink → jump back to it
-- [ ] 13 activeCourse chip → that course's dossier
-- [ ] 14 Mounted-frame presence dots — which places are warm, click to jump
-- [ ] 15 Rail collapses to icon chips on narrow widths
-- [ ] 16 Stale focus pruning — a session older than its length reads "went quiet", dimmed
-- [ ] 17 Elapsed time alongside remaining ("18m in · 7m left")
-- [ ] 18 Session pill suppressed inside the timer place itself
-- [ ] 19 "+" on the rail → quick-start a session (palette of bound targets)
-- [ ] 20 Course chip on the session pill → that course's dossier
+- [x] 1  Persistent ambient rail on every surface — app frames, terrain, dossier (a floating dock; the chrome bar's lone timer pill was the seed)
+- [x] 2  Live session pill with a real ticking countdown (shared.focus endsInMin + at → seconds countdown)
+- [x] 3  Paused sessions stay visible — publish {paused:true, remainingMin}, not null ("paused · 12m")
+- [x] 4  Pause / resume a running session from the rail — `timer.control` intake → TimerView listener
+- [x] 5  Stop a session from the rail (reset → clears the pill)
+- [x] 6  Jump to the running session (pill → bound timer place URL)
+- [x] 7  Break state reads distinctly ("break · Nm" — different chip tone)
+- [x] 8  Session-end toast anywhere in the terrain ("focus · 25m — ps4 logged" on session entity arrival)
+- [x] 9  Due-cards badge: live due count → click opens flashcards review
+- [x] 10 Next-commitment chip: nearest non-done commitment → jump to syllabus
+- [x] 11 Register chip: today's pending marks (shared.register marked/total) → open rhythm
+- [x] 12 noteActive chip: the page open in ink → jump back to it
+- [x] 13 activeCourse chip → that course's dossier
+- [x] 14 Mounted-frame presence dots — which places are warm, click to jump
+- [x] 15 Rail collapses to icon chips on narrow widths
+- [x] 16 Stale focus pruning — a session older than its length reads "went quiet", dimmed
+- [x] 17 Elapsed time alongside remaining ("18m in · 7m left")
+- [x] 18 Session pill suppressed inside the timer place itself
+- [x] 19 "+" on the rail → quick-start a session (palette of bound targets)
+- [x] 20 Course chip on the session pill → that course's dossier
 
 ## B. Transfer UX — things actually moving between apps
 
-- [ ] 21 syllabus commitment → rhythm routine: "plan on the register" (CommitmentDrawer + dossier verb) → `routine.plan` intake → addRoutine
-- [ ] 22 rhythm routine → syllabus work block: `block.plan` intake on syllabus → files a commitment from a routine
+- [x] 21 syllabus commitment → rhythm routine: "plan on the register" (CommitmentDrawer + dossier verb) → `routine.plan` intake → addRoutine
+- [x] 22 rhythm routine → syllabus work block: `block.plan` intake on syllabus → files a commitment from a routine
 - [ ] 23 Dossier "plan the week": batch-send pending commitments to rhythm as one weekly routine
 - [ ] 24 Due-cards → "queue on the register" (a review intention lands in rhythm's log)
 - [ ] 25 margin note → ink page (margin send menu gains an ink target)
 - [x] 26 ink selection → margin note (BubbleMenu send — shipped, verified)
-- [ ] 27 ink selection → proof problem (`problem.create` intake — richer than step.append)
+- [x] 27 ink selection → proof problem (`problem.create` intake — richer than step.append)
 - [ ] 28 commitment → proof problem (send a commitment to the workbench as the problem prompt)
 - [ ] 29 card → margin note (a card's q/a becomes note text)
 - [ ] 30 deck → dossier review shortcut (due badge on deck → review)
@@ -46,7 +46,7 @@ and e2e-verified where the surface is user-visible.
 - [ ] 32 Send-to on terrain rail entries
 - [ ] 33 Bulk send — select several hits, one target (stretch)
 - [ ] 34 Send result → "open it" chip (deep-link toast on delivery)
-- [ ] 35 Queued sends show "delivers when opened" state, not silent
+- [x] 35 Queued sends show "delivers when opened" state, not silent
 - [ ] 36 routine.completed → nudge the linked syllabus commitment's progress note
 - [ ] 37 session.completed bound to a routine course auto-marks the register (verify intakeRaw path)
 - [x] 38 session minutes → logged on the commitment (shipped)
@@ -55,9 +55,9 @@ and e2e-verified where the surface is user-visible.
 
 ## C. Shell chrome + navigation
 
-- [ ] 41 Place switcher: warm/cold dot per place (mounted frame vs not)
-- [ ] 42 Switcher live badges: running timer · due count · pending marks
-- [ ] 43 Cycle places chord (⌘⇧→/←) — if it doesn't collide
+- [x] 41 Place switcher: warm/cold dot per place (mounted frame vs not)
+- [x] 42 Switcher live badges: running timer · due count · pending marks
+- [x] 43 Cycle places chord (⌘⇧→/←) — if it doesn't collide
 - [ ] 44 Chrome breadcrumb: place → its course dossier
 - [ ] 45 Palette verb section: "start", "review", "plan" queries surface actions, not just entities
 - [x] 46 Palette send-to keyed by stable identity (shipped — survives polls)
@@ -67,10 +67,10 @@ and e2e-verified where the surface is user-visible.
 - [ ] 50 Terrain rail entries actionable (extend ledger verbs → pending intake chips)
 - [ ] 51 Terrain "now" strip: running session + next commitment atop the map
 - [ ] 52 Dossier backlinks section — links.for(course) readout ("what's linked here")
-- [ ] 53 Dossier session log: this course's sessions with minutes
+- [x] 53 Dossier session log: this course's sessions with minutes
 - [ ] 54 Dossier grade chip: latest grade + delta vs previous
 - [ ] 55 Dossier "related" — courses sharing a topic
-- [ ] 56 Unfiled dossier gets the same verbs + "file under…" action
+- [x] 56 Unfiled dossier gets the same verbs + "file under…" action
 - [ ] 57 Shelf pins tooltip shows the pin's place
 - [ ] 58 "open solo" also copies the deep-link
 - [ ] 59 Watchdog banner gains a "retry" that auto-fires once
@@ -78,7 +78,7 @@ and e2e-verified where the surface is user-visible.
 - [ ] 61 `?` opens a shortcut cheatsheet
 - [ ] 62 prefers-reduced-motion audit pass on new motion
 - [ ] 63 Terrain footer: store stats (N entities · M events · K links)
-- [ ] 64 "/" hint lives on the rail, not only the search button
+- [x] 64 "/" hint lives on the rail, not only the search button
 - [ ] 65 Send-to menu names the place, not just the action
 
 ## D. In-app bridge surfaces — each app shows its siblings

@@ -126,6 +126,21 @@ export async function sendTo(opts: SendOpts): Promise<SendResult> {
 }
 
 /** wake a keep-alive frame so its adapter refreshes from the store */
+/* queued sends waiting in each app's intake — the switcher badge shows
+   'N waiting' so a queued transfer is visible, not silent. */
+export async function pendingIntakes(): Promise<Record<string, number>> {
+  const it = (window as any).iterra;
+  const out: Record<string, number> = {};
+  if (!it?.intakes?.pending) return out;
+  for (const p of ['syllabus', 'rhythm', 'flashcards', 'ink', 'margin', 'gradestack', 'timer', 'proof']) {
+    try {
+      const rows = await it.intakes.pending(p);
+      if (rows?.length) out[p] = rows.length;
+    } catch { /* count stays absent */ }
+  }
+  return out;
+}
+
 export function wakeFrame(frame: HTMLIFrameElement | null | undefined) {
   try {
     frame?.contentWindow?.postMessage({ type: 'iterra:wake' }, window.location.origin);
