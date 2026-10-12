@@ -30,6 +30,24 @@ function AppLayout() {
     }
   }, [navigate]);
 
+  // Inbound suite link: ?scanId=<id> on the app root (docs/WIRING.md
+  // contract) → resolve the scan's test and forward to /scan?testId=&scanId=,
+  // where the review modal opens and the param is consumed. Unknown ids
+  // strip and stay — same ghost contract as ?assessment.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const scanId = q.get('scanId');
+    if (!scanId) return;
+    const scan = useStore.getState().scans.find((s) => s.id === scanId);
+    if (scan) {
+      navigate(`/scan?testId=${encodeURIComponent(scan.testId)}&scanId=${encodeURIComponent(scan.id)}`);
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete('scanId');
+    window.history.replaceState({}, '', url.toString());
+  }, [navigate]);
+
   useEffect(() => {
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const apply = () => {
