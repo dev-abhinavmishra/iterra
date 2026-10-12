@@ -158,9 +158,14 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presetMinutes, presetName]);
 
+  /* the focus session's elapsed minutes, captured at completion — after a
+     chained recess, cd holds the BREAK countdown and would misreport the
+     filed time */
+  const filedActual = useRef<number | null>(null);
+
   const fileBackToSyllabus = () => {
     if (!syllabus) return;
-    const actual = Math.round((cd.totalMs - cd.remainingMs) / 60000);
+    const actual = filedActual.current ?? Math.round((cd.totalMs - cd.remainingMs) / 60000);
     const url = syllabusReturnUrl(syllabus, actual);
     if (!url) return;
     const iterra = (window as any).iterra;
@@ -281,6 +286,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       courseId: syllabus?.courseId,
       commitmentId: syllabus?.commitmentId,
     });
+    if (!recess) filedActual.current = Math.round((cd.totalMs - cd.remainingMs) / 60000);
     /* standalone complete → 'completed Nm' stir; a session bound for
        file-back emits only its 'filed Xm' (the file-back IS its stir) */
     const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
@@ -335,6 +341,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     setSyllabus(null);
     setIntent('');
     setLabel(presetName);
+    filedActual.current = null;
   };
 
   const resetTimer = () => {
@@ -857,7 +864,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                 <KeyButton variant="signal" className="px-10 py-4 text-sm" onClick={() => { setDone(null); resetTimer(); }}>
                   Continue
                 </KeyButton>
-                {done === 'focus' && syllabus?.block && syllabus?.returnUrl && (
+                {(done === 'focus' || done === 'break') && syllabus?.block && syllabus?.returnUrl && (
                   <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus} title="Return to Syllabus and file this time">
                     File back → Syllabus
                   </KeyButton>
