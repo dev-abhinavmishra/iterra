@@ -553,7 +553,8 @@ function deckStats(d) {
   const starred = d.cards.filter(c => c.starred).length;
   const mastered = d.cards.filter(c => c.status === 'mastered').length;
   const learning = d.cards.filter(c => c.status === 'learning').length;
-  return { total, starred, mastered, learning };
+  const due = d.cards.filter(c => c.status !== 'mastered').length;
+  return { total, starred, mastered, learning, due };
 }
 
 function renderLibrary() {
@@ -577,7 +578,7 @@ function renderLibrary() {
       <div class="deck-row dr-in ${id === state.currentId ? 'active' : ''}" data-deck="${id}" style="animation-delay:${Math.min(ids.indexOf(id), 11) * 22}ms">
         <button class="dr-main">
           <span class="dr-title">${esc(d.title)}</span>
-          <span class="dr-meta"><span>${s.total} card${s.total === 1 ? '' : 's'}${s.starred ? ` · ${s.starred}★` : ''}</span><span>${relTime(d.lastStudiedAt)}</span></span>
+          <span class="dr-meta"><span>${s.total} card${s.total === 1 ? '' : 's'}${s.starred ? ` · ${s.starred}★` : ''}</span><span>${s.due ? `<span class="dr-due" data-due="${id}" title="Review the due cards now">${s.due} due →</span>` : ''}<span>${relTime(d.lastStudiedAt)}</span></span></span>
           <span class="dr-bar"><i style="width:${s.total ? (s.mastered / s.total * 100) : 0}%"></i></span>
         </button>
         <button class="dr-kebab" data-kebab="${id}" title="Deck actions" aria-label="Actions for ${esc(d.title)}">⋮</button>
@@ -587,6 +588,12 @@ function renderLibrary() {
     btn.addEventListener('click', () => selectDeck(btn.closest('.deck-row').dataset.deck)));
   els.deckList.querySelectorAll('.dr-kebab').forEach(btn =>
     btn.addEventListener('click', e => { e.stopPropagation(); openRowMenu(btn.dataset.kebab, btn); }));
+  els.deckList.querySelectorAll('.dr-due').forEach(chip =>
+    chip.addEventListener('click', e => {
+      e.stopPropagation();
+      selectDeck(chip.dataset.due);
+      setMode('review');
+    }));
 }
 
 let rowMenuFor = null;
@@ -820,6 +827,29 @@ function renderDeckBridge(d) {
    resolve the other end for a real title/url before offering the jump. */
 function wireCardSources(table, d) {
   const it = window.iterra;
+  /* card → margin note: every row can send its q/a to a fresh margin note. */
+  if (it?.send) table.querySelectorAll('.card-row[data-id]').forEach(row => {
+    const cell = row.querySelector('.cell.def');
+    if (!cell || cell.querySelector('.note-chip')) return;
+    const c = d.cards.find(x => x.id === row.dataset.id);
+    if (!c) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'source-chip note-chip';
+    b.textContent = '→ note';
+    b.title = 'Send this card to a margin note';
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      b.disabled = true;
+      it.send({
+        to: 'margin', action: 'note.create',
+        entity: { app: 'flashcards', type: 'card', id: c.id, course: d.course, courseId: d.courseId, title: String(c.q || '').slice(0, 160), sub: String(c.a || '').slice(0, 200), url: deckUrl(d) },
+      }).then(res => {
+        try { it.open ? it.open((res && res.url) || '/apps/margin/') : window.open('/apps/margin/', '_blank'); } catch {}
+      }).catch(() => { b.disabled = false; });
+    });
+    cell.appendChild(b);
+  });
   if (!it?.links?.for || !it?.store?.get) return;
   const live = new Set(d.cards.map(c => c.id));
   table.querySelectorAll('.card-row[data-id]').forEach(row => {

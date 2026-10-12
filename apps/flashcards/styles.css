@@ -333,6 +333,14 @@ a { color: var(--blue); }
   gap: 8px;
 }
 
+.deck-row .dr-due {
+  color: var(--accent, var(--ink));
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 1px dashed currentColor;
+}
+.deck-row .dr-due:hover { opacity: .75; }
+
 .deck-row .dr-bar {
   margin-top: 6px;
   height: 2px;

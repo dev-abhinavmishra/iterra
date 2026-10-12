@@ -40,8 +40,8 @@ and e2e-verified where the surface is user-visible.
 - [x] 26 ink selection → margin note (BubbleMenu send — shipped, verified)
 - [x] 27 ink selection → proof problem (`problem.create` intake — richer than step.append)
 - [x] 28 commitment → proof problem (send a commitment to the workbench as the problem prompt)
-- [ ] 29 card → margin note (a card's q/a becomes note text)
-- [ ] 30 deck → dossier review shortcut (due badge on deck → review)
+- [x] 29 card → margin note (a card's q/a becomes note text)
+- [x] 30 deck → dossier review shortcut (due badge on deck → review)
 - [x] 31 Send-to on dossier entity rows (⇥ on each row)
 - [x] 32 Send-to on terrain rail entries
 - [ ] 33 Bulk send — select several hits, one target (stretch)
