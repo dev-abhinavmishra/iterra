@@ -31,4 +31,11 @@ cp -r shell/dist/. dist/
 # '/iterra-hub.js' absolute, which resolves outside its /apps/<name>/ dir
 cp packages/hub/iterra-hub.js dist/iterra-hub.js
 
+# ...and each app ALSO serves its own vendored copy (public/iterra-hub.js
+# baked into its dist at build time). Refresh them all from the canonical
+# file so a sync:hub run between builds can't leave stale hubs framed.
+for d in dist/apps/*/; do
+  [ -f "${d}iterra-hub.js" ] && cp packages/hub/iterra-hub.js "${d}iterra-hub.js"
+done
+
 echo "── terrain built → dist/"
