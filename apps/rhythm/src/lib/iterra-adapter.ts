@@ -210,6 +210,108 @@ export function entryEntity(
   };
 }
 
+/* ── shared plan mapping — UX-TRACKER #72 ─────────────────────
+   The 'routine.plan' intake and the register's "from the folio"
+   inbox create identical routines from the same payload fields, so
+   the mapping lives here once (contract in docs/ADAPTER.md). */
+const hub = () => (typeof window !== 'undefined' ? window.iterra : undefined);
+
+/* Project the canonical course on a payload into a local CourseRef so the
+   event lands coursed — match on code/name, else create the projection.
+   The canonical key itself stays out of the register's local-id field. */
+const projectCourse = async (payload: Record<string, unknown>): Promise<string | undefined> => {
+  const it = hub();
+  let label: string | undefined = typeof payload.course === 'string' ? payload.course : undefined;
+  if (!label && typeof payload.courseId === 'string' && it?.store?.get) {
+    try {
+      const ent = await it.store.get(payload.courseId);
+      label = ent?.data?.code ?? ent?.course ?? ent?.title;
+    } catch { /* uncoursed is fine */ }
+  }
+  if (!label) return undefined;
+  const s = useRegister.getState();
+  const lower = String(label).toLowerCase();
+  const found = Object.values(s.courses).find(
+    (c) => (c.code ?? c.name).toLowerCase() === lower,
+  );
+  return (found ?? s.addCourse({ name: String(label) })).id;
+};
+
+export interface RoutinePlanFields {
+  name?: string; entityTitle?: string;
+  course?: string; courseId?: string;
+  dueAt?: string; perWeek?: number; minutes?: number; unit?: string;
+}
+
+export async function planRoutine(p: RoutinePlanFields): Promise<Routine | null> {
+  const name = typeof p.name === 'string' && p.name.trim() ? p.name.trim() : p.entityTitle;
+  if (!name) return null;
+  const cid = await projectCourse(p as Record<string, unknown>);
+  const due = typeof p.dueAt === 'string' ? p.dueAt.slice(0, 10) : undefined;
+  const minutes = Number(p.minutes) > 0 ? Math.round(Number(p.minutes)) : undefined;
+  return useRegister.getState().addRoutine({
+    name,
+    measure: 'count',
+    unit: p.unit || (minutes ? 'min' : 'times'),
+    perWeek: Math.max(1, Math.min(14, Math.round(Number(p.perWeek) || 1))),
+    weekdays: [0, 1, 2, 3, 4, 5, 6],
+    minimumLabel: minutes ? `${minutes}m` : undefined,
+    courseId: cid || undefined,
+    windowEnd: due,
+  });
+}
+
+/* ── folio inbox — UX-TRACKER #72 ─────────────────────────────
+   Read side of the 'routine.plan' contract: recent OPEN commitments
+   published by the syllabus folio (data.status === 'open'), due-soon
+   then newest, so the register can offer them as one-click scaffolds. */
+export interface FolioCommitment {
+  id: string;
+  title: string;
+  dueAt?: string;
+  estimatedMinutes?: number;
+  course?: string;
+  courseId?: string;
+  url?: string;
+}
+
+export async function folioInbox(limit = 4): Promise<FolioCommitment[]> {
+  const it = hub();
+  if (!it?.store?.list) return [];
+  try {
+    const rows = (await it.store.list({ app: 'syllabus', type: 'commitment' })) ?? [];
+    const open = (rows as any[]).filter((r) => r?.data?.status === 'open');
+    open.sort((a, b) => {
+      const ad = typeof a?.data?.dueAt === 'string' ? Date.parse(a.data.dueAt) : Number.POSITIVE_INFINITY;
+      const bd = typeof b?.data?.dueAt === 'string' ? Date.parse(b.data.dueAt) : Number.POSITIVE_INFINITY;
+      if (ad !== bd) return ad - bd; /* due-soon first; undated commitments last */
+      return (b.updatedAt ?? b.createdAt ?? 0) - (a.updatedAt ?? a.createdAt ?? 0);
+    });
+    return open.slice(0, limit).map((r) => ({
+      id: String(r.id),
+      title: r.title ?? 'a commitment',
+      dueAt: typeof r?.data?.dueAt === 'string' ? r.data.dueAt : undefined,
+      estimatedMinutes: Number.isFinite(r?.data?.estimatedMinutes) ? Number(r.data.estimatedMinutes) : undefined,
+      course: r.course,
+      courseId: r.courseId,
+      url: r.url,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/* Plan one folio row — identical fields to the 'routine.plan' intake. */
+export function planFolio(c: FolioCommitment): Promise<Routine | null> {
+  return planRoutine({
+    name: c.title,
+    course: c.course,
+    courseId: c.courseId,
+    dueAt: c.dueAt,
+    minutes: c.estimatedMinutes,
+  });
+}
+
 /* ── registered adapter ─────────────────────────────────────────────────── */
 
 let registered = false;
@@ -367,25 +469,8 @@ export function registerAdapter() {
     }
   };
 
-  /* Project the canonical course on a delivery into a local CourseRef so the
-     event lands coursed — match on code/name, else create the projection.
-     The canonical key itself stays out of the register's local-id field. */
-  const projectCourse = async (payload: Record<string, unknown>): Promise<string | undefined> => {
-    let label: string | undefined = typeof payload.course === 'string' ? payload.course : undefined;
-    if (!label && typeof payload.courseId === 'string' && it.store?.get) {
-      try {
-        const ent = await it.store.get(payload.courseId);
-        label = ent?.data?.code ?? ent?.course ?? ent?.title;
-      } catch { /* uncoursed is fine */ }
-    }
-    if (!label) return undefined;
-    const s = useRegister.getState();
-    const lower = String(label).toLowerCase();
-    const found = Object.values(s.courses).find(
-      (c) => (c.code ?? c.name).toLowerCase() === lower,
-    );
-    return (found ?? s.addCourse({ name: String(label) })).id;
-  };
+  /* course projection for deliveries is the module-level projectCourse above —
+     shared with the folio inbox so intake and inbox resolve the same way */
 
   if (it.events?.on) {
     for (const t of WATCHED) {
@@ -473,21 +558,9 @@ export function registerAdapter() {
          The canonical course key is projected into a local ref first. */
       'routine.plan': async (rec: any) => {
         const p = (rec?.payload ?? {}) as Record<string, any>;
-        const name = typeof p.name === 'string' && p.name.trim() ? p.name.trim() : rec?.entity?.title;
-        if (!name) return { ok: false };
-        const cid = await projectCourse(p);
-        const due = typeof p.dueAt === 'string' ? p.dueAt.slice(0, 10) : undefined;
-        const minutes = Number(p.minutes) > 0 ? Math.round(Number(p.minutes)) : undefined;
-        const routine = useRegister.getState().addRoutine({
-          name,
-          measure: 'count',
-          unit: p.unit || (minutes ? 'min' : 'times'),
-          perWeek: Math.max(1, Math.min(14, Math.round(Number(p.perWeek) || 1))),
-          weekdays: [0, 1, 2, 3, 4, 5, 6],
-          minimumLabel: minutes ? `${minutes}m` : undefined,
-          courseId: cid || undefined,
-          windowEnd: due,
-        });
+        /* same mapping the register's folio inbox uses — see planRoutine */
+        const routine = await planRoutine({ ...(p as RoutinePlanFields), entityTitle: rec?.entity?.title });
+        if (!routine) return { ok: false };
         return { url: `/apps/rhythm/?routine=${encodeURIComponent(routine.name)}` };
       },
     },

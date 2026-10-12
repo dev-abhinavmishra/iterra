@@ -11,6 +11,7 @@ import { RotaryDial } from '../components/RotaryDial';
 import { KeyButton } from '../components/KeyButton';
 import { stationChime, secondTick, flapLand } from '../lib/sound';
 import { parseSyllabusLink, syllabusReturnUrl } from '../lib/deeplink';
+import { boundCourseCode, inTerrain, openTerrain, recentCourses, type RecentCourse } from '../lib/iterra-adapter';
 
 const QUICK = [5, 10, 15, 25, 30, 45, 60, 90];
 
@@ -47,6 +48,24 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string; courseId?: string; commitmentId?: string } | null>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* UX-TRACKER #81 — recent courses: the terrain's session entities,
+     newest-first, offered as bound 25m quick-starts */
+  const [courseChips, setCourseChips] = useState<RecentCourse[]>([]);
+  useEffect(() => {
+    let live = true;
+    void recentCourses().then((r) => { if (live) setCourseChips(r); });
+    return () => { live = false; };
+  }, []);
+
+  /* UX-TRACKER #82 — the session's bound course as a dossier chip:
+     '#/c/<code>' is the shell's dossier route, framed-terrain only */
+  const [boundCode, setBoundCode] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    void boundCourseCode(syllabus?.courseId, syllabus?.course).then((c) => { if (live) setBoundCode(c); });
+    return () => { live = false; };
+  }, [syllabus?.courseId, syllabus?.course]);
 
   const flashKey = (k: string) => { setKeyFlash(k); setTimeout(() => setKeyFlash(null), 160); };
 
@@ -310,6 +329,20 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     setDone(null);
   };
 
+  /* UX-TRACKER #81 — a recent-course chip starts a bound 25m focus: the
+     same binding a 'timer.start' intake carries (label + course +
+     courseId), autostarted like the deep link it builds */
+  const startCourse = (c: RecentCourse) => {
+    flapLand(0.05);
+    setSetMinutes(25);
+    setLabel(c.course);
+    setIntent('');
+    setSyllabus({ course: c.course, courseId: c.courseId, from: 'terrain' });
+    setIsBreak(false);
+    setDone(null);
+    cd.start(25 * 60000, completeFocusLive);
+  };
+
   /* finish early: log only the minutes actually run — completeFocus
      would stamp the full preset duration and lie about the session */
   const finishEarly = () => {
@@ -492,6 +525,25 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                   <button onClick={() => setCustomOpen(true)} className="chip px-3 py-1.5 text-[11px]">Other</button>
                 </div>
 
+                {/* UX-TRACKER #81 — recent courses as bound 25m starts */}
+                {courseChips.length > 0 && (
+                  <div className="w-full">
+                    <div className="label-wall text-[9px] mb-1.5 text-center">Recent courses — bound 25m</div>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {courseChips.map((c) => (
+                        <button
+                          key={c.courseId ?? c.course}
+                          onClick={() => startCourse(c)}
+                          className="chip px-3 py-1.5 text-[11px]"
+                          title={`25m bound to ${c.course}`}
+                        >
+                          {c.course}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="w-full">
                   <input
                     name="timer-intent"
@@ -531,6 +583,19 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                   <div className="font-display text-2xl font-bold text-ink leading-none uppercase">{secLabel(dispSec)}</div>
                   {intent && <div className="text-sm text-ink-soft mt-1 font-body">{intent}</div>}
                 </div>
+                {/* UX-TRACKER #82 — bound course → the shell dossier */}
+                {boundCode && inTerrain() && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-ink-soft font-body">Bound</span>
+                    <button
+                      className="font-display font-semibold uppercase hover:underline"
+                      style={{ color: 'var(--color-signal)' }}
+                      onClick={() => openTerrain(`#/c/${encodeURIComponent(boundCode)}`)}
+                    >
+                      {boundCode} dossier →
+                    </button>
+                  </div>
+                )}
                 <hr className="rule-h" />
                 <div className="flex justify-between text-sm">
                   <span className="text-ink-soft font-body">Elapsed</span>

@@ -24,7 +24,7 @@ import { Pad } from '../components/Pad';
 import { Lamp } from '../components/Lamp';
 import { Sheet } from '../components/Sheet';
 import { Field } from '../components/Field';
-import { evidenceUrl } from '../lib/links';
+import { APP_DISPLAY, evidenceUrl, inTerrain, openTerrain } from '../lib/links';
 
 export function RoutineView({ routineId }: { routineId: string }) {
   const s = useRegister();
@@ -156,6 +156,29 @@ export function RoutineView({ routineId }: { routineId: string }) {
                 {fmtTime(r.windowStart)} – {fmtTime(r.windowEnd)}
               </Row>
             )}
+            {/* dossier — UX-TRACKER #71: '#/c/<code>' is the shell's course
+                dossier route; shown only when the bound course resolves and
+                the app is framed inside the terrain */}
+            {r.courseId && (() => {
+              const c = s.courses[r.courseId];
+              const code = c?.code ?? c?.name;
+              return code && inTerrain() ? (
+                <Row k="Course">
+                  <span className="flex items-center justify-end gap-2">
+                    {code}
+                    <button
+                      type="button"
+                      className="mono text-[10px] uppercase text-ink-faint underline"
+                      onClick={() => openTerrain(`#/c/${encodeURIComponent(code)}`)}
+                    >
+                      dossier →
+                    </button>
+                  </span>
+                </Row>
+              ) : (
+                <Row k="Course">{code}</Row>
+              );
+            })()}
           </dl>
         </section>
 
@@ -337,6 +360,9 @@ function Row({ k, children }: { k: string; children: React.ReactNode }) {
 }
 
 function EntryRow({ entry: e, routine, onRemove }: { entry: Entry; routine: Routine; onRemove: () => void }) {
+  /* UX-TRACKER #70 — provenance badge: an event-derived entry names the
+     app that logged it (Entry.eventId → events[].sourceApp) */
+  const ev = useRegister((s) => (e.eventId ? s.events[e.eventId] : undefined));
   return (
     <div className="chan flex items-center gap-3 px-2 py-1.5">
       <Pad state={e.isMinimum ? 'minimum' : 'full'} accent={routine.accent} size={20} />
@@ -346,7 +372,9 @@ function EntryRow({ entry: e, routine, onRemove }: { entry: Entry; routine: Rout
         {e.context ? ` · ${e.context}` : ''}
       </span>
       {e.note && <span className="max-w-40 truncate text-[11px] italic text-ink-faint">{e.note}</span>}
-      <span className="mono text-[9.5px] uppercase text-ink-faint">{e.source}</span>
+      <span className="mono text-[9.5px] uppercase text-ink-faint">
+        {e.source === 'event' && ev ? `from ${APP_DISPLAY[ev.sourceApp] ?? 'other'}` : e.source}
+      </span>
       <button className="mono text-[10px] uppercase text-ink-faint underline" onClick={onRemove} title="cut this hit from the tape">
         cut
       </button>

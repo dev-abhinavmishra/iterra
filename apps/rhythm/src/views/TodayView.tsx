@@ -6,12 +6,13 @@
 // and the week's seven steps with the playhead sweeping through.
 // A routine "skipped" gets a friction note, not a scolding.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRegister } from '../store';
 import type { Routine } from '../lib/types';
 import { dayState, isScheduled, perDayBar, routineWeek } from '../lib/register';
 import { bandFor } from '../lib/bands';
-import { addDaysISO, fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
+import { addDaysISO, fmtDay, fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
+import { folioInbox, planFolio, type FolioCommitment } from '../lib/iterra-adapter';
 import { EXCEPTION_LABEL, FRICTION_LABEL, cx } from '../lib/utils';
 import { usePlayhead } from '../lib/playhead';
 import { useSharedFocus } from '../lib/iterra';
@@ -219,6 +220,11 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
           </div>
         </section>
       )}
+
+      {/* ── From the folio — UX-TRACKER #72: open syllabus commitments
+          offered as one-click channel scaffolds (same mapping as the
+          adapter's 'routine.plan' intake, via planFolio) ─────────── */}
+      <FolioInbox />
 
       {/* ── Day actions ──────────────────────────────────────────── */}
       <div className="mt-5 flex flex-wrap gap-2 no-print">
@@ -649,5 +655,68 @@ function ExceptionSheet({
         </div>
       </form>
     </Sheet>
+  );
+}
+
+/* ── From the folio — UX-TRACKER #72 ─────────────────────────────────────────
+   Open syllabus commitments listed on the register with a one-click "+ plan".
+   Rows come from folioInbox() (the adapter's store read); "+ plan" calls
+   planFolio(), the same mapping the 'routine.plan' intake uses, so an inbox
+   plan and a syllabus-sent plan produce identical routines. A commitment
+   already on the register (name match) reads "on the register" instead. */
+function FolioInbox() {
+  const [rows, setRows] = useState<FolioCommitment[] | null>(null);
+  const routineNames = useRegister((s) =>
+    Object.values(s.routines)
+      .map((r) => r.name.trim().toLowerCase())
+      .join(''),
+  );
+  useEffect(() => {
+    let live = true;
+    void folioInbox().then((r) => {
+      if (live) setRows(r);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (!rows?.length) return null;
+  const planned = new Set(routineNames.split(''));
+  return (
+    <section className="mt-6" aria-label="From the folio">
+      <div className="kicker mb-2">From the folio — open commitments</div>
+      <div className="divide-y-0 border-y border-rule">
+        {rows.map((c) => {
+          const on = planned.has(c.title.trim().toLowerCase());
+          return (
+            <div key={c.id} className="chan flex items-center gap-3 px-2 py-2">
+              <div className="min-w-0 flex-1">
+                <span className="disp text-[14px]">{c.title}</span>
+                <span className="mono ml-3 text-[10px] uppercase text-ink-faint">
+                  {[c.course, c.dueAt ? `due ${fmtDay(c.dueAt.slice(0, 10))}` : 'no due date'].filter(Boolean).join(' · ')}
+                </span>
+              </div>
+              {on ? (
+                <span className="mono text-[10px] uppercase text-ink-faint">on the register</span>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn--quiet shrink-0"
+                  onClick={() => {
+                    void planFolio(c).then((r) => {
+                      /* the routine name match above flips this row on its own;
+                         re-pull so a just-planned row can't be clicked twice */
+                      if (r) void folioInbox().then(setRows);
+                    });
+                  }}
+                >
+                  + plan
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
