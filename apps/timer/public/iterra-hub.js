@@ -857,7 +857,10 @@
   function intakeResolve(id, result) {
     return openDB().then(function (d) {
       var write = function (cur) {
-        if (!cur) return;
+        /* a claim that went stale (>60s) can be taken by another page and
+           delivered there — a late handler finishing here must not
+           double-stamp or clobber the winning drain's result. */
+        if (!cur || cur.delivered) return;
         cur.delivered = Date.now();
         cur.result = result;
         delete cur.claimedBy;
