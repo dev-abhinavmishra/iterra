@@ -477,7 +477,11 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
               <span className="engraved text-[9px] md:text-[10px]">
                 {intent ? intent.toUpperCase() : 'TIMER TIMEKEEPING'}
                 {blockTitle && <span className="block">{`BLOCK ${blockTitle.toUpperCase()}`}</span>}
-                {syllabus?.from && (
+                {/* '← terrain' is a shell hash route — standalone it can
+                    only spawn a dead timer tab, so it stays terrain-only.
+                    App-sourced links ('← syllabus') still work standalone:
+                    iterra.open drops them onto /apps/<from>/ in a tab. */}
+                {syllabus?.from && (inTerrain() || syllabus.from !== 'terrain') && (
                   <button
                     className="block text-left uppercase tracking-inherit opacity-70 hover:opacity-100 transition-opacity"
                     title={`Bound from ${syllabus.from} — return there`}
