@@ -87,9 +87,9 @@ and e2e-verified where the surface is user-visible.
 - [ ] 67 syllabus Today: "Nm logged today" chip → sessions
 - [ ] 68 commitment row: "plan on the register" (with the drawer's Focus)
 - [ ] 69 commitment row: "make a card" send
-- [ ] 70 rhythm day cell: source-app badge on ingested events
-- [ ] 71 rhythm routine detail: linked course dossier
-- [ ] 72 rhythm: "from the folio" inbox — recent commitments as routine scaffolds
+- [x] 70 rhythm day cell: source-app badge on ingested events
+- [x] 71 rhythm routine detail: linked course dossier
+- [x] 72 rhythm: "from the folio" inbox — recent commitments as routine scaffolds
 - [ ] 73 gradestack grade row: "N cards due" chip
 - [ ] 74 gradestack: logged-minutes links through to the session list
 - [ ] 75 gradestack weights chip: source syllabus course link
@@ -97,9 +97,9 @@ and e2e-verified where the surface is user-visible.
 - [x] 77 flashcards deck: "session for this deck" bound timer start
 - [x] 78 flashcards deck: "log a review" → register
 - [x] 79 flashcards card: source backlink (note / attempt) via links.for
-- [ ] 80 timer session list: bound commitment → syllabus jump
-- [ ] 81 timer: quick-start chips for recent courses
-- [ ] 82 timer takeover banner → the session's dossier
+- [x] 80 timer session list: bound commitment → syllabus jump
+- [x] 81 timer: quick-start chips for recent courses
+- [x] 82 timer takeover banner → the session's dossier
 - [x] 83 margin note: "in deck · N" chip via links.for
 - [x] 84 margin note: "open in ink" (note.create to ink)
 - [x] 85 ink page: backlink chips (in margin · in deck)

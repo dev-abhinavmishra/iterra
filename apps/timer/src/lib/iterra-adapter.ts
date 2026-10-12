@@ -15,9 +15,14 @@ type Hub = {
     get(k: string): Promise<unknown>;
     list(q?: Record<string, unknown>): Promise<Array<{ id?: string }>>;
   };
-  courses?: { resolve(ref: unknown): Promise<{ key?: string; id?: string; course?: string; title?: string; data?: { code?: string } } | null> };
+  courses?: {
+    resolve(ref: unknown): Promise<{ key?: string; id?: string; course?: string; title?: string; data?: { code?: string } } | null>;
+    list?(): Promise<Array<{ key?: string; course?: string; title?: string; data?: { code?: string } }>>;
+  };
   events?: { emit(t: string, p: Record<string, unknown>): unknown };
   adapter?(o: Record<string, unknown>): void;
+  open?(url: string): void;
+  isFramed?(): boolean;
 };
 const hub = (): Hub | undefined => (typeof window !== 'undefined' ? (window as { iterra?: Hub }).iterra : undefined);
 
@@ -153,6 +158,63 @@ async function onTimerStart(rec: {
     } catch { /* keep the code we were given */ }
   }
   return { url: timerStartUrl(rec?.from, { ...p, course }) };
+}
+
+/* ── terrain navigation — UX-TRACKER #80-82 ───────────────────
+   '#/c/<code>' is the shell's course dossier route and
+   '/apps/syllabus/?commitment=<id>' the folio deep link — both only
+   exist inside the framed terrain, so chips gate on inTerrain() and
+   go through iterra.open (guarded: the hub may be absent in tests). */
+export function inTerrain(): boolean {
+  const it = hub();
+  return !!(it?.open && (typeof it.isFramed !== 'function' || it.isFramed()));
+}
+
+export function openTerrain(url: string) {
+  hub()?.open?.(url);
+}
+
+/* display code for a bound course — registry first, given label as
+   fallback (same resolve the intake uses; never fabricates) */
+export async function boundCourseCode(courseId?: string, course?: string): Promise<string | null> {
+  if (course && !course.includes(':')) return course;
+  const c = await boundCourse(courseId, course);
+  const code = c.course;
+  return code && !code.includes(':') ? code : null;
+}
+
+/* ── recent courses — UX-TRACKER #81 ──────────────────────────
+   "Recent" = most recently active course bindings across session
+   entities (store.list sorts by updatedAt desc), falling back to the
+   course registry when the store has no sessions yet. */
+export interface RecentCourse { course: string; courseId?: string }
+
+export async function recentCourses(limit = 4): Promise<RecentCourse[]> {
+  const it = hub();
+  if (!it?.store?.list) return [];
+  const seen = new Set<string>();
+  const out: RecentCourse[] = [];
+  const push = (course?: string, courseId?: string) => {
+    if (!course || course.includes(':')) return; /* a canonical key is never a chip label */
+    const k = (courseId ?? course).toLowerCase();
+    if (seen.has(k)) return;
+    seen.add(k);
+    out.push({ course, courseId });
+  };
+  try {
+    for (const s of (await it.store.list({ type: 'session' })) ?? []) {
+      push((s as { course?: string }).course, (s as { courseId?: string }).courseId);
+    }
+  } catch { /* keep whatever resolved */ }
+  if (out.length < limit && it?.courses?.list) {
+    try {
+      for (const c of (await it.courses.list()) ?? []) {
+        push(c?.data?.code ?? c?.course ?? c?.title, c?.key);
+        if (out.length >= limit) break;
+      }
+    } catch { /* fine — chips are optional */ }
+  }
+  return out.slice(0, limit);
 }
 
 let listening = false;

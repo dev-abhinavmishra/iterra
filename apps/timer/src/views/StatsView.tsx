@@ -3,6 +3,7 @@ import { Timer, Activity, CheckCircle2, Clock, Flame, Download, Coffee, TimerRes
 import { motion, AnimatePresence } from 'motion/react';
 import { vibrate } from '../lib/utils';
 import { getStats, getSessions, sessionsCsv, Session } from '../lib/stats';
+import { boundCourseCode, inTerrain, openTerrain } from '../lib/iterra-adapter';
 
 export default function StatsView({ active = true }: { active?: boolean }) {
   const [stats, setStats] = useState(() => getStats());
@@ -196,6 +197,7 @@ export default function StatsView({ active = true }: { active?: boolean }) {
                     <div className="min-w-0">
                       <div className="font-display font-bold text-ink text-base leading-tight truncate">{m.name}</div>
                       <div className="label-wall text-[9px] mt-0.5">{fmtDate(s.timestamp)}</div>
+                      <BoundChip s={s} />
                     </div>
                   </div>
                   <div className="text-right shrink-0 pl-4">
@@ -213,5 +215,35 @@ export default function StatsView({ active = true }: { active?: boolean }) {
       </>
       )}
     </div>
+  );
+}
+
+/* ── bound chip — UX-TRACKER #80 ─────────────────────────────────────────────
+   A session bound to a commitment/course gets a chip back to it: the folio's
+   '/apps/syllabus/?commitment=<id>' deep link wins; else the shell's
+   '#/c/<code>' dossier route. Both only exist framed inside the terrain, so
+   the chip renders nothing standalone. */
+function BoundChip({ s }: { s: Session }) {
+  const [code, setCode] = useState<string | null>(s.course && !s.course.includes(':') ? s.course : null);
+  useEffect(() => {
+    let live = true;
+    void boundCourseCode(s.courseId, s.course).then((c) => { if (live) setCode(c); });
+    return () => { live = false; };
+  }, [s.courseId, s.course]);
+  if (!inTerrain() || (!s.commitmentId && !code)) return null;
+  return (
+    <button
+      className="label-wall text-[9px] mt-0.5 block uppercase tracking-wide hover:underline"
+      style={{ color: 'var(--color-signal)' }}
+      onClick={() =>
+        openTerrain(
+          s.commitmentId
+            ? `/apps/syllabus/?commitment=${encodeURIComponent(s.commitmentId)}`
+            : `#/c/${encodeURIComponent(code!)}`,
+        )
+      }
+    >
+      {s.commitmentId ? 'commitment →' : `${code} dossier →`}
+    </button>
   );
 }

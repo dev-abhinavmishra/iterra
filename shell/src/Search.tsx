@@ -58,6 +58,9 @@ export function Search({
   const [sendForKey, setSendForKey] = useState<string | null>(null);
   const hitId = (h: Hit) => h.skey || h.url;
   const [sentNote, setSentNote] = useState<string | null>(null);
+  /* staged sends — shift+⇥ gathers several entities; the tray ships them
+     all to one target in a single click. */
+  const [staged, setStaged] = useState<Hit[]>([]);
   const pinned = useMemo(() => {
     const s = new Set<string>();
     for (const p of pins) {
@@ -75,6 +78,7 @@ export function Search({
       setQ('');
       setSel(0);
       setSendForKey(null);
+      setStaged([]);
       setSentNote(null);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
@@ -305,6 +309,32 @@ export function Search({
           <span className="text-atlas-300">·</span>
           <span className="tracking-wide">↑↓ choose · ↵ go · ⌘P pin · → inspect & send</span>
         </div>
+        {staged.length > 0 && (
+          <div className="anim-pop flex items-center gap-2 border-t border-moss-300 bg-moss-50/80 px-4 py-2" style={{ transformOrigin: 'top left' }}>
+            <span className="text-[11px] font-semibold text-moss-700">{staged.length} gathered →</span>
+            {SEND_TARGETS.map((t) => (
+              <button
+                key={t.to + t.action}
+                className="rounded-full border border-moss-300 bg-white px-2 py-0.5 text-[10.5px] text-moss-700 hover:bg-moss-50 focus:outline-none"
+                onClick={() => {
+                  const batch = staged.slice();
+                  setStaged([]);
+                  setSendForKey(null);
+                  Promise.all(
+                    batch.map((h) => (h.entity ? sendTo({ to: t.to, action: t.action, entity: h.entity }) : Promise.resolve({ ok: false }))),
+                  ).then((rs) => {
+                    const ok = rs.filter((r) => r.ok).length;
+                    setSentNote(`${ok}/${batch.length} sent to ${PLACE_MAP[t.to]?.place || t.to}`);
+                    window.setTimeout(() => setSentNote((n) => (n ? null : n)), 4000);
+                  });
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+            <button className="ml-auto text-[10.5px] text-atlas-500 hover:text-atlas-700" onClick={() => setStaged([])}>clear</button>
+          </div>
+        )}
         {sentNote && (
           <div className="anim-fade flex items-center gap-2 border-t border-atlas-200 bg-moss-50/60 px-4 py-1.5 text-[11.5px] text-moss-700">
             <span className="min-w-0 flex-1 truncate">{sentNote}</span>
@@ -356,9 +386,17 @@ export function Search({
                             onClick={(ev) => {
                               ev.stopPropagation();
                               setSel(i);
+                              if (ev.shiftKey) {
+                                setStaged((cur) =>
+                                  cur.some((x) => hitId(x) === hitId(h))
+                                    ? cur.filter((x) => hitId(x) !== hitId(h))
+                                    : [...cur, h],
+                                );
+                                return;
+                              }
                               setSendForKey((cur) => (cur === hitId(h) ? null : hitId(h)));
                             }}
-                            title="send to another place (s)"
+                            title="send to another place (s) · shift-click gathers several"
                             className={`shrink-0 rounded px-1 text-[11px] focus:outline-none ${
                               sendForKey === hitId(h) ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
                             }`}
