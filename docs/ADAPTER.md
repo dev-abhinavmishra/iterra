@@ -97,7 +97,7 @@ Emit only types in the catalogue — others are rejected.
 | `note.create` | ink | `{entity}` → new page |
 | `step.append` | proof | `{entity}` → attach as a step/reference |
 | `log.activity` | rhythm | `{payload:{kind,minutes?,course?,courseId?,label?,at?}}` |
-| `timer.start` | timer | `{payload:{label?, minutes?, commitmentId?, course?, courseId?}}` → focused session bound to it |
+| `timer.start` | timer | `{payload:{label?, minutes?, thenBreak?, commitmentId?, course?, courseId?}}` → focused session bound to it; `thenBreak` (1-60) chains a recess (the deep-link `break` param) |
 | `timer.control` | timer | `{payload:{op:'pause'|'resume'|'finish'}}` → steers the live session (finish logs elapsed only) |
 | `problem.retest` | flashcards | alias of `cards.create` for a diverged attempt |
 | `routine.plan` | rhythm | `{payload:{name, course?, courseId?, dueAt?, perWeek?, minutes?, unit?}}` → real routine on the register |

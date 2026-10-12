@@ -72,6 +72,8 @@ export interface TimerStartPayload {
   commitmentId?: string;
   courseId?: string;
   course?: string;
+  /** recess minutes chained after the session (the link's 'break' param) */
+  thenBreak?: number;
 }
 
 export function timerStartUrl(from: string | undefined, p: TimerStartPayload): string {
@@ -84,6 +86,9 @@ export function timerStartUrl(from: string | undefined, p: TimerStartPayload): s
   q.set('from', from && /^[a-z]{2,16}$/.test(from) ? from : 'terrain');
   if (p.commitmentId) q.set('commitment', String(p.commitmentId));
   if (p.courseId) q.set('courseId', String(p.courseId));
+  if (typeof p.thenBreak === 'number' && Number.isFinite(p.thenBreak) && p.thenBreak >= 1 && p.thenBreak <= 60) {
+    q.set('break', String(Math.round(p.thenBreak)));
+  }
   q.set('autostart', '1');
   return '/apps/timer/?' + q.toString();
 }

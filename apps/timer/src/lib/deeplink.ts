@@ -17,6 +17,9 @@ export interface SyllabusLink {
       record so completion publishes propagate them (timer.start intake) */
   courseId?: string;
   commitmentId?: string;
+  /** recess minutes to chain after the focus session (pomodoro bound
+      sessions — the 'Then break' chips' contract carried by the link) */
+  thenBreak?: number;
   autostart: boolean;
 }
 
@@ -27,6 +30,7 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
   const from = q.get('from');
   if (!from || !/^[a-z]{2,16}$/.test(from)) return null;
   const minutes = Number(q.get('minutes'));
+  const thenBreak = Number(q.get('break'));
   return {
     intent: q.get('intent') || undefined,
     minutes: Number.isFinite(minutes) && minutes >= 1 && minutes <= 720 ? Math.round(minutes) : undefined,
@@ -36,6 +40,7 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
     from,
     courseId: q.get('courseId') || undefined,
     commitmentId: q.get('commitment') || undefined,
+    thenBreak: Number.isFinite(thenBreak) && thenBreak >= 1 && thenBreak <= 60 ? Math.round(thenBreak) : undefined,
     autostart: q.get('autostart') === '1',
   };
 }

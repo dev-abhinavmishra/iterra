@@ -139,6 +139,9 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       setIsBreak(false);
       setDone(null);
       if (link.intent) setIntent(link.intent);
+      /* the link fully describes the session it arms — no break param
+         means no chained recess, not whatever the user last dialed */
+      setThenBreak(link.thenBreak ?? 0);
       setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId });
       const url = new URL(window.location.href);
       if (url.search) {
