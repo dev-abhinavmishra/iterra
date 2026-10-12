@@ -339,6 +339,9 @@ a { color: var(--blue); }
   cursor: pointer;
   border-bottom: 1px dashed currentColor;
 }
+/* breathing room between the due chip and the 'studied ago' stamp that
+   shares its wrapper — they ran together as "3 due →2h ago" */
+.deck-row .dr-due + span { margin-left: 8px; }
 .deck-row .dr-due:hover { opacity: .75; }
 
 .deck-row .dr-bar {
@@ -1089,8 +1092,10 @@ a { color: var(--blue); }
   border-top: 3px solid var(--blue);
 }
 .empty-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-pop); }
-.empty-card .t { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-.empty-card .d { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+/* .t/.d are spans — without display:block the title and description
+   flowed onto one line ("Start a deck Paste or type cards…") */
+.empty-card .t { display: block; font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.empty-card .d { display: block; font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
 
 /* welcome steps — numbered index lines */
 .welcome-steps {
