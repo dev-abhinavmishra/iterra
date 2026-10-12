@@ -855,6 +855,8 @@
         if (!cur) return;
         cur.delivered = Date.now();
         cur.result = result;
+        delete cur.claimedBy;
+        delete cur.claimedAt;
         if (d) return idbTx(d, 'intakes', 'readwrite', function (s) { s.put(cur); });
         var b = lsRead('intakes');
         b[cur.id] = cur;
@@ -881,7 +883,62 @@
      handler per record, resolves with whatever the handler returns. */
   var _deliveries = {};
   var _launchChecked = false;
+  /* per-page identity for intake claims + per-app drain serialization:
+     a poke arrives once per registered action, so an app with N intakes
+     fired N concurrent drains over the same pending rows — every handler
+     re-ran and one send created N entities. One drain at a time per app;
+     late callers coalesce into a follow-up pass. */
+  var _instance = 'pg-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  var _drainBusy = {}, _drainMore = {}, _drainWaiters = {};
+  var CLAIM_STALE_MS = 60000;
+  /* atomically claim a pending record for this page: get + conditional
+     put inside one readwrite tx so concurrent drains (other tabs, other
+     frames) can't both take it. Stale claims (>60s, e.g. a page that died
+     mid-handler) are reclaimable. */
+  function intakeClaim(id) {
+    var won = false;
+    var decide = function (cur) {
+      if (!cur || cur.delivered) return null;
+      var now = Date.now();
+      if (cur.claimedBy && cur.claimedBy !== _instance && (now - (cur.claimedAt || 0)) < CLAIM_STALE_MS) return null;
+      cur.claimedBy = _instance;
+      cur.claimedAt = now;
+      won = true;
+      return cur;
+    };
+    return openDB().then(function (d) {
+      if (d) {
+        return idbTx(d, 'intakes', 'readwrite', function (s) {
+          var rq = s.get(id);
+          rq.onsuccess = function () {
+            var cur = decide(rq.result);
+            if (cur) s.put(cur);
+          };
+        }).then(function () { return won; });
+      }
+      var b = lsRead('intakes');
+      var cur = decide(b[id]);
+      if (cur) { b[id] = cur; lsWrite('intakes', b); }
+      return won;
+    });
+  }
   function drainIntakes(app, done) {
+    if (typeof done !== 'function') done = function () {};
+    if (_drainBusy[app]) {
+      _drainMore[app] = true;
+      (_drainWaiters[app] = _drainWaiters[app] || []).push(done);
+      return;
+    }
+    _drainBusy[app] = true;
+    var release = function () {
+      _drainBusy[app] = false;
+      var again = _drainMore[app];
+      _drainMore[app] = false;
+      var w = _drainWaiters[app] || [];
+      _drainWaiters[app] = [];
+      if (again) { drainIntakes(app, function () { w.forEach(function (f) { try { f(); } catch (e) {} }); }); return; }
+      w.forEach(function (f) { try { f(); } catch (e) {} });
+    };
     intakesPending(app).then(function (rows) {
       var i = 0;
       /* a frame launched at ?intake=<id> exists to receive that intake —
@@ -890,44 +947,59 @@
          routine boot draining background intakes isn't hijacked. */
       var launchedFor = null;
       try { launchedFor = new URLSearchParams(window.location.search).get('intake'); } catch (e) {}
-      if (launchedFor && !_launchChecked) {
-        _launchChecked = true;
-        if (!rows.some(function (r) { return r.id === launchedFor; })) {
-          /* launched at ?intake=<id> but the record already resolved — a
-             drain on another mount beat the sender's 'direct' deadline and
-             nobody navigated to the result. Land on it once so this reload
-             doesn't evaporate the delivery. */
-          intakeGet(launchedFor).then(function (rec) {
-            if (rec && rec.to === app && rec.delivered && rec.result && rec.result.url) {
-              try { window.location.assign(rec.result.url); } catch (e) {}
-            }
-          });
-        }
-      }
+      var landOnce = !!(launchedFor && !_launchChecked);
+      if (launchedFor) _launchChecked = true;
       var next = function () {
-        if (i >= rows.length) { done(); return; }
+        if (i >= rows.length) {
+          /* launched at ?intake=<id> but the row was already delivered —
+             or claimed out from under this drain (a poke/invoke/other tab
+             won the claim). Its resolve still stores result.url: wait
+             briefly for delivery and land on it once, so a launch is never
+             evaporated by losing the claim race. */
+          if (launchedFor && landOnce) {
+            var tries = 10;
+            var awaitLanding = function () {
+              intakeGet(launchedFor).then(function (rec) {
+                if (rec && rec.to === app && rec.delivered && rec.result && rec.result.url) {
+                  try { window.location.assign(rec.result.url); } catch (e) {}
+                } else if (rec && !rec.delivered && tries-- > 0) {
+                  setTimeout(awaitLanding, 300);
+                  return;
+                }
+                release(); done();
+              }, function () { release(); done(); });
+            };
+            awaitLanding();
+            return;
+          }
+          release(); done();
+          return;
+        }
         var rec = rows[i++];
-        var h = _deliveries[app + ':' + rec.action] || _deliveries[app + ':*'];
-        var finish = function (result) {
-          intakeResolve(rec.id, result).then(function () {
-            /* {toast} contract — a handler may return a one-line toast the
-               terrain surfaces wherever the resolve landed (ambient rail
-               reads intake.resolved events). */
-            if (result && typeof result.toast === 'string') {
-              try { emit('intake.resolved', { to: rec.to, action: rec.action, toast: result.toast, by: me || undefined }); } catch (e) {}
-            }
-            if (launchedFor && rec.id === launchedFor && result && result.url) {
-              try { window.location.assign(result.url); return; } catch (e) {}
-            }
-            next();
-          });
-        };
-        if (!h) { finish(undefined); return; }
-        try {
-          var r = h(rec);
-          if (r && typeof r.then === 'function') r.then(finish, function () { finish(undefined); });
-          else finish(r);
-        } catch (e) { finish(undefined); }
+        intakeClaim(rec.id).then(function (claimed) {
+          if (!claimed) { next(); return; }
+          var h = _deliveries[app + ':' + rec.action] || _deliveries[app + ':*'];
+          var finish = function (result) {
+            intakeResolve(rec.id, result).then(function () {
+              /* {toast} contract — a handler may return a one-line toast the
+                 terrain surfaces wherever the resolve landed (ambient rail
+                 reads intake.resolved events). */
+              if (result && typeof result.toast === 'string') {
+                try { emit('intake.resolved', { to: rec.to, action: rec.action, toast: result.toast, by: me || undefined }); } catch (e) {}
+              }
+              if (launchedFor && rec.id === launchedFor && result && result.url) {
+                try { window.location.assign(result.url); return; } catch (e) {}
+              }
+              next();
+            });
+          };
+          if (!h) { finish(undefined); return; }
+          try {
+            var r = h(rec);
+            if (r && typeof r.then === 'function') r.then(finish, function () { finish(undefined); });
+            else finish(r);
+          } catch (e) { finish(undefined); }
+        }, function () { next(); });
       };
       next();
     });
