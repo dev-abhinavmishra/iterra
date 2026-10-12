@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, pendingIntakes, firstPendingIntake, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity } from './hub';
+import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, pendingIntakes, firstPendingIntake, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity, type IntakeWait } from './hub';
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 import { Dossier } from './Dossier';
@@ -39,7 +39,7 @@ export default function App() {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   /* queued sends parked in each app's intake — surfaced as 'N waiting'
      badges so a transfer that will deliver on next open isn't silent */
-  const [intakes, setIntakes] = useState<Record<string, number>>({});
+  const [intakes, setIntakes] = useState<Record<string, IntakeWait>>({});
   const [cheatOpen, setCheatOpen] = useState(false);
   const iframeRefs = useRef<Record<string, HTMLIFrameElement | null>>({});
   const helloRef = useRef<Record<string, number>>({});
@@ -414,8 +414,13 @@ export default function App() {
                       <span className="block text-[11px] uppercase tracking-[0.1em] text-field-faint">{p.app}</span>
                     </span>
                     {intakes[p.id] ? (
-                      <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800" title="queued sends deliver on open">
-                        {intakes[p.id]} waiting
+                      <span
+                        className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                          intakes[p.id].stuck ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
+                        }`}
+                        title={intakes[p.id].stuck ? `delivery keeps failing — ${intakes[p.id].stuck}` : 'queued sends deliver on open'}
+                      >
+                        {intakes[p.id].count} waiting
                       </span>
                     ) : frames[p.id] ? (
                       <span className="live-dot h-1.5 w-1.5 shrink-0 rounded-full bg-moss-500" title="warm — frame mounted" />

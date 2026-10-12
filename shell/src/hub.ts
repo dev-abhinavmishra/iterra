@@ -141,15 +141,22 @@ export async function firstPendingIntake(app: string): Promise<string | null> {
 }
 
 /* queued sends waiting in each app's intake — the switcher badge shows
-   'N waiting' so a queued transfer is visible, not silent. */
-export async function pendingIntakes(): Promise<Record<string, number>> {
+   'N waiting' so a queued transfer is visible, not silent. A record whose
+   handler keeps declining (attempts + lastError stamped by the hub) is
+   stuck, not merely queued — surfaced so the terrain doesn't lie. */
+export interface IntakeWait { count: number; stuck: string | null }
+
+export async function pendingIntakes(): Promise<Record<string, IntakeWait>> {
   const it = (window as any).iterra;
-  const out: Record<string, number> = {};
+  const out: Record<string, IntakeWait> = {};
   if (!it?.intakes?.pending) return out;
   for (const p of ['syllabus', 'rhythm', 'flashcards', 'ink', 'margin', 'gradestack', 'timer', 'proof']) {
     try {
       const rows = await it.intakes.pending(p);
-      if (rows?.length) out[p] = rows.length;
+      if (!rows?.length) continue;
+      const worst = rows.reduce((m: number, r: any) => Math.max(m, r.attempts || 0), 0);
+      const err = rows.find((r: any) => (r.attempts || 0) === worst)?.lastError;
+      out[p] = { count: rows.length, stuck: worst >= 3 ? (err || 'still trying') : null };
     } catch { /* count stays absent */ }
   }
   return out;

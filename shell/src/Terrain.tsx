@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import type { Presence, SharedField, FeedItem, Entity, StoreEntity } from './hub';
+import type { Presence, SharedField, FeedItem, Entity, StoreEntity, IntakeWait } from './hub';
 import { sendTo } from './hub';
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 
@@ -87,7 +87,7 @@ export function Terrain({
   indexes: Record<string, Entity[]>;
   entities: StoreEntity[];
   feed: FeedItem[];
-  intakes?: Record<string, number>;
+  intakes?: Record<string, IntakeWait>;
   onEnter: (id: string) => void;
   onGo: (url: string) => void;
 }) {
@@ -246,9 +246,16 @@ export function Terrain({
                       {p.glyph}
                     </span>
                     <span className="mt-1 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-atlas-500 group-hover:text-moss-600">
-                      {(intakes?.[p.id] ?? 0) > 0 && (
-                        <span className="rounded-full border border-amber-500/40 bg-amber-50 px-1.5 text-[9.5px] font-semibold normal-case tracking-normal text-amber-800">
-                          {intakes![p.id]} waiting
+                      {(intakes?.[p.id]?.count ?? 0) > 0 && (
+                        <span
+                          className={`rounded-full border px-1.5 text-[9.5px] font-semibold normal-case tracking-normal ${
+                            intakes![p.id].stuck
+                              ? 'border-rose-500/40 bg-rose-50 text-rose-800'
+                              : 'border-amber-500/40 bg-amber-50 text-amber-800'
+                          }`}
+                          title={intakes![p.id].stuck ? `delivery keeps failing — ${intakes![p.id].stuck}` : 'queued sends deliver on open'}
+                        >
+                          {intakes![p.id].count} waiting
                         </span>
                       )}
                       {mounted?.includes(p.id) && (
@@ -591,7 +598,7 @@ export function Terrain({
                 const pres = presences[p.id];
                 const stale = isStale(pres);
                 const items = stale ? [] : p.today(pres?.summary);
-                const waiting = intakes?.[p.id] ?? 0;
+                const waiting = intakes?.[p.id] ?? null;
                 return (
                   <button
                     key={p.id}
@@ -603,9 +610,16 @@ export function Terrain({
                       <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-field-ink">
                         {p.place}
                       </span>
-                      {waiting > 0 && (
-                        <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-50 px-1.5 py-px text-[10px] font-semibold normal-case tracking-normal text-amber-800">
-                          {waiting} waiting
+                      {waiting && waiting.count > 0 && (
+                        <span
+                          className={`ml-auto rounded-full border px-1.5 py-px text-[10px] font-semibold normal-case tracking-normal ${
+                            waiting.stuck
+                              ? 'border-rose-500/40 bg-rose-50 text-rose-800'
+                              : 'border-amber-500/40 bg-amber-50 text-amber-800'
+                          }`}
+                          title={waiting.stuck ? `delivery keeps failing — ${waiting.stuck}` : 'queued sends deliver on open'}
+                        >
+                          {waiting.count} waiting
                         </span>
                       )}
                     </div>
