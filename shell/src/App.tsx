@@ -247,7 +247,12 @@ export default function App() {
       return;
     }
     const m = url.match(/^\/apps\/([a-z]+)(\/[^?#]*)?(\?[^#]*)?/);
-    if (!m || !PLACE_MAP[m[1]]) return;
+    if (!m || !PLACE_MAP[m[1]]) {
+      /* external entity urls (a syllabus resource link, say) can't frame —
+         same escape hatch as the iterra:open path */
+      if (/^https?:/.test(url)) window.open(url, '_blank', 'noopener');
+      return;
+    }
     const [, id, p = '/', q = ''] = m;
     const full = `/apps/${id}${p}${q}`;
     setFrames((f) => ({ ...f, [id]: f[id] === full ? `${full}${q ? '&' : '?'}_inav=${Date.now()}` : full }));
