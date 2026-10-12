@@ -34,13 +34,15 @@ const { chromium } = require('playwright-core');
     tFrame = page.frames().find((f) => f.url().includes('/apps/timer/'));
     if (tFrame) {
       try { body = await tFrame.evaluate(() => document.body.innerText); fsrc = tFrame.url(); } catch { /* mid-nav */ }
-      if (/drill mth|← terrain|elapsed/i.test(body) || /intake=|intent=/i.test(fsrc)) break;
+      // bound session = course badge (MTH) + a session state or the queued hop
+      if ((/\bMTH\b/.test(body) && /elapsed|running|paused|remaining|finish/i.test(body)) || /intake=|intent=/i.test(fsrc)) break;
     }
   }
   const state = { hash: await page.evaluate(() => location.hash) };
+  const bound = /\bMTH\b/.test(body) && /elapsed|running|paused|remaining|finish|deep work/i.test(body);
   console.log('timer mounted:', !!tFrame, '| hash:', state.hash, '| src:', fsrc);
-  console.log('| bound session:', /drill mth|← terrain|elapsed/i.test(body), '| errs:', errs.join(';') || 'none');
-  const ok = !!tFrame && state.hash === '#/p/timer' && /drill mth|← terrain|elapsed|intake=|intent=/i.test(fsrc + body);
+  console.log('| bound session (MTH + live state):', bound, '| errs:', errs.join(';') || 'none');
+  const ok = !!tFrame && state.hash === '#/p/timer' && (bound || /intake=|intent=/i.test(fsrc)) && !errs.length;
   console.log(ok ? 'PASS' : 'FAIL');
   await page.close();
   process.exit(ok ? 0 : 1);
