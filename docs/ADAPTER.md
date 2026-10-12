@@ -73,6 +73,9 @@ Emit only types in the catalogue — others are rejected.
 | `timer.start` | timer | `{payload:{label?, minutes?, commitmentId?, course?, courseId?}}` → focused session bound to it |
 | `timer.control` | timer | `{payload:{op:'pause'|'resume'|'finish'}}` → steers the live session (finish logs elapsed only) |
 | `problem.retest` | flashcards | alias of `cards.create` for a diverged attempt |
+| `routine.plan` | rhythm | `{payload:{name, course?, courseId?, dueAt?, perWeek?, minutes?, unit?}}` → real routine on the register |
+| `block.plan` | syllabus | `{payload:{title, courseId?, course?, date?, start?, minutes?, phase?, label?}}` → a slip on the folio |
+| `problem.create` | proof | `{payload:{topic?, prompt?, course?, courseId?, difficulty?, tags?, source?}}` → a problem on the bench |
 | `weights.import` | gradestack | `{payload:{courseId}}` → pull categories/weights from syllabus |
 | `study-plan.request` | syllabus | `{payload:{courseId, examId?}}` → open generated plan |
 | `event.intake` | rhythm | legacy `?event` query intake — keep working |

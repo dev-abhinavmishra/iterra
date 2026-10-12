@@ -449,6 +449,55 @@ export function registerAdapter() {
     title: 'Syllabus',
     intakes: {
       'study-plan.request': (rec: any) => studyPlan(rec),
+      /* {title, courseId?, course?, date?, minutes?, phase?, label?} → book a
+         slip on the folio: the rhythm app files routine sessions here so
+         'what's planned' and 'what was done' live on the same ledger.
+         Hangs on a found-or-filed commitment in the resolved course. */
+      'block.plan': (rec: any) => {
+        const s = useFolio.getState();
+        const p = rec?.payload ?? {};
+        const rawKey = String(p.courseId ?? '');
+        const localId = rawKey.startsWith(COURSE_KEY) ? rawKey.slice(COURSE_KEY.length) : rawKey;
+        const course =
+          s.courses[localId] ??
+          Object.values(s.courses).find(
+            (c) => p.course && String(c.code).toLowerCase() === String(p.course).toLowerCase(),
+          );
+        if (!course) return { url: null };
+        const title = typeof p.title === 'string' && p.title.trim()
+          ? p.title.trim()
+          : `${course.code || course.name} — planned session`;
+        const date = /^\d{4}-\d{2}-\d{2}$/.test(String(p.date || '')) ? String(p.date) : todayISO();
+        const minutes = clamp(Math.round(Number(p.minutes) || 45), 15, 240);
+        const open = Object.values(s.commitments)
+          .filter((c) => c.courseId === course.id && c.status === 'open')
+          .sort((a, b) => a.dueAt.localeCompare(b.dueAt));
+        const anchor = open[0] ?? s.addCommitment({
+          courseId: course.id,
+          type: 'custom',
+          title: `${course.code || course.name} — planned work`,
+          detail: 'Filed by block.plan so incoming slips have somewhere to live.',
+          dueAt: `${date}T23:59:00`,
+          weight: 0,
+          estimatedMinutes: 0,
+          pinned: false,
+        });
+        const phase = ['work', 'review', 'practice', 'draft', 'outline', 'read', 'check'].includes(p.phase)
+          ? p.phase
+          : 'work';
+        const made = s.acceptProposals([{
+          commitmentId: anchor.id,
+          plannedDate: date,
+          plannedStart: /^\d{2}:\d{2}$/.test(String(p.start || '')) ? String(p.start) : '16:00',
+          plannedMinutes: minutes,
+          phase,
+          label: p.label || title,
+          reasons: ['planned from another app'],
+          score: 0,
+          late: false,
+        }]);
+        return { url: made.length ? '/apps/syllabus/' : null };
+      },
     },
     wake: () => mirrorFolio(),
   });

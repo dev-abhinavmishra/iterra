@@ -278,7 +278,34 @@ export function registerAdapter() {
       if (!s.booted) return null;
       return { due: s.dueReviews().length, attempts: Object.keys(s.attempts || {}).length };
     },
-    intakes: { 'step.append': onStepAppend },
+    intakes: {
+      'step.append': onStepAppend,
+      /* {topic?, prompt?|title?, course?, courseId?, difficulty?, tags?,
+         source?} → a real Problem on the bench: a margin note, a syllabus
+         weak topic, or a dossier click files the next rep here. */
+      'problem.create': async (rec: any) => {
+        const s = useWorkbench.getState();
+        if (!s.booted) return null;
+        const p = rec?.payload ?? {};
+        const prompt = String(p.prompt || p.title || rec?.entity?.title || '').trim();
+        if (!prompt) return { ok: false };
+        const bound = await boundCourse(p.course, p.courseId);
+        const diff = Number(p.difficulty);
+        const problem = s.addProblem({
+          courseId: bound.courseId,
+          topic: String(p.topic || bound.course || 'from the terrain').trim(),
+          promptDoc: prompt,
+          answerSpec: { kind: 'open' },
+          workedSolutionDoc: '',
+          hints: [],
+          tags: Array.isArray(p.tags) ? p.tags.map(String) : (p.source ? [String(p.source)] : ['terrain']),
+          difficulty: (diff >= 1 && diff <= 5 ? Math.round(diff) : 2) as 1 | 2 | 3 | 4 | 5,
+          source: typeof p.source === 'string' ? p.source : 'iterra',
+          attachments: [],
+        });
+        return { url: `/apps/proof/?problem=${encodeURIComponent(problem.id)}` };
+      },
+    },
     wake: () => { courseCache.clear(); void mirror(); },
   });
   listen();
