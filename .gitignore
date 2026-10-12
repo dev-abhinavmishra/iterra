@@ -9,3 +9,6 @@ dist/
 dist-*/
 .playwright-mcp/
 scripts/x/
+scripts/shot-*.png
+# lane-agent scratch probes (a-*/b-*/c-*/d-* naming convention)
+scripts/[abcd]-*.cjs

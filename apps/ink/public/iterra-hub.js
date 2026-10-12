@@ -399,7 +399,12 @@
       var t = d.transaction(store, mode);
       var s = t.objectStore(store);
       var out = fn(s);
-      t.oncomplete = function () { res(out && out.result !== undefined ? out.result : out); };
+      /* only unwrap .result off a real IDBRequest — a get-miss leaves
+         result undefined, and resolving the request object itself made
+         store.get('missing') truthy (callers' !rec checks lied). */
+      t.oncomplete = function () {
+        res(typeof IDBRequest !== 'undefined' && out instanceof IDBRequest ? out.result : out);
+      };
       t.onerror = function () { rej(t.error); };
       t.onabort = function () { rej(t.error); };
     });
@@ -985,6 +990,17 @@
       try { launchedFor = new URLSearchParams(window.location.search).get('intake'); } catch (e) {}
       var landOnce = !!(launchedFor && !_launchChecked);
       if (launchedFor) _launchChecked = true;
+      /* handler results are app code, but a returned url may carry mirrored
+         entity data another app wrote — the drain navigates this frame
+         directly, so only ever land on a same-origin link (blocks
+         javascript:/data:/external result.urls reaching location.assign). */
+      var safeLand = function (u) {
+        try {
+          var abs = new URL(String(u || ''), window.location.href);
+          if (abs.origin !== window.location.origin) return null;
+          return abs.pathname + abs.search + abs.hash;
+        } catch (e) { return null; }
+      };
       var next = function () {
         if (i >= rows.length) {
           /* launched at ?intake=<id> but the row was already delivered —
@@ -996,8 +1012,9 @@
             var tries = 10;
             var awaitLanding = function () {
               intakeGet(launchedFor).then(function (rec) {
-                if (rec && rec.to === app && rec.delivered && rec.result && rec.result.url) {
-                  try { window.location.assign(rec.result.url); } catch (e) {}
+                var landUrl = rec && rec.delivered && rec.result && safeLand(rec.result.url);
+                if (rec && rec.to === app && landUrl) {
+                  try { window.location.assign(landUrl); } catch (e) {}
                 } else if (rec && !rec.delivered && tries-- > 0) {
                   setTimeout(awaitLanding, 300);
                   return;
@@ -1029,8 +1046,9 @@
               } catch (e) {}
             }
             Promise.all(settled).then(function () {
-              if (launchedFor && rec.id === launchedFor && result && result.url) {
-                try { window.location.assign(result.url); return; } catch (e) {}
+              var landUrl = launchedFor && rec.id === launchedFor && result && safeLand(result.url);
+              if (landUrl) {
+                try { window.location.assign(landUrl); return; } catch (e) {}
               }
               next();
             }, function () { next(); });
