@@ -180,6 +180,30 @@ export function Dossier({
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
   const pinnedUrls = new Set(pins.map((p) => p.url));
+  /* row-level send-to: any entity on the desk hands itself to a sibling
+     app's intake — same targets as the palette's ⇥ menu. Payload carries
+     the generic fields each intake reads (name/prompt/label). */
+  const ROW_SENDS: { to: string; action: string; label: string }[] = [
+    { to: 'flashcards', action: 'cards.create', label: 'a card' },
+    { to: 'margin', action: 'note.create', label: 'a margin note' },
+    { to: 'ink', action: 'note.create', label: 'an ink page' },
+    { to: 'proof', action: 'problem.create', label: 'the bench' },
+    { to: 'rhythm', action: 'routine.plan', label: 'the register' },
+    { to: 'timer', action: 'timer.start', label: 'a session' },
+  ];
+  const [rowSend, setRowSend] = useState<string | null>(null);
+  const sendRow = async (app: string, e: Entity, t: { to: string; action: string; label: string }) => {
+    setRowSend(null);
+    const r = await sendTo({
+      to: t.to,
+      action: t.action,
+      entity: { app, type: e.t, id: e.id, title: e.title, url: e.url, course: e.course, topic: e.topic } as any,
+      payload: { name: e.title, prompt: e.title, label: e.title, title: e.title, course: e.course || display, courseId },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? `queued for ${t.label}` : `couldn't send — ${r.error || 'no hub'}`);
+    window.setTimeout(() => setSent(null), 4000);
+  };
   /* backlinks — every Link entity touching this course, resolved against
      the store so the dossier shows what points at it (the cardfile deck
      filed from a note, the problem sent to the bench…). */
@@ -474,6 +498,29 @@ export function Dossier({
                       )}
                     </span>
                   </button>
+                  <span className="relative shrink-0">
+                    <button
+                      onClick={() => setRowSend(rowSend === `${app}-${e.id}-${i}` ? null : `${app}-${e.id}-${i}`)}
+                      aria-label={`send ${e.title} to another app`}
+                      title="send to…"
+                      className="px-2 py-2.5 text-[12px] text-atlas-400 hover:text-moss-700 focus:outline-none"
+                    >
+                      ⇥
+                    </button>
+                    {rowSend === `${app}-${e.id}-${i}` && (
+                      <span className="anim-rise absolute right-0 top-full z-30 w-40 rounded-md border border-atlas-300 bg-atlas-50 p-1 shadow-[0_12px_30px_-12px_rgba(29,51,42,0.45)]">
+                        {ROW_SENDS.map((t) => (
+                          <button
+                            key={t.to}
+                            onClick={() => void sendRow(app, e, t)}
+                            className="block w-full rounded px-2.5 py-1.5 text-left text-[12px] text-field-ink hover:bg-moss-100"
+                          >
+                            → {t.label}
+                          </button>
+                        ))}
+                      </span>
+                    )}
+                  </span>
                   <button
                     onClick={() =>
                       togglePin({ app, t: e.t, id: e.id, title: e.title || '(untitled)', url: e.url || `/apps/${app}/` })

@@ -42,7 +42,7 @@ and e2e-verified where the surface is user-visible.
 - [x] 28 commitment → proof problem (send a commitment to the workbench as the problem prompt)
 - [ ] 29 card → margin note (a card's q/a becomes note text)
 - [ ] 30 deck → dossier review shortcut (due badge on deck → review)
-- [ ] 31 Send-to on dossier entity rows (⇥ on each row)
+- [x] 31 Send-to on dossier entity rows (⇥ on each row)
 - [ ] 32 Send-to on terrain rail entries
 - [ ] 33 Bulk send — select several hits, one target (stretch)
 - [ ] 34 Send result → "open it" chip (deep-link toast on delivery)
