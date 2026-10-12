@@ -660,7 +660,7 @@ export const useFolio = create<FolioState>()(
         // DEFAULT_SETTINGS; only real values win.
         const settings = { ...DEFAULT_SETTINGS } as AppSettings;
         for (const [k, v] of Object.entries(p.settings || {})) {
-          if (v !== undefined && v !== null) (settings as Record<string, unknown>)[k] = v;
+          if (v !== undefined && v !== null) (settings as unknown as Record<string, unknown>)[k] = v;
         }
         return { ...current, ...p, commitments, blocks, settings };
       },
