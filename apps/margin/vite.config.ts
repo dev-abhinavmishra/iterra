@@ -64,7 +64,7 @@ function devApiPlugin(): Plugin {
     };
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
     const env = loadEnv(mode, '.', '');
 
     // Expose provider/Supabase keys to the dev API handlers via process.env.
@@ -79,6 +79,8 @@ export default defineConfig(({ mode }) => {
     }
 
     return {
+        // served under /apps/margin/ inside the iterra terrain
+        base: command === 'build' ? '/apps/margin/' : '/',
         server: {
             port: 3000,
             host: '0.0.0.0',

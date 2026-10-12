@@ -1,7 +1,9 @@
-// ── Today — the open register ────────────────────────────────────────────────
+// ── Today — the running measure ──────────────────────────────────────────────
 // Acceptance criterion: a manual check-in takes at most two direct actions.
-//   check routine   → press the stamp (1)
-//   amount routine  → press the stamp, confirm the amount (2)
+//   check routine   → hit the pad (1)
+//   amount routine  → hit the pad, confirm the amount (2)
+// Each channel row is a strip on the sequencer: hit pad, label, level meter,
+// and the week's seven steps with the playhead sweeping through.
 // A routine "skipped" gets a friction note, not a scolding.
 
 import { useMemo, useState } from 'react';
@@ -9,10 +11,12 @@ import { useRegister } from '../store';
 import type { Routine } from '../lib/types';
 import { dayState, isScheduled, perDayBar, routineWeek } from '../lib/register';
 import { bandFor } from '../lib/bands';
-import { fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
-import { EXCEPTION_LABEL, FRICTION_LABEL } from '../lib/utils';
-import { Mark } from '../components/Mark';
-import { WStamp } from '../components/WStamp';
+import { addDaysISO, fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
+import { EXCEPTION_LABEL, FRICTION_LABEL, cx } from '../lib/utils';
+import { usePlayhead } from '../lib/playhead';
+import { useSharedFocus } from '../lib/iterra';
+import { Pad } from '../components/Pad';
+import { Lamp } from '../components/Lamp';
 import { Sheet } from '../components/Sheet';
 import { Field } from '../components/Field';
 import { Minus, Plus, StickyNote, XCircle } from 'lucide-react';
@@ -24,6 +28,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
   const courses = useRegister((s) => s.courses);
   const settings = useRegister((s) => s.settings);
   const focusedRoutineName = useRegister((s) => s.focusedRoutineName);
+  const sharedFocus = useSharedFocus();
   const checkIn = useRegister((s) => s.checkIn);
   const logFriction = useRegister((s) => s.logFriction);
   const addException = useRegister((s) => s.addException);
@@ -80,30 +85,33 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
 
   return (
     <div>
-      {/* ── Masthead — the office date stamp ─────────────────────── */}
+      {/* ── Masthead — the transport readout ─────────────────────── */}
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="kicker mb-1">Today's register — week of {fmtWeekRange(week)}</div>
-          <div
-            className="datestamp-block inline-block px-3 py-1.5 text-2xl leading-none"
-            style={{ transform: 'rotate(-1.2deg)' }}
-          >
+          <div className="kicker mb-1.5">This measure — week of {fmtWeekRange(week)}</div>
+          <div className="lcd inline-block px-3 py-1.5 text-xl leading-none tracking-[0.08em]">
             {fmtDayFull(today)}
           </div>
         </div>
         <TodayPace />
       </div>
 
-      {/* ── Scheduled rows ───────────────────────────────────────── */}
+      {sharedFocus && (
+        <div className="kicker mb-4" aria-label="Focus running">
+          focus running — {sharedFocus.v?.label || 'unnamed block'}
+        </div>
+      )}
+
+      {/* ── Live channels ────────────────────────────────────────── */}
       {list.scheduled.length === 0 && list.open.length === 0 && list.paused.length === 0 && (
         <div className="py-10 text-center">
-          <p className="datestamp text-lg text-ink-soft">The register is empty.</p>
-          <p className="mt-1 text-sm text-ink-faint">Open the register's first routine from Settings or the onboarding sheet.</p>
+          <p className="disp text-lg text-ink-soft">No channels patched in.</p>
+          <p className="mt-1 text-sm text-ink-faint">Patch the first channel from Setup or the onboarding sheet.</p>
         </div>
       )}
 
       {list.scheduled.length > 0 && (
-        <section aria-label="Scheduled for today">
+        <section aria-label="Due today">
           <div className="divide-y-0 border-y border-rule">
             {list.scheduled.map((r) => (
               <RoutineRow
@@ -144,10 +152,10 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
         </section>
       )}
 
-      {/* ── Also on the books — unscheduled today, loggable anyway ── */}
+      {/* ── Off the grid — unscheduled today, hittable anyway ────── */}
       {list.open.length > 0 && (
         <section className="mt-6" aria-label="Not scheduled today">
-          <div className="kicker mb-2">Also on the books — not due today</div>
+          <div className="kicker mb-2">Off the grid today — hit them anyway</div>
           <div className="divide-y-0 border-y border-rule opacity-90">
             {list.open.map((r) => (
               <RoutineRow
@@ -189,22 +197,22 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
         </section>
       )}
 
-      {/* ── Paused — resting in the back of the register ──────────── */}
+      {/* ── Muted channels — parked, not deleted ─────────────────── */}
       {list.paused.length > 0 && (
         <section className="mt-6" aria-label="Paused routines">
-          <div className="kicker mb-2">Paused — intentionally set aside</div>
+          <div className="kicker mb-2">Muted — intentionally parked</div>
           <div className="divide-y-0 border-y border-rule">
             {list.paused.map((r) => (
-              <div key={r.id} className="lrow flex items-center gap-3 px-2 py-2.5">
-                <Mark state="paused" accent={r.accent} title="paused" />
+              <div key={r.id} className="chan flex items-center gap-3 px-2 py-2.5">
+                <Pad state="paused" accent={r.accent} title="paused" />
                 <div className="min-w-0 flex-1">
-                  <button onClick={() => openRoutine(r.id)} className="datestamp truncate text-[15px] hover:underline">
+                  <button onClick={() => openRoutine(r.id)} className="disp truncate text-[15px] hover:underline">
                     {r.name}
                   </button>
                   {r.pauseReason && <div className="text-[11px] text-ink-faint">{r.pauseReason}</div>}
                 </div>
                 <button className="btn btn--quiet" onClick={() => resumeRoutine(r.id)}>
-                  Resume
+                  Unmute
                 </button>
               </div>
             ))}
@@ -215,13 +223,13 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
       {/* ── Day actions ──────────────────────────────────────────── */}
       <div className="mt-5 flex flex-wrap gap-2 no-print">
         <button className="btn btn--quiet" onClick={() => setExceptionOpen(true)}>
-          Mark today an exception…
+          Mute today — an exception…
         </button>
       </div>
 
       {/* ── Sheets ───────────────────────────────────────────────── */}
       {noteFor && (
-        <Sheet title="A note on today's line" onClose={() => setNoteFor(null)}>
+        <Sheet title="A note on today's step" onClose={() => setNoteFor(null)}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -232,7 +240,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
                   note,
                 });
                 if (!entry) {
-                  // already stamped — attach the note to today's first entry
+                  // already hit — attach the note to today's first entry
                   const ex = Object.values(entries).find(
                     (en) => en.routineId === noteFor && en.date === today,
                   );
@@ -244,7 +252,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
             }}
             className="space-y-4"
           >
-            <Field label="Note (private — stays in this register)">
+            <Field label="Note (private — stays on this machine)">
               <textarea
                 className="f-textarea"
                 value={note}
@@ -258,7 +266,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
                 Cancel
               </button>
               <button type="submit" className="btn btn--primary">
-                File note
+                Save note
               </button>
             </div>
           </form>
@@ -266,7 +274,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
       )}
 
       {frictionFor && (
-        <Sheet title="Log why it didn't happen" onClose={() => setFrictionFor(null)}>
+        <Sheet title="Why it didn't sound today" onClose={() => setFrictionFor(null)}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -319,15 +327,15 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
         />
       )}
 
-      {/* hidden live region for screen-reader stamp confirmations */}
+      {/* hidden live region for screen-reader hit confirmations */}
       <div aria-live="polite" className="sr-only">
-        {justStamped ? `${routines[justStamped]?.name ?? 'Routine'} stamped` : ''}
+        {justStamped ? `${routines[justStamped]?.name ?? 'Routine'} hit` : ''}
       </div>
     </div>
   );
 }
 
-// ── One register row ─────────────────────────────────────────────────────────
+// ── One channel strip ─────────────────────────────────────────────────────────
 
 function RoutineRow({
   routine: r,
@@ -383,36 +391,35 @@ function RoutineRow({
       : `${wk.actual}/${r.target.perWeek} ${unitLabel} this week`;
 
   return (
-    <div className="lrow px-2 py-2.5">
+    <div className="chan px-2 py-2.5">
       <div className="flex items-center gap-3">
-        {/* the stamp — one press records the day */}
+        {/* the hit pad — one press records the day */}
         <button
           onClick={onStamp}
-          aria-label={
-            done ? `${r.name} already marked ${state}` : `Mark ${r.name} done`
-          }
+          aria-label={done ? `${r.name} already hit ${state}` : `Hit ${r.name}`}
           aria-pressed={done}
-          className="rounded-full focus-visible:outline-2 focus-visible:outline-indigo"
-          style={{ ['--stamp-rot' as never]: '-2deg' }}
+          className="padbtn"
+          style={{ ['--pad-rgb' as never]: `var(--acc-${r.accent}-rgb)` }}
         >
-          <Mark
-            state={done ? state : 'missed'}
+          <Pad
+            state={done ? state : 'unscheduled'}
             accent={r.accent}
-            press={justStamped}
-            title={done ? state : `mark ${r.name}`}
+            size={30}
+            hit={justStamped}
+            title={done ? state : `hit ${r.name}`}
           />
         </button>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
-            <button onClick={onOpen} className="datestamp truncate text-[15px] hover:underline" title="open routine">
+            <button onClick={onOpen} className="disp truncate text-[15px] hover:underline" title="open channel">
               {r.name}
             </button>
             {courseCode && <span className="mono text-[10px] uppercase text-ink-faint">{courseCode}</span>}
           </div>
-          <div className="mt-0.5 flex items-center gap-2">
+          <div className="mt-1 flex items-center gap-2">
             <span className="mono text-[10.5px] text-ink-soft">{progress}</span>
-            <span className="track w-16 text-indigo" style={{ color: `var(--color-acc-${r.accent})` }}>
+            <span className="meter w-16" style={{ color: `var(--color-acc-${r.accent})` }}>
               <i
                 style={{
                   width: `${Math.min(100, (wk.actual / Math.max(1, wk.effectiveTarget)) * 100)}%`,
@@ -427,7 +434,10 @@ function RoutineRow({
           </div>
         </div>
 
-        {/* row actions — quiet, never loud */}
+        {/* this week's measure — seven steps, playhead sweeping */}
+        <MeasureStrip routine={r} weekStart={weekStart} today={today} />
+
+        {/* channel controls — quiet, never loud */}
         <div className="flex items-center gap-1">
           {r.minimum && !done && (
             <button className="btn btn--quiet !px-2 !py-1" onClick={onMinimum} title={`minimum: ${r.minimum.label}`}>
@@ -435,8 +445,8 @@ function RoutineRow({
             </button>
           )}
           {done && (
-            <button className="btn btn--quiet !px-2 !py-1" onClick={onUndo} title="lift today's stamp">
-              lift
+            <button className="btn btn--quiet !px-2 !py-1" onClick={onUndo} title="unhit today">
+              unhit
             </button>
           )}
           <IconBtn label="note" onClick={onNote}>
@@ -453,7 +463,7 @@ function RoutineRow({
       {/* amount intake — the second action for measured routines */}
       {amountOpen && (
         <form
-          className="mt-2 ml-9 flex flex-wrap items-center gap-2"
+          className="mt-2 ml-[52px] flex flex-wrap items-center gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             onAmountConfirm();
@@ -485,7 +495,7 @@ function RoutineRow({
           </button>
           <span className="mono text-[11px] text-ink-soft">{unitLabel}</span>
           <button type="submit" className="btn btn--primary !px-3 !py-1.5">
-            Stamp
+            Hit
           </button>
           {r.minimum && (
             <button type="button" className="btn btn--quiet !px-2 !py-1.5" onClick={onAmountMinimum}>
@@ -495,9 +505,41 @@ function RoutineRow({
           <button type="button" className="btn btn--quiet !px-2 !py-1.5" onClick={onAmountClose}>
             ×
           </button>
-          {offday && <span className="mono text-[10px] text-ink-faint">not a scheduled day — it still counts</span>}
+          {offday && <span className="mono text-[10px] text-ink-faint">not a scheduled step — it still counts</span>}
         </form>
       )}
+    </div>
+  );
+}
+
+// ── The measure strip — this week's seven steps on the channel ───────────────
+
+export function MeasureStrip({ routine, weekStart, today, size = 15 }: { routine: Routine; weekStart: string; today: string; size?: number }) {
+  const entries = useRegister((s) => s.entries);
+  const exceptions = useRegister((s) => s.exceptions);
+  const motion = useRegister((s) => s.settings.motion);
+  const play = usePlayhead(motion === 'full');
+  const todayIdx = useMemo(() => {
+    for (let i = 0; i < 7; i++) if (addDaysISO(weekStart, i) === today) return i;
+    return -1;
+  }, [weekStart, today]);
+
+  return (
+    <div className="hidden items-center gap-[3px] sm:flex" aria-hidden="true" title="this week's steps">
+      {Array.from({ length: 7 }, (_, i) => {
+        const d = addDaysISO(weekStart, i);
+        const st = dayState(routine, d, entries, exceptions, today);
+        return (
+          <span
+            key={d}
+            className={cx('flex items-center justify-center rounded-[3px]', i === play && 'step--play', i === todayIdx && 'step--now')}
+            style={{ width: size + 4, height: size + 4 }}
+            title={`${fmtDayFull(d)} — ${st}`}
+          >
+            <Pad state={st} accent={routine.accent} size={size} />
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -508,14 +550,14 @@ function IconBtn({ label, onClick, children }: { label: string; onClick: () => v
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="rounded p-1.5 text-ink-faint hover:bg-black/5 hover:text-ink"
+      className="rounded p-1.5 text-ink-faint hover:bg-white/5 hover:text-ink"
     >
       {children}
     </button>
   );
 }
 
-// ── "On pace" summary — no streaks, just the week's ledger state ─────────────
+// ── "On pace" — band lamps, no streaks ───────────────────────────────────────
 
 function TodayPace() {
   const routines = useRegister((s) => s.routines);
@@ -534,14 +576,14 @@ function TodayPace() {
     <div className="text-right">
       <div className="flex flex-wrap justify-end gap-1.5">
         {bands.slice(0, 4).map(({ r, b }) => (
-          <WStamp key={r.id} band={b.band} />
+          <Lamp key={r.id} band={b.band} />
         ))}
       </div>
       {recovering.length > 0 && (
         <p className="mt-1.5 max-w-52 text-[11px] leading-snug text-ink-soft">
           {recovering.length === 1
-            ? `${recovering[0].r.name} is in recovery — the minimum version keeps the line alive.`
-            : `${recovering.length} routines in recovery — minimum versions keep the lines alive.`}
+            ? `${recovering[0].r.name} is in recovery — the minimum version keeps the pattern alive.`
+            : `${recovering.length} routines in recovery — minimum versions keep the pattern alive.`}
         </p>
       )}
     </div>
@@ -563,7 +605,7 @@ function ExceptionSheet({
   const [kind, setKind] = useState('travel');
   const [note, setNote] = useState('');
   return (
-    <Sheet title="Mark today an exception" onClose={onClose}>
+    <Sheet title="Mute today — an exception" onClose={onClose}>
       <form
         className="space-y-4"
         onSubmit={(e) => {
@@ -572,12 +614,12 @@ function ExceptionSheet({
         }}
       >
         <p className="text-[12px] leading-snug text-ink-soft">
-          Travel, exams, and sick days happen. An exception excuses the day — it is marked on the
-          register, not erased, and it is never counted as a miss.
+          Travel, exams, and sick days happen. An exception mutes the step — it stays on the
+          tape, and it is never counted as a miss.
         </p>
         <Field label="Applies to">
           <select className="f-select" value={routineId} onChange={(e) => setRoutineId(e.target.value)}>
-            <option value="all">Every routine today</option>
+            <option value="all">Every channel today</option>
             {routines.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
@@ -602,7 +644,7 @@ function ExceptionSheet({
             Cancel
           </button>
           <button type="submit" className="btn btn--primary">
-            Mark exception
+            Mute the step
           </button>
         </div>
       </form>

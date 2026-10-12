@@ -7,14 +7,14 @@ import { cx, WEEKDAY_NAMES } from '../lib/utils';
 import { Field } from './Field';
 
 const MEASURES: { key: RoutineMeasure; label: string; hint: string }[] = [
-  { key: 'check', label: 'Showed up', hint: 'a day counts when you did it' },
-  { key: 'count', label: 'Sessions', hint: 'how many times per week' },
+  { key: 'check', label: 'Showed up', hint: 'a step sounds when you did it' },
+  { key: 'count', label: 'Sessions', hint: 'how many hits per week' },
   { key: 'duration', label: 'Time', hint: 'minutes per week' },
   { key: 'quantity', label: 'Amount', hint: 'cards, pages, problems…' },
 ];
 
 export function RoutineForm({
-  submitLabel = 'File the routine',
+  submitLabel = 'Patch it in',
   onDone,
   autofocusName,
 }: {
@@ -97,7 +97,7 @@ export function RoutineForm({
           </Field>
         )}
         {measure !== 'check' && (
-          <Field label="Full-day amount (optional)" hint="a day's bar for the mark grid">
+          <Field label="Full-day amount (optional)" hint="a day's bar for the step grid">
             <input className="f-input" inputMode="numeric" value={perDay} onChange={(e) => setPerDay(e.target.value)} />
           </Field>
         )}

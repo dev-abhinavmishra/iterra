@@ -4,20 +4,28 @@
 // suspended, not the record. At the end the register lays the before/after side
 // by side and the student writes the outcome.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRegister } from '../store';
 import type { Experiment } from '../lib/types';
 import { routineWeek } from '../lib/register';
 import { addDaysISO, diffDaysISO, fmtDay, todayISO, weekStartISO } from '../lib/dates';
 import { Field } from '../components/Field';
 import { Sheet } from '../components/Sheet';
-import { WStamp } from '../components/WStamp';
+import { Lamp } from '../components/Lamp';
 
-export function ExperimentsView() {
+export function ExperimentsView({ focusId }: { focusId?: string | null }) {
   const s = useRegister();
   const [open, setOpen] = useState(false);
   const [outcomeFor, setOutcomeFor] = useState<string | null>(null);
   const [outcome, setOutcome] = useState('');
+
+  /* ?experiment=<id> — scroll the named card into view and light it; an
+     unknown id simply finds no card (silent plain list). */
+  useEffect(() => {
+    if (!focusId) return;
+    const el = document.querySelector(`[data-experiment-id="${CSS.escape(focusId)}"]`);
+    el?.scrollIntoView({ block: 'center', behavior: s.settings.motion === 'reduced' ? 'auto' : 'smooth' });
+  }, [focusId, s.settings.motion]);
 
   const experiments = Object.values(s.experiments).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   const active = experiments.filter((e) => e.status === 'active');
@@ -28,7 +36,7 @@ export function ExperimentsView() {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="kicker mb-1">Experiments</div>
-          <h1 className="datestamp text-2xl">Test one change at a time</h1>
+          <h1 className="disp text-2xl">Test one change at a time</h1>
           <p className="mt-1 max-w-lg text-[12.5px] leading-snug text-ink-soft">
             An experiment changes one thing, for a fixed window, then reports back. It is a pencil
             note in the margin — the routine's record is untouched.
@@ -41,7 +49,7 @@ export function ExperimentsView() {
 
       {experiments.length === 0 && (
         <div className="py-10 text-center">
-          <p className="datestamp text-lg text-ink-soft">No experiments on file.</p>
+          <p className="disp text-lg text-ink-soft">No experiments on file.</p>
           <p className="mt-1 text-sm text-ink-faint">
             When a routine feels off, test a change for two weeks instead of guessing.
           </p>
@@ -52,7 +60,7 @@ export function ExperimentsView() {
         <section className="mb-6" aria-label="active experiments">
           <div className="kicker mb-2">Running</div>
           {active.map((e) => (
-            <ExperimentCard key={e.id} experiment={e} onResolve={(status) => {
+            <ExperimentCard key={e.id} experiment={e} focused={e.id === focusId} onResolve={(status) => {
               if (status === 'completed') {
                 setOutcome('');
                 setOutcomeFor(e.id);
@@ -69,9 +77,14 @@ export function ExperimentsView() {
           <div className="kicker mb-2">Filed</div>
           <div className="border-y border-rule">
             {finished.map((e) => (
-              <div key={e.id} className="lrow px-2 py-2.5">
+              <div
+                key={e.id}
+                className="chan px-2 py-2.5"
+                data-experiment-id={e.id}
+                style={e.id === focusId ? { outline: '2px solid var(--color-indigo)', outlineOffset: '1px' } : undefined}
+              >
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="datestamp text-[14px]">{s.routines[e.routineId]?.name ?? 'archived routine'}</span>
+                  <span className="disp text-[14px]">{s.routines[e.routineId]?.name ?? 'archived routine'}</span>
                   <span className="mono text-[10px] uppercase text-ink-faint">
                     {fmtDay(e.startDate)} – {fmtDay(e.endDate)} · {e.status}
                   </span>
@@ -121,7 +134,7 @@ export function ExperimentsView() {
   );
 }
 
-function ExperimentCard({ experiment: e, onResolve }: { experiment: Experiment; onResolve: (status: 'completed' | 'abandoned') => void }) {
+function ExperimentCard({ experiment: e, focused, onResolve }: { experiment: Experiment; focused?: boolean; onResolve: (status: 'completed' | 'abandoned') => void }) {
   const s = useRegister();
   const today = todayISO();
   const routine = s.routines[e.routineId];
@@ -158,12 +171,16 @@ function ExperimentCard({ experiment: e, onResolve }: { experiment: Experiment; 
   const overdue = daysLeft < 0;
 
   return (
-    <div className="slip mb-3 p-4">
+    <div
+      className="panel mb-3 p-4"
+      data-experiment-id={e.id}
+      style={focused ? { outline: '2px solid var(--color-indigo)', outlineOffset: '2px' } : undefined}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="datestamp text-[15px]">{routine?.name ?? 'archived routine'}</span>
-            <WStamp band="experimenting" />
+            <span className="disp text-[15px]">{routine?.name ?? 'archived routine'}</span>
+            <Lamp band="experimenting" />
           </div>
           <p className="mt-1 max-w-md text-[12.5px] italic text-ink-soft">"{e.hypothesis}"</p>
           <p className="text-[12px] text-ink-soft">testing: {e.change}</p>

@@ -22,12 +22,12 @@ import { uid, nowISO } from '../lib/utils';
 import { draftToProblem, type DraftProblem } from '../lib/imports';
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  timerBaseUrl: 'https://timerstack.vercel.app',
-  inkBaseUrl: 'https://ink-notes.vercel.app',
+  timerBaseUrl: '/apps/timer',
+  inkBaseUrl: '/apps/ink',
   modularBaseUrl: 'https://modularaistack.vercel.app',
-  flashcardsBaseUrl: 'https://flashcards-stack.vercel.app',
-  syllabusBaseUrl: 'https://syllabus-folio.vercel.app',
-  gradestackBaseUrl: 'https://gradestack.vercel.app',
+  flashcardsBaseUrl: '/apps/flashcards',
+  syllabusBaseUrl: '/apps/syllabus',
+  gradestackBaseUrl: '/apps/gradestack',
   motion: 'full',
   defaultSessionMinutes: 30,
 };
@@ -122,6 +122,15 @@ export const useWorkbench = create<WorkbenchState>()(
             if (inbound.kind === 'timer-return' && inbound.sessionId) {
               get().fileTimerReturn(inbound.sessionId, inbound.actualMinutes);
               inbound = null;
+            }
+            if (inbound?.kind === 'problem' && inbound.problemId) {
+              const problem = get().problems[inbound.problemId];
+              if (problem) {
+                const attempt = get().startAttempt(problem.id);
+                inbound = { ...inbound, attemptId: attempt.id };
+              } else {
+                inbound = null;
+              }
             }
             const url = new URL(window.location.href);
             url.search = '';
@@ -416,6 +425,36 @@ export const useWorkbench = create<WorkbenchState>()(
     {
       name: 'proof.workbench.v1',
       version: 1,
+      /* old/partial blobs: array fields readers iterate unguarded
+         (p.tags crashed LibraryView + selectAllTags — same class as the
+         syllabus dependencies fix upstream) */
+      merge: (persisted, current) => {
+        const s = { ...current, ...(persisted as Partial<WorkbenchState>) };
+        /* settings is a nested object — a persisted {} or partial blob must
+           not blank the defaults (defaultSessionMinutes undefined →
+           rules.minutes NaN → every session built with 0 problems) */
+        s.settings = { ...current.settings, ...(s.settings || {}) };
+        for (const p of Object.values(s.problems || {})) {
+          p.tags = p.tags ?? [];
+          p.hints = p.hints ?? [];
+          p.attachments = p.attachments ?? [];
+          /* answerSpec is a required union — blobs predating it crashed
+             p.answerSpec.kind derefs (LibraryView/AttemptDesk) */
+          p.answerSpec = p.answerSpec ?? { kind: 'steps', steps: [] };
+        }
+        for (const a of Object.values(s.attempts || {})) {
+          a.work = a.work ?? [];
+          a.hintReveals = a.hintReveals ?? [];
+        }
+        for (const sess of Object.values(s.sessions || {})) {
+          sess.problemIds = sess.problemIds ?? [];
+          if (sess.rules) {
+            sess.rules.courseIds = sess.rules.courseIds ?? [];
+            sess.rules.topics = sess.rules.topics ?? [];
+          }
+        }
+        return s;
+      },
       partialize: (s) => ({
         problems: s.problems,
         attempts: s.attempts,

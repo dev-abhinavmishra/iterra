@@ -53,6 +53,16 @@ export function ScanSheets() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTestId, initialScanId]);
 
+  // ?scanId is a one-shot intake (opens the review modal) — strip it after
+  // consumption so a refresh/re-nav can't re-fire it. ?testId stays: it's a
+  // working filter, same contract as analytics.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('scanId')) return;
+    url.searchParams.delete('scanId');
+    window.history.replaceState({}, '', url.toString());
+  }, []);
+
   const toggleScanSelection = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const next = new Set(selectedScansForDelete);

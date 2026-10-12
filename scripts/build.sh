@@ -24,4 +24,8 @@ echo "── building shell"
 (cd shell && npm ci --no-audit --no-fund --silent && npm run build)
 cp -r shell/dist/. dist/
 
+# the hub must also exist at the root — every app's index.html loads
+# '/iterra-hub.js' absolute, which resolves outside its /apps/<name>/ dir
+cp packages/hub/iterra-hub.js dist/iterra-hub.js
+
 echo "── terrain built → dist/"

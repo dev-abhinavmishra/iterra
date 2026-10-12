@@ -3,7 +3,8 @@ import type { Commitment, Course, WorkBlock } from '../lib/types';
 import { courseColorVar, courseColorRgb } from '../lib/colors';
 import { fmtMinutes, fmtTime12, stampDate, cn } from '../lib/utils';
 import { Stamp } from './Stamp';
-import { Play, Check, CalendarClock, Pin, ChevronRight, Undo2 } from 'lucide-react';
+import { Play, Check, CalendarClock, Pin, ChevronRight, Undo2, Sigma } from 'lucide-react';
+import { useSharedFocus } from '../lib/iterra';
 
 interface BlockSlipProps {
   block: WorkBlock;
@@ -13,6 +14,7 @@ interface BlockSlipProps {
   showDate?: boolean;
   onSelect?: () => void;
   onStart?: () => void;
+  onProof?: () => void;
   onDone?: () => void;
   onDefer?: () => void;
   onInspect?: () => void;
@@ -31,6 +33,7 @@ export function BlockSlip({
   showDate,
   onSelect,
   onStart,
+  onProof,
   onDone,
   onDefer,
   onInspect,
@@ -38,6 +41,7 @@ export function BlockSlip({
 }: BlockSlipProps) {
   const [stamped, setStamped] = useState(false);
   const done = block.state === 'done';
+  const focusOn = useSharedFocus(block.id);
 
   // The rubber stamp lands once — whether done was stamped by the ✓ button or
   // the keyboard — by watching the transition rather than the click.
@@ -84,6 +88,15 @@ export function BlockSlip({
               carried from {stampDate(block.carriedFrom)}
             </span>
           )}
+          {focusOn && !done && (
+            <span
+              className="mono text-[9.5px] tracking-[0.12em] text-[color:var(--color-ink-soft)] inline-flex items-center gap-1.5"
+              title="Timer session running on this block"
+            >
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-ink-soft)] animate-pulse" />
+              FOCUS
+            </span>
+          )}
           {commitment?.pinned && <Pin size={11} className="text-[color:var(--color-ink-soft)]" aria-label="Pinned" />}
         </div>
 
@@ -125,6 +138,16 @@ export function BlockSlip({
                 title="Start this block in Timer"
               >
                 <Play size={12} /> Start
+              </button>
+            )}
+            {onProof && (
+              <button
+                className="xbtn mono !px-2 text-[9.5px] tracking-[0.12em] inline-flex items-center gap-1"
+                onClick={onProof}
+                title="Open this block in Proof"
+                aria-label="Open this block in Proof"
+              >
+                <Sigma size={12} /> Proof
               </button>
             )}
             {onDone && (

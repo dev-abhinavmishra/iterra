@@ -53,6 +53,17 @@ export function App() {
   const openCourse = (courseId: string) => setRoute({ view: 'course', courseId });
   const inspect = (inspectId?: string) => nav({ inspectId });
 
+  // Index-entity deep link: boot() stashes ?commitment=<id>; open its drawer,
+  // then clear so a stale id can't re-fire. Only lands on a real commitment.
+  const intakeCommitmentId = useFolio((s) => s.intakeCommitmentId);
+  useEffect(() => {
+    if (!intakeCommitmentId) return;
+    const s = useFolio.getState();
+    if (s.commitments[intakeCommitmentId]) inspect(intakeCommitmentId);
+    s.clearIntakeCommitment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [intakeCommitmentId]);
+
   // apply the user's motion preference once at the document level
   useEffect(() => {
     document.documentElement.dataset.motion = settings.motion;

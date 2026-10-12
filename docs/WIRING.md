@@ -100,18 +100,191 @@ degrades gracefully either way.
 
 ## 6. Inbound deep links (read at boot, strip after consuming)
 
-Already honored: flashcards `?d/?data/?deck/?cards`, timer syllabus contract,
-rhythm `?event/?from/?routine`, proof `?completedBlock/from=syllabus`.
+Already honored: flashcards `?d/?data/?deck/?cards` (incl. `?deck=<id>`
+selecting a library deck — legacy localStorage-key values still fall back;
+`?course=<code>` on `?cards=` persists onto the imported deck so it files
+under that dossier), timer syllabus contract (incl. `?course=<code>`),
+rhythm `?event/?from/?routine/?experiment`, proof `?completedBlock/from=syllabus`.
+(rhythm's `?event` takes base64url JSON validated via `normalizeEvent` — it is
+a dormant intake today: no in-suite app emits to it; the feed/index mesh is
+the shared channel instead.)
 
-To add:
+Also honored:
 - **ink**: `?note=<id>` → select note (set activeNoteId) + navigate home
 - **gradestack**: `?assessment=<id>` → open that test's detail (history/analytics)
 - **proof**: `?problem=<id>` → open problem in the desk
-- **margin**: `?note=<id>` → open the note in the editor view
+- **margin**: `?note=<id>` → open the note in the editor view; `?deck=<id>`
+  → Study opens that deck (review if cards due, else editor); `?quiz=<id>`
+  → Study opens the quiz runner (unknown ids stay on the browse list)
+- **rhythm**: `?experiment=<id>` → Experiments view with that card scrolled
+  into view and lit (unknown ids degrade to the plain list)
+- **timer**: `?routine=<name>` → open Intervals focused on the named routine
+  (standalone — no `from=` gate; unknown names degrade to a plain open)
+- **syllabus**: `?block=<id>` → select that work slip on Today (stashed at
+  boot, consumed once blocks hydrate — the subscribe-retry guards the
+  persist-hydration race); `?commitment=<id>` → open that commitment's
+  drawer (index entities for uncovered commitments link here; ghost ids
+  degrade silently)
+- **gradestack**: `?scanId=<id>` → open that sheet's review modal
+  (one-shot, strips; `testId` stays as the working filter)
 
 Match each app's existing param-stripping style (`history.replaceState`).
 
-## 7. Dev topology
+**Outbound bound-drill links** (emit the timer's intake contract above —
+`?intent=<label>&minutes=<n>&course=<code>&from=<app>`; `?block=`/`?return=`
+only when there is a real block to file back to):
+- **flashcards** Deck ▾ → "Drill in timer…" (`drill <deck>`, carries `deck.course`)
+- **gradestack** test-row timer icon (`study <test>`, carries `courseName`)
+- **shell dossier** "drill \<course\>" header button (`from=terrain`)
+
+## 7. Shared context — the commons
+
+`iterra.doc(ns)` is a per-namespace JSON store backed by the deployment's
+localStorage: `get()`, `set(v)`, `setField(k, v)` (merge one field),
+`subscribe(cb)` (fires for same-window writes and cross-frame storage events;
+returns an unsubscribe). `iterra.presence(name?)` reads sibling presence
+entries with a `stale` flag; `iterra.onPresence(cb)` subscribes to changes.
+
+**The commons** is `iterra.doc('shared')` — an object every app may read and
+write namespaced fields on. Writers stamp `{ v, by, at }` so readers can tell
+who wrote and how fresh it is. Writers must be defensive: fields may be
+missing, stale, or written by an app that isn't running — always check `at`.
+
+| field | writer | readers | shape |
+|---|---|---|---|
+| `shared.focus` | timer | all | `{ v: { running, label, blockId, course, endsInMin } \| null, by:'timer', at }` — `course` is the bound link's `?course=` |
+| `shared.today` | syllabus | all | `{ v: { slips, overdue, next } \| null, by:'syllabus', at }` |
+| `shared.activeCourse` | syllabus | all | `{ v: { code, name } \| null, by:'syllabus', at }` |
+| `shared.noteActive` | ink, margin | all | `{ v: { app, id, title, at } \| null, by, at }` — last opened note; `v.at` = the note's own write/access time, `at` = publish time. Readers show the line only when the sibling's `v.at` (fallback `at`) is newer than their own note's write time |
+| `shared.deck` | flashcards | all | `{ v: { deck, due } \| null, by:'flashcards', at }` — active deck |
+| `shared.session` | proof | all | `{ v: { topic, minutes, active } \| null, by:'proof', at }` |
+| `shared.register` | rhythm | all | `{ v: { marked, pending } \| null, by:'rhythm', at }` |
+| `shared.markbook` | gradestack | all | `{ v: { assessment, scored, total } \| null, by:'gradestack', at }` |
+
+Each app's public context doc `iterra.doc('<app>')` may carry richer state
+for anyone who wants more than the commons fields.
+
+### The index — entity-level linkage
+
+For cross-app search and "related" surfacing, every app publishes its
+top-level entities to `iterra.doc('index.<app>')` as
+
+```json
+{ "entities": [ { "t": "note|deck|quiz|problem|block|routine|experiment|assessment|session",
+                  "id": "<stable id>",
+                  "title": "<display title>",
+                  "sub": "<optional context: course code, topic>",
+                  "course": "<optional course code>",
+                  "topic": "<optional topic slug>",
+                  "url": "<optional deep-link path for iterra.open>",
+                  "at": 0 } ] }
+```
+
+Cap ~50 most-recent entities; publish on state change (not a timer). `url`
+must be an `/apps/<name>/...` deep link honoring §6 intake params. The shell
+turns this into a unified palette; apps may read it too.
+
+**`course`/`topic` are the linkage keys.** The shell surfaces entities from
+other apps that share a course or topic with the active place (case-
+insensitive match on either field) — in the place switcher ("linked across
+the terrain") and in palette grouping. Always populate `course` when the
+entity belongs to a course (the same short code syllabus uses, e.g. `MTH`),
+and `topic` when it's bound to a topic — an entity with neither can be
+found by text search but never linked.
+
+### The feed — unified activity stream
+
+`iterra.feed({ text, url?, course?, topic? })` appends a notable event to
+`iterra.doc('feed')` (newest-first, cap 30) — the terrain renders it as the
+activity stream. Emit only real state changes worth seeing across the
+terrain: a block stamped done, a deck imported, a focus session completed,
+an assessment graded, a note created. Not navigation noise. `url` (optional)
+is the `/apps/<name>/...` deep link back to the thing that changed.
+`course`/`topic` (optional) tag the stir with its linkage key — dossiers
+file a stir under its course even when the text never spells the key and
+the url isn't an indexed entity. Pass them whenever the event has a known
+course/topic; never synthesize from titles.
+
+A **bulk filing is one event, not N** — per-record stirs are suppressed
+during a filing wave and the caller emits one summary stir; suppressed
+records still index. Syllabus pattern: `beginBulkFeed()`/`endBulkFeed()`
+(module-level depth gate in the store) + `stir()` for the summary
+(`commitments filed: N · <code>`, `commitments seeded: N · <code>`, `courses
+filed: N`). Gradestack pattern: `_mergedIds`, a transient un-partialed
+store field the ambient watcher skips emit for; mergeRemote/importData
+populate it (`register synced: N`, `register restored: N`).
+
+**Announce only trusted states** — gradestack's needsReview fork is the
+model: a flagged sheet's grade is provisional, so arrival emits
+`scanned: <test> — needs review` (no pct), `marked: <test> · <pct>` only
+for trusted grades, and `scan reviewed: <student> · <pct>` when the flag
+actually clears (a re-grade that stays flagged emits nothing).
+
+Stirs may emit from a **store-subscription watcher** (set-diffing in
+`lib/iterra.ts`), not only action call-sites — additions arriving through
+any path (sync, import, duplication) announce once.
+
+Rules: publish on mount + whenever the underlying state changes (not on a
+timer — presence already heartbeats). Read defensively (`at` freshness,
+`by` provenance, missing fields). Never read your own writes for authority.
+
+### Reading the mesh (app-side APIs)
+
+| API | Returns |
+|---|---|
+| `iterra.index('<app>')` | that app's entity array (or `[]`) |
+| `iterra.indexes()` | `{ <app>: Entity[] }` for every publisher |
+| `iterra.onIndex(cb)` | unsubscribe fn — fires on sibling index writes (storage events) |
+| `iterra.presence(name?)` / `iterra.onPresence(cb)` | live `{app,title,summary,at,framed,stale}` entries |
+| `iterra.doc('shared').subscribe(cb)` | fires on any commons write, same-window or sibling |
+| `iterra.feedItems()` / `iterra.onFeed(cb)` | read / follow the 30-item stirrings feed |
+
+Use `iterra.index*`/`iterra.presence` rather than reading `iterra.v1.*` keys
+directly — the doc naming is an implementation detail.
+
+**Mesh fallback for unresolved in-app links** — when an app's own link target
+doesn't exist locally, it may ask the indexes before falling back to its own
+create/empty behavior. Ink's `[[wikilink]]` is the pattern: local note title
+first, then any sibling entity by title (opens `e.url`), then a course/topic
+key (opens `#/c/<key>`), and only then the ghost-create. Reads are
+best-effort — a standalone build always misses and keeps native behavior.
+
+### Terrain surfaces that consume the mesh
+
+- **Commons strip** (terrain home rail): one line per fresh field, click → writer.
+- **Desks row**: every course/topic key found across indexes → `#/c/<key>`.
+- **Dossier** `#/c/<key>`: all entities carrying that key (grouped by place),
+  commons mentions (next-up block, active course, a *live focus session*
+  whose `course` or bound `blockId` resolves under the key), stirrings
+  mentioning it.
+- **Next up / in session**: `shared.today.v.nextBlock` → bound timer URL;
+  `shared.focus` supersedes while a session runs (<3m fresh).
+- **Palette** (`⌘K`/`/`): places + every entity; browse groups by course/topic,
+  group headers open the dossier.
+- **Switcher**: "in this place" (own entities) + "linked across the terrain"
+  (sibling entities sharing this place's keys) + dossier links.
+- **Stirrings rail**: feed items deep-link via `url`.
+- **The shelf** (`iterra.v1.shelf`): terrain-level pins — dossier rows carry a
+  ◇ toggle; pinned entities ride the home rail and show ◈ in the palette.
+  Shell-owned chrome state; apps don't write it.
+- `feed()` dedupes identical {app,text} emits within 2s (multi-frame
+  rehydration guard).
+
+### Navigating to terrain surfaces from inside an app
+
+`iterra.open()` accepts hash routes and passes them to the shell verbatim —
+apps can send the user to a dossier or the terrain itself:
+
+| call | lands |
+|---|---|
+| `iterra.open('#/c/MTH')` | course dossier for key `MTH` |
+| `iterra.open('#/p/syllabus')` | that place, framed |
+| `iterra.open('#/')` | home terrain |
+
+Use these rather than `location.hash` — inside a frame, `#` alone only
+rewrites the frame's own url.
+
+## 8. Dev topology
 
 Shell dev proxy maps `/apps/<name>` → `localhost:<port>`:
 
@@ -122,7 +295,7 @@ timer 3005 · ink 3006 · flashcards 3007 · margin 3008
 
 `npm run dev:apps` at the root starts every app on its port.
 
-## 8. Verification
+## 9. Verification
 
 Per app: `npm ci && npm run lint && npm run build` must pass.
 No new dependencies in apps. No design changes — same look, same motion.

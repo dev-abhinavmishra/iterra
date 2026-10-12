@@ -1,8 +1,9 @@
-// ── Heatmap — the mark grid ──────────────────────────────────────────────────
-// Contribution-style columns of weeks, but every cell is a stamped mark whose
+// ── Pattern — the step grid ──────────────────────────────────────────────────
+// Contribution-style columns of measures, but every cell is a pad whose
 // SHAPE (not color) carries the state, every cell is a real keyboard-focusable
-// button, and a "ledger" toggle renders the same range as a plain table — the
-// explicit text equivalent required by the acceptance criteria.
+// button, and a "list" toggle renders the same range as a plain table — the
+// explicit text equivalent required by the acceptance criteria. The playhead
+// sweeps the current measure; the current step is outlined.
 
 import { useMemo, useState } from 'react';
 import { useRegister } from '../store';
@@ -10,7 +11,8 @@ import type { Entry, ISODate, Routine } from '../lib/types';
 import { dayState, exceptionFor, isScheduled, type DayState } from '../lib/register';
 import { addDaysISO, diffDaysISO, fmtDay, fmtDayFull, todayISO, weekStartISO } from '../lib/dates';
 import { cx, WEEKDAY_NAMES } from '../lib/utils';
-import { Mark } from '../components/Mark';
+import { usePlayhead } from '../lib/playhead';
+import { Pad } from '../components/Pad';
 import { Sheet } from '../components/Sheet';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { FRICTION_LABEL, EXCEPTION_LABEL } from '../lib/utils';
@@ -102,12 +104,12 @@ export function HeatmapView({ openRoutine }: { openRoutine: (id: string) => void
             <ChevronRight size={13} />
           </button>
           <button className={cx('btn ml-2', ledger ? '' : 'btn--quiet')} onClick={() => setLedger((l) => !l)}>
-            {ledger ? 'Grid view' : 'Ledger view'}
+            {ledger ? 'Grid view' : 'List view'}
           </button>
         </div>
       </div>
 
-      {/* ── The grid (or its ledger equivalent) ──────────────────── */}
+      {/* ── The grid (or its list equivalent) ────────────────────── */}
       <div key={`${weeks}-${offset}-${routineId}-${courseId}-${ledger}`} style={{ animation: 'var(--animate-page-turn)' }}>
         {active.length === 0 && (
           <p className="py-10 text-center text-sm text-ink-faint">No routines match this filter.</p>
@@ -133,7 +135,7 @@ export function HeatmapView({ openRoutine }: { openRoutine: (id: string) => void
         <span className="kicker">Legend</span>
         {(['full', 'minimum', 'partial', 'missed', 'exception', 'paused'] as DayState[]).map((s) => (
           <span key={s} className="flex items-center gap-1.5">
-            <Mark state={s} size={18} />
+            <Pad state={s} size={18} />
             <span className="text-[11px] text-ink-soft">{STATE_WORD[s]}</span>
           </span>
         ))}
@@ -162,16 +164,20 @@ function RoutineGrid({
   const entries = useRegister((s) => s.entries);
   const exceptions = useRegister((s) => s.exceptions);
   const settings = useRegister((s) => s.settings);
+  const play = usePlayhead(settings.motion === 'full');
   const today = todayISO();
 
-  // One ledger row per week: a mono week label, then seven narrow day cells.
+  // One channel row per measure: a mono week label, then seven step pads.
   const starts: ISODate[] = [];
   for (let i = weeks - 1; i >= 0; i--) starts.push(addDaysISO(endWeek, -7 * i));
+  const currentWeek = starts[starts.length - 1];
+  const todayDiff = diffDaysISO(today, currentWeek);
+  const todayInWeek = todayDiff >= 0 && todayDiff < 7 ? todayDiff : -1;
 
   return (
-    <section className="mb-6" aria-label={`${routine.name} — mark grid`}>
+    <section className="mb-6" aria-label={`${routine.name} — pattern`}>
       <div className="mb-1.5 flex items-baseline gap-2">
-        <button onClick={onOpen} className="datestamp text-[14px] hover:underline">
+        <button onClick={onOpen} className="disp text-[14px] hover:underline">
           {routine.name}
         </button>
         <span className="mono text-[10px] uppercase tracking-wider" style={{ color: `var(--color-acc-${routine.accent})` }}>
@@ -191,34 +197,37 @@ function RoutineGrid({
             </span>
           ))}
         </div>
-        {starts.map((ws) => (
-          <div
-            key={ws}
-            className="grid items-center border-b border-rule/60 last:border-none"
-            style={{ gridTemplateColumns: '58px repeat(7, minmax(0,1fr))' }}
-            role="row"
-          >
-            <span className="mono py-0.5 text-[9px] uppercase text-ink-faint">{fmtDay(ws)}</span>
-            {Array.from({ length: 7 }, (_, d) => {
-              const date = addDaysISO(ws, d);
-              const state = dayState(routine, date, entries, exceptions, today);
-              const val = dayValue(entries, routine.id, date);
-              const label = `${fmtDayFull(date)} — ${routine.name}: ${STATE_WORD[state]}${val ? `, ${val}` : ''}`;
-              return (
-                <button
-                  key={date}
-                  role="gridcell"
-                  className="hcell mx-auto w-[26px]"
-                  aria-label={label}
-                  title={label}
-                  onClick={() => onDay(date)}
-                >
-                  <Mark state={state} accent={routine.accent} size={20} />
-                </button>
-              );
-            })}
-          </div>
-        ))}
+        {starts.map((ws) => {
+          const isCurrent = ws === currentWeek;
+          return (
+            <div
+              key={ws}
+              className={cx('grid items-center border-b border-rule/60 last:border-none', isCurrent && 'rounded-sm bg-white/[0.025]')}
+              style={{ gridTemplateColumns: '58px repeat(7, minmax(0,1fr))' }}
+              role="row"
+            >
+              <span className={cx('mono py-0.5 text-[9px] uppercase', isCurrent ? 'text-indigo' : 'text-ink-faint')}>{fmtDay(ws)}</span>
+              {Array.from({ length: 7 }, (_, d) => {
+                const date = addDaysISO(ws, d);
+                const state = dayState(routine, date, entries, exceptions, today);
+                const val = dayValue(entries, routine.id, date);
+                const label = `${fmtDayFull(date)} — ${routine.name}: ${STATE_WORD[state]}${val ? `, ${val}` : ''}`;
+                return (
+                  <button
+                    key={date}
+                    role="gridcell"
+                    className={cx('step mx-auto w-[26px]', isCurrent && d === play && 'step--play', isCurrent && d === todayInWeek && 'step--now')}
+                    aria-label={label}
+                    title={label}
+                    onClick={() => onDay(date)}
+                  >
+                    <Pad state={state} accent={routine.accent} size={20} />
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -263,24 +272,24 @@ function RoutineLedger({
 
   return (
     <section className="mb-6" aria-label={`${routine.name} — day ledger`}>
-      <button onClick={onOpen} className="datestamp mb-1.5 block text-[14px] hover:underline">
+      <button onClick={onOpen} className="disp mb-1.5 block text-[14px] hover:underline">
         {routine.name}
       </button>
       <table className="w-full max-w-xl text-left text-[12px]">
         <thead>
           <tr className="border-b border-rule-dark">
             <th className="kicker py-1 pr-3 font-semibold">Day</th>
-            <th className="kicker py-1 pr-3 font-semibold">Mark</th>
+            <th className="kicker py-1 pr-3 font-semibold">Step</th>
             <th className="kicker py-1 font-semibold">Logged</th>
           </tr>
         </thead>
         <tbody>
           {rows.slice(0, 60).map((r) => (
-            <tr key={r.date} className="lrow">
+            <tr key={r.date} className="chan">
               <td className="mono py-1 pr-3 text-[11px]">{fmtDayFull(r.date)}</td>
               <td className="py-1 pr-3">
                 <span className="flex items-center gap-1.5">
-                  <Mark state={r.state} accent={routine.accent} size={16} />
+                  <Pad state={r.state} accent={routine.accent} size={16} />
                   {STATE_WORD[r.state]}
                 </span>
               </td>
@@ -319,8 +328,8 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
   return (
     <Sheet title={`${fmtDayFull(date)} — ${routine.name}`} onClose={onClose}>
       <div className="mb-4 flex items-center gap-2">
-        <Mark state={state} accent={routine.accent} size={30} />
-        <span className="datestamp text-[15px]">{STATE_WORD[state]}</span>
+        <Pad state={state} accent={routine.accent} size={30} />
+        <span className="disp text-[15px]">{STATE_WORD[state]}</span>
       </div>
 
       {dayEntries.length > 0 && (
@@ -330,7 +339,7 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
             const ev = e.eventId ? events[e.eventId] : undefined;
             const evUrl = ev ? evidenceUrl(ev, settings) : null;
             return (
-              <div key={e.id} className="lrow flex items-baseline justify-between gap-2 py-1.5 text-[12.5px]">
+              <div key={e.id} className="chan flex items-baseline justify-between gap-2 py-1.5 text-[12.5px]">
                 <span className="mono">
                   {e.value} {routine.measure === 'duration' ? 'min' : routine.unit || ''}
                   {e.isMinimum ? ' · minimum' : ''}
@@ -363,7 +372,7 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
         <div className="mb-4">
           <div className="kicker mb-1">Friction</div>
           {dayFriction.map((f) => (
-            <div key={f.id} className="lrow py-1.5 text-[12.5px]">
+            <div key={f.id} className="chan py-1.5 text-[12.5px]">
               {FRICTION_LABEL[f.kind] ?? f.kind}
               {f.note && <span className="text-ink-soft"> — {f.note}</span>}
             </div>
@@ -387,7 +396,7 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
             onClose();
           }}
         >
-          Mark this day an exception
+          Mute this day — an exception
         </button>
       )}
     </Sheet>

@@ -7,6 +7,7 @@ import { QuickAdd } from '../components/QuickAdd';
 import { courseColorVar } from '../lib/colors';
 import { estimateRatio, remainingMinutes, reversePlan, gradeScenario, atRisk } from '../lib/schedule';
 import { resourceDeepLink, appBadge } from '../lib/links';
+import { openDeep } from '../lib/iterra';
 import {
   fmtMinutes,
   stampDate,
@@ -308,6 +309,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                         href={l.deepLink}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => { if (l.deepLink.startsWith('/apps/')) { e.preventDefault(); openDeep(l.deepLink); } }}
                         className="slab text-[14px] hover:underline decoration-1 underline-offset-2 inline-flex items-center gap-1 min-w-0"
                       >
                         {l.label} <ExternalLink size={11} className="shrink-0 text-[color:var(--color-ink-faint)] no-print" />

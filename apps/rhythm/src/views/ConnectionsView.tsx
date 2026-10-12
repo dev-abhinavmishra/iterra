@@ -44,11 +44,11 @@ export function ConnectionsView() {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div className="kicker mb-1">Connections</div>
-          <h1 className="datestamp text-2xl">Where events come from</h1>
+          <h1 className="disp text-2xl">Signal in — where events come from</h1>
           <p className="mt-1 max-w-xl text-[12.5px] leading-snug text-ink-soft">
             Rhythm listens, it doesn't reach in. Another app can push one normalized event at a
-            time through the register's <span className="mono">?event=</span> link, or you can file
-            a JSON export below. Nothing here is required — the register stands on its own.
+            time through the machine's <span className="mono">?event=</span> link, or you can file
+            a JSON export below. Nothing here is required — the machine stands on its own.
           </p>
         </div>
         <div className="flex gap-2">
@@ -56,7 +56,7 @@ export function ConnectionsView() {
             New mapping
           </button>
           <button className="btn btn--primary" onClick={() => setPasteOpen(true)}>
-            File an event
+            Send an event
           </button>
         </div>
       </div>
@@ -70,8 +70,8 @@ export function ConnectionsView() {
             const base = appBaseUrl(app, s.settings);
             const last = evs[0];
             return (
-              <div key={app} className="lrow flex items-center gap-3 px-2 py-2">
-                <span className="datestamp w-24 text-[13.5px]">{APP_DISPLAY[app]}</span>
+              <div key={app} className="chan flex items-center gap-3 px-2 py-2">
+                <span className="disp w-24 text-[13.5px]">{APP_DISPLAY[app]}</span>
                 <span className="mono flex-1 text-[11px] text-ink-soft">
                   {evs.length === 0
                     ? 'no events received'
@@ -99,11 +99,11 @@ export function ConnectionsView() {
 
       {/* ── Mappings ─────────────────────────────────────────────── */}
       <section className="mb-6" aria-label="mappings">
-        <div className="kicker mb-2">Mappings — which events stamp which lines</div>
+        <div className="kicker mb-2">Mappings — which signals hit which channels</div>
         {mappings.length === 0 ? (
           <p className="py-3 text-[12.5px] text-ink-faint">
             No mappings yet. A mapping says: "when a{' '}
-            <span className="mono">timer.session.completed</span> event arrives, stamp Focus
+            <span className="mono">timer.session.completed</span> event arrives, hit Focus
             session."
           </p>
         ) : (
@@ -112,10 +112,10 @@ export function ConnectionsView() {
               const r = s.routines[m.routineId];
               const covered = events.filter((e) => m.eventType === e.type || (m.eventType.endsWith('.*') && e.type.startsWith(m.eventType.slice(0, -1))));
               return (
-                <div key={m.id} className="lrow flex flex-wrap items-center gap-x-3 gap-y-1 px-2 py-2">
+                <div key={m.id} className="chan flex flex-wrap items-center gap-x-3 gap-y-1 px-2 py-2">
                   <span className="mono text-[11.5px]">{m.eventType}</span>
                   <span className="text-ink-faint">→</span>
-                  <span className="datestamp text-[13px]">{r?.name ?? '(removed routine)'}</span>
+                  <span className="disp text-[13px]">{r?.name ?? '(removed routine)'}</span>
                   <span className="mono text-[10px] uppercase text-ink-faint">
                     {m.valueRule}
                     {m.metricKey ? `:${m.metricKey}` : ''} · {covered.length} events
@@ -139,7 +139,7 @@ export function ConnectionsView() {
 
       {/* ── Event ledger ─────────────────────────────────────────── */}
       <section aria-label="event ledger">
-        <div className="kicker mb-2">Received — the intake ledger</div>
+        <div className="kicker mb-2">Received — the inbox</div>
         {events.length === 0 ? (
           <p className="py-3 text-[12.5px] text-ink-faint">No events yet. File one to see the intake.</p>
         ) : (
@@ -148,7 +148,7 @@ export function ConnectionsView() {
               const url = evidenceUrl(e, s.settings);
               const written = Object.values(s.entries).filter((en) => en.eventId === e.id).length;
               return (
-                <div key={e.id} className="lrow flex flex-wrap items-center gap-x-3 gap-y-0.5 px-2 py-2">
+                <div key={e.id} className="chan flex flex-wrap items-center gap-x-3 gap-y-0.5 px-2 py-2">
                   <span className="mono text-[10px] uppercase text-ink-faint">{APP_DISPLAY[e.sourceApp]}</span>
                   <span className="mono text-[11.5px]">
                     {url ? (
@@ -165,7 +165,7 @@ export function ConnectionsView() {
                     {fmtDay(dateOfInstant(e.occurredAt))} · {written ? `${written} entr${written === 1 ? 'y' : 'ies'}` : 'unmapped'}
                   </span>
                   <button className="mono text-[10px] uppercase text-ink-faint underline" onClick={() => s.removeEvent(e.id)}>
-                    strike
+                    cut
                   </button>
                 </div>
               );
@@ -186,7 +186,7 @@ export function ConnectionsView() {
   );
 }
 
-// ── File an event — paste or upload JSON ─────────────────────────────────────
+// ── Send an event — paste or upload JSON ─────────────────────────────────────
 
 function IntakeSheet({ onClose }: { onClose: () => void }) {
   const intakeRaw = useRegister((s) => s.intakeRaw);
@@ -204,7 +204,7 @@ function IntakeSheet({ onClose }: { onClose: () => void }) {
       if (res.kind === 'accepted') {
         okCount++;
         const names = res.entries.map((e) => routines[e.routineId]?.name).filter(Boolean).join(', ');
-        out.push({ label: `${res.event.type} (${id})`, state: `stamped → ${names || 'routine'}` });
+        out.push({ label: `${res.event.type} (${id})`, state: `hit → ${names || 'routine'}` });
       } else if (res.kind === 'duplicate') {
         out.push({ label: `${res.event.type} (${id})`, state: 'duplicate — already on file' });
       } else if (res.kind === 'unmapped') {
@@ -219,7 +219,7 @@ function IntakeSheet({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Sheet title="File events into the register" onClose={onClose} wide>
+    <Sheet title="Send events into the machine" onClose={onClose} wide>
       <div className="space-y-4">
         <p className="text-[12px] leading-snug text-ink-soft">
           Paste one event, an array, or a document with an <span className="mono">"events"</span>{' '}
@@ -242,7 +242,7 @@ function IntakeSheet({ onClose }: { onClose: () => void }) {
         {rows.length > 0 && (
           <div className="max-h-40 overflow-y-auto border-y border-rule">
             {rows.map((r, i) => (
-              <div key={i} className="lrow flex justify-between gap-3 px-1 py-1 mono text-[10.5px]">
+              <div key={i} className="chan flex justify-between gap-3 px-1 py-1 mono text-[10.5px]">
                 <span className="truncate">{r.label}</span>
                 <span className="text-ink-soft">{r.state}</span>
               </div>
@@ -303,7 +303,7 @@ function FileButton({
           onParse(batch.events);
         }}
       >
-        File events
+        Send events
       </button>
     </>
   );
@@ -415,7 +415,7 @@ function ConfirmSourceSheet({ app, onClose }: { app: SuiteApp; onClose: () => vo
     <Sheet title={`Remove ${APP_DISPLAY[app]} events`} onClose={onClose}>
       <div className="space-y-4">
         <p className="text-[13px] leading-snug">
-          This strikes <b>{count}</b> event{count === 1 ? '' : 's'} and the{' '}
+          This cuts <b>{count}</b> event{count === 1 ? '' : 's'} and the{' '}
           <b>{derived}</b> entr{derived === 1 ? 'y' : 'ies'} they wrote. Lines you wrote yourself
           stay. The source can send again later — the register doesn't hold a grudge.
         </p>

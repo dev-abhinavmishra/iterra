@@ -48,7 +48,16 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
       attachments,
     };
     if (problem) updateProblem(problem.id, record);
-    else addProblem(record);
+    else {
+      const p = addProblem(record);
+      /* new authored content → stir; course resolves off the real courseId */
+      const course = p.courseId ? courses[p.courseId]?.code : undefined;
+      (window as any).iterra?.feed?.({
+        text: `problem set down: ${p.topic}`,
+        url: `/apps/proof/?problem=${encodeURIComponent(p.id)}`,
+        course,
+      });
+    }
     onClose();
   };
 

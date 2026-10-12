@@ -11,12 +11,31 @@ sibling to Timer, Flashcards, Ink, Proof, Syllabus, GradeStack, Modular AI.
 
 ## Status
 
-- Full MVP implemented in one pass: all 7 surfaces (Today, Heatmap, Routine
-  detail, Weekly review, Experiments, Connections, Settings), event model,
-  recovery bands, onboarding, export/restore.
+- Full MVP + rehaul to the **weekly-sequencer** material (DESIGN.md): dark
+  chassis, channel rows, step pads, playhead sweep, LCD readout, status lamps.
+  Views renamed: Today / **Pattern** (was Heatmap) / Weekly review /
+  Experiments / **Signal in** (was Connections) / **Setup** (was Settings).
 - `npm run lint` (tsc), `npm test` (33 tests), `npm run build` all green.
-- Single PR open from `devin/<ts>-rhythm-mvp` → `main`. Not merged unless
-  Abhinav says so.
+- Single PR open from `devin/1791743250-rhythm-mvp` → `main`.
+
+## Design vocabulary (post-rehaul)
+
+- Routine = **channel**; week = **measure**; day state = **step**; check-in =
+  **hit** (fires `pad-hit`); missed day = **rest**; exception = **muted step**;
+  pause = **hold bars**; band badge = **lamp**; modal = **panel** (Sheet.tsx);
+  view body = **deck**; nav = **selector bank** (`.stab`); date readout =
+  `.lcd`.
+- Classes: `.chan` row, `.step`/`.step--play`/`.step--now`, `.pad` glyph +
+  `.pad--hit`, `.padbtn` trigger, `.meter` level bar, `.lamp--<band>`,
+  `.led`/`led--tick`, `.disp`/`silk`/`mono`/`kicker`, `.f-*` inputs, `.btn*`.
+- `src/lib/playhead.ts` — shared `useSyncExternalStore` ticker (900ms/step,
+  7 steps); `usePlayhead(motion === 'full')` returns the live step or -1.
+  Used by `MeasureStrip` (TodayView export), Pattern grid, Routine detail.
+- Animation tokens kept for compat: `--animate-page-turn` = measure-in,
+  `--animate-sheet-in` = panel-in, `--animate-receipt-in` = card-in.
+- Old register-era class names (`lrow`, `hcell`, `wstamp`, `datestamp`,
+  `slip`, `leaf`, `rtab`, `track`, Mark/WStamp components) are gone — do not
+  reintroduce.
 
 ## Architecture map
 

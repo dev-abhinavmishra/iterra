@@ -12,6 +12,9 @@ import { parseJsonArray, runAction } from '../services/aiService';
 interface StudyViewProps {
     notes: Note[];
     onOpenNote?: (note: Note) => void;
+    /* terrain intake: ?deck=<id> / ?quiz=<id> — open that item once loaded */
+    request?: { kind: 'deck' | 'quiz'; id: string } | null;
+    onRequestConsumed?: () => void;
 }
 
 type Screen =
@@ -25,7 +28,7 @@ type GenTarget = 'deck' | 'quiz';
 const usableNotes = (notes: Note[]): Note[] =>
     notes.filter(n => (n.transcript && n.transcript.trim()) || (n.content && n.content.trim()));
 
-const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote }) => {
+const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onRequestConsumed }) => {
     const [decks, setDecks] = useState<Deck[] | null>(null);
     const [quizzes, setQuizzes] = useState<Quiz[] | null>(null);
     const [tab, setTab] = useState<'decks' | 'quizzes'>('decks');
@@ -42,6 +45,21 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote }) => {
     }, []);
 
     useEffect(() => { refresh().catch(e => console.error('Failed to load study data', e)); }, [refresh]);
+
+    /* terrain intake: consume a ?deck=/?quiz= request once the lists resolve;
+       unknown ids fall through to browse silently. */
+    useEffect(() => {
+        if (!request || decks === null || quizzes === null) return;
+        if (request.kind === 'deck') {
+            const deck = decks.find(d => d.id === request.id);
+            if (deck) openDeck(deck);
+        } else {
+            const quiz = quizzes.find(q => q.id === request.id);
+            if (quiz) setScreen({ kind: 'quiz', quiz });
+        }
+        onRequestConsumed?.();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [request, decks, quizzes]);
 
     const due = totalDue(decks || []);
 

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { Icon, Button, Chip, EmptyState, PageHeader } from '../components/ui';
 import { normalizeAnswer, optionsFor, formatsForTest, csvEscape, downloadFile } from '../lib/grading';
+import { feed } from '../lib/iterra';
 
 export function ScoreAnalytics() {
   const location = useLocation();
@@ -118,6 +119,7 @@ export function ScoreAnalytics() {
     ]);
     const csv = [header, ...rows].map(r => r.map(csvEscape).join(',')).join('\n');
     downloadFile(`${test.name.replace(/[^\w\-]+/g, '_')}_gradebook.csv`, csv);
+    feed(`gradebook exported: ${test.name}`, '/apps/gradestack/', test.courseName || undefined);
   };
 
   return (

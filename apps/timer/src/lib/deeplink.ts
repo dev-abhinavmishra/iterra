@@ -11,12 +11,17 @@ export interface SyllabusLink {
   course?: string;
   block?: string;
   returnUrl?: string;
+  /** which terrain app bound this session (syllabus, flashcards, terrain…) */
+  from?: string;
   autostart: boolean;
 }
 
 export function parseSyllabusLink(search: string): SyllabusLink | null {
   const q = new URLSearchParams(search);
-  if (q.get('from') !== 'syllabus') return null;
+  // same contract from any terrain app (study slips, practice sessions,
+  // …) — `from` names the sender, `return` says where to file back
+  const from = q.get('from');
+  if (!from || !/^[a-z]{2,16}$/.test(from)) return null;
   const minutes = Number(q.get('minutes'));
   return {
     intent: q.get('intent') || undefined,
@@ -24,14 +29,29 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
     course: q.get('course') || undefined,
     block: q.get('block') || undefined,
     returnUrl: q.get('return') || undefined,
+    from,
     autostart: q.get('autostart') === '1',
   };
+}
+
+/* Routine intake — standalone (unlike the syllabus link, no `from=` gate):
+   any app, palette hit or dossier row can point at a named interval routine
+   via ?routine=<name>. IntervalsView focuses the matching card; unknown
+   names degrade to a plain open. */
+export function parseRoutineLink(search: string): string | null {
+  const name = new URLSearchParams(search).get('routine')?.trim();
+  return name || null;
 }
 
 export function syllabusReturnUrl(link: { returnUrl?: string; block?: string }, actualMinutes: number): string | null {
   if (!link.returnUrl || !link.block) return null;
   try {
-    const u = new URL(link.returnUrl);
+    // returnUrl may be origin-absolute (solo suite) or relative like
+    // '/apps/syllabus' inside the terrain — resolve against this origin
+    const u = new URL(link.returnUrl, window.location.origin);
+    // http(s) only — a javascript:/data: return param would execute on the
+    // file-back navigation (window.location.href); intake params are hostile
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
     u.searchParams.set('completedBlock', link.block);
     u.searchParams.set('actual', String(Math.max(1, Math.round(actualMinutes))));
     return u.toString();

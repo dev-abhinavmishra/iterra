@@ -4,6 +4,7 @@ import { signInWithGoogle, logOut, firebaseEnabled, describeAuthError } from '..
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Icon, BubbleMark } from './ui';
+import { useActiveCourse } from '../lib/iterra';
 
 const navItems = [
   { path: '/', icon: 'home', label: 'Dashboard' },
@@ -18,6 +19,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   const location = useLocation();
   const user = useStore(state => state.user);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const activeCourse = useActiveCourse();
   const [signInError, setSignInError] = useState<string | null>(null);
 
   const handleSignIn = async () => {
@@ -58,6 +60,11 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
                   >
                     <span className="font-display text-[22px] font-bold leading-none text-ink">GradeStack</span>
                     <span className="text-[11px] text-pencil leading-tight mt-0.5">Bubble sheet grading</span>
+                    {activeCourse && (
+                      <span className="text-[10px] text-mark-deep font-semibold leading-tight mt-1 tracking-wide" title="Course shared from Syllabus">
+                        course {activeCourse.code}
+                      </span>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>

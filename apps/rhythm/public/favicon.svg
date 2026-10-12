@@ -1,6 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="5" fill="#22211e"/>
-  <rect x="5" y="5" width="22" height="22" rx="1.5" fill="#f2ecdb"/>
-  <circle cx="16" cy="16" r="6.5" fill="none" stroke="#46527a" stroke-width="2.2"/>
-  <path d="M12.8 16.2l2.2 2.2 4.2-4.6" fill="none" stroke="#46527a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="32" height="32" rx="6" fill="#15140f"/>
+  <g fill="none" stroke="#353226" stroke-width="1.4">
+    <rect x="5" y="7" width="5" height="5" rx="1.2"/>
+    <rect x="11.5" y="7" width="5" height="5" rx="1.2"/>
+    <rect x="18" y="7" width="5" height="5" rx="1.2"/>
+    <rect x="24.5" y="7" width="4" height="5" rx="1.2"/>
+  </g>
+  <rect x="5" y="7" width="5" height="5" rx="1.2" fill="#f0a032"/>
+  <rect x="18" y="7" width="5" height="5" rx="1.2" fill="#f0a032" opacity="0.55"/>
+  <g fill="none" stroke="#353226" stroke-width="1.4">
+    <rect x="5" y="14.5" width="5" height="5" rx="1.2"/>
+    <rect x="11.5" y="14.5" width="5" height="5" rx="1.2"/>
+    <rect x="18" y="14.5" width="5" height="5" rx="1.2"/>
+    <rect x="24.5" y="14.5" width="4" height="5" rx="1.2"/>
+  </g>
+  <rect x="11.5" y="14.5" width="5" height="5" rx="1.2" fill="#f0a032"/>
+  <g fill="none" stroke="#353226" stroke-width="1.4">
+    <rect x="5" y="22" width="5" height="5" rx="1.2"/>
+    <rect x="11.5" y="22" width="5" height="5" rx="1.2"/>
+    <rect x="18" y="22" width="5" height="5" rx="1.2"/>
+    <rect x="24.5" y="22" width="4" height="5" rx="1.2"/>
+  </g>
+  <rect x="24.5" y="22" width="4" height="5" rx="1.2" fill="#8fce6a"/>
 </svg>

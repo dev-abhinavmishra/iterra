@@ -41,8 +41,29 @@ export function timerDeepLink(opts: {
   if (course) params.set('course', course.code);
   params.set('from', 'syllabus');
   params.set('block', block.id);
-  if (typeof window !== 'undefined') params.set('return', window.location.origin);
+  if (typeof window !== 'undefined') {
+    params.set('return', (window as any).iterra?.selfBase?.() ?? window.location.origin);
+  }
   return `${base}/?${params.toString()}`;
+}
+
+/**
+ * The Proof deep link for the same work block — a parallel instrument to the
+ * timer link, for commitments that want a calculation pad instead of a clock.
+ * Proof reads: ?from=syllabus&topic=<title>&minutes=<n>&course=<code>
+ */
+export function proofDeepLink(opts: {
+  block: WorkBlock;
+  commitment: Commitment;
+  course?: Course;
+}): string {
+  const { block, commitment, course } = opts;
+  const params = new URLSearchParams();
+  params.set('from', 'syllabus');
+  params.set('topic', commitment.title);
+  params.set('minutes', String(block.plannedMinutes));
+  if (course) params.set('course', course.code);
+  return `/apps/proof/?${params.toString()}`;
 }
 
 /** Compose a deep link for a stored resource, by app. */

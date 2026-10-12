@@ -1,6 +1,7 @@
-// ── Rhythm — the attendance register ─────────────────────────────────────────
-// Chrome is the cloth-bound cover: wordmark, today's date stamp, index tabs
-// along the fore-edge. The leaf below carries the register itself.
+// ── Rhythm — the weekly sequencer ────────────────────────────────────────────
+// Chrome is the unit's top edge: engraved wordmark, the tempo lamp, an LCD
+// date readout, and the selector bank of section keys. The deck below carries
+// the pattern itself — one channel per routine, seven steps per measure.
 
 import { useEffect, useState } from 'react';
 import { useRegister } from './store';
@@ -20,11 +21,11 @@ type View = 'today' | 'heatmap' | 'review' | 'experiments' | 'connections' | 'se
 
 const TABS: { key: View; label: string }[] = [
   { key: 'today', label: 'Today' },
-  { key: 'heatmap', label: 'Heatmap' },
+  { key: 'heatmap', label: 'Pattern' },
   { key: 'review', label: 'Weekly review' },
   { key: 'experiments', label: 'Experiments' },
-  { key: 'connections', label: 'Connections' },
-  { key: 'settings', label: 'Settings' },
+  { key: 'connections', label: 'Signal in' },
+  { key: 'settings', label: 'Setup' },
 ];
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
   const markOnboardingSeen = useRegister((s) => s.markOnboardingSeen);
   const motion = useRegister((s) => s.settings.motion);
   const receipt = useRegister((s) => s.receipt);
+  const focusedExperimentId = useRegister((s) => s.focusedExperimentId);
   const dismissReceipt = useRegister((s) => s.dismissReceipt);
   const routineCount = useRegister((s) => Object.keys(s.routines).length);
 
@@ -49,22 +51,34 @@ export default function App() {
     document.documentElement.dataset.motion = motion;
   }, [motion]);
 
+  /* ?experiment=<id> — land on the Experiments view with that card lit */
+  useEffect(() => {
+    if (focusedExperimentId) setView('experiments');
+  }, [focusedExperimentId]);
+
   if (!booted) {
-    return <div className="grid h-full place-items-center text-sm" style={{ color: 'rgb(241 235 215 / 0.6)' }}>opening the register…</div>;
+    return (
+      <div className="grid h-full place-items-center">
+        <span className="mono flex items-center gap-2.5 text-[11px] uppercase tracking-[0.22em]" style={{ color: 'var(--color-ink-soft)' }}>
+          <span className="led led--tick" aria-hidden="true" />
+          powering on
+        </span>
+      </div>
+    );
   }
 
-  // First run (or a reset register) lands on the intake sheet.
+  // First run (or a reset machine) lands on the channel-patch sheet.
   const showOnboarding = !hasOnboarded() || (routineCount === 0 && !onboardingSeen);
   if (showOnboarding) {
     return (
-      <CoverShell view="today" setView={() => {}} bare>
+      <ChassisShell view="today" setView={() => {}} bare>
         <Onboarding
           onDone={() => {
             markOnboardingSeen();
             setView('today');
           }}
         />
-      </CoverShell>
+      </ChassisShell>
     );
   }
 
@@ -79,71 +93,80 @@ export default function App() {
   };
 
   return (
-    <CoverShell view={view} setView={goTab}>
+    <ChassisShell view={view} setView={goTab} motion={motion}>
       {view === 'today' && <TodayView openRoutine={openRoutine} />}
       {view === 'heatmap' && <HeatmapView openRoutine={openRoutine} />}
       {view === 'review' && <ReviewView openRoutine={openRoutine} />}
-      {view === 'experiments' && <ExperimentsView />}
+      {view === 'experiments' && <ExperimentsView focusId={focusedExperimentId} />}
       {view === 'connections' && <ConnectionsView />}
       {view === 'settings' && <SettingsView />}
       {view === 'routine' && routineId && <RoutineView routineId={routineId} />}
 
       {receipt && <ReceiptCard receipt={receipt} onClose={dismissReceipt} onOpenConnections={() => goTab('connections')} />}
-    </CoverShell>
+    </ChassisShell>
   );
 }
 
-// ── The cover — binding rail, wordmark, date stamp, index tabs ───────────────
+// ── The chassis top edge — wordmark, tempo lamp, LCD, selector bank ──────────
 
-function CoverShell({
+function ChassisShell({
   view,
   setView,
   children,
   bare,
+  motion = 'full',
 }: {
   view: View;
   setView: (v: View) => void;
   children: React.ReactNode;
   bare?: boolean;
+  motion?: 'full' | 'reduced';
 }) {
   return (
     <div className="flex min-h-full flex-col">
-      {/* cover header */}
-      <header className="no-print shrink-0 px-4 pt-4 sm:px-6" style={{ color: 'rgb(241 235 215 / 0.9)' }}>
+      {/* the unit's top edge */}
+      <header className="no-print shrink-0 px-4 pt-4 sm:px-6">
         <div className="mx-auto flex max-w-4xl flex-wrap items-end justify-between gap-x-6 gap-y-2">
-          <div className="flex items-baseline gap-3">
-            <span className="datestamp text-[22px] font-bold tracking-[0.16em]" style={{ color: 'rgb(241 235 215 / 0.95)' }}>
+          <div className="flex items-center gap-3">
+            <span className="led" aria-hidden="true" title="power" />
+            <span className="disp silk text-[21px] font-bold tracking-[0.22em]" style={{ color: 'var(--color-ink)' }}>
               RHYTHM
             </span>
-            <span className="mono hidden text-[10px] uppercase tracking-[0.22em] sm:inline" style={{ color: 'rgb(241 235 215 / 0.5)' }}>
-              attendance register
+            <span className="mono silk hidden text-[9.5px] uppercase tracking-[0.26em] sm:inline" style={{ color: 'var(--color-ink-faint)' }}>
+              weekly sequencer
             </span>
           </div>
           {!bare && (
-            <span className="mono text-[11px] uppercase tracking-[0.18em]" style={{ color: 'rgb(241 235 215 / 0.6)' }}>
-              {fmtDayFull(todayISO())}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="mono flex items-center gap-1.5 text-[9px] uppercase tracking-[0.2em]" style={{ color: 'var(--color-ink-faint)' }}>
+                <span className={cx('led', motion === 'full' && 'led--tick')} aria-hidden="true" />
+                run
+              </span>
+              <span className="lcd px-2.5 py-1 text-[10.5px] uppercase tracking-[0.16em]">
+                {fmtDayFull(todayISO())}
+              </span>
+            </div>
           )}
         </div>
 
-        {/* index tabs along the fore-edge */}
+        {/* the selector bank */}
         {!bare && (
-          <nav className="mx-auto mt-3 max-w-4xl" role="tablist" aria-label="register sections">
-            <div className="flex gap-0.5 overflow-x-auto">
+          <nav className="mx-auto mt-3 max-w-4xl" role="tablist" aria-label="deck sections">
+            <div className="flex gap-1.5 overflow-x-auto pb-1">
               {TABS.map((t) => (
                 <button
                   key={t.key}
                   role="tab"
                   aria-selected={view === t.key || (view === 'routine' && t.key === 'today')}
-                  className="rtab"
+                  className="stab"
                   onClick={() => setView(t.key)}
                 >
                   {t.label}
                 </button>
               ))}
               {view === 'routine' && (
-                <span className="rtab" aria-selected="true" style={{ background: 'var(--color-leaf)', color: 'var(--color-ink)' }}>
-                  Routine
+                <span className="stab" aria-selected="true">
+                  Channel
                 </span>
               )}
             </div>
@@ -151,9 +174,9 @@ function CoverShell({
         )}
       </header>
 
-      {/* the leaf */}
+      {/* the deck */}
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-16 sm:px-6">
-        <div className={cx('leaf mt-3 min-h-[70vh] px-6 py-6 sm:px-9 sm:py-7', bare && 'px-4 sm:px-9')}>
+        <div className={cx('deck mt-3 min-h-[70vh] px-6 py-6 sm:px-9 sm:py-7', bare && 'px-4 sm:px-9')}>
           {children}
         </div>
       </main>
@@ -161,7 +184,7 @@ function CoverShell({
   );
 }
 
-// ── Event receipt — a slip slid under the register door ──────────────────────
+// ── Signal received — a card over the deck ───────────────────────────────────
 
 function ReceiptCard({
   receipt,
@@ -178,15 +201,15 @@ function ReceiptCard({
       style={{ animation: 'var(--animate-receipt-in)' }}
       role="status"
     >
-      <div className="slip p-4">
-        <div className="kicker mb-1">Event received — {APP_DISPLAY[receipt.sourceApp]}</div>
+      <div className="panel p-4">
+        <div className="kicker mb-1">Signal received — {APP_DISPLAY[receipt.sourceApp]}</div>
         <p className="mono text-[11.5px]">{receipt.type}</p>
         <p className="mt-1 text-[12px] text-ink-soft">
           {receipt.duplicate
-            ? 'Already on file — deduplicated, nothing double-counted.'
+            ? 'Already on the tape — deduplicated, nothing double-counted.'
             : receipt.entriesWritten > 0
-              ? `Stamped ${receipt.entriesWritten} ${receipt.entriesWritten === 1 ? 'line' : 'lines'}${receipt.routineNames.length ? `: ${receipt.routineNames.join(', ')}` : ''}.`
-              : 'Filed in the intake ledger — no mapping covers it yet.'}
+              ? `Hit recorded on ${receipt.entriesWritten} ${receipt.entriesWritten === 1 ? 'channel' : 'channels'}${receipt.routineNames.length ? `: ${receipt.routineNames.join(', ')}` : ''}.`
+              : 'Held in the inbox — no routing covers it yet.'}
         </p>
         <div className="mt-3 flex justify-end gap-2">
           <button
@@ -196,10 +219,10 @@ function ReceiptCard({
               onOpenConnections();
             }}
           >
-            Connections
+            Signal in
           </button>
           <button className="btn btn--primary !px-2 !py-1" onClick={onClose}>
-            File it away
+            Got it
           </button>
         </div>
       </div>

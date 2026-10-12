@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useFolio, selectActiveTerm, selectTermCourses, selectCourseCommitments } from '../store';
+import { useFolio, selectActiveTerm, selectTermCourses, selectCourseCommitments, beginBulkFeed, endBulkFeed, stir } from '../store';
 import { Field, FInput, FSelect } from '../components/Field';
 import { Stamp } from '../components/Stamp';
 import { courseColorVar, nextCourseColor, COURSE_COLORS } from '../lib/colors';
@@ -16,7 +16,7 @@ import {
   cn,
 } from '../lib/utils';
 import { remainingMinutes, atRisk } from '../lib/schedule';
-import type { Course, CourseColor } from '../lib/types';
+import type { Course, CourseColor, Term } from '../lib/types';
 import { ImportSheet } from '../components/ImportSheet';
 import { Archive, ArchiveRestore, FileDown, Plus, BookOpen } from 'lucide-react';
 
@@ -38,6 +38,12 @@ export function SemesterView({
   const [adding, setAdding] = useState(false);
   const [importing, setImporting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [termForm, setTermForm] = useState<'closed' | 'new' | 'amend'>('closed');
+
+  const terms = useMemo(
+    () => Object.values(s.terms).sort((a, b) => a.startDate.localeCompare(b.startDate)),
+    [s.terms],
+  );
 
   const active = courses.filter((c) => !c.archived);
   const archived = courses.filter((c) => c.archived);
@@ -81,6 +87,58 @@ export function SemesterView({
       <div className="flex justify-end -mt-8 mb-5">
         <Stamp text={term ? 'ON FILE' : 'UNFILED'} tone={term ? 'ok' : 'ink'} />
       </div>
+
+      {/* filed terms — switch between terms on the register or file the next */}
+      <section aria-label="Filed terms" className="mb-6">
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          {terms.map((t) => {
+            const isActive = t.id === s.activeTermId;
+            return (
+              <button
+                key={t.id}
+                onClick={() => !isActive && s.setActiveTerm(t.id)}
+                className={cn(
+                  'mono text-[10px] tracking-[0.06em] px-2.5 py-1 rounded-[2px] border transition-colors',
+                  isActive
+                    ? 'border-[color:var(--color-ink)] bg-[color:var(--color-ink)] text-[color:var(--color-paper)] font-semibold cursor-default'
+                    : 'border-[color:var(--color-rule-dark)] text-[color:var(--color-ink-soft)] hover:text-[color:var(--color-ink)] hover:border-[color:var(--color-ink-faint)]',
+                )}
+                title={isActive ? 'Active term' : `Open ${t.name}`}
+                aria-pressed={isActive}
+              >
+                {t.name.toUpperCase()}
+                <span className={cn('ml-1.5', isActive ? 'opacity-70' : 'text-[color:var(--color-ink-faint)]')}>
+                  {t.startDate.slice(0, 4)}
+                </span>
+              </button>
+            );
+          })}
+          <button
+            className="xbtn mono !w-auto !h-auto px-2.5 py-1 text-[10px] tracking-[0.06em]"
+            onClick={() => setTermForm(termForm === 'new' ? 'closed' : 'new')}
+            title="File a new term"
+          >
+            <Plus size={11} className="inline -mt-px" /> FILE TERM
+          </button>
+          {term && (
+            <button
+              className="xbtn mono !w-auto !h-auto px-2.5 py-1 text-[10px] tracking-[0.06em]"
+              onClick={() => setTermForm(termForm === 'amend' ? 'closed' : 'amend')}
+              title="Amend the active term's dates"
+            >
+              AMEND
+            </button>
+          )}
+        </div>
+        {termForm !== 'closed' && (
+          <TermForm
+            mode={termForm}
+            term={termForm === 'amend' ? term : undefined}
+            defaultName={termForm === 'new' ? guessNextTermName(terms) : undefined}
+            onDone={() => setTermForm('closed')}
+          />
+        )}
+      </section>
 
       {/* workload strip — deadline density across the term */}
       {weeks.length > 0 && (
@@ -352,15 +410,111 @@ const TEMPLATES = {
 type TemplateKind = keyof typeof TEMPLATES;
 
 function seedTemplate(s: ReturnType<typeof useFolio.getState>, courseId: string, kind: TemplateKind, termStart: string) {
-  for (const t of TEMPLATES[kind]) {
-    s.addCommitment({
-      courseId,
-      type: t.type,
-      title: t.title,
-      dueAt: isoAtTime(addDaysISO(termStart, t.offset), '23:59'),
-      weight: t.weight,
-      estimatedMinutes: t.minutes,
-      recurrence: 'recurrence' in t ? 'weekly' : undefined,
-    });
+  // one filing event: per-row stirs held, a single summary announces the seed
+  beginBulkFeed();
+  try {
+    for (const t of TEMPLATES[kind]) {
+      s.addCommitment({
+        courseId,
+        type: t.type,
+        title: t.title,
+        dueAt: isoAtTime(addDaysISO(termStart, t.offset), '23:59'),
+        weight: t.weight,
+        estimatedMinutes: t.minutes,
+        recurrence: 'recurrence' in t ? 'weekly' : undefined,
+      });
+    }
+  } finally {
+    endBulkFeed();
   }
+  // `s` is the caller's render snapshot — taken before addCourse — so the
+  // new course isn't in it; read fresh state for the stir's course key
+  const code = useFolio.getState().courses[courseId]?.code;
+  stir(`commitments seeded: ${TEMPLATES[kind].length} · ${code ?? 'course'}`, '/apps/syllabus/', code);
+}
+
+/* ── Filed terms — file a new term or amend the active one ── */
+function guessNextTermName(terms: Term[]): string | undefined {
+  const last = terms[terms.length - 1];
+  if (!last) return undefined;
+  const m = last.name.match(/^(spring|summer|fall|autumn|winter)\s+(\d{4})$/i);
+  if (!m) return undefined;
+  const season = m[1].toLowerCase();
+  const year = +m[2];
+  const order = ['spring', 'summer', 'fall', 'winter'];
+  const i = order.indexOf(season === 'autumn' ? 'fall' : season);
+  if (i === -1) return undefined;
+  const next = order[(i + 1) % order.length];
+  const nextYear = next === 'spring' || (i === order.length - 1) ? year + 1 : year;
+  return `${next[0].toUpperCase()}${next.slice(1)} ${nextYear}`;
+}
+
+function TermForm({
+  mode,
+  term,
+  defaultName,
+  onDone,
+}: {
+  mode: 'new' | 'amend';
+  term?: Term;
+  defaultName?: string;
+  onDone: () => void;
+}) {
+  const s = useFolio();
+  const [name, setName] = useState(term?.name ?? defaultName ?? '');
+  const [start, setStart] = useState(term?.startDate ?? '');
+  const [end, setEnd] = useState(term?.endDate ?? '');
+  const valid = name.trim().length > 0 && start && end && start <= end;
+
+  const file = () => {
+    if (!valid) return;
+    if (mode === 'new') {
+      s.createTerm({
+        name: name.trim(),
+        startDate: start,
+        endDate: end,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+      });
+    } else if (term) {
+      s.updateTerm(term.id, { name: name.trim(), startDate: start, endDate: end });
+    }
+    onDone();
+  };
+
+  return (
+    <div className="slip mt-3 px-4 py-3 max-w-md mx-auto" role="form" aria-label={mode === 'new' ? 'File a new term' : 'Amend term'}>
+      <div className="kicker mb-2">{mode === 'new' ? 'FILE A TERM' : 'AMEND TERM'}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <Field label="Term name">
+          <FInput
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && file()}
+            placeholder="Spring 2027"
+            aria-label="Term name"
+          />
+        </Field>
+        <Field label="First day">
+          <FInput type="date" value={start} onChange={(e) => setStart(e.target.value)} aria-label="First day" />
+        </Field>
+        <Field label="Last day">
+          <FInput type="date" value={end} onChange={(e) => setEnd(e.target.value)} aria-label="Last day" />
+        </Field>
+      </div>
+      {start && end && start > end && (
+        <p className="mono text-[10px] text-[color:var(--color-danger,#a33)] mt-2">Last day precedes first day.</p>
+      )}
+      <div className="mt-3 flex items-center justify-between">
+        <span className="mono text-[10px] text-[color:var(--color-ink-faint)]">
+          {start && end && start <= end ? `${stampDate(start)} → ${stampDate(end)}` : ''}
+        </span>
+        <div className="flex gap-2">
+          <button className="btn btn--ghost !py-1 !px-2.5" onClick={onDone}>Cancel</button>
+          <button className="btn !py-1 !px-3" onClick={file} disabled={!valid}>
+            {mode === 'new' ? 'File term' : 'Amend'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

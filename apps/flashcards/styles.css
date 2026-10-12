@@ -239,6 +239,14 @@ a { color: var(--blue); }
   padding: 4px 10px 12px;
 }
 
+/* deck rows deal in from the drawer — soft left slide, staggered via
+   inline delay; the data-motion gate below kills it for reduced motion */
+@keyframes dr-in {
+  from { opacity: 0; transform: translateX(-5px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.deck-row.dr-in { animation: dr-in 180ms cubic-bezier(.22, 1, .36, 1) both; }
+
 .deck-row {
   display: block;
   width: 100%;

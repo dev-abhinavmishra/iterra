@@ -12,12 +12,14 @@ import { SettingsView } from './views/SettingsView';
 import { Onboarding } from './views/Onboarding';
 import { HelpOverlay } from './components/HelpOverlay';
 import { dueCount } from './lib/schedule';
+import type { InboundLink } from './lib/links';
 
 export interface RouteState {
   view: ViewKey;
   attemptId?: string;
   sessionId?: string;
   compareAttemptId?: string;
+  inbound?: InboundLink | null;
 }
 
 export function App() {
@@ -37,12 +39,16 @@ export function App() {
     setRoute({ view: 'attempt', attemptId, sessionId });
   const openCompare = (attemptId: string) => setRoute({ view: 'compare', compareAttemptId: attemptId });
 
-  // inbound deep links (Syllabus session requests) — once, after boot
+  // inbound deep links (Syllabus session requests, ?problem=<id>) — once, after boot
   useEffect(() => {
     if (!booted) return;
     const inbound = consumeInbound();
     if (inbound?.kind === 'syllabus-session') {
-      setRoute({ view: 'session' });
+      // carry the consumed link down — SessionSetupView reads it as a prop,
+      // a second consumeInbound() would always see null
+      setRoute({ view: 'session', inbound });
+    } else if (inbound?.kind === 'problem' && inbound.attemptId) {
+      setRoute({ view: 'attempt', attemptId: inbound.attemptId });
     }
   }, [booted, consumeInbound]);
 
@@ -100,6 +106,7 @@ export function App() {
             {route.view === 'session' && (
               <SessionSetupView
                 sessionId={route.sessionId}
+                inbound={route.inbound ?? null}
                 onSession={(sess) => nav({ sessionId: sess?.id })}
                 onAttempt={(a) => startAttempt(a.id, a.sessionId)}
               />

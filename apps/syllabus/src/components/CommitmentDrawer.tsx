@@ -7,6 +7,7 @@ import { selectLinksFor } from '../store';
 import { useShallow } from 'zustand/react/shallow';
 import { remainingMinutes, reversePlan } from '../lib/schedule';
 import { appBadge } from '../lib/links';
+import { openDeep } from '../lib/iterra';
 import { courseColorVar } from '../lib/colors';
 import { fmtMinutes, stampDate, todayISO, isoAtTime, cn } from '../lib/utils';
 import type { Commitment, CommitmentType } from '../lib/types';
@@ -286,7 +287,7 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
                   <span className="mono text-[9px] font-semibold tracking-[0.1em] border border-[color:var(--color-rule-dark)] rounded-[2px] px-1 py-0.5 text-[color:var(--color-ink-soft)]">
                     {appBadge(l.app)}
                   </span>
-                  <a href={l.deepLink} target="_blank" rel="noopener noreferrer" className="slab text-[13.5px] hover:underline truncate flex items-center gap-1">
+                  <a href={l.deepLink} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (l.deepLink.startsWith('/apps/')) { e.preventDefault(); openDeep(l.deepLink); } }} className="slab text-[13.5px] hover:underline truncate flex items-center gap-1">
                     {l.label} <ExternalLink size={11} className="shrink-0 text-[color:var(--color-ink-faint)]" />
                   </a>
                   <button className="xbtn ml-auto !w-5 !h-5" onClick={() => s.removeLink(l.id)} aria-label={`Remove ${l.label}`}>

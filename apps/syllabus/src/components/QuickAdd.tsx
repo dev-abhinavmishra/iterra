@@ -125,7 +125,13 @@ function parseQuick(raw: string, courses: Course[]): Parsed {
   const courseMatch = rest.match(/@(\w[\w-]*)/i);
   if (courseMatch) {
     const code = courseMatch[1].toLowerCase();
-    course = courses.find((c) => c.code.toLowerCase() === code || c.code.toLowerCase().startsWith(code));
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+    // '@math241' should file under 'MATH 241' — compare space-insensitive,
+    // then allow prefix matches ('@math' → MATH 241) and exact raw codes.
+    course = courses.find((c) => {
+      const cnorm = norm(c.code);
+      return cnorm === code || cnorm.startsWith(code) || c.code.toLowerCase() === code;
+    });
     rest = rest.replace(courseMatch[0], ' ');
   }
   const typeMatch = rest.match(/#(\w+)/);

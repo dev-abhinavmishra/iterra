@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStore, QuestionFormat, TestSection } from '../store';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PDFDocument } from 'pdf-lib';
+import { uid } from '../lib/uid';
 import { generatePDF } from '../lib/pdfGenerator';
 import { Reorder, motion } from 'motion/react';
 import { Icon, Button, Input, Field, Toggle, BubbleMark } from '../components/ui';
@@ -57,13 +58,17 @@ export function SheetBuilder() {
   const initialImportPdf = (location.state as { importPdf?: boolean })?.importPdf;
 
   const tests = useStore(state => state.tests);
+  // ?testId can name a deleted or stale assessment — only honor it when the
+  // test actually exists, otherwise "Save changes" would updateTest a ghost
+  // and the sheet the user just built would vanish silently.
+  const editingTest = editingTestId ? tests.find(t => t.id === editingTestId) : undefined;
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isImporting, setIsImporting] = useState(initialImportPdf || false);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
 
   const [sections, setSections] = useState<TestSection[]>([
-    { id: crypto.randomUUID(), count: 50, format: 'A-D' }
+    { id: uid(), count: 50, format: 'A-D' }
   ]);
   const [testName, setTestName] = useState('');
   const [courseName, setCourseName] = useState('');
@@ -196,7 +201,7 @@ export function SheetBuilder() {
         const qFormat = questionMap.get(i)?.format || 'A-D';
         if (!currentSection || currentSection.format !== qFormat) {
           if (currentSection) importedSections.push(currentSection);
-          currentSection = { id: crypto.randomUUID(), count: 1, format: qFormat };
+          currentSection = { id: uid(), count: 1, format: qFormat };
         } else {
           currentSection.count = (currentSection.count as number) + 1;
         }
@@ -294,8 +299,8 @@ export function SheetBuilder() {
       answerKey: cleanKey,
     };
 
-    if (editingTestId) {
-      await updateTest(editingTestId, testData);
+    if (editingTest) {
+      await updateTest(editingTest.id, testData);
     } else {
       await addTest(testData);
     }
@@ -530,7 +535,7 @@ export function SheetBuilder() {
             <h2 className="text-headline-md" id="sheet-designer-title">Sheet Builder</h2>
             <p className="text-sm text-pencil mt-0.5">Design the sheet your class will fill in.</p>
           </div>
-          {!editingTestId && (
+          {!editingTest && (
             <button
               onClick={() => setIsImporting(true)}
               className="mt-1 p-2 text-pencil hover:text-mark hover:bg-mark-mist rounded-md transition-all border border-hairline-strong flex flex-col items-center gap-0.5"
@@ -580,7 +585,7 @@ export function SheetBuilder() {
               variant="outline"
               icon="add"
               className="!h-8 px-2.5 text-xs"
-              onClick={() => setSections([...sections, { id: crypto.randomUUID(), count: 10, format: 'A-D' }])}
+              onClick={() => setSections([...sections, { id: uid(), count: 10, format: 'A-D' }])}
             >
               Section
             </Button>
@@ -685,7 +690,7 @@ export function SheetBuilder() {
             {isGeneratingPdf ? 'Generating…' : 'Download PDF'}
           </Button>
           <Button variant="outline" icon="save" onClick={handleSave} className="h-11">
-            {editingTestId ? 'Save changes' : 'Save assessment'}
+            {editingTest ? 'Save changes' : 'Save assessment'}
           </Button>
         </div>
       </section>

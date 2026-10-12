@@ -104,7 +104,9 @@ export const getAllNotes = async (): Promise<Note[]> => {
     if (localNotes.length === 0) {
         try {
             const res = await fetch('/api/notes');
-            if (res.ok) {
+            // A static host's SPA fallback answers 200 with index.html — only a
+            // real JSON body means the cloud endpoint exists.
+            if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
                 const cloudNotes = await res.json();
                 if (cloudNotes && cloudNotes.length > 0) {
                     // Map back from snake_case to camelCase

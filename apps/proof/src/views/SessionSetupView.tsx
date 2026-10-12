@@ -8,7 +8,8 @@ import {
 } from '../store';
 import type { Attempt, Difficulty, PracticeSession, SessionRules } from '../lib/types';
 import { isDue } from '../lib/schedule';
-import { timerDeepLink } from '../lib/links';
+import { timerDeepLink, type InboundLink } from '../lib/links';
+import { openDeep } from '../lib/iterra';
 import { docToText } from '../lib/doc';
 import { cn, fmtMinutes } from '../lib/utils';
 import { DiffMeter } from '../components/DiffMeter';
@@ -17,10 +18,12 @@ import { Play, Timer, CheckCircle2, Shuffle, Layers3, RotateCcw } from 'lucide-r
 
 export function SessionSetupView({
   sessionId,
+  inbound,
   onSession,
   onAttempt,
 }: {
   sessionId?: string;
+  inbound?: InboundLink | null;
   onSession: (s?: PracticeSession) => void;
   onAttempt: (a: Attempt) => void;
 }) {
@@ -30,7 +33,6 @@ export function SessionSetupView({
   const reviews = useWorkbench((s) => s.reviews);
   const sessions = useWorkbench((s) => s.sessions);
   const settings = useWorkbench((s) => s.settings);
-  const consumeInbound = useWorkbench((s) => s.consumeInbound);
   const createSession = useWorkbench((s) => s.createSession);
   const completeSession = useWorkbench((s) => s.completeSession);
   const startAttempt = useWorkbench((s) => s.startAttempt);
@@ -44,10 +46,11 @@ export function SessionSetupView({
   const [minDiff, setMinDiff] = useState<Difficulty>(1);
   const [maxDiff, setMaxDiff] = useState<Difficulty>(5);
 
-  // inbound Syllabus prefill — consumed once
+  // inbound Syllabus prefill — the link arrives as a prop; App consumed it
+  // once at boot, a second consumeInbound() here would always read null
   const [intent, setIntent] = useState<string | undefined>();
   useEffect(() => {
-    const i = consumeInbound();
+    const i = inbound;
     if (i?.kind === 'syllabus-session') {
       if (i.minutes) setMinutes(Math.round(i.minutes));
       if (i.topic && topics.includes(i.topic)) setSelTopics([i.topic]);
@@ -101,7 +104,7 @@ export function SessionSetupView({
       label: `Proof — ${session.intent ?? 'practice session'}`,
     });
     setTimerUrl(session.id, url);
-    window.open(url, '_blank', 'noopener');
+    openDeep(url);
   };
 
   const beginNext = () => {

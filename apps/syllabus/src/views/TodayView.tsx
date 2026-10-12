@@ -8,7 +8,8 @@ import {
 } from '../store';
 import { useShallow } from 'zustand/react/shallow';
 import { planDay } from '../lib/schedule';
-import { timerDeepLink } from '../lib/links';
+import { timerDeepLink, proofDeepLink } from '../lib/links';
+import { openDeep } from '../lib/iterra';
 import { BlockSlip } from '../components/BlockSlip';
 import { QuickAdd } from '../components/QuickAdd';
 import {
@@ -109,12 +110,33 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
     listRef.current?.querySelector(`[data-block="${queue[selIdx]?.id}"]`)?.scrollIntoView({ block: 'nearest' });
   }, [selIdx, queue]);
 
+  // ?block=<id> intake (stashed at boot): land the cursor on that slip.
+  const intakeBlockId = s.intakeBlockId;
+  useEffect(() => {
+    if (!intakeBlockId) return;
+    const i = queue.findIndex((b) => b.id === intakeBlockId);
+    if (i >= 0) setSelIdx(i);
+    else {
+      // slip isn't on today's queue (planned another day) — land on its
+      // commitment card instead of swallowing the deep link.
+      const b = s.blocks[intakeBlockId];
+      if (b?.commitmentId) onInspect(b.commitmentId);
+    }
+    s.clearIntakeBlock();
+  }, [intakeBlockId, queue, s, onInspect]);
+
   const startInTimer = (b: WorkBlock) => {
     const c = s.commitments[b.commitmentId];
     if (!c) return;
     const url = timerDeepLink({ settings: s.settings, block: b, commitment: c, course: courseById[c.courseId] });
     s.startBlock(b.id, url);
-    window.open(url, '_blank', 'noopener');
+    openDeep(url);
+  };
+
+  const openInProof = (b: WorkBlock) => {
+    const c = s.commitments[b.commitmentId];
+    if (!c) return;
+    openDeep(proofDeepLink({ block: b, commitment: c, course: courseById[c.courseId] }));
   };
 
   const acceptAll = () => s.acceptProposals(plan.proposals);
@@ -241,6 +263,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
                       selected={i === selIdx}
                       onSelect={() => setSelIdx(i)}
                       onStart={b.state !== 'done' ? () => startInTimer(b) : undefined}
+                      onProof={b.state !== 'done' ? () => openInProof(b) : undefined}
                       onDone={b.state !== 'done' ? () => s.completeBlock(b.id) : undefined}
                       onDefer={b.state !== 'done' ? () => setDeferFor(b) : undefined}
                       onInspect={() => onInspect(b.commitmentId)}

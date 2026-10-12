@@ -27,13 +27,13 @@ import { exportRegister, parseRegisterBackup } from '../lib/backup';
 export const DEFAULT_SETTINGS: AppSettings = {
   weekStartsOn: 1,
   motion: 'full',
-  timerBaseUrl: 'https://timerstack.vercel.app',
-  inkBaseUrl: 'https://ink-notes.vercel.app',
+  timerBaseUrl: '/apps/timer',
+  inkBaseUrl: '/apps/ink',
   modularBaseUrl: 'https://modularaistack.vercel.app',
-  flashcardsBaseUrl: 'https://flashcards-stack.vercel.app',
-  gradestackBaseUrl: 'https://gradestack.vercel.app',
-  syllabusBaseUrl: 'https://syllabus-folio.vercel.app',
-  proofBaseUrl: 'https://proof-workbench.vercel.app',
+  flashcardsBaseUrl: '/apps/flashcards',
+  gradestackBaseUrl: '/apps/gradestack',
+  syllabusBaseUrl: '/apps/syllabus',
+  proofBaseUrl: '/apps/proof',
 };
 
 /** A one-time receipt for an event accepted at boot or via import. */
@@ -52,6 +52,7 @@ interface RegisterState extends RegisterData {
   onboardingSeen: boolean;
   receipt: EventReceipt | null;
   focusedRoutineName: string | null;
+  focusedExperimentId: string | null;
   boot: () => void;
   hasOnboarded: () => boolean;
   dismissReceipt: () => void;
@@ -177,6 +178,7 @@ export const useRegister = create<RegisterState>()(
       onboardingSeen: false,
       receipt: null,
       focusedRoutineName: null,
+      focusedExperimentId: null,
 
       boot: () => {
         if (get().booted) return;
@@ -191,6 +193,7 @@ export const useRegister = create<RegisterState>()(
           url.searchParams.delete('event');
           url.searchParams.delete('from');
           url.searchParams.delete('routine');
+          url.searchParams.delete('experiment');
           window.history.replaceState(null, '', url.toString());
         } catch {
           /* replaceState unavailable — still boot */
@@ -215,11 +218,16 @@ export const useRegister = create<RegisterState>()(
                 duplicate: res.kind === 'duplicate',
               },
               focusedRoutineName: link.routineName ?? null,
+              focusedExperimentId: link.experimentId ?? null,
             });
             return;
           }
         }
-        set({ booted: true, focusedRoutineName: link?.routineName ?? null });
+        set({
+          booted: true,
+          focusedRoutineName: link?.routineName ?? null,
+          focusedExperimentId: link?.experimentId ?? null,
+        });
       },
 
       hasOnboarded: () => get().onboardingSeen || Object.keys(get().routines).length > 0,
@@ -545,11 +553,36 @@ export const useRegister = create<RegisterState>()(
       },
 
       resetRegister: () =>
-        set({ ...EMPTY_DATA(), receipt: null, focusedRoutineName: null, onboardingSeen: false }),
+        set({ ...EMPTY_DATA(), receipt: null, focusedRoutineName: null, focusedExperimentId: null, onboardingSeen: false }),
     }),
     {
       name: 'rhythm.register.v1',
-      version: 1,
+      version: 2,
+      /* v2: vendored sibling apps always live under /apps/<name> — an
+         absolute http(s) baseUrl persisted before vendoring (the old
+         *.vercel.app prod defaults, or any manual absolute) would make
+         evidence/source links escape the terrain, so normalize them once.
+         modularBaseUrl is untouched — Modular AI isn't vendored. */
+      migrate: (persisted, version) => {
+        const s = persisted as { settings?: AppSettings } | undefined;
+        if (version < 2 && s?.settings) {
+          const vendored: [keyof AppSettings, string][] = [
+            ['timerBaseUrl', 'timer'],
+            ['inkBaseUrl', 'ink'],
+            ['flashcardsBaseUrl', 'flashcards'],
+            ['gradestackBaseUrl', 'gradestack'],
+            ['syllabusBaseUrl', 'syllabus'],
+            ['proofBaseUrl', 'proof'],
+          ];
+          for (const [key, slug] of vendored) {
+            const v = s.settings[key];
+            if (typeof v === 'string' && /^https?:\/\//.test(v)) {
+              (s.settings as unknown as Record<string, string>)[key] = `/apps/${slug}`;
+            }
+          }
+        }
+        return persisted;
+      },
       partialize: (s) => ({
         routines: s.routines,
         entries: s.entries,

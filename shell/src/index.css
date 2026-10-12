@@ -71,6 +71,34 @@ body {
 .live-dot { animation: iterra-pulse 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
 
+/* ── terrain motion — quiet entrances only: short fades, small rises ── */
+@keyframes iterra-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes iterra-rise {
+  from { opacity: 0; transform: translateY(7px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes iterra-stir {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.anim-fade { animation: iterra-fade 200ms ease-out both; }
+/* panels — palette, switcher, banners */
+.anim-rise { animation: iterra-rise 190ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* list entries — stirrings rows, palette hits (stagger via inline delay) */
+.anim-stir { animation: iterra-stir 170ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* place cards — one-time entrance on the terrain home */
+.anim-card { animation: iterra-rise 260ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* keep-alive frames: display:none→block replays this on every activation */
+.frame-fade { animation: iterra-fade 240ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade, .anim-rise, .anim-stir, .anim-card, .frame-fade { animation: none; }
+}
+
 /* thin scrollbars on the today rail */
 .today-rail::-webkit-scrollbar { width: 6px; }
 .today-rail::-webkit-scrollbar-thumb { background: var(--color-moss-200); border-radius: 3px; }

@@ -32,6 +32,30 @@ docs/WIRING.md     the integration contract every place follows
   `?deck/?cards` — all routed through the shell instead of new tabs.
 - **Keep-alive frames** — visited places stay mounted; wander and return to
   exactly where you were.
+- **The mesh** — every app publishes into the shared doc (`iterra.v1.doc.*`):
+  commons fields (focus session, today's plan, open note, active deck…), an
+  entity index (`index.<app>`, ~50 rows of blocks/decks/notes/problems with
+  course/topic linkage keys), and a stirrings feed. WIRING.md §7 is the
+  contract.
+
+## Terrain surfaces
+
+- **Commons rail** — live cross-app lines ("focus: calc drill · 18m left",
+  "editing in ink: …", "course: MTH") with live-dot freshness and
+  "last seen earlier" staleness.
+- **The shelf** — pin any entity from a dossier row (◇); pins ride the home
+  rail and show ◈ in the palette. One click back into its place.
+- **Course dossiers** `#/c/<key>` — everything the mesh knows about one
+  course/topic: entities grouped by place, live commons, stirrings mentions.
+  Reachable from desks chips, palette group headers, switcher links, and
+  in-app `iterra.open('#/c/<key>')`.
+- **Next up / in session** — the folio's next block offers a bound timer
+  session (files minutes back); a running session supersedes it live.
+- **Palette** (`⌘K` or `/`) — every place + every published entity, grouped
+  by course/topic in browse mode.
+- **Switcher** — "in this place" + "linked across the terrain" + dossier
+  links; ⌘1–8 places, ⌘0 home.
+- **Stirrings** — the last 12h of cross-app activity, deep-linked.
 
 ## Dev
 
@@ -51,12 +75,9 @@ Vercel: build command `npm run build`, output `dist`. Margin's API functions
 need `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`/`ANON_KEY`, and `GROQ_API_KEY`
 project env vars — without them Margin still runs local-first.
 
-## Rhythm is mid-flight
+## Rhythm
 
-`apps/rhythm` is vendored from its open MVP branch — the working session may
-still be landing commits. Re-sync with:
-
-```bash
-rsync -a --delete --exclude='.git' --exclude='node_modules' --exclude='dist' \
-  ../rhythm/ apps/rhythm/
-```
+`apps/rhythm` is vendored at the weekly-sequencer rehaul (upstream branch
+merged). To pull future upstream work, re-sync then re-apply the wiring
+(WIRING.md §§1–3): build-time base, hub script tag, `iterra.ts` bridge,
+suite-link bases.

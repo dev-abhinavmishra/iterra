@@ -3,9 +3,11 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig, loadEnv} from 'vite';
 
-export default defineConfig(({mode}) => {
+export default defineConfig(({mode, command}) => {
   const env = loadEnv(mode, '.', '');
   return {
+    // served under /apps/timer/ inside the iterra terrain
+    base: command === 'build' ? '/apps/timer/' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

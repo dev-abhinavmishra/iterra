@@ -20,11 +20,11 @@ import { exportFolio, parseFolioBackup } from '../lib/backup';
 export type { ProposedBlock };
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  timerBaseUrl: 'https://timerstack.vercel.app',
-  inkBaseUrl: 'https://ink-notes.vercel.app',
+  timerBaseUrl: '/apps/timer',
+  inkBaseUrl: '/apps/ink',
   modularBaseUrl: 'https://modularaistack.vercel.app',
-  flashcardsBaseUrl: 'https://flashcards-stack.vercel.app',
-  gradestackBaseUrl: 'https://gradestack.vercel.app',
+  flashcardsBaseUrl: '/apps/flashcards',
+  gradestackBaseUrl: '/apps/gradestack',
   studyWindowStart: '16:00',
   maxBlockMinutes: 90,
   defaultAvailableMinutes: 180,
@@ -37,9 +37,16 @@ interface FolioState extends FolioData {
   booted: boolean;
   boot: () => void;
   hasOnboarded: () => boolean;
+  // Inbound ?block=<id> deep link: boot stashes the id; TodayView consumes it
+  // to select the slip, then clears it. Not persisted as navigation state.
+  intakeBlockId: string | null;
+  clearIntakeBlock: () => void;
+  intakeCommitmentId: string | null;
+  clearIntakeCommitment: () => void;
 
   // ── terms ──
   createTerm: (t: Omit<Term, 'id' | 'createdAt'>) => Term;
+  updateTerm: (id: string, patch: Partial<Omit<Term, 'id' | 'createdAt'>>) => void;
   setActiveTerm: (id: string) => void;
 
   // ── courses ──
@@ -88,6 +95,24 @@ interface FolioState extends FolioData {
   resetFolio: () => void;
 }
 
+/* While a bulk filing runs (import rows, template seeding, onboarding
+   course intake), per-row stirs are held — the caller emits ONE summary
+   stir after endBulkFeed; a filing wave is one event, not N. */
+let bulkFeedDepth = 0;
+export const beginBulkFeed = () => { bulkFeedDepth += 1; };
+export const endBulkFeed = () => { bulkFeedDepth = Math.max(0, bulkFeedDepth - 1); };
+
+// Unified activity stream (docs/WIRING.md §7): emit only real state changes.
+const feed = (text: string, url?: string, course?: string) => {
+  if (bulkFeedDepth) return;
+  try {
+    (window as any).iterra?.feed?.({ text, url, course });
+  } catch {
+    /* feed is best-effort */
+  }
+};
+export const stir = feed;
+
 const EMPTY_DATA: FolioData = {
   terms: {},
   courses: {},
@@ -109,20 +134,61 @@ export const useFolio = create<FolioState>()(
         const s = get();
         if (s.booted) return;
         set({ booted: true });
-        // Inbound Timer completion: ?completedBlock=<id>&actual=<minutes>
-        if (typeof window !== 'undefined') {
+        // boot() can fire before persist hydration lands — consumeInbound
+        // returns false while its param targets aren't readable yet, and a
+        // one-shot subscription retries once blocks are.
+        const consumeInbound = (): boolean => {
+          if (typeof window === 'undefined') return true;
+          const st = get();
           const q = new URLSearchParams(window.location.search);
           const blockId = q.get('completedBlock');
+          const focusId = q.get('block');
+          const commitmentId = q.get('commitment');
+          if (!blockId && !focusId && !commitmentId) return true;
+          const done = q.get('completedBlock') || q.get('block') || q.get('commitment');
+          let consumed = false;
+          // Inbound Timer completion: ?completedBlock=<id>&actual=<minutes>
           const actual = Number(q.get('actual'));
-          if (blockId && s.blocks[blockId]) {
-            get().completeBlock(blockId, Number.isFinite(actual) && actual > 0 ? actual : undefined);
+          if (blockId && st.blocks[blockId]) {
+            st.completeBlock(blockId, Number.isFinite(actual) && actual > 0 ? actual : undefined);
+            const stamped = get().blocks[blockId];
+            const c = stamped ? get().commitments[stamped.commitmentId] : undefined;
+            feed(
+              `timer filed ${stamped?.actualMinutes ?? (Number.isFinite(actual) ? actual : 0)}m into ${c?.title ?? 'a block'}`,
+              `/apps/syllabus/?block=${blockId}`,
+              c ? get().courses[c.courseId]?.code : undefined,
+            );
+            consumed = true;
+          }
+          // Search-palette deep link: ?block=<id> → select the slip on Today.
+          if (focusId && st.blocks[focusId]) {
+            set({ intakeBlockId: focusId });
+            consumed = true;
+          }
+          // Index-entity deep link: ?commitment=<id> → open its drawer.
+          if (commitmentId && st.commitments[commitmentId]) {
+            set({ intakeCommitmentId: commitmentId });
+            consumed = true;
+          }
+          if (consumed) {
             const url = new URL(window.location.href);
             url.search = '';
             window.history.replaceState({}, '', url.toString());
           }
+          return consumed || !done;
+        };
+        if (!consumeInbound()) {
+          // one-shot: detach before consuming — consumeInbound's own set()
+          // would re-enter this listener while params are still in the URL.
+          const unsub = useFolio.subscribe(() => { unsub(); consumeInbound(); });
         }
         maybeNotify(get());
       },
+
+      intakeBlockId: null,
+      clearIntakeBlock: () => set({ intakeBlockId: null }),
+      intakeCommitmentId: null,
+      clearIntakeCommitment: () => set({ intakeCommitmentId: null }),
 
       hasOnboarded: () => Object.keys(get().courses).length > 0,
 
@@ -132,8 +198,14 @@ export const useFolio = create<FolioState>()(
           terms: { ...s.terms, [term.id]: term },
           activeTermId: term.id,
         }));
+        feed(`term filed: ${term.name}`, '/apps/syllabus/');
         return term;
       },
+
+      updateTerm: (id, patch) =>
+        set((s) => ({
+          terms: s.terms[id] ? { ...s.terms, [id]: { ...s.terms[id], ...patch, id } } : s.terms,
+        })),
 
       setActiveTerm: (id) => set({ activeTermId: id }),
 
@@ -149,6 +221,7 @@ export const useFolio = create<FolioState>()(
           createdAt: new Date().toISOString(),
         };
         set((st) => ({ courses: { ...st.courses, [course.id]: course } }));
+        feed(`course filed: ${course.code}`, '/apps/syllabus/', course.code);
         return course;
       },
 
@@ -157,10 +230,17 @@ export const useFolio = create<FolioState>()(
           courses: { ...s.courses, [id]: { ...s.courses[id], ...patch } },
         })),
 
-      archiveCourse: (id, archived) =>
+      archiveCourse: (id, archived) => {
+        const code = get().courses[id]?.code;
         set((s) => ({
           courses: { ...s.courses, [id]: { ...s.courses[id], archived } },
-        })),
+        }));
+        feed(
+          `course ${archived ? 'archived' : 'unarchived'}: ${code ?? 'a course'}`,
+          '/apps/syllabus/',
+          code,
+        );
+      },
 
       addCommitment: (c) => {
         const commitment: Commitment = {
@@ -173,6 +253,11 @@ export const useFolio = create<FolioState>()(
           createdAt: new Date().toISOString(),
         };
         set((s) => ({ commitments: { ...s.commitments, [commitment.id]: commitment } }));
+        feed(
+          `commitment filed: ${commitment.title}`,
+          '/apps/syllabus/',
+          commitment.courseId ? get().courses[commitment.courseId]?.code : undefined,
+        );
         return commitment;
       },
 
@@ -181,7 +266,9 @@ export const useFolio = create<FolioState>()(
           commitments: { ...s.commitments, [id]: { ...s.commitments[id], ...patch } },
         })),
 
-      setCommitmentStatus: (id, status) =>
+      setCommitmentStatus: (id, status) => {
+        const before = get().commitments[id];
+        const beforeIds = new Set(Object.keys(get().commitments));
         set((s) => {
           const c = s.commitments[id];
           if (!c) return s;
@@ -214,7 +301,25 @@ export const useFolio = create<FolioState>()(
             }
           }
           return { commitments };
-        }),
+        });
+        if (before && before.status !== status && (status === 'done' || status === 'dropped')) {
+          feed(
+            `commitment ${status === 'done' ? 'done' : 'dropped'}: ${before.title}`,
+            '/apps/syllabus/',
+            before.courseId ? get().courses[before.courseId]?.code : undefined,
+          );
+        }
+        // Weekly filing spawns the next instance inside set() — it's a real
+        // filing, emit it too.
+        const spawned = Object.values(get().commitments).find((c) => !beforeIds.has(c.id));
+        if (spawned) {
+          feed(
+            `commitment filed: ${spawned.title}`,
+            '/apps/syllabus/',
+            spawned.courseId ? get().courses[spawned.courseId]?.code : undefined,
+          );
+        }
+      },
 
       togglePin: (id) =>
         set((s) => ({
@@ -225,29 +330,46 @@ export const useFolio = create<FolioState>()(
         })),
 
       acceptProposals: (proposals) => {
-        const made = proposals.map((p, i) => {
-          const b: WorkBlock = {
-            id: uid('b_'),
-            commitmentId: p.commitmentId,
-            plannedDate: p.plannedDate,
-            plannedStart: p.plannedStart,
-            plannedMinutes: p.plannedMinutes,
-            state: 'planned',
-            phase: p.phase,
-            label: p.label,
-            reasons: p.reasons,
-            score: p.score,
-            deferCount: 0,
-            order: Date.now() + i,
-            createdAt: new Date().toISOString(),
-          };
-          return b;
-        });
+        const made: WorkBlock[] = [];
         set((s) => {
           const blocks = { ...s.blocks };
-          for (const b of made) blocks[b.id] = b;
+          proposals.forEach((p, i) => {
+            // Double-accepts (a fast second click on a stale proposals array,
+            // or RE-PLAN fired twice) replay identical proposals — skip any
+            // whose slip already exists live for that slot.
+            const dup = Object.values(blocks).some(
+              (b) =>
+                b.commitmentId === p.commitmentId &&
+                b.plannedDate === p.plannedDate &&
+                b.plannedStart === p.plannedStart &&
+                b.plannedMinutes === p.plannedMinutes &&
+                b.phase === p.phase &&
+                b.label === p.label &&
+                b.state !== 'done' &&
+                b.state !== 'missed',
+            );
+            if (dup) return;
+            const b: WorkBlock = {
+              id: uid('b_'),
+              commitmentId: p.commitmentId,
+              plannedDate: p.plannedDate,
+              plannedStart: p.plannedStart,
+              plannedMinutes: p.plannedMinutes,
+              state: 'planned',
+              phase: p.phase,
+              label: p.label,
+              reasons: p.reasons,
+              score: p.score,
+              deferCount: 0,
+              order: Date.now() + i,
+              createdAt: new Date().toISOString(),
+            };
+            blocks[b.id] = b;
+            made.push(b);
+          });
           return { blocks };
         });
+        if (made.length) feed(`plan generated: ${made.length} slip${made.length === 1 ? '' : 's'}`, '/apps/syllabus/');
         return made;
       },
 
@@ -262,7 +384,8 @@ export const useFolio = create<FolioState>()(
         return block;
       },
 
-      rescheduleBlock: (id, date, startHHMM) =>
+      rescheduleBlock: (id, date, startHHMM) => {
+        const before = get().blocks[id];
         set((s) => {
           const b = s.blocks[id];
           // A stamped slip is a filed record — it never silently un-stamps.
@@ -276,9 +399,18 @@ export const useFolio = create<FolioState>()(
             carriedFrom: b.carriedFrom ?? (b.plannedDate !== date ? b.plannedDate : b.carriedFrom),
           };
           return { blocks: { ...s.blocks, [id]: moved } };
-        }),
+        });
+        if (before && before.state !== 'done' && before.plannedDate !== date) {
+          const c = get().commitments[before.commitmentId];
+          feed(
+            `slip moved to ${date}: ${before.label ?? c?.title ?? 'a block'}`,
+            `/apps/syllabus/?block=${encodeURIComponent(id)}`,
+            c ? get().courses[c.courseId]?.code : undefined,
+          );
+        }
+      },
 
-      completeBlock: (id, actualMinutes) =>
+      completeBlock: (id, actualMinutes) => {
         set((s) => {
           const b = s.blocks[id];
           if (!b) return s;
@@ -296,17 +428,21 @@ export const useFolio = create<FolioState>()(
               }
             : s.commitments;
           return { blocks, commitments };
-        }),
+        });
+        // 'slip stamped' is emitted by the ambient layer in lib/iterra.ts on
+        // the done transition — no feed write needed here.
+      },
 
-      unstampBlock: (id) =>
+      unstampBlock: (id) => {
+        const b = get().blocks[id];
         set((s) => {
-          const b = s.blocks[id];
-          if (!b || b.state !== 'done') return s;
-          const c = s.commitments[b.commitmentId];
-          const actual = b.actualMinutes ?? b.plannedMinutes;
+          const cur = s.blocks[id];
+          if (!cur || cur.state !== 'done') return s;
+          const c = s.commitments[cur.commitmentId];
+          const actual = cur.actualMinutes ?? cur.plannedMinutes;
           const blocks = {
             ...s.blocks,
-            [id]: { ...b, state: 'planned' as const, actualMinutes: undefined, completedAt: undefined, timerSessionUrl: undefined },
+            [id]: { ...cur, state: 'planned' as const, actualMinutes: undefined, completedAt: undefined, timerSessionUrl: undefined },
           };
           const commitments = c
             ? {
@@ -315,39 +451,68 @@ export const useFolio = create<FolioState>()(
               }
             : s.commitments;
           return { blocks, commitments };
-        }),
+        });
+        if (b?.state === 'done') {
+          const c = get().commitments[b.commitmentId];
+          feed(
+            `slip un-stamped: ${b.label ?? c?.title ?? 'a block'}`,
+            `/apps/syllabus/?block=${encodeURIComponent(id)}`,
+            c ? get().courses[c.courseId]?.code : undefined,
+          );
+        }
+      },
 
-      deferBlock: (id, note, toDate) =>
+      deferBlock: (id, note, toDate) => {
+        const b = get().blocks[id];
         set((s) => {
-          const b = s.blocks[id];
-          if (!b) return s;
+          const cur = s.blocks[id];
+          if (!cur) return s;
           const moved: WorkBlock = {
-            ...b,
+            ...cur,
             state: toDate ? 'planned' : 'deferred',
-            plannedDate: toDate ?? b.plannedDate,
-            carriedFrom: b.carriedFrom ?? b.plannedDate,
+            plannedDate: toDate ?? cur.plannedDate,
+            carriedFrom: cur.carriedFrom ?? cur.plannedDate,
             deferNote: note,
-            deferCount: b.deferCount + 1,
+            deferCount: cur.deferCount + 1,
           };
           return { blocks: { ...s.blocks, [id]: moved } };
-        }),
+        });
+        if (b) {
+          const c = get().commitments[b.commitmentId];
+          feed(
+            `slip ${toDate ? `pushed to ${toDate}` : 'deferred'}: ${b.label ?? c?.title ?? 'a block'}`,
+            `/apps/syllabus/?block=${encodeURIComponent(id)}`,
+            c ? get().courses[c.courseId]?.code : undefined,
+          );
+        }
+      },
 
-      carryBlock: (id, toDate) =>
+      carryBlock: (id, toDate) => {
+        const b = get().blocks[id];
         set((s) => {
-          const b = s.blocks[id];
-          if (!b) return s;
+          const cur = s.blocks[id];
+          if (!cur) return s;
           return {
             blocks: {
               ...s.blocks,
               [id]: {
-                ...b,
+                ...cur,
                 state: 'planned',
                 plannedDate: toDate,
-                carriedFrom: b.carriedFrom ?? b.plannedDate,
+                carriedFrom: cur.carriedFrom ?? cur.plannedDate,
               },
             },
           };
-        }),
+        });
+        if (b) {
+          const c = get().commitments[b.commitmentId];
+          feed(
+            `slip carried to ${toDate}: ${b.label ?? c?.title ?? 'a block'}`,
+            `/apps/syllabus/?block=${encodeURIComponent(id)}`,
+            c ? get().courses[c.courseId]?.code : undefined,
+          );
+        }
+      },
 
       deleteBlock: (id) =>
         set((s) => {
@@ -418,6 +583,7 @@ export const useFolio = create<FolioState>()(
           createdAt: new Date().toISOString(),
         };
         set((st) => ({ reviews: { ...st.reviews, [weekStart]: review } }));
+        feed(`week reviewed: ${actual}m against ${planned}m planned`, '/apps/syllabus/');
         return review;
       },
 
@@ -443,17 +609,37 @@ export const useFolio = create<FolioState>()(
           const data = parseFolioBackup(text);
           if (!data.settings) data.settings = DEFAULT_SETTINGS;
           set({ ...data });
+          feed('folio restored', '/apps/syllabus/');
           return { ok: true };
         } catch (e) {
           return { ok: false, error: e instanceof Error ? e.message : 'Import failed' };
         }
       },
 
-      resetFolio: () => set({ ...EMPTY_DATA, settings: { ...get().settings } }),
+      resetFolio: () => {
+        set({ ...EMPTY_DATA, settings: { ...get().settings } });
+        feed('folio struck', '/apps/syllabus/');
+      },
     }),
     {
       name: 'syllabus.folio.v1',
       version: 1,
+      // Blobs written before array fields existed boot-crash on bare
+      // iteration (c.dependencies is not iterable → white screen).
+      // Backfill them at the merge boundary, once — same class as the
+      // cardfile's loadStore normalize.
+      merge: (persisted, current) => {
+        const p = (persisted || {}) as Partial<FolioData>;
+        const commitments = { ...(p.commitments || {}) };
+        for (const c of Object.values(commitments)) {
+          if (!Array.isArray((c as Commitment).dependencies)) (c as Commitment).dependencies = [];
+        }
+        const blocks = { ...(p.blocks || {}) };
+        for (const b of Object.values(blocks)) {
+          if (!Array.isArray((b as WorkBlock).reasons)) (b as WorkBlock).reasons = [];
+        }
+        return { ...current, ...p, commitments, blocks };
+      },
       partialize: (s) => ({
         terms: s.terms,
         activeTermId: s.activeTermId,
