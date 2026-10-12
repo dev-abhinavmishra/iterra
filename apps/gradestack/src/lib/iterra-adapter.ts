@@ -323,6 +323,76 @@ export function fmtLoggedMinutes(min: number): string {
   return `${m}m`;
 }
 
+// ── workflow A tail — due cards beside an assessment row ────────────────────
+
+/** Cards due for this course — the cardfile mirrors each card with
+ *  data.dueAt = 0 while due and null once mastered, so a numeric dueAt at or
+ *  under now is the due check. Matches the resolved registry key first and
+ *  falls back to the course label for decks bound before resolution.
+ *  Returns null until the store answers so rows only render a real count. */
+export function useDueCardCount(courseName?: string): number | null {
+  const [due, setDue] = useState<number | null>(null);
+  useEffect(() => {
+    const it = window.iterra;
+    const want = normName(courseName);
+    if (!it?.store?.list || !want) {
+      setDue(null);
+      return;
+    }
+    let alive = true;
+    let inflight = false;
+    const pull = async () => {
+      if (inflight) return;
+      inflight = true;
+      try {
+        const key = courseKeyFor(courseName);
+        const rows: any[] = await Promise.resolve(
+          it.store.list({ app: 'flashcards', type: 'card' }),
+        ).catch(() => []);
+        const now = Date.now();
+        const n = rows.filter((e) => {
+          const d = e?.data?.dueAt;
+          if (typeof d !== 'number' || d > now) return false;
+          return (key ? e.courseId === key : false) || normName(e?.course) === want;
+        }).length;
+        if (alive) setDue(n);
+      } finally {
+        inflight = false;
+      }
+    };
+    void pull();
+    let unsub: (() => void) | undefined;
+    try {
+      unsub = it.store.subscribe?.(() => void pull());
+    } catch {
+      /* subscribe is best-effort */
+    }
+    const iv = setInterval(() => void pull(), 30_000);
+    return () => {
+      alive = false;
+      unsub?.();
+      clearInterval(iv);
+    };
+  }, [courseName]);
+  return due;
+}
+
+/** Where "from the folio →" lands: the shell's course dossier when the
+ *  courseName resolves to a real registry course, else the folio's door. */
+export async function folioUrlFor(courseName?: string): Promise<string> {
+  const it = window.iterra;
+  try {
+    if (it?.courses?.byCode && normName(courseName)) {
+      const ent = await Promise.resolve(it.courses.byCode(courseName));
+      const code = ent?.data?.code ?? ent?.course;
+      if (code) return `#/c/${encodeURIComponent(String(code))}`;
+    }
+  } catch {
+    /* resolution is best-effort */
+  }
+  return '/apps/syllabus/';
+}
+
 // ── registration ─────────────────────────────────────────────────────────────
 
 let registered = false;

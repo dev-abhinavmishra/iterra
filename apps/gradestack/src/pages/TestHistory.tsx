@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { Icon, Button, Chip, EmptyState, Modal, PageHeader } from '../components/ui';
+import { DueCardsChip } from '../components/terrain';
 import { FORMAT_LABELS } from '../lib/grading';
 import { AnimatePresence } from 'motion/react';
 
@@ -92,7 +93,10 @@ export function TestHistory() {
                         </div>
                         <div className="min-w-0">
                           <h4 className="text-sm font-semibold text-ink group-hover:text-mark-deep transition-colors truncate max-w-[240px]">{t.name || 'Untitled'}</h4>
-                          {t.courseName && <p className="text-[11px] text-faint truncate">{t.courseName}</p>}
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            {t.courseName && <p className="text-[11px] text-faint truncate">{t.courseName}</p>}
+                            <DueCardsChip courseName={t.courseName} />
+                          </div>
                         </div>
                       </div>
                     </td>

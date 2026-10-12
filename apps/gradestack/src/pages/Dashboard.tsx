@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { generatePDF } from '../lib/pdfGenerator';
 import { Icon, BubbleMark } from '../components/ui';
+import { DueCardsChip } from '../components/terrain';
 
 const steps = [
   { icon: 'edit_note', title: 'Design a sheet', body: 'Set the question count and formats, then download a fillable PDF to print or share.' },
@@ -129,6 +130,7 @@ export function Dashboard() {
                             {test.name}
                           </Link>
                           {test.courseName && <span className="block text-xs text-pencil mt-0.5">{test.courseName}</span>}
+                          <span className="block mt-1"><DueCardsChip courseName={test.courseName} /></span>
                         </td>
                         <td className="py-3.5 px-4 text-pencil whitespace-nowrap">
                           {new Date(test.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}

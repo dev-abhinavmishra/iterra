@@ -83,16 +83,16 @@ and e2e-verified where the surface is user-visible.
 
 ## D. In-app bridge surfaces — each app shows its siblings
 
-- [ ] 66 syllabus Today: "N cards due" chip → review
-- [ ] 67 syllabus Today: "Nm logged today" chip → sessions
-- [ ] 68 commitment row: "plan on the register" (with the drawer's Focus)
-- [ ] 69 commitment row: "make a card" send
+- [x] 66 syllabus Today: "N cards due" chip → review
+- [x] 67 syllabus Today: "Nm logged today" chip → sessions
+- [x] 68 commitment row: "plan on the register" (with the drawer's Focus)
+- [x] 69 commitment row: "make a card" send
 - [ ] 70 rhythm day cell: source-app badge on ingested events
 - [ ] 71 rhythm routine detail: linked course dossier
 - [ ] 72 rhythm: "from the folio" inbox — recent commitments as routine scaffolds
-- [ ] 73 gradestack grade row: "N cards due" chip
-- [ ] 74 gradestack: logged-minutes links through to the session list
-- [ ] 75 gradestack weights chip: source syllabus course link
+- [x] 73 gradestack grade row: "N cards due" chip
+- [x] 74 gradestack: logged-minutes links through to the session list
+- [x] 75 gradestack weights chip: source syllabus course link
 - [ ] 76 flashcards deck header: course dossier link
 - [ ] 77 flashcards deck: "session for this deck" bound timer start
 - [ ] 78 flashcards deck: "log a review" → register
