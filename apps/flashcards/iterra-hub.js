@@ -495,7 +495,9 @@
     try {
       localStorage.setItem('iterra.v1.poke', JSON.stringify({ k: kind, app: (data && data.to) || undefined, t: Date.now() }));
     } catch (e) {}
-    _dispatch(kind, data);
+    /* NO direct _dispatch here — the 'iterra:store' listener above routes
+       the same CustomEvent back through _onMsg → _dispatch; calling both
+       delivers every notification twice. */
   }
   function _dispatch(kind, data) {
     var lists = [_subs[kind] || [], _subs.any];
