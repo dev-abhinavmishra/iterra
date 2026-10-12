@@ -139,3 +139,5 @@ export function useOtherNoteActive(): NoteActiveEntry | null {
   if (theirs <= myLastWriteAt) return null;
   return entry;
 }
+
+import './iterra-adapter';

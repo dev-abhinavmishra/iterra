@@ -207,3 +207,5 @@ export function openDeep(url: string) {
   } catch { /* fall through to the solo path */ }
   window.open(url, '_blank', 'noopener');
 }
+
+import './iterra-adapter';

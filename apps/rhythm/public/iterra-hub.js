@@ -301,6 +301,687 @@
     return function () { window.removeEventListener('storage', h); };
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════
+     THE CANONICAL STORE (iterra.core v1)
+
+     One entity graph shared by every place and the terrain — the layer the
+     index/commons/feed docs were only mirrors of. Entities are typed,
+     validated, versioned records:
+
+       { key:'<app>:<type>:<id>', id, type, app, courseId?, course?, topic?,
+         title?, sub?, url?, data?, createdAt, updatedAt, v:1 }
+
+     - `key` is the composite primary key (app-namespaced ids may repeat).
+     - `courseId` is a foreign key into a `course`-type entity (syllabus owns
+       course creation; other apps resolve code → id via iterra.courses).
+     - `course`/`topic` remain string display/linkage labels — never
+       fabricated ids.
+     - `data` carries the app's own payload (≤64KB JSON) — the canonical
+       record mirrors enough for the terrain; the app stays the system of
+       record for its own internals.
+
+     Persistence: IndexedDB `iterra` (stores: entities, events, links,
+     intakes, meta). Falls back to localStorage buckets when IDB is absent —
+     same API either way. Cross-frame propagation: BroadcastChannel
+     'iterra.core.v1' + a localStorage poke so LS-fallback and non-BC
+     environments still see writes. Same-window: 'iterra:store' CustomEvent.
+
+     Validation: writes that fail the schema are REJECTED (return
+     {ok:false,error}) and the offender is quarantined to
+     iterra.v1.quarantine (cap 20) so a bad publisher can't corrupt readers.
+     ═══════════════════════════════════════════════════════════════════════ */
+
+  var SCHEMA_V = 1;
+  var DB_NAME = 'iterra';
+  var DB_V = 1;
+  var ENTITY_TYPES = {
+    course: 1, term: 1, assignment: 1, source: 1, note: 1, card: 1,
+    deck: 1, quiz: 1, problem: 1, attempt: 1, session: 1, goal: 1,
+    grade: 1, routine: 1, experiment: 1, assessment: 1, block: 1,
+    commitment: 1, link: 1, event: 1, scan: 1, entry: 1,
+  };
+
+  /* The documented event catalogue. emit() accepts only these — an unknown
+     verb is a contract bug and gets rejected like a malformed entity. */
+  var EVENT_TYPES = {
+    'entity.upserted': 1, 'entity.removed': 1,
+    'link.added': 1, 'link.removed': 1,
+    'course.registered': 1, 'course.renamed': 1,
+    'session.started': 1, 'session.completed': 1,
+    'card.created': 1, 'card.reviewed': 1,
+    'attempt.made': 1, 'attempt.diverged': 1,
+    'assignment.due': 1, 'assignment.completed': 1,
+    'grade.entered': 1, 'note.created': 1,
+    'routine.logged': 1, 'routine.completed': 1,
+    'deck.imported': 1, 'send.delivered': 1, 'stir': 1,
+  };
+
+  var STORE_BUCKETS = ['entities', 'events', 'links', 'intakes', 'meta'];
+
+  /* ── persistence: IDB with a localStorage mirror-fallback ── */
+
+  var _dbp = null;
+  var _dbMode = null; // 'idb' | 'ls'
+  function openDB() {
+    if (_dbp) return _dbp;
+    if (typeof indexedDB === 'undefined') { _dbMode = 'ls'; _dbp = Promise.resolve(null); return _dbp; }
+    _dbp = new Promise(function (res) {
+      var req;
+      try { req = indexedDB.open(DB_NAME, DB_V); } catch (e) { _dbMode = 'ls'; res(null); return; }
+      req.onupgradeneeded = function () {
+        var d = req.result;
+        var e = d.createObjectStore('entities', { keyPath: 'key' });
+        e.createIndex('type', 'type', { unique: false });
+        e.createIndex('app', 'app', { unique: false });
+        e.createIndex('courseId', 'courseId', { unique: false });
+        e.createIndex('updatedAt', 'updatedAt', { unique: false });
+        var v = d.createObjectStore('events', { keyPath: 'seq', autoIncrement: true });
+        v.createIndex('type', 'type', { unique: false });
+        v.createIndex('at', 'at', { unique: false });
+        var l = d.createObjectStore('links', { keyPath: 'key' });
+        l.createIndex('from', 'from', { unique: false });
+        l.createIndex('to', 'to', { unique: false });
+        var i = d.createObjectStore('intakes', { keyPath: 'id' });
+        i.createIndex('to', 'to', { unique: false });
+        i.createIndex('at', 'at', { unique: false });
+        d.createObjectStore('meta', { keyPath: 'k' });
+      };
+      req.onsuccess = function () { _dbMode = 'idb'; res(req.result); };
+      req.onerror = function () { _dbMode = 'ls'; res(null); };
+      req.onblocked = function () { _dbMode = 'ls'; res(null); };
+    });
+    return _dbp;
+  }
+
+  function idbTx(d, store, mode, fn) {
+    return new Promise(function (res, rej) {
+      var t = d.transaction(store, mode);
+      var s = t.objectStore(store);
+      var out = fn(s);
+      t.oncomplete = function () { res(out && out.result !== undefined ? out.result : out); };
+      t.onerror = function () { rej(t.error); };
+      t.onabort = function () { rej(t.error); };
+    });
+  }
+  function idbAll(d, store, indexName, query) {
+    return new Promise(function (res, rej) {
+      var t = d.transaction(store, 'readonly');
+      var s = indexName ? t.objectStore(store).index(indexName) : t.objectStore(store);
+      var rq = s.getAll(query === undefined ? undefined : query);
+      rq.onsuccess = function () { res(rq.result || []); };
+      rq.onerror = function () { rej(rq.error); };
+    });
+  }
+
+  /* localStorage fallback bucket — whole bucket under one key, cap-guarded. */
+  var LS_BUCKET_PREFIX = 'iterra.v1.store.';
+  function lsRead(bucket) {
+    try { return JSON.parse(localStorage.getItem(LS_BUCKET_PREFIX + bucket) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function lsWrite(bucket, obj) {
+    try { localStorage.setItem(LS_BUCKET_PREFIX + bucket, JSON.stringify(obj)); } catch (e) {}
+  }
+  var LS_CAPS = { entities: 2000, events: 400, links: 2000, intakes: 100, meta: 100 };
+
+  /* ── validation + quarantine ── */
+
+  function badWrite(reason, raw) {
+    var q;
+    try { q = JSON.parse(localStorage.getItem('iterra.v1.quarantine') || '[]'); } catch (e) { q = []; }
+    q.unshift({ reason: reason, raw: raw && raw.key, at: Date.now() });
+    try { localStorage.setItem('iterra.v1.quarantine', JSON.stringify(q.slice(0, 20))); } catch (e) {}
+    return { ok: false, error: reason };
+  }
+
+  function validateEntity(raw) {
+    if (!raw || typeof raw !== 'object') return badWrite('entity not an object', raw);
+    if (typeof raw.id !== 'string' || !raw.id || raw.id.length > 200) return badWrite('entity.id required (string ≤200)', raw);
+    if (typeof raw.type !== 'string' || !ENTITY_TYPES[raw.type]) return badWrite('entity.type not in schema: ' + raw.type, raw);
+    if (typeof raw.app !== 'string' || !/^[a-z]+$/.test(raw.app)) return badWrite('entity.app required ([a-z]+)', raw);
+    var opt = ['courseId', 'course', 'topic', 'title', 'sub', 'url', 'lang'];
+    for (var i = 0; i < opt.length; i++) {
+      var k = opt[i];
+      if (raw[k] !== undefined && raw[k] !== null && typeof raw[k] !== 'string') return badWrite('entity.' + k + ' must be a string', raw);
+    }
+    if (raw.data !== undefined && raw.data !== null) {
+      var j;
+      try { j = JSON.stringify(raw.data); } catch (e) { return badWrite('entity.data not JSON-serializable', raw); }
+      if (j && j.length > 65536) return badWrite('entity.data >64KB', raw);
+    }
+    var now = Date.now();
+    return {
+      ok: true,
+      entity: {
+        key: raw.app + ':' + raw.type + ':' + raw.id,
+        id: raw.id, type: raw.type, app: raw.app,
+        courseId: raw.courseId || undefined, course: raw.course || undefined,
+        topic: raw.topic || undefined, title: raw.title || undefined,
+        sub: raw.sub || undefined, url: raw.url || undefined,
+        lang: raw.lang || undefined, data: raw.data === undefined ? undefined : raw.data,
+        createdAt: typeof raw.createdAt === 'number' ? raw.createdAt : now,
+        updatedAt: now,
+        v: typeof raw.v === 'number' ? raw.v : SCHEMA_V,
+      },
+    };
+  }
+
+  function validateEvent(type, payload) {
+    if (typeof type !== 'string' || !EVENT_TYPES[type]) return badWrite('event type not in catalogue: ' + type, { type: type });
+    var p = payload && typeof payload === 'object' ? payload : {};
+    try { JSON.stringify(p); } catch (e) { return badWrite('event payload not serializable', p); }
+    return { ok: true, type: type, payload: p };
+  }
+
+  function validateRef(ref) {
+    // refs are 'app:type:id' strings or {app,type,id}
+    if (typeof ref === 'string' && ref.split(':').length === 3) return ref;
+    if (ref && typeof ref === 'object' && typeof ref.app === 'string' && typeof ref.type === 'string' && typeof ref.id === 'string') {
+      return ref.app + ':' + ref.type + ':' + ref.id;
+    }
+    return null;
+  }
+
+  /* ── broadcast ── */
+
+  var _bc = null;
+  try { if (typeof BroadcastChannel !== 'undefined') _bc = new BroadcastChannel('iterra.core.v1'); } catch (e) { _bc = null; }
+  var _subs = { entity: [], event: [], link: [], intake: [], any: [] };
+  function _notify(kind, data) {
+    var msg = { kind: kind, data: data, at: Date.now(), by: me || undefined };
+    try { if (_bc) _bc.postMessage(msg); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent('iterra:store', { detail: msg })); } catch (e) {}
+    /* localStorage poke: keeps LS-fallback + BC-less environments live and
+       wakes intake subscribers in sibling frames. */
+    try {
+      localStorage.setItem('iterra.v1.poke', JSON.stringify({ k: kind, app: (data && data.to) || undefined, t: Date.now() }));
+    } catch (e) {}
+    _dispatch(kind, data);
+  }
+  function _dispatch(kind, data) {
+    var lists = [_subs[kind] || [], _subs.any];
+    for (var li = 0; li < lists.length; li++) {
+      for (var i = 0; i < lists[li].length; i++) {
+        try { lists[li][i](data); } catch (e) {}
+      }
+    }
+    if (kind === 'intake' && data && data.to && _subs.intake.length) {
+      for (var j = 0; j < _subs.intake.length; j++) {
+        try { _subs.intake[j](data); } catch (e) {}
+      }
+    }
+  }
+  function _onMsg(msg) {
+    if (!msg || typeof msg !== 'object' || typeof msg.kind !== 'string') return;
+    _dispatch(msg.kind, msg.data);
+  }
+  if (_bc) { try { _bc.onmessage = function (ev) { _onMsg(ev.data); }; } catch (e) {} }
+  try {
+    window.addEventListener('iterra:store', function (ev) { _onMsg(ev.detail); });
+    window.addEventListener('storage', function (ev) {
+      if (ev.key !== 'iterra.v1.poke' || !ev.newValue) return;
+      try {
+        var p = JSON.parse(ev.newValue);
+        /* a poke only carries {k,app,t} — the payload lives in the store;
+           subscribers re-read via the API (intake drains, queries refresh) */
+        _dispatch(p.k, { _poke: true, to: p.app, at: p.t });
+      } catch (e) {}
+    });
+    /* the shell wakes a hidden frame so views re-read the store */
+    window.addEventListener('message', function (ev) {
+      var d = ev && ev.data;
+      if (d && d.type === 'iterra:wake') _dispatch('wake', { at: Date.now() });
+      if (d && d.type === 'iterra:invoke' && typeof d.intake === 'string') {
+        /* direct delivery from a live sender — resolve through the queue so
+           ordering stays single-path (drain marks it delivered). */
+        drainIntakes(d.to || me || '', function () {});
+      }
+    });
+  } catch (e) {}
+  _subs.wake = [];
+
+  /* ── entities ── */
+
+  function storeReady() {
+    return openDB().then(function () { return _dbMode; });
+  }
+
+  function storePut(raw) {
+    var v = validateEntity(raw);
+    if (!v.ok) return Promise.resolve(v);
+    var e = v.entity;
+    return openDB().then(function (d) {
+      if (d) {
+        return idbTx(d, 'entities', 'readonly', function (s) { return s.get(e.key); }).then(function (prev) {
+          if (prev && prev.createdAt) e.createdAt = prev.createdAt;
+          return idbTx(d, 'entities', 'readwrite', function (s) { s.put(e); });
+        });
+      }
+      var b = lsRead('entities');
+      if (b[e.key] && b[e.key].createdAt) e.createdAt = b[e.key].createdAt;
+      b[e.key] = e;
+      /* cap: evict oldest-updated beyond LS_CAPS.entities */
+      var keys = Object.keys(b);
+      if (keys.length > LS_CAPS.entities) {
+        keys.sort(function (a, b2) { return (b[a].updatedAt || 0) - (b[b2].updatedAt || 0); });
+        for (var i = LS_CAPS.entities; i < keys.length; i++) delete b[keys[i]];
+      }
+      lsWrite('entities', b);
+    }).then(function () {
+      _notify('entity', { op: 'put', entity: e });
+      return { ok: true, entity: e };
+    }).catch(function (err) {
+      /* IDB mid-flight failure → drop to LS and retry once */
+      if (_dbMode === 'idb') {
+        _dbMode = 'ls'; _dbp = Promise.resolve(null);
+        return storePut(raw);
+      }
+      return { ok: false, error: String(err) };
+    });
+  }
+
+  function storeGet(key) {
+    return openDB().then(function (d) {
+      if (d) return idbTx(d, 'entities', 'readonly', function (s) { return s.get(key); }).then(function (r) { return r || null; });
+      var b = lsRead('entities');
+      return b[key] || null;
+    });
+  }
+
+  function storeList(q) {
+    q = q || {};
+    var filter = function (e) {
+      if (!e) return false;
+      if (q.app && e.app !== q.app) return false;
+      if (q.type && e.type !== q.type) return false;
+      if (q.courseId && e.courseId !== q.courseId) return false;
+      if (q.course && String(e.course || '').toLowerCase() !== String(q.course).toLowerCase()) return false;
+      if (q.topic && String(e.topic || '').toLowerCase() !== String(q.topic).toLowerCase()) return false;
+      return true;
+    };
+    var sort = function (arr) {
+      arr.sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+      return typeof q.limit === 'number' ? arr.slice(0, q.limit) : arr;
+    };
+    return openDB().then(function (d) {
+      if (d) {
+        var idx = q.app ? 'app' : q.type ? 'type' : q.courseId ? 'courseId' : null;
+        var val = q.app || q.type || q.courseId;
+        return (idx ? idbAll(d, 'entities', idx, val) : idbAll(d, 'entities')).then(function (rows) { return sort(rows.filter(filter)); });
+      }
+      var b = lsRead('entities');
+      return sort(Object.keys(b).map(function (k) { return b[k]; }).filter(filter));
+    });
+  }
+
+  function storeSearch(text, q) {
+    q = q || {};
+    var needle = String(text || '').trim().toLowerCase();
+    if (!needle) return Promise.resolve([]);
+    return storeList({ app: q.app, type: q.type, courseId: q.courseId }).then(function (rows) {
+      return rows.filter(function (e) {
+        var hay = [e.title, e.sub, e.course, e.topic, e.id].filter(Boolean).join(' ').toLowerCase();
+        return hay.indexOf(needle) >= 0;
+      });
+    });
+  }
+
+  function storeRemove(key) {
+    return openDB().then(function (d) {
+      if (d) return idbTx(d, 'entities', 'readwrite', function (s) { s.delete(key); });
+      var b = lsRead('entities');
+      delete b[key];
+      lsWrite('entities', b);
+    }).then(function () {
+      _notify('entity', { op: 'remove', key: key });
+      return { ok: true };
+    });
+  }
+
+  function storeSubscribe(cb) {
+    _subs.entity.push(cb);
+    return function () { _subs.entity = _subs.entity.filter(function (f) { return f !== cb; }); };
+  }
+
+  /* ── events — the bus. feed() below stays as the terrain-facing stream;
+        emit() journals every event to the events store AND mirrors notable
+        ones to the feed doc (same shape the terrain reads today). ── */
+
+  function eventEmit(type, payload) {
+    var v = validateEvent(type, payload);
+    if (!v.ok) return Promise.resolve(v);
+    var rec = {
+      type: type, app: (v.payload && v.payload.app) || me || '?',
+      payload: v.payload, at: Date.now(),
+    };
+    return openDB().then(function (d) {
+      if (d) {
+        return idbTx(d, 'events', 'readwrite', function (s) { s.add(rec); });
+      }
+      var b = lsRead('events');
+      var seq = (b._seq || 0) + 1;
+      b._seq = seq;
+      rec.seq = seq;
+      b[seq] = rec;
+      var keys = Object.keys(b).filter(function (k) { return k !== '_seq'; }).map(Number).sort(function (a, b2) { return b2 - a; });
+      for (var i = LS_CAPS.events; i < keys.length; i++) delete b[keys[i]];
+      lsWrite('events', b);
+    }).then(function () {
+      _notify('event', rec);
+      /* feed compat: stirs are the terrain's stream — emit() with a text
+         payload lands in the feed doc exactly like feed() did. */
+      if (v.payload && typeof v.payload.text === 'string') {
+        /* the raw doc writer — NOT the wrapped feed(), which would journal
+           a duplicate 'stir' event on top of this typed record. */
+        _feedOrig({ text: v.payload.text, url: v.payload.url, course: v.payload.course, topic: v.payload.topic });
+      }
+      return { ok: true, event: rec };
+    });
+  }
+
+  function eventsList(q) {
+    q = q || {};
+    return openDB().then(function (d) {
+      var collect;
+      if (d) {
+        collect = idbAll(d, 'events');
+      } else {
+        var b = lsRead('events');
+        collect = Promise.resolve(Object.keys(b).filter(function (k) { return k !== '_seq'; }).map(function (k) { return b[k]; }));
+      }
+      return collect.then(function (rows) {
+        rows = (rows || []).filter(function (r) {
+          if (!r) return false;
+          if (q.type && r.type !== q.type) return false;
+          if (q.app && r.app !== q.app) return false;
+          if (q.since && r.at < q.since) return false;
+          return true;
+        });
+        rows.sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+        return typeof q.limit === 'number' ? rows.slice(0, q.limit) : rows;
+      });
+    });
+  }
+
+  function eventsOn(type, cb) {
+    if (typeof type === 'function') { cb = type; type = '*'; }
+    var h = function (rec) {
+      if (rec && rec._poke) { /* poke wakeups carry no record — re-read */ return; }
+      if (type === '*' || (rec && rec.type === type)) cb(rec);
+    };
+    _subs.event.push(h);
+    return function () { _subs.event = _subs.event.filter(function (f) { return f !== h; }); };
+  }
+
+  /* ── links — generic edges between entities. Backlinks queryable. ── */
+
+  function linkKey(from, to, kind) { return from + '|' + (kind || 'related') + '|' + to; }
+  function linkAdd(fromRef, toRef, kind) {
+    var from = validateRef(fromRef), to = validateRef(toRef);
+    if (!from || !to) return Promise.resolve(badWrite('link refs must be app:type:id', { from: fromRef, to: toRef }));
+    var rec = { key: linkKey(from, to, kind), from: from, to: to, kind: kind || 'related', by: me || '?', at: Date.now() };
+    return openDB().then(function (d) {
+      if (d) return idbTx(d, 'links', 'readwrite', function (s) { s.put(rec); });
+      var b = lsRead('links');
+      b[rec.key] = rec;
+      var keys = Object.keys(b);
+      if (keys.length > LS_CAPS.links) for (var i = LS_CAPS.links; i < keys.length; i++) delete b[keys[i]];
+      lsWrite('links', b);
+    }).then(function () {
+      _notify('link', { op: 'add', link: rec });
+      return { ok: true, link: rec };
+    });
+  }
+  function linkRemove(fromRef, toRef, kind) {
+    var from = validateRef(fromRef), to = validateRef(toRef);
+    if (!from || !to) return Promise.resolve(badWrite('link refs', null));
+    var key = linkKey(from, to, kind);
+    return openDB().then(function (d) {
+      if (d) return idbTx(d, 'links', 'readwrite', function (s) { s.delete(key); });
+      var b = lsRead('links');
+      delete b[key];
+      lsWrite('links', b);
+    }).then(function () {
+      _notify('link', { op: 'remove', key: key });
+      return { ok: true };
+    });
+  }
+  function linksFor(ref) {
+    var key = validateRef(ref);
+    if (!key) return Promise.resolve({ out: [], inn: [] });
+    var collect = function (rows) {
+      var out = [], inn = [];
+      (rows || []).forEach(function (l) {
+        if (l.from === key) out.push(l);
+        if (l.to === key) inn.push(l);
+      });
+      return { out: out, inn: inn };
+    };
+    return openDB().then(function (d) {
+      if (d) return idbAll(d, 'links').then(collect);
+      var b = lsRead('links');
+      return collect(Object.keys(b).map(function (k) { return b[k]; }));
+    });
+  }
+
+  /* ── intakes — typed send-to queue. A sender queues {to,action,entity,
+        payload}; the target's adapter drains (creating real entities) on
+        poke / boot. Every send is journaled; delivery resolves a result
+        (deep-link url) the sender can navigate to. ── */
+
+  var INTAKE_CAP = 100;
+  function intakeSend(opts) {
+    opts = opts || {};
+    var to = opts.to, action = opts.action;
+    if (typeof to !== 'string' || !/^[a-z]+$/.test(to)) return Promise.resolve(badWrite('intake.to required', opts));
+    if (typeof action !== 'string' || !action) return Promise.resolve(badWrite('intake.action required', opts));
+    var entity;
+    if (opts.entity !== undefined) {
+      var v = validateEntity(opts.entity);
+      if (!v.ok) return Promise.resolve(v);
+      entity = v.entity;
+    }
+    var rec = {
+      id: 'in-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8),
+      to: to, action: action,
+      entity: entity, payload: opts.payload === undefined ? undefined : opts.payload,
+      from: me || (opts.from || '?'), at: Date.now(),
+      delivered: null, result: undefined,
+    };
+    return openDB().then(function (d) {
+      if (d) return idbTx(d, 'intakes', 'readwrite', function (s) { s.put(rec); });
+      var b = lsRead('intakes');
+      b[rec.id] = rec;
+      var keys = Object.keys(b);
+      if (keys.length > INTAKE_CAP) for (var i = INTAKE_CAP; i < keys.length; i++) delete b[keys[i]];
+      lsWrite('intakes', b);
+    }).then(function () {
+      _notify('intake', { to: to, id: rec.id, action: action });
+      return { ok: true, id: rec.id };
+    });
+  }
+
+  function intakesPending(app) {
+    return openDB().then(function (d) {
+      var collect;
+      if (d) collect = idbAll(d, 'intakes', 'to', app);
+      else {
+        var b = lsRead('intakes');
+        collect = Promise.resolve(Object.keys(b).map(function (k) { return b[k]; }).filter(function (r) { return r.to === app; }));
+      }
+      return collect.then(function (rows) {
+        return (rows || []).filter(function (r) { return r && !r.delivered; })
+          .sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
+      });
+    });
+  }
+
+  function intakeResolve(id, result) {
+    return openDB().then(function (d) {
+      var write = function (cur) {
+        if (!cur) return;
+        cur.delivered = Date.now();
+        cur.result = result;
+        if (d) return idbTx(d, 'intakes', 'readwrite', function (s) { s.put(cur); });
+        var b = lsRead('intakes');
+        b[cur.id] = cur;
+        lsWrite('intakes', b);
+      };
+      if (d) return idbTx(d, 'intakes', 'readonly', function (s) { return s.get(id); }).then(write);
+      var b = lsRead('intakes');
+      return write(b[id]);
+    }).then(function () {
+      _notify('intake', { id: id, delivered: true });
+    });
+  }
+
+  function intakeGet(id) {
+    return openDB().then(function (d) {
+      if (d) return idbTx(d, 'intakes', 'readonly', function (s) { return s.get(id); });
+      var b = lsRead('intakes');
+      return b[id] || null;
+    });
+  }
+
+  /* the target app's delivery handler, registered by the adapter. Drains
+     pending intakes newest-oldest order preserved (at-sorted), calls the
+     handler per record, resolves with whatever the handler returns. */
+  var _deliveries = {};
+  function drainIntakes(app, done) {
+    intakesPending(app).then(function (rows) {
+      var i = 0;
+      var next = function () {
+        if (i >= rows.length) { done(); return; }
+        var rec = rows[i++];
+        var h = _deliveries[app + ':' + rec.action] || _deliveries[app + ':*'];
+        var finish = function (result) { intakeResolve(rec.id, result).then(next); };
+        if (!h) { finish(undefined); return; }
+        try {
+          var r = h(rec);
+          if (r && typeof r.then === 'function') r.then(finish, function () { finish(undefined); });
+          else finish(r);
+        } catch (e) { finish(undefined); }
+      };
+      next();
+    });
+  }
+
+  function intakeOnDeliver(app, action, handler) {
+    if (typeof action === 'function') { handler = action; action = '*'; }
+    _deliveries[app + ':' + action] = handler;
+    /* drain anything already queued + keep draining on pokes */
+    drainIntakes(app, function () {});
+    var h = function (data) {
+      if (!data || data.to !== app) return;
+      drainIntakes(app, function () {});
+    };
+    _subs.intake.push(h);
+    return function () { _subs.intake = _subs.intake.filter(function (f) { return f !== h; }); };
+  }
+
+  /* poll helper for senders — resolves the intake record once delivered. */
+  function intakeWhen(id, timeoutMs) {
+    var deadline = Date.now() + (timeoutMs || 8000);
+    return new Promise(function (res) {
+      var poll = function () {
+        intakeGet(id).then(function (rec) {
+          if (rec && rec.delivered) { res(rec); return; }
+          if (Date.now() > deadline) { res(rec || null); return; }
+          setTimeout(poll, 120);
+        });
+      };
+      poll();
+    });
+  }
+
+  /* ── course registry — courses are first-class entities; syllabus owns
+        creation, everyone else resolves code → id. ── */
+
+  function coursesList() { return storeList({ type: 'course' }); }
+  function courseByCode(code) {
+    var c = String(code || '').trim().toLowerCase();
+    if (!c) return Promise.resolve(null);
+    return coursesList().then(function (rows) {
+      for (var i = 0; i < rows.length; i++) {
+        var e = rows[i];
+        if (String((e.data && e.data.code) || e.course || e.title || '').toLowerCase() === c) return e;
+      }
+      return null;
+    });
+  }
+  function courseResolve(codeOrEntity) {
+    /* accept a code string or {code}|{courseId}|entity — always resolves to
+       the registry entity or null. Never fabricates an id. */
+    if (!codeOrEntity) return Promise.resolve(null);
+    if (typeof codeOrEntity === 'object') {
+      if (codeOrEntity.type === 'course' && codeOrEntity.key) return Promise.resolve(codeOrEntity);
+      if (codeOrEntity.courseId) return storeGet(courseKeyGuess(codeOrEntity));
+      if (codeOrEntity.code) return courseByCode(codeOrEntity.code);
+      if (codeOrEntity.course) return courseByCode(codeOrEntity.course);
+      return Promise.resolve(null);
+    }
+    return courseByCode(codeOrEntity);
+  }
+  function courseKeyGuess(obj) { return obj.key || (obj.courseId || ''); }
+
+  /* ── the adapter contract ──
+     iterra.adapter({ name, title, summary, intakes:{action:handler}, wake })
+     is THE one-documented way an app joins the environment: it registers
+     presence, wires delivery handlers for send-to actions, drains queued
+     intakes at boot, and subscribes wake for store-refresh. The build check
+     (scripts/check-adapters.sh) fails when a place lacks an adapter file. */
+  function adapter(opts) {
+    opts = opts || {};
+    var name = opts.name;
+    if (typeof name !== 'string' || !name) { console.warn('iterra.adapter: name required'); return null; }
+    register(name, { title: opts.title || name, summary: opts.summary });
+    if (opts.intakes && typeof opts.intakes === 'object') {
+      for (var action in opts.intakes) {
+        if (Object.prototype.hasOwnProperty.call(opts.intakes, action)) {
+          intakeOnDeliver(name, action, opts.intakes[action]);
+        }
+      }
+    }
+    if (typeof opts.wake === 'function') _subs.wake.push(opts.wake);
+    return { name: name };
+  }
+
+  /* convenience send: queue the intake, wake the target, tell the caller
+     where the delivery landed. Callers navigate after this resolves —
+     result.url is the created entity's deep-link when the target reported
+     one; a queued (undelivered) send resolves with the ?intake= param so a
+     cold target focuses the thing it creates on boot. */
+  function send(opts) {
+    var to = opts && opts.to;
+    return intakeSend(opts).then(function (r) {
+      if (!r.ok) return r;
+      return intakeWhen(r.id, 700).then(function (rec) {
+        if (rec && rec.delivered) {
+          return { ok: true, delivered: 'direct', url: (rec.result && rec.result.url) || ('/apps/' + to + '/'), id: rec.id };
+        }
+        return { ok: true, delivered: 'queued', url: '/apps/' + to + '/?intake=' + r.id, id: r.id };
+      });
+    });
+  }
+
+  /* feed() also journals into the events store as a 'stir' — new code should
+     call iterra.events.emit() directly; this stays the compat path. */
+  var _feedOrig = feed;
+  feed = function (item) {
+    _feedOrig(item);
+    /* journal only — no re-emit to feed (that would double-write) */
+    openDB().then(function (d) {
+      var rec = { type: 'stir', app: me || '?', payload: { text: item && item.text, url: item && item.url, course: item && item.course, topic: item && item.topic }, at: Date.now() };
+      if (d) { idbTx(d, 'events', 'readwrite', function (s) { s.add(rec); }).then(function () { _notify('event', rec); }); return; }
+      var b = lsRead('events');
+      var seq = (b._seq || 0) + 1;
+      b._seq = seq;
+      rec.seq = seq;
+      b[seq] = rec;
+      lsWrite('events', b);
+      _notify('event', rec);
+    });
+  };
+
   window.iterra = {
     register: register,
     open: open,
@@ -318,5 +999,42 @@
     onIndex: onIndex,
     apps: readApps,
     isFramed: function () { return framed; },
+    /* ── the canonical store ── */
+    store: {
+      ready: storeReady,
+      put: storePut,
+      get: storeGet,
+      list: storeList,
+      search: storeSearch,
+      remove: storeRemove,
+      subscribe: storeSubscribe,
+    },
+    courses: {
+      list: coursesList,
+      byCode: courseByCode,
+      resolve: courseResolve,
+    },
+    events: {
+      emit: eventEmit,
+      list: eventsList,
+      on: eventsOn,
+    },
+    links: {
+      add: linkAdd,
+      remove: linkRemove,
+      for: linksFor,
+    },
+    intakes: {
+      send: intakeSend,
+      pending: intakesPending,
+      get: intakeGet,
+      resolve: intakeResolve,
+      onDeliver: intakeOnDeliver,
+      when: intakeWhen,
+      drain: drainIntakes,
+    },
+    send: send,
+    adapter: adapter,
+    core: { version: SCHEMA_V, eventTypes: EVENT_TYPES, entityTypes: ENTITY_TYPES },
   };
 })();

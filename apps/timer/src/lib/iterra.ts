@@ -60,3 +60,5 @@ export function publishRoutineIndex() {
 }
 
 wireIterra();
+
+import './iterra-adapter';
