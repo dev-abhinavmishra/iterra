@@ -1,23 +1,168 @@
-/* iterra adapter — timer's one door to the canonical store.
-   Contract: docs/ADAPTER.md. Store writes, event emissions, and intake
-   handlers for this app all live here. */
+/* iterra adapter — Timer (workflow D middle).
+   Publishes each completed focus session as a {type:'session'} entity and
+   emits 'session.completed'; answers the 'timer.start' intake with a bound
+   deep link the app's own deeplink parser already understands
+   (?intent&minutes&course&from&autostart&commitment&courseId).
+   Everything is guarded — standalone (no hub) keeps every old behaviour. */
+import { getSessions } from './stats';
+import type { Session } from './stats';
+import { timerSummary, publishRoutineIndex } from './iterra';
 
-declare const window: any;
+type Hub = {
+  ready?: Promise<unknown>;
+  store?: {
+    put(e: Record<string, unknown>): Promise<unknown>;
+    get(k: string): Promise<unknown>;
+    list(q?: Record<string, unknown>): Promise<Array<{ id?: string }>>;
+  };
+  courses?: { resolve(ref: unknown): Promise<{ key?: string; id?: string; course?: string; title?: string; data?: { code?: string } } | null> };
+  events?: { emit(t: string, p: Record<string, unknown>): unknown };
+  adapter?(o: Record<string, unknown>): void;
+};
+const hub = (): Hub | undefined => (typeof window !== 'undefined' ? (window as { iterra?: Hub }).iterra : undefined);
 
-let registered = false;
+/* ── pure builders (contract-tested) ──────────────────────────────── */
+
+export interface BoundCourse { courseId?: string; course?: string }
+
+export function sessionEntity(s: Session, bound: BoundCourse = {}) {
+  const minutes = Math.round(s.duration / 60);
+  const label = s.label || s.preset || 'focus';
+  return {
+    app: 'timer',
+    type: 'session',
+    id: s.id,
+    courseId: bound.courseId ?? s.courseId,
+    course: bound.course ?? s.course,
+    title: label,
+    sub: `${minutes}m`,
+    url: '/apps/timer/',
+    createdAt: s.timestamp,
+    data: {
+      minutes,
+      label,
+      commitmentId: s.commitmentId,
+      startedAt: s.timestamp - Math.round(s.duration * 1000),
+      endedAt: s.timestamp,
+    },
+  };
+}
+
+export function sessionCompletedEvent(s: Session, bound: BoundCourse = {}) {
+  const minutes = Math.round(s.duration / 60);
+  const label = s.label || s.preset || 'focus';
+  return {
+    sessionId: s.id,
+    minutes,
+    courseId: bound.courseId ?? s.courseId,
+    course: bound.course ?? s.course,
+    text: `focus · ${minutes}m — ${label}`,
+    url: '/apps/timer/',
+  };
+}
+
+export interface TimerStartPayload {
+  label?: string;
+  minutes?: number;
+  commitmentId?: string;
+  courseId?: string;
+  course?: string;
+}
+
+export function timerStartUrl(from: string | undefined, p: TimerStartPayload): string {
+  const q = new URLSearchParams();
+  q.set('intent', String(p.label || p.course || 'focus session').slice(0, 120));
+  if (typeof p.minutes === 'number' && Number.isFinite(p.minutes) && p.minutes >= 1 && p.minutes <= 720) {
+    q.set('minutes', String(Math.round(p.minutes)));
+  }
+  if (p.course) q.set('course', String(p.course));
+  q.set('from', from && /^[a-z]{2,16}$/.test(from) ? from : 'terrain');
+  if (p.commitmentId) q.set('commitment', String(p.commitmentId));
+  if (p.courseId) q.set('courseId', String(p.courseId));
+  q.set('autostart', '1');
+  return '/apps/timer/?' + q.toString();
+}
+
+/* ── hub plumbing ─────────────────────────────────────────────────── */
+
+/* canonical key + display code for whatever the session/intake carried —
+   resolves through the registry, never fabricates */
+async function boundCourse(courseId?: string, course?: string): Promise<BoundCourse> {
+  const it = hub();
+  if (!it?.courses) return { courseId, course };
+  try {
+    const ref = courseId ? { courseId } : course;
+    if (!ref) return {};
+    const c = await it.courses.resolve(ref);
+    return { courseId: c?.key ?? courseId, course: c?.data?.code ?? c?.course ?? c?.id ?? course };
+  } catch {
+    return { courseId, course };
+  }
+}
+
+async function onSessionSaved(s?: Session) {
+  const it = hub();
+  if (!it?.store || !s || s.type !== 'focus') return;
+  const bound = await boundCourse(s.courseId, s.course);
+  await it.store.put(sessionEntity(s, bound));
+  it.events?.emit('session.completed', sessionCompletedEvent(s, bound));
+}
+
+/* sweep: mirror focus sessions the event didn't catch (saved while the hub
+   was absent or before this adapter shipped) — idempotent puts, capped */
+async function backfillSessions() {
+  const it = hub();
+  if (!it?.store?.list) return;
+  try {
+    const have = new Set((await it.store.list({ app: 'timer', type: 'session' })).map((e) => e.id));
+    const missing = getSessions()
+      .filter((s) => s.type === 'focus' && !have.has(s.id))
+      .slice(-100);
+    for (const s of missing) {
+      const bound = await boundCourse(s.courseId, s.course);
+      await it.store.put(sessionEntity(s, bound));
+    }
+  } catch {
+    /* best-effort mirror — never block the app */
+  }
+}
+
+async function onTimerStart(rec: { from?: string; payload?: TimerStartPayload }) {
+  const p = rec?.payload ?? {};
+  let course = p.course;
+  if (!course && p.courseId) {
+    try {
+      const c = await hub()?.courses?.resolve({ courseId: p.courseId });
+      course = c?.data?.code ?? c?.course ?? c?.id ?? course;
+    } catch { /* keep the code we were given */ }
+  }
+  return { url: timerStartUrl(rec?.from, { ...p, course }) };
+}
+
+let listening = false;
+function listenSessions() {
+  if (listening || typeof window === 'undefined') return;
+  listening = true;
+  window.addEventListener('timer:session', (e) => {
+    void onSessionSaved((e as CustomEvent<Session>).detail);
+  });
+}
 
 export function registerAdapter() {
-  if (registered) return;
-  const it = window.iterra;
+  const it = hub();
   if (!it?.adapter) return;
-  registered = true;
   it.adapter({
     name: 'timer',
     title: 'Timer',
-    summary: () => ({}),
-    intakes: {},
-    wake: () => {},
+    summary: timerSummary,
+    intakes: { 'timer.start': onTimerStart },
+    wake: () => {
+      publishRoutineIndex();
+      void backfillSessions();
+    },
   });
+  listenSessions();
+  void backfillSessions();
 }
 
 registerAdapter();

@@ -47,7 +47,7 @@ export function App() {
       // carry the consumed link down — SessionSetupView reads it as a prop,
       // a second consumeInbound() would always see null
       setRoute({ view: 'session', inbound });
-    } else if (inbound?.kind === 'problem' && inbound.attemptId) {
+    } else if ((inbound?.kind === 'problem' || inbound?.kind === 'attempt') && inbound.attemptId) {
       setRoute({ view: 'attempt', attemptId: inbound.attemptId });
     }
   }, [booted, consumeInbound]);

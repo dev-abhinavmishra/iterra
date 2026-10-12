@@ -44,7 +44,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   const [customMin, setCustomMin] = useState(25);
   const [done, setDone] = useState<null | 'focus' | 'break'>(null);
   const [keyFlash, setKeyFlash] = useState<string | null>(null);
-  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string } | null>(null);
+  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string; courseId?: string; commitmentId?: string } | null>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -106,7 +106,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       setIsBreak(false);
       setDone(null);
       if (link.intent) setIntent(link.intent);
-      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course, from: link.from });
+      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId });
       const url = new URL(window.location.href);
       if (url.search) {
         url.search = '';
@@ -235,7 +235,15 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     vibrate([120, 80, 120, 80, 300]);
     stationChime();
     const recess = isBreak || /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000));
-    saveSession({ duration: cd.totalMs / 1000, type: recess ? 'break' : 'focus', label: intent || undefined, preset: label });
+    saveSession({
+      duration: cd.totalMs / 1000,
+      type: recess ? 'break' : 'focus',
+      label: intent || undefined,
+      preset: label,
+      course: syllabus?.course,
+      courseId: syllabus?.courseId,
+      commitmentId: syllabus?.commitmentId,
+    });
     /* standalone complete → 'completed Nm' stir; a session bound for
        file-back emits only its 'filed Xm' (the file-back IS its stir) */
     const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
