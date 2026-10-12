@@ -3,7 +3,7 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of 4fcc039)
+## State of the terrain (as of 55d4510)
 
 - Branch `devin/iterra-env`, PR #1 open (not merged — Abhinav decides).
 - All 8 apps vendored under `apps/<name>` + wired: build-time base, hub script
@@ -121,6 +121,21 @@ contract every app and the shell follows.
   sessions; 38a62bd). links.ts contract suite 14 tests (283ecc8 —
   links-test.diff arrived with NO @@ hunks: git apply reported success
   on an EMPTY file; children must `git apply --check` before attaching).
+- Stir wave 2 (c75025a→55d4510): ink demo-library strip → welcome note
+  (c75025a); ink+margin iterra.ts lint debt cleared + render-path
+  Date.now() staleness moved to subscribe+timer (d16e149/10e397c — typing
+  exposed margin's dead `n.subject` field → real `n.type` subs); rhythm
+  publish contract pinned in vitest (0a90479, 38/38); `?event` documented
+  as dormant intake (4539644); gradestack register lifecycle: markbook
+  scored=trusted-only, scanned/marked needsReview fork, scan reviewed on
+  flag-clear, key amended→N re-graded, sheet(s)/assessment/register
+  struck+restored+synced, cloud-merge + restore spam suppressed via
+  un-partialed `_mergedIds` (d7100d4); syllabus `?commitment=` intake →
+  drawer + entity urls reach it + slip moved/term/course filed/folio
+  restored·struck stirs (d7100d4); bulk-wave suppression — begin/end
+  BulkFeed gate + summary stirs (commitments filed/seeded, courses
+  filed — 55d4510). Syllabus+gradestack stir inventory now CLOSED w/
+  named-quiet list (amends/pins/links/settings).
 - Latest wave (afaae0e→4fcc039): timer `?routine=<name>` intake +
   `?return=` protocol guard (javascript:/data:/file:/vbscript: rejected,
   tests pinned); stir wave 6368ca0 — every real syllabus/gradestack
