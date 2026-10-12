@@ -26,6 +26,17 @@ export function setMarginSource(fn: () => { notes: Note[] }) {
     source = fn;
 }
 
+/* The canonical-store adapter rides the ambient tick below — exported so
+   its writes stay incremental without a second poller. */
+const snapshotListeners = new Set<() => void>();
+export function onMarginSnapshot(cb: () => void): () => void {
+    snapshotListeners.add(cb);
+    return () => { snapshotListeners.delete(cb); };
+}
+export function marginNotes(): Note[] {
+    return source?.().notes ?? [];
+}
+
 export function wireMargin() {
     const iterra = window.iterra;
     if (!iterra) return;
@@ -56,6 +67,8 @@ let myLastWriteAt = 0;
     const publish = () => {
     publishInner().catch((e) => {
       console.warn("iterra ambient publish failed:", e);
+    }).finally(() => {
+      for (const cb of snapshotListeners) { try { cb(); } catch { /* listener owns its errors */ } }
     });
   };
   const publishInner = async () => {

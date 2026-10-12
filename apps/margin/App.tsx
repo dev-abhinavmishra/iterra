@@ -136,6 +136,20 @@ const App: React.FC = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded]);
 
+    // canonical store intake: a note created via 'note.create' is persisted
+    // by the adapter, then arrives here to join state and open in the editor
+    useEffect(() => {
+        const onIntakeNote = (ev: Event) => {
+            const note = (ev as CustomEvent<Note>).detail;
+            if (!note?.id) return;
+            setNotesState(prev => prev.some(n => n.id === note.id) ? prev : [note, ...prev]);
+            handleOpenNote(note);
+        };
+        window.addEventListener('margin:intake-note', onIntakeNote);
+        return () => window.removeEventListener('margin:intake-note', onIntakeNote);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const setSettings = (newSettings: AppSettings | ((prev: AppSettings) => AppSettings)) => {
         setSettingsState(prev => {
             const updated = typeof newSettings === 'function' ? newSettings(prev) : newSettings;
@@ -319,6 +333,7 @@ const App: React.FC = () => {
             {(currentView === View.EDITOR || currentView === View.ANALYSIS) && (
                 <SelectionPopover
                     onAddToChat={(text) => setContextualAttachments(prev => [...prev, text])}
+                    note={activeNote}
                 />
             )}
 
