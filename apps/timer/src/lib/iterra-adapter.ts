@@ -127,12 +127,28 @@ async function backfillSessions() {
   }
 }
 
-async function onTimerStart(rec: { from?: string; payload?: TimerStartPayload }) {
-  const p = rec?.payload ?? {};
+async function onTimerStart(rec: {
+  from?: string;
+  payload?: TimerStartPayload;
+  entity?: { id?: string; type?: string; title?: string; course?: string; courseId?: string; data?: Record<string, unknown> };
+}) {
+  const ent = rec?.entity ?? {};
+  /* bind the session to whatever was sent — a commitment's id/minutes,
+     any entity's title and course — when the payload didn't spell them */
+  const p: TimerStartPayload = {
+    minutes: ent?.data?.estimatedMinutes as number | undefined,
+    ...((rec?.payload ?? {}) as TimerStartPayload),
+    label: rec?.payload?.label ?? ent?.title,
+    courseId: rec?.payload?.courseId ?? ent?.courseId,
+    course: rec?.payload?.course ?? ent?.course,
+    commitmentId: rec?.payload?.commitmentId ?? (ent?.type === 'commitment' ? ent?.id : undefined),
+  };
   let course = p.course;
-  if (!course && p.courseId) {
+  /* a canonical key ('app:course:id') is never a display label — resolve
+     it (or a bare courseId) to the registry's code */
+  if ((course && course.includes(':')) || (!course && p.courseId)) {
     try {
-      const c = await hub()?.courses?.resolve({ courseId: p.courseId });
+      const c = await hub()?.courses?.resolve({ courseId: p.courseId ?? course });
       course = c?.data?.code ?? c?.course ?? c?.id ?? course;
     } catch { /* keep the code we were given */ }
   }

@@ -51,17 +51,24 @@ export function Dossier({
      the route's raw param */
   const display =
     ((courseEnt?.data?.code as string) || courseEnt?.title || course) as string;
-  /* everything the store files under this course — mounted or not */
+  /* everything the store files under this course — mounted or not. Two
+     spellings of membership: the canonical courseId (and key-routed
+     variants) AND the display code — entities filed by code alone still
+     belong to a key-routed dossier. The course entity itself files too. */
   const courseEnts = useMemo(
-    () =>
-      (entities || []).filter(
+    () => {
+      const d = display.toLowerCase();
+      const listed = (entities || []).filter(
         (e) =>
           (courseId && e.courseId === courseId) ||
           (e.courseId || '').toLowerCase() === key ||
-          (!unfiled && (e.course || '').toLowerCase() === key) ||
+          (!unfiled &&
+            ((e.course || '').toLowerCase() === key || (e.course || '').toLowerCase() === d)) ||
           (unfiled && !e.courseId && !e.course && !e.topic),
-      ),
-    [entities, courseId, key, unfiled],
+      );
+      return courseEnt && !listed.includes(courseEnt) ? [courseEnt, ...listed] : listed;
+    },
+    [entities, courseId, courseEnt, display, key, unfiled],
   );
   /* actionable dossier — the four verbs: start a session, review what's
      due, open the next assignment, see the grade state. All from the
@@ -85,7 +92,7 @@ export function Dossier({
         minutes: (nextCommit?.data?.estimatedMinutes as number) || 25,
         commitmentId: nextCommit?.id,
         courseId,
-        course,
+        course: display,
       },
     });
     if (r.url) { onGo(r.url); return; }
