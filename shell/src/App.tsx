@@ -22,6 +22,15 @@ export default function App() {
   const [entities, setEntities] = useState<StoreEntity[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [unanswered, setUnanswered] = useState<string | null>(null); // mounted place that never said hello
+  /* frames take seconds to boot a 1-2MB bundle — until iterra:hello lands
+     the slot is a blank panel, so track which mounts are still waking and
+     show that instead of nothing */
+  const [booting, setBooting] = useState<Record<string, number>>({});
+  /* per-src mount timestamps — a remount (nonce-nav, watchdog retry,
+     intake relaunch) restarts the clock; the hello that clears booting
+     must postdate the src that produced it (same rule the watchdog uses) */
+  const mountAtRef = useRef<Record<string, number>>({});
+  const srcSeenRef = useRef<Record<string, string>>({});
   /* visited places keep their iframes mounted (keep-alive) — the environment
      stays warm: state persists while wandering the terrain. */
   const [frames, setFrames] = useState<Record<string, string>>({});
@@ -171,6 +180,12 @@ export default function App() {
         const helloApp = d.app as string;
         helloRef.current[helloApp] = Date.now();
         setUnanswered((u) => (u === helloApp ? null : u));
+        setBooting((b) => {
+          if (!b[helloApp]) return b;
+          const n = { ...b };
+          delete n[helloApp];
+          return n;
+        });
         const raw = typeof d.url === 'string' ? d.url : '';
         // only trust hello urls that actually point at the claimed place
         const url = raw.startsWith(`/apps/${helloApp}`) ? raw : `/apps/${helloApp}/`;
@@ -264,6 +279,20 @@ export default function App() {
 
   /* wake pulse — the sync dot shown while a warm frame re-reads the store */
   const [woke, setWoke] = useState<string | null>(null);
+
+  /* a frame is 'booting' from the moment its src lands until that app's
+     next iterra:hello postdates THIS src — cold first mounts and forced
+     remounts both count, so the blank-panel window is always covered */
+  useEffect(() => {
+    const now = Date.now();
+    const next: Record<string, number> = {};
+    for (const [id, src] of Object.entries(frames)) {
+      if (srcSeenRef.current[id] !== src) mountAtRef.current[id] = now;
+      srcSeenRef.current[id] = src;
+      if ((helloRef.current[id] || 0) < (mountAtRef.current[id] || 0)) next[id] = mountAtRef.current[id];
+    }
+    setBooting(next);
+  }, [frames]);
 
   /* watchdog: a mounted frame should say iterra:hello within a few seconds;
      if it never does (dead dev server, 404, crashed app) surface a slim
@@ -530,6 +559,14 @@ export default function App() {
             allow={id === 'margin' ? 'clipboard-read; clipboard-write; microphone' : 'clipboard-read; clipboard-write'}
           />
         ))}
+        {/* still waking — the frame is loading its bundle and hasn't said
+            hello yet; once the watchdog fires, its banner takes over */}
+        {active && booting[active] && unanswered !== active && (
+          <div className="anim-rise pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-atlas-400 bg-atlas-50/90 px-3.5 py-1 text-[11px] text-field-faint shadow-sm">
+            <span className="live-dot h-1.5 w-1.5 rounded-full bg-moss-500" />
+            waking {PLACE_MAP[active]?.place?.toLowerCase() || active}…
+          </div>
+        )}
         {unanswered && unanswered === active && (
           <div className="anim-rise absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-3 rounded-full border border-atlas-400 bg-atlas-50/95 px-4 py-1.5 text-[12px] text-field-faint shadow-md">
             <span>
