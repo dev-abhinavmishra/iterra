@@ -19,6 +19,7 @@ import { InkBlot, InkDrop, PenNib, PenRest, Spatter, Squiggle, TornEdge } from '
 import { PENS, PEN_ORDER, penOf, type PenId } from '../../lib/pens';
 import { useNow } from '../../lib/useNow';
 import { SharedNoteLink } from './SharedNoteLink';
+import { TerrainChips } from './TerrainChips';
 
 type SaveState = 'idle' | 'saving' | 'saved';
 
@@ -351,6 +352,8 @@ export const Editor: React.FC = () => {
                 >
                   focus →
                 </a>
+                {/* terrain bridges — course binder + where this page went */}
+                <TerrainChips note={activeNote} />
               </div>
 
               <RichEditor

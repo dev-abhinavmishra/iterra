@@ -106,9 +106,10 @@ export function inkNoteMarkdown(opts: {
 
 /** Parse inbound params Proof understands (called once in boot). */
 export interface InboundLink {
-  kind: 'timer-return' | 'syllabus-session' | 'problem';
+  kind: 'timer-return' | 'syllabus-session' | 'problem' | 'attempt';
   sessionId?: string;
   actualMinutes?: number;
+  // attempt deep link (?attempt=<id>) — routes to an existing attempt;
   // problem deep link (?problem=<id>) — attemptId is stamped at boot:
   problemId?: string;
   attemptId?: string;
@@ -128,6 +129,10 @@ export function parseInbound(search: string): InboundLink | null {
       sessionId: completed,
       actualMinutes: Number(q.get('actual')) || undefined,
     };
+  }
+  const attempt = q.get('attempt');
+  if (attempt) {
+    return { kind: 'attempt', attemptId: attempt };
   }
   const problem = q.get('problem');
   if (problem) {

@@ -132,6 +132,10 @@ export const useWorkbench = create<WorkbenchState>()(
                 inbound = null;
               }
             }
+            if (inbound?.kind === 'attempt' && inbound.attemptId) {
+              /* ?attempt=<id> must name a real attempt — else drop the link */
+              if (!get().attempts[inbound.attemptId]) inbound = null;
+            }
             const url = new URL(window.location.href);
             url.search = '';
             window.history.replaceState({}, '', url.toString());

@@ -4,6 +4,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# every app must carry its one adapter file — docs/ADAPTER.md
+node scripts/check-adapters.mjs
+
 rm -rf dist
 mkdir -p dist/apps
 
@@ -18,7 +21,7 @@ done
 echo "── copying flashcards"
 mkdir -p dist/apps/flashcards
 cp apps/flashcards/index.html apps/flashcards/app.js apps/flashcards/styles.css \
-   apps/flashcards/iterra-hub.js apps/flashcards/favicon.png dist/apps/flashcards/
+   apps/flashcards/iterra-hub.js apps/flashcards/iterra-adapter.js apps/flashcards/favicon.png dist/apps/flashcards/
 
 echo "── building shell"
 (cd shell && npm ci --no-audit --no-fund --silent && npm run build)

@@ -41,6 +41,10 @@ export interface Test {
   userId?: string;
   createdAt?: number;
   answerKey?: Record<number, string>;
+  /* category weights carried in from the syllabus course registry via the
+     'weights.import' intake — e.g. { exam: 50, assignment: 30 }. Display/
+     export only; gradestack has no weighting model of its own. */
+  weights?: Record<string, number>;
 }
 
 export interface Scan {

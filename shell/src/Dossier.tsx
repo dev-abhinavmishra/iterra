@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PLACE_MAP } from './places';
-import type { Entity, FeedItem, SharedField } from './hub';
+import type { Entity, FeedItem, SharedField, StoreEntity } from './hub';
+import { sendTo } from './hub';
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 
 /* course dossier — everything the terrain knows about one course/topic key:
@@ -9,6 +10,7 @@ import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 export function Dossier({
   course,
   indexes,
+  entities,
   shared,
   feed,
   onGo,
@@ -17,6 +19,7 @@ export function Dossier({
 }: {
   course: string;
   indexes: Record<string, Entity[]>;
+  entities: StoreEntity[];
   shared: Record<string, SharedField>;
   feed: FeedItem[];
   onGo: (url: string) => void;
@@ -27,19 +30,252 @@ export function Dossier({
   /* 'unfiled' is a sentinel dossier: every entity with no course AND no
      topic lands here — notes that can't file under a class still group. */
   const unfiled = key === 'unfiled';
+
+  /* the canonical course entity — the registry id everything else files
+     under. Resolved three ways: by display code (the dossier key IS the
+     code for humans), by canonical key (#/c/syllabus:course:<id> — the
+     route an entity's own url produces), or by the courseId entities
+     carry when no course entity is reachable. */
+  const courseEnt = useMemo(
+    () =>
+      (entities || []).find(
+        (e) =>
+          e.type === 'course' &&
+          (((e.data?.code as string) || e.course || e.title || '').toLowerCase() === key ||
+            (e.key || '').toLowerCase() === key),
+      ) || null,
+    [entities, key],
+  );
+  const courseId = courseEnt?.key;
+  /* what humans see — the registry code when the entity resolved, else
+     the route's raw param */
+  const display =
+    ((courseEnt?.data?.code as string) || courseEnt?.title || course) as string;
+  /* everything the store files under this course — mounted or not. Two
+     spellings of membership: the canonical courseId (and key-routed
+     variants) AND the display code — entities filed by code alone still
+     belong to a key-routed dossier. The course entity itself files too. */
+  const courseEnts = useMemo(
+    () => {
+      const d = display.toLowerCase();
+      const listed = (entities || []).filter(
+        (e) =>
+          (courseId && e.courseId === courseId) ||
+          (e.courseId || '').toLowerCase() === key ||
+          (!unfiled &&
+            ((e.course || '').toLowerCase() === key || (e.course || '').toLowerCase() === d)) ||
+          (unfiled && !e.courseId && !e.course && !e.topic),
+      );
+      return courseEnt && !listed.includes(courseEnt) ? [courseEnt, ...listed] : listed;
+    },
+    [entities, courseId, courseEnt, display, key, unfiled],
+  );
+  /* actionable dossier — the four verbs: start a session, review what's
+     due, open the next assignment, see the grade state. All from the
+     canonical store, no app needs to be mounted. */
+  const dueCards = courseEnts.filter(
+    (e) => e.type === 'card' && typeof (e.data?.dueAt as number) === 'number' && (e.data!.dueAt as number) <= Date.now(),
+  );
+  const nextCommit = courseEnts
+    .filter((e) => e.type === 'commitment' && e.data && e.data.status !== 'done' && e.data.status !== 'completed')
+    .sort((a, b) => ((a.data?.dueAt as number) || Infinity) - ((b.data?.dueAt as number) || Infinity))[0];
+  const sessions = courseEnts.filter((e) => e.type === 'session');
+  const sessionMins = sessions.reduce((n, e) => n + ((e.data?.minutes as number) || 0), 0);
+  const grades = courseEnts.filter((e) => e.type === 'grade');
+  /* the book — newest grade + the delta against the one before it, so
+     the dossier shows trajectory, not just a count. */
+  const gradesByRecency = [...grades].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const latestGrade = gradesByRecency[0] || null;
+  const gradeDelta = (() => {
+    if (gradesByRecency.length < 2) return null;
+    const a = latestGrade?.data?.pct, b = gradesByRecency[1]?.data?.pct;
+    return typeof a === 'number' && typeof b === 'number' ? Math.round(a - b) : null;
+  })();
+  /* related courses — siblings sharing a topic: the two classes that both
+     file 'integration' notes belong one dossier apart. */
+  const related = (() => {
+    const myTopics = new Set(courseEnts.map((e) => (e.topic || '').toLowerCase()).filter(Boolean));
+    if (!myTopics.size) return [];
+    const seen = new Map<string, string>();
+    for (const e of entities || []) {
+      const t = (e.topic || '').toLowerCase();
+      if (!t || !myTopics.has(t)) continue;
+      const c = e.course || e.data?.code;
+      if (!c || String(c).toLowerCase() === key || String(c).toLowerCase() === display.toLowerCase()) continue;
+      seen.set(String(c).toLowerCase(), String(c));
+    }
+    return [...seen.values()].slice(0, 4);
+  })();
+  const [sent, setSent] = useState<{ t: string; url?: string } | null>(null);
+  const startSession = async () => {
+    const r = await sendTo({
+      to: 'timer',
+      action: 'timer.start',
+      payload: {
+        label: nextCommit?.title || `drill ${display}`,
+        minutes: (nextCommit?.data?.estimatedMinutes as number) || 25,
+        commitmentId: nextCommit?.id,
+        courseId,
+        course: display,
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent({ t: r.ok ? 'session queued for the instruments' : `couldn't start — ${r.error || 'no hub'}` });
+    window.setTimeout(() => setSent(null), 4000);
+  };
+  /* the transfer verb: hand this course's next commitment to rhythm's
+     register — it lands as a real routine (due window + minutes), so
+     planning happens where marks happen. */
+  const planRegister = async () => {
+    const src = nextCommit;
+    const r = await sendTo({
+      to: 'rhythm',
+      action: 'routine.plan',
+      payload: {
+        name: src?.title || `${display} study`,
+        courseId,
+        course: display,
+        dueAt: src?.data?.dueAt,
+        minutes: src?.data?.estimatedMinutes,
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? { t: 'queued for the register', url: r.url || '/apps/rhythm/' } : { t: `couldn't plan — ${r.error || 'no hub'}` });
+    window.setTimeout(() => setSent(null), 4000);
+  };
+  /* plan the week: every open commitment becomes one weekly routine on
+     the register — perWeek = the count, so the register tracks 'N of N
+     commitments touched'. */
+  const pendingCommits = courseEnts.filter(
+    (e) => e.type === 'commitment' && e.data && e.data.status !== 'done' && e.data.status !== 'completed',
+  );
+  const planWeek = async () => {
+    const r = await sendTo({
+      to: 'rhythm',
+      action: 'routine.plan',
+      payload: {
+        name: `${display} — this week`,
+        perWeek: Math.max(1, pendingCommits.length),
+        unit: 'commitments',
+        courseId,
+        course: display,
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? { t: 'queued for the register', url: r.url || '/apps/rhythm/' } : { t: `couldn't plan — ${r.error || 'no hub'}` });
+    window.setTimeout(() => setSent(null), 4000);
+  };
+  /* due cards → a review routine: 'queue on the register' writes the
+     intention where daily marks happen, not a hidden counter. */
+  const queueCards = async () => {
+    const r = await sendTo({
+      to: 'rhythm',
+      action: 'routine.plan',
+      payload: {
+        name: `review due cards — ${display}`,
+        perWeek: Math.max(1, dueCards.length),
+        unit: 'cards',
+        courseId,
+        course: display,
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? { t: 'queued for the register', url: r.url || '/apps/rhythm/' } : { t: `couldn't queue — ${r.error || 'no hub'}` });
+    window.setTimeout(() => setSent(null), 4000);
+  };
+  /* the bench verb: the next commitment becomes a Proof problem —
+     'work it' for an exam question lands on the workbench. */
+  const benchCommit = async () => {
+    const r = await sendTo({
+      to: 'proof',
+      action: 'problem.create',
+      payload: {
+        prompt: nextCommit?.title || `${display} — problem`,
+        topic: display,
+        courseId,
+        course: display,
+        source: 'dossier',
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? { t: 'queued for the bench', url: r.url || '/apps/proof/' } : { t: `couldn't send — ${r.error || 'no hub'}` });
+    window.setTimeout(() => setSent(null), 4000);
+  };
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
   const pinnedUrls = new Set(pins.map((p) => p.url));
-  const byApp = Object.entries(indexes)
-    .map(([app, list]) => ({
-      app,
-      ents: (list || []).filter(
-        (e) => e?.title && (unfiled
+  /* row-level send-to: any entity on the desk hands itself to a sibling
+     app's intake — same targets as the palette's ⇥ menu. Payload carries
+     the generic fields each intake reads (name/prompt/label). */
+  const ROW_SENDS: { to: string; action: string; label: string }[] = [
+    { to: 'flashcards', action: 'cards.create', label: 'a card' },
+    { to: 'margin', action: 'note.create', label: 'a margin note' },
+    { to: 'ink', action: 'note.create', label: 'an ink page' },
+    { to: 'proof', action: 'problem.create', label: 'the bench' },
+    { to: 'rhythm', action: 'routine.plan', label: 'the register' },
+    { to: 'timer', action: 'timer.start', label: 'a session' },
+  ];
+  const [rowSend, setRowSend] = useState<string | null>(null);
+  const sendRow = async (app: string, e: Entity, t: { to: string; action: string; label: string }) => {
+    setRowSend(null);
+    const r = await sendTo({
+      to: t.to,
+      action: t.action,
+      entity: { app, type: e.t, id: e.id, title: e.title, url: e.url, course: e.course, topic: e.topic } as any,
+      payload: { name: e.title, prompt: e.title, label: e.title, title: e.title, course: e.course || display, courseId },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? { t: `queued for ${t.label}`, url: r.url || undefined } : { t: `couldn't send — ${r.error || 'no hub'}` });
+    window.setTimeout(() => setSent(null), 4000);
+  };
+  /* backlinks — every Link entity touching this course, resolved against
+     the store so the dossier shows what points at it (the cardfile deck
+     filed from a note, the problem sent to the bench…). */
+  const [backlinks, setBacklinks] = useState<{ key: string; title: string; app?: string; url?: string }[]>([]);
+  useEffect(() => {
+    const it = (window as any).iterra;
+    if (!it?.links?.for || !courseEnt?.key) { setBacklinks([]); return; }
+    let alive = true;
+    it.links.for(courseEnt.key).then((links: any[]) => {
+      if (!alive) return;
+      const out = (links || [])
+        .map((l) => {
+          const other = l?.from === courseEnt.key ? l?.to : l?.from;
+          const ent = (entities || []).find((e) => e.key === other);
+          return ent ? { key: ent.key!, title: ent.title || 'entity', app: ent.app, url: ent.url } : null;
+        })
+        .filter(Boolean) as { key: string; title: string; app?: string; url?: string }[];
+      setBacklinks(out.slice(0, 8));
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [courseEnt?.key, entities]);
+  /* rows come from the canonical store first (mounted or not), with the
+     index mirror folded in for writers that haven't migrated */
+  const byApp = useMemo(() => {
+    const seen = new Set<string>();
+    const groups = new Map<string, Entity[]>();
+    const push = (app: string, e: Entity) => {
+      const sig = `${e.url || ''}|${e.title}|${e.id || ''}`;
+      if (seen.has(sig)) return;
+      seen.add(sig);
+      if (!groups.has(app)) groups.set(app, []);
+      groups.get(app)!.push(e);
+    };
+    for (const e of courseEnts) {
+      if (!e.title) continue;
+      push(e.app, { t: e.type, id: e.id, title: e.title, sub: e.sub, course: e.course, topic: e.topic, url: e.url });
+    }
+    for (const [app, list] of Object.entries(indexes)) {
+      for (const e of list || []) {
+        if (!e?.title) continue;
+        const files = unfiled
           ? !e.course && !e.topic
-          : (e.course || '').toLowerCase() === key || (e.topic || '').toLowerCase() === key),
-      ),
-    }))
-    .filter((g) => g.ents.length > 0);
+          : (e.course || '').toLowerCase() === key || (e.topic || '').toLowerCase() === key;
+        if (files) push(app, e);
+      }
+    }
+    return [...groups.entries()].map(([app, ents]) => ({ app, ents }));
+  }, [courseEnts, indexes, key, unfiled]);
   const total = byApp.reduce((n, g) => n + g.ents.length, 0);
   /* stirs that mention the key — word-boundary on the text so 'mth' doesn't
      match 'smith', plus url resolution: a stir linking an entity that files
@@ -86,9 +322,9 @@ export function Dossier({
         {unfiled ? 'the unfiled' : 'course dossier'}
       </div>
       <div className="mb-2 flex items-baseline gap-2">
-        <h1 className="text-[26px] font-semibold tracking-tight text-field-ink">{unfiled ? 'unfiled' : course}</h1>
+        <h1 className="text-[26px] font-semibold tracking-tight text-field-ink">{unfiled ? 'unfiled' : display}</h1>
         <button
-          onClick={() => togglePin({ app: 'terrain', title: `${course} desk`, url: `#/c/${encodeURIComponent(course)}` })}
+          onClick={() => togglePin({ app: 'terrain', title: `${display} desk`, url: `#/c/${encodeURIComponent(course)}` })}
           title={pinnedUrls.has(`#/c/${encodeURIComponent(course)}`) ? 'unpin this desk' : 'pin this desk to the shelf'}
           className={`text-[15px] leading-none focus:outline-none ${
             pinnedUrls.has(`#/c/${encodeURIComponent(course)}`) ? 'text-moss-700' : 'text-atlas-400 hover:text-moss-700'
@@ -103,13 +339,168 @@ export function Dossier({
           ? (unfiled ? 'everything on the terrain is filed under a key' : 'nothing on the terrain carries this key yet')
           : `${total} ${total === 1 ? 'thing' : 'things'} across ${byApp.length} ${byApp.length === 1 ? 'place' : 'places'}`}
       </p>
+      {/* the actionable dossier — one desk, four verbs, no app-hopping.
+          Every verb reads the canonical store, so it works even when the
+          owning app has never been mounted this session. */}
       {!unfiled && (
-        <button
-          onClick={() => onGo(`/apps/timer/?intent=${encodeURIComponent(`drill ${course}`)}&minutes=25&course=${encodeURIComponent(course)}&from=terrain`)}
-          className="mb-8 rounded-full border border-moss-400/70 bg-moss-50 px-3.5 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-100"
-        >
-          drill {course} →
-        </button>
+        <div className="mb-8 rounded-lg border border-moss-400/70 bg-moss-50/70 p-3.5">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-moss-700">
+            the desk — {display}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {/* verbs stagger in on mount — the desk arrives in rhythm, not all at once */}
+            <button
+              onClick={startSession}
+              className="anim-stir rounded-md bg-moss-700 px-3 py-1.5 text-[12px] font-medium text-atlas-50 hover:bg-moss-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-moss-500"
+            >
+              start a session →
+            </button>
+            {dueCards.length > 0 && (
+              <button
+                onClick={() => onGo('/apps/flashcards/')}
+                className="anim-stir rounded-md border border-moss-400/70 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-moss-700 hover:bg-moss-50"
+                style={{ animationDelay: '40ms' }}
+              >
+                review {dueCards.length} due card{dueCards.length === 1 ? '' : 's'} →
+              </button>
+            )}
+            {nextCommit && (
+              <button
+                onClick={() => onGo(nextCommit.url || '/apps/syllabus/')}
+                className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                style={{ animationDelay: '80ms' }}
+              >
+                next: {nextCommit.title} →
+              </button>
+            )}
+            <button
+              onClick={planRegister}
+              className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              style={{ animationDelay: '120ms' }}
+              title="file the next commitment on rhythm's register as a routine"
+            >
+              plan on the register →
+            </button>
+            {pendingCommits.length > 1 && (
+              <button
+                onClick={planWeek}
+                className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                style={{ animationDelay: '160ms' }}
+                title={`one weekly routine tracking ${pendingCommits.length} open commitments`}
+              >
+                week ({pendingCommits.length}) → register
+              </button>
+            )}
+            {dueCards.length > 0 && (
+              <button
+                onClick={queueCards}
+                className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                style={{ animationDelay: '200ms' }}
+                title="queue card review as a register routine"
+              >
+                queue {dueCards.length} cards →
+              </button>
+            )}
+            <button
+              onClick={benchCommit}
+              className="anim-stir rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              style={{ animationDelay: '240ms' }}
+              title="file the next commitment as a problem on the workbench"
+            >
+              to the bench →
+            </button>
+            <span className="text-[11.5px] text-atlas-500">
+              {[
+                sessionMins > 0 ? `${sessionMins}m logged` : null,
+                grades.length ? `${grades.length} grade${grades.length === 1 ? '' : 's'} on the book` : null,
+                sessions.length && !sessionMins ? `${sessions.length} sessions` : null,
+              ].filter(Boolean).join(' · ') || (courseId ? 'registered on the folio' : 'no folio entry yet')}
+            </span>
+          </div>
+          {latestGrade && (
+            <button
+              onClick={() => latestGrade.url && onGo(latestGrade.url)}
+              className="mt-2 inline-flex items-baseline gap-1.5 text-[12px] text-field-faint hover:text-moss-700"
+              title="the latest mark on the book"
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-atlas-500">latest</span>
+              {latestGrade.title}
+              {typeof latestGrade.data?.pct === 'number' && ` · ${Math.round(latestGrade.data.pct)}%`}
+              {gradeDelta !== null && (
+                <span className={gradeDelta >= 0 ? 'text-moss-700' : 'text-amber-700'}>
+                  {gradeDelta >= 0 ? `+${gradeDelta}` : gradeDelta} vs last
+                </span>
+              )}
+            </button>
+          )}
+          {sent && (
+            <div className="anim-fade mt-2 flex items-baseline gap-2 text-[11.5px] text-moss-700">
+              {sent.t}
+              {sent.url && (
+                <button onClick={() => onGo(sent.url!)} className="font-medium underline underline-offset-2">
+                  open it →
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+      {/* the log — the sessions this course actually got, newest first */}
+      {sessions.length > 0 && (
+        <div className="mb-8">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+            the log — {sessionMins}m worked
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {[...sessions]
+              .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+              .slice(0, 5)
+              .map((s) => (
+                <button
+                  key={s.key}
+                  onClick={() => s.url && onGo(s.url)}
+                  className="rounded-full border border-atlas-200 bg-atlas-50 px-2.5 py-1 text-[11px] text-field-faint hover:border-moss-400 hover:text-moss-700"
+                >
+                  {s.title || 'session'} · {(s.data?.minutes as number) || '?'}m
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
+      {/* backlinks — what other entities point at this course */}
+      {backlinks.length > 0 && (
+        <div className="mb-8">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+            linked here
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {backlinks.map((b) => (
+              <button
+                key={b.key}
+                onClick={() => b.url && onGo(b.url)}
+                className="rounded-full border border-atlas-200 bg-atlas-50 px-2.5 py-1 text-[11px] text-field-faint hover:border-moss-400 hover:text-moss-700"
+              >
+                {PLACE_MAP[b.app || '']?.app || b.app || '·'}: {b.title}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* related — sibling courses sharing a topic */}
+      {related.length > 0 && (
+        <div className="mb-8 flex flex-wrap items-baseline gap-1.5">
+          <span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">kindred desks</span>
+          {related.map((c) => (
+            <button
+              key={c}
+              onClick={() => onGo(`#/c/${encodeURIComponent(c)}`)}
+              className="rounded-full border border-moss-300 bg-moss-50/60 px-2.5 py-1 text-[11px] text-moss-700 hover:bg-moss-50"
+              title="shares a topic with this course"
+            >
+              {c} →
+            </button>
+          ))}
+        </div>
       )}
       {total === 0 && knownKeys.length > 0 && (
         <div className="mb-8 flex flex-wrap items-baseline gap-1.5 text-[12px] text-field-faint">
@@ -134,7 +525,7 @@ export function Dossier({
               onClick={() => onGo('/apps/timer/')}
               className="mt-1.5 block text-[13px] font-medium text-moss-700 hover:underline"
             >
-              focus: {fv.label || 'Focus'} · {typeof fv.endsInMin === 'number' ? `${fv.endsInMin}m left` : 'running'}
+              focus: {fv.label || 'Focus'} · {fv.endsAt ? `${Math.max(0, Math.ceil((fv.endsAt - Date.now()) / 60000))}m left` : fv.paused ? `paused ${Math.round((fv.remainingSec || 0) / 60)}m` : 'running'}
             </button>
           )}
           {nb?.course && String(nb.course).toLowerCase() === key && nb?.title && (
@@ -179,6 +570,29 @@ export function Dossier({
                       )}
                     </span>
                   </button>
+                  <span className="relative shrink-0">
+                    <button
+                      onClick={() => setRowSend(rowSend === `${app}-${e.id}-${i}` ? null : `${app}-${e.id}-${i}`)}
+                      aria-label={`send ${e.title} to another app`}
+                      title="send to…"
+                      className="px-2 py-2.5 text-[12px] text-atlas-400 hover:text-moss-700 focus:outline-none"
+                    >
+                      ⇥
+                    </button>
+                    {rowSend === `${app}-${e.id}-${i}` && (
+                      <span className="anim-pop absolute right-0 top-full z-30 w-40 rounded-md border border-atlas-300 bg-atlas-50 p-1 shadow-[0_12px_30px_-12px_rgba(29,51,42,0.45)]">
+                        {ROW_SENDS.map((t) => (
+                          <button
+                            key={t.to}
+                            onClick={() => void sendRow(app, e, t)}
+                            className="block w-full rounded px-2.5 py-1.5 text-left text-[12px] text-field-ink hover:bg-moss-100"
+                          >
+                            → {t.label}
+                          </button>
+                        ))}
+                      </span>
+                    )}
+                  </span>
                   <button
                     onClick={() =>
                       togglePin({ app, t: e.t, id: e.id, title: e.title || '(untitled)', url: e.url || `/apps/${app}/` })

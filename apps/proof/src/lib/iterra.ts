@@ -159,3 +159,5 @@ export function openDeep(url: string) {
 }
 
 wireIterra();
+
+import './iterra-adapter';

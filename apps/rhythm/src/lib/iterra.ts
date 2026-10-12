@@ -180,3 +180,5 @@ export function useSharedFocus(): FocusEntry | null {
   if (Date.now() - entry.at > spanMs) return null;
   return entry;
 }
+
+import './iterra-adapter';

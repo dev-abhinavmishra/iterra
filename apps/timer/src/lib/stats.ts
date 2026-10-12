@@ -5,6 +5,9 @@ export interface Session {
   timestamp: number;
   label?: string;   // session intent, e.g. "Chapter 4 review"
   preset?: string;  // preset/routine name
+  course?: string;      // bound course code (deep-link ?course= / intake course)
+  courseId?: string;    // canonical course key (syllabus:course:<id>)
+  commitmentId?: string;// bound commitment id the session was started for
 }
 
 const STORAGE_KEY = 'timer.sessions.v1';
@@ -20,6 +23,10 @@ export function saveSession(session: Omit<Session, 'id' | 'timestamp'>) {
   };
   sessions.push(newSession);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  // the iterra adapter mirrors this record into the canonical store — the
+  // event keeps the write-point here instead of iterra calls in the views
+  try { window.dispatchEvent(new CustomEvent('timer:session', { detail: newSession })); } catch {}
+  return newSession;
 }
 
 export function getSessions(): Session[] {

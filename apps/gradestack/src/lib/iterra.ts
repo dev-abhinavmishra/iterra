@@ -143,3 +143,5 @@ wireIterra();
   if (useStore.persist?.hasHydrated?.()) publish();
   else useStore.persist?.onFinishHydration?.(publish);
 })();
+
+import './iterra-adapter';

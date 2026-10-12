@@ -16,7 +16,7 @@ import { Pad } from '../components/Pad';
 import { Sheet } from '../components/Sheet';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { FRICTION_LABEL, EXCEPTION_LABEL } from '../lib/utils';
-import { evidenceUrl } from '../lib/links';
+import { APP_DISPLAY, evidenceUrl } from '../lib/links';
 
 const STATE_WORD: Record<DayState, string> = {
   full: 'complete',
@@ -344,14 +344,16 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
                   {e.value} {routine.measure === 'duration' ? 'min' : routine.unit || ''}
                   {e.isMinimum ? ' · minimum' : ''}
                 </span>
+                {/* UX-TRACKER #70 — provenance badge: an event-derived entry
+                    names the app that logged it (Entry.eventId → sourceApp) */}
                 <span className="mono text-[10px] uppercase text-ink-faint">
                   {e.source === 'event' ? (
                     evUrl ? (
                       <a href={evUrl} target="_blank" rel="noreferrer" className="underline">
-                        {ev?.type}
+                        {ev ? `from ${APP_DISPLAY[ev.sourceApp] ?? 'other'} · ${ev.type}` : 'event'}
                       </a>
                     ) : (
-                      ev?.type ?? 'event'
+                      ev ? `from ${APP_DISPLAY[ev.sourceApp] ?? 'other'} · ${ev.type}` : 'event'
                     )
                   ) : (
                     'manual'

@@ -17,21 +17,23 @@ function runningFromTitle(): { label: string; endsInMin: number } | null {
   return { label: m[3], endsInMin: Math.max(0, Math.round(sec / 60)) };
 }
 
+export function timerSummary() {
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+  const todayMin = Math.round(
+    getSessions()
+      .filter((s) => s.timestamp >= dayStart.getTime())
+      .reduce((n, s) => n + s.duration, 0) / 60,
+  );
+  return { running: runningFromTitle(), todayMin };
+}
+
 export function wireIterra() {
   const iterra = window.iterra;
   if (!iterra) return;
   iterra.register('timer', {
     title: 'Timer',
-    summary: () => {
-      const dayStart = new Date();
-      dayStart.setHours(0, 0, 0, 0);
-      const todayMin = Math.round(
-        getSessions()
-          .filter((s) => s.timestamp >= dayStart.getTime())
-          .reduce((n, s) => n + s.duration, 0) / 60,
-      );
-      return { running: runningFromTitle(), todayMin };
-    },
+    summary: timerSummary,
   });
   publishRoutineIndex();
 }
@@ -60,3 +62,5 @@ export function publishRoutineIndex() {
 }
 
 wireIterra();
+
+import './iterra-adapter';

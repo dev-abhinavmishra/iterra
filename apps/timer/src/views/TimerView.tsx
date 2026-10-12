@@ -11,6 +11,7 @@ import { RotaryDial } from '../components/RotaryDial';
 import { KeyButton } from '../components/KeyButton';
 import { stationChime, secondTick, flapLand } from '../lib/sound';
 import { parseSyllabusLink, syllabusReturnUrl } from '../lib/deeplink';
+import { boundCourseCode, inTerrain, openTerrain, recentCourses, type RecentCourse } from '../lib/iterra-adapter';
 
 const QUICK = [5, 10, 15, 25, 30, 45, 60, 90];
 
@@ -44,9 +45,27 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   const [customMin, setCustomMin] = useState(25);
   const [done, setDone] = useState<null | 'focus' | 'break'>(null);
   const [keyFlash, setKeyFlash] = useState<string | null>(null);
-  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string } | null>(null);
+  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string; courseId?: string; commitmentId?: string } | null>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* UX-TRACKER #81 — recent courses: the terrain's session entities,
+     newest-first, offered as bound 25m quick-starts */
+  const [courseChips, setCourseChips] = useState<RecentCourse[]>([]);
+  useEffect(() => {
+    let live = true;
+    void recentCourses().then((r) => { if (live) setCourseChips(r); });
+    return () => { live = false; };
+  }, []);
+
+  /* UX-TRACKER #82 — the session's bound course as a dossier chip:
+     '#/c/<code>' is the shell's dossier route, framed-terrain only */
+  const [boundCode, setBoundCode] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    void boundCourseCode(syllabus?.courseId, syllabus?.course).then((c) => { if (live) setBoundCode(c); });
+    return () => { live = false; };
+  }, [syllabus?.courseId, syllabus?.course]);
 
   const flashKey = (k: string) => { setKeyFlash(k); setTimeout(() => setKeyFlash(null), 160); };
 
@@ -59,20 +78,34 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
 
   useWakeLock(running || focus);
 
-  /* commons: publish the live focus session (WIRING §7 shared.focus) — on
-     mount + state change, null when the session ends or clears */
-  const endsInMin = running ? Math.max(0, Math.round(cd.secondsLeft / 60)) : 0;
+  /* commons: publish the live focus session (WIRING §7 shared.focus).
+     A running session carries endsAt — every frame computes its own
+     second-accurate countdown without a republish. A PAUSED session
+     stays visible ({paused, remainingSec}) — the ambient rail shows
+     'paused · 12m' rather than the session vanishing. Null only when
+     the timer is cleared or back at the top, never merely stopped. */
+  const remainingSec = cd.secondsLeft;
+  const paused = hasTime && !running && !done && cd.remainingMs < cd.totalMs;
   useEffect(() => {
     const doc = (window as any).iterra?.doc?.('shared');
     if (!doc) return;
+    const base = {
+      label: isBreak ? 'Break' : intent || label || 'Focus',
+      blockId: syllabus?.block ?? null,
+      course: syllabus?.course ?? null,
+      totalMin: Math.round(cd.totalMs / 60000),
+      break: isBreak || undefined,
+    };
     doc.setField('focus', {
       v: running
-        ? { running: true, label: isBreak ? 'Break' : intent || label || 'Focus', blockId: syllabus?.block ?? null, course: syllabus?.course ?? null, endsInMin }
-        : null,
+        ? { ...base, running: true, endsAt: Date.now() + cd.remainingMs }
+        : paused
+          ? { ...base, paused: true, remainingSec }
+          : null,
       by: 'timer',
       at: Date.now(),
     });
-  }, [running, isBreak, label, intent, syllabus, endsInMin]);
+  }, [running, paused, isBreak, label, intent, syllabus, remainingSec, cd.totalMs, cd.remainingMs]);
 
   /* commons read: index.syllabus — when this session came in bound to a
      block, resolve the block's real title from the folio's entity index
@@ -106,7 +139,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       setIsBreak(false);
       setDone(null);
       if (link.intent) setIntent(link.intent);
-      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course, from: link.from });
+      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId });
       const url = new URL(window.location.href);
       if (url.search) {
         url.search = '';
@@ -235,7 +268,15 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     vibrate([120, 80, 120, 80, 300]);
     stationChime();
     const recess = isBreak || /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000));
-    saveSession({ duration: cd.totalMs / 1000, type: recess ? 'break' : 'focus', label: intent || undefined, preset: label });
+    saveSession({
+      duration: cd.totalMs / 1000,
+      type: recess ? 'break' : 'focus',
+      label: intent || undefined,
+      preset: label,
+      course: syllabus?.course,
+      courseId: syllabus?.courseId,
+      commitmentId: syllabus?.commitmentId,
+    });
     /* standalone complete → 'completed Nm' stir; a session bound for
        file-back emits only its 'filed Xm' (the file-back IS its stir) */
     const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
@@ -287,6 +328,66 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     setIsBreak(false);
     setDone(null);
   };
+
+  /* UX-TRACKER #81 — a recent-course chip starts a bound 25m focus: the
+     same binding a 'timer.start' intake carries (label + course +
+     courseId), autostarted like the deep link it builds */
+  const startCourse = (c: RecentCourse) => {
+    flapLand(0.05);
+    setSetMinutes(25);
+    setLabel(c.course);
+    setIntent('');
+    setSyllabus({ course: c.course, courseId: c.courseId, from: 'terrain' });
+    setIsBreak(false);
+    setDone(null);
+    cd.start(25 * 60000, completeFocusLive);
+  };
+
+  /* finish early: log only the minutes actually run — completeFocus
+     would stamp the full preset duration and lie about the session */
+  const finishEarly = () => {
+    const elapsedSec = Math.round((cd.totalMs - cd.remainingMs) / 1000);
+    if (elapsedSec >= 60) {
+      saveSession({
+        duration: elapsedSec,
+        type: isBreak ? 'break' : 'focus',
+        label: intent || undefined,
+        preset: label,
+        course: syllabus?.course,
+        courseId: syllabus?.courseId,
+        commitmentId: syllabus?.commitmentId,
+      });
+    }
+    resetTimer();
+  };
+
+  /* the ambient rail steers this session from anywhere in the terrain:
+     adapter intake 'timer.control' re-dispatches {op} here. pause /
+     resume run the same code path as the Space key; finish logs the
+     elapsed minutes then clears (a sub-minute session just clears). */
+  useEffect(() => {
+    const onCtl = (e: Event) => {
+      const op = (e as CustomEvent<{ op?: string }>).detail?.op;
+      const jot = (type: 'session.paused' | 'session.resumed') => {
+        const it = (window as any).iterra;
+        try {
+          it?.events?.emit?.(type, {
+            label: label ?? undefined, courseId: syllabus?.courseId ?? undefined,
+            course: syllabus?.course ?? undefined, remainingSec: Math.round(cd.remainingMs / 1000),
+          });
+        } catch { /* journal best-effort */ }
+      };
+      if (op === 'pause' && running) { cd.pause(); jot('session.paused'); }
+      else if (op === 'resume' && !running && hasTime && cd.remainingMs > 0) {
+        cd.resume(isBreak ? completeBreakLive : completeFocusLive);
+        jot('session.resumed');
+      }
+      else if (op === 'finish' && hasTime) finishEarly();
+    };
+    window.addEventListener('timer:control', onCtl);
+    return () => window.removeEventListener('timer:control', onCtl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, hasTime, isBreak, cd.remainingMs]);
 
   const applyMinutes = (m: number) => {
     setSetMinutes(m);
@@ -435,6 +536,25 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                   <button onClick={() => setCustomOpen(true)} className="chip px-3 py-1.5 text-[11px]">Other</button>
                 </div>
 
+                {/* UX-TRACKER #81 — recent courses as bound 25m starts */}
+                {courseChips.length > 0 && (
+                  <div className="w-full">
+                    <div className="label-wall text-[9px] mb-1.5 text-center">Recent courses — bound 25m</div>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {courseChips.map((c) => (
+                        <button
+                          key={c.courseId ?? c.course}
+                          onClick={() => startCourse(c)}
+                          className="chip px-3 py-1.5 text-[11px]"
+                          title={`25m bound to ${c.course}`}
+                        >
+                          {c.course}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="w-full">
                   <input
                     name="timer-intent"
@@ -474,6 +594,19 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                   <div className="font-display text-2xl font-bold text-ink leading-none uppercase">{secLabel(dispSec)}</div>
                   {intent && <div className="text-sm text-ink-soft mt-1 font-body">{intent}</div>}
                 </div>
+                {/* UX-TRACKER #82 — bound course → the shell dossier */}
+                {boundCode && inTerrain() && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-ink-soft font-body">Bound</span>
+                    <button
+                      className="font-display font-semibold uppercase hover:underline"
+                      style={{ color: 'var(--color-signal)' }}
+                      onClick={() => openTerrain(`#/c/${encodeURIComponent(boundCode)}`)}
+                    >
+                      {boundCode} dossier →
+                    </button>
+                  </div>
+                )}
                 <hr className="rule-h" />
                 <div className="flex justify-between text-sm">
                   <span className="text-ink-soft font-body">Elapsed</span>

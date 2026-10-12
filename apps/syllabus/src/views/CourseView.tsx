@@ -7,7 +7,7 @@ import { QuickAdd } from '../components/QuickAdd';
 import { courseColorVar } from '../lib/colors';
 import { estimateRatio, remainingMinutes, reversePlan, gradeScenario, atRisk } from '../lib/schedule';
 import { resourceDeepLink, appBadge } from '../lib/links';
-import { openDeep } from '../lib/iterra';
+import { openDeep, sendCommitmentToRegister, sendCommitmentToCards } from '../lib/iterra';
 import {
   fmtMinutes,
   stampDate,
@@ -15,7 +15,7 @@ import {
   isoAtTime,
   cn,
 } from '../lib/utils';
-import type { CommitmentType, LinkedApp } from '../lib/types';
+import type { Commitment, CommitmentType, LinkedApp } from '../lib/types';
 import { Archive, ExternalLink, Link2, Pin, Printer, X } from 'lucide-react';
 
 /**
@@ -231,6 +231,7 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                   <th className="w-[44px] text-right">Wt</th>
                   <th className="w-[92px] text-right">Effort</th>
                   <th className="w-[64px] text-right no-print">Status</th>
+                  <th className="w-[86px] text-right no-print">Send</th>
                 </tr>
               </thead>
               <tbody>
@@ -269,6 +270,9 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                           : late
                             ? <span className="mono text-[9px] font-semibold text-[color:var(--color-late)]">LATE</span>
                             : <span className="mono text-[9px] text-[color:var(--color-ink-faint)]">OPEN</span>}
+                      </td>
+                      <td className="text-right no-print" onClick={(e) => e.stopPropagation()}>
+                        {!filed && <RowSends c={c} code={course.code} />}
                       </td>
                     </tr>
                   );
@@ -336,6 +340,60 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
         </footer>
       </article>
     </div>
+  );
+}
+
+/* ── row sends — the §2 bridge verbs (WIRING §7, ADAPTER intake catalogue) ──
+   'plan →' files the commitment on rhythm's register, 'card →' deals it to
+   the cardfile — the same send helpers the drawer footer runs, so both
+   surfaces share one payload contract. A direct delivery navigates to the
+   created entity's deep-link; a queued send just says so, briefly. */
+function RowSends({ c, code }: { c: Commitment; code?: string }) {
+  const [state, setState] = useState<'idle' | 'busy' | 'queued'>('idle');
+  const it = (window as any).iterra;
+  if (!it?.send) return null;
+
+  const go = async (kind: 'plan' | 'card') => {
+    if (state === 'busy') return;
+    setState('busy');
+    try {
+      const res = kind === 'plan' ? await sendCommitmentToRegister(c, code) : await sendCommitmentToCards(c, code);
+      if (res?.ok && res.delivered === 'direct' && res.url) {
+        try { if (it.open) it.open(res.url); else openDeep(res.url); } catch { /* nav is best-effort */ }
+        setState('idle');
+      } else if (res?.ok) {
+        setState('queued');
+        window.setTimeout(() => setState('idle'), 4000);
+      } else {
+        setState('idle');
+      }
+    } catch {
+      setState('idle');
+    }
+  };
+
+  if (state === 'queued')
+    return <span className="mono text-[9px] font-semibold tracking-[0.08em] text-[color:var(--color-ok)]">QUEUED →</span>;
+
+  return (
+    <span className="inline-flex items-center gap-2 whitespace-nowrap">
+      <button
+        className="mono text-[9px] uppercase tracking-[0.08em] text-[color:var(--color-ink-faint)] hover:text-[color:var(--color-ink)] transition-colors disabled:opacity-40"
+        onClick={() => void go('plan')}
+        disabled={state === 'busy'}
+        title="Plan it on rhythm's register — lands as a routine"
+      >
+        plan →
+      </button>
+      <button
+        className="mono text-[9px] uppercase tracking-[0.08em] text-[color:var(--color-ink-faint)] hover:text-[color:var(--color-ink)] transition-colors disabled:opacity-40"
+        onClick={() => void go('card')}
+        disabled={state === 'busy'}
+        title="Make a recall card in Flashcards"
+      >
+        card →
+      </button>
+    </span>
   );
 }
 

@@ -91,3 +91,17 @@ export const APP_DISPLAY: Record<SuiteApp, string> = {
   modular: 'Modular AI',
   other: 'Other',
 };
+
+/* ── terrain navigation — UX-TRACKER #71 ──────────────────────
+   '#/c/<code>' is the shell's course dossier route — it only exists
+   when the app runs framed inside the terrain, so dossier chips gate
+   on inTerrain() and go through iterra.open (guard: the hub may be
+   absent in tests). */
+export function inTerrain(): boolean {
+  const it = (window as any).iterra;
+  return !!(it?.open && (typeof it.isFramed !== 'function' || it.isFramed()));
+}
+
+export function openTerrain(url: string) {
+  (window as any).iterra?.open?.(url);
+}

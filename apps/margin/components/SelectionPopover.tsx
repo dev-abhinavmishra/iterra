@@ -2,13 +2,16 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { runAction, parseJsonArray } from '../services/aiService';
 import { createDeck } from '../services/studyService';
+import type { Note } from '../types';
 import { Icon, Spinner } from './ui/primitives';
 
 interface SelectionPopoverProps {
     onAddToChat: (text: string) => void;
+    /** The open note — the send-to-flashcards payload's provenance entity. */
+    note?: Note | null;
 }
 
-type Mode = 'idle' | 'busy' | 'saved' | 'copied' | 'error';
+type Mode = 'idle' | 'busy' | 'saved' | 'copied' | 'error' | 'sent';
 
 interface PopState {
     visible: boolean;
@@ -20,9 +23,10 @@ interface PopState {
 
 const HIDDEN: PopState = { visible: false, top: 0, left: 0, below: false, text: '' };
 
-const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat }) => {
+const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }) => {
     const [pop, setPop] = useState<PopState>(HIDDEN);
     const [mode, setMode] = useState<Mode>('idle');
+    const [sentUrl, setSentUrl] = useState<string | null>(null);
     const selecting = useRef(false);
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -123,6 +127,65 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat }) => {
         }
     };
 
+    /* Workflow A head — hand the selection to the Flashcards place through
+       the canonical send queue; a delivered url is kept on the 'sent' flash
+       so the student can open the deck it landed in. */
+    const doSend = async (to: 'flashcards' | 'ink' = 'flashcards') => {
+        const it = (window as unknown as { iterra?: any }).iterra;
+        if (!it?.send) return;
+        setMode('busy');
+        try {
+            const sel = pop.text;
+            const noteTitle = note?.title || 'untitled';
+            /* course linkage: the first tag that resolves to a real course —
+               never a fabricated key */
+            let course: string | undefined;
+            let courseId: string | undefined;
+            for (const tag of note?.tags ?? []) {
+                const ent = await it.courses?.byCode?.(tag).catch(() => null);
+                if (ent?.key) { course = tag; courseId = ent.key; break; }
+            }
+            const entity = {
+                app: 'margin',
+                type: 'note',
+                id: note?.id ?? `sel-${Date.now()}`,
+                title: noteTitle,
+            };
+            const res = await it.send(
+                to === 'ink'
+                    ? {
+                          to: 'ink',
+                          action: 'note.create',
+                          entity,
+                          payload: {
+                              ...(course ? { course } : {}),
+                              ...(courseId ? { courseId } : {}),
+                              text: sel,
+                          },
+                      }
+                    : {
+                          to: 'flashcards',
+                          action: 'cards.create',
+                          entity,
+                          payload: {
+                              ...(course ? { course } : {}),
+                              ...(courseId ? { courseId } : {}),
+                              cards: [{
+                                  q: `from “${noteTitle}” — recall`,
+                                  a: sel.length <= 300 ? sel : `${sel.slice(0, 297)}…`,
+                              }],
+                              deckTitle: noteTitle,
+                          },
+                      },
+            );
+            setSentUrl(res?.url ?? null);
+            flash('sent', true);
+            window.getSelection()?.removeAllRanges();
+        } catch {
+            flash('error', false);
+        }
+    };
+
     const itemCls = `flex items-center gap-1 px-2 h-7 rounded-[6px] text-xs font-sans font-medium text-ink-2
         hover:text-ink hover:bg-[var(--card-2)] transition-colors disabled:opacity-40 disabled:pointer-events-none`;
 
@@ -162,6 +225,19 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat }) => {
                                     <Icon name="content_copy" size={14} className="text-ink-3" />
                                     Copy
                                 </button>
+                                {(window as unknown as { iterra?: { send?: unknown } }).iterra?.send && (
+                                    <>
+                                        <span className="w-px h-4 bg-[var(--line)]" />
+                                        <button className={itemCls} onClick={() => void doSend('flashcards')} disabled={mode === 'busy'} title="Send to Flashcards">
+                                            <Icon name="send" size={14} className="text-ink-3" />
+                                            Send
+                                        </button>
+                                        <button className={itemCls} onClick={() => void doSend('ink')} disabled={mode === 'busy'} title="Send selection to a new Ink page">
+                                            <Icon name="edit_note" size={14} className="text-ink-3" />
+                                            Ink
+                                        </button>
+                                    </>
+                                )}
                             </>
                         ) : (
                             <span className="flex items-center gap-1.5 px-2.5 h-7">
@@ -170,9 +246,21 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat }) => {
                                     size={14}
                                     className={mode === 'error' ? 'text-bad' : 'text-ok'}
                                 />
-                                <span className="font-mono text-[11px] text-ink-2">
-                                    {mode === 'saved' ? 'Deck saved' : mode === 'copied' ? 'Copied' : 'Couldn’t make cards'}
-                                </span>
+                                {mode === 'sent' && sentUrl ? (
+                                    <button
+                                        className="font-mono text-[11px] text-ink-2 hover:text-ink underline decoration-dotted underline-offset-2"
+                                        onClick={() => {
+                                            const it = (window as unknown as { iterra?: { open?: (u: string) => void } }).iterra;
+                                            if (it?.open) it.open(sentUrl); else window.open(sentUrl, '_blank');
+                                        }}
+                                    >
+                                        Sent — open deck
+                                    </button>
+                                ) : (
+                                    <span className="font-mono text-[11px] text-ink-2">
+                                        {mode === 'saved' ? 'Deck saved' : mode === 'sent' ? 'Sent' : mode === 'copied' ? 'Copied' : 'Couldn’t make cards'}
+                                    </span>
+                                )}
                             </span>
                         )}
                     </div>

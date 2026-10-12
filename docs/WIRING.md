@@ -284,6 +284,48 @@ apps can send the user to a dossier or the terrain itself:
 Use these rather than `location.hash` — inside a frame, `#` alone only
 rewrites the frame's own url.
 
+## 7b. The canonical store — `iterra.store`, `iterra.events`, `iterra.links`, `iterra.send`
+
+The mesh docs (§7) are the *mirror* — small, cheap, presence-driven. The
+**canonical store** is the *truth*: typed, versioned entities persisted to
+IndexedDB (localStorage fallback), journaled events, links, and a durable
+send-to intake queue. Every app reads **and writes** through it — one
+adapter file per app (see docs/ADAPTER.md; `scripts/check-adapters.mjs`
+fails the build when an app's adapter is missing).
+
+**Entity** — `{key:'<app>:<type>:<id>', id,type,app,courseId?,course?,topic?,
+title?,sub?,url?,data?,createdAt,updatedAt,v}`. Types:
+`course,term,assignment,source,note,card,deck,quiz,problem,attempt,
+session,goal,grade,routine,experiment,assessment,block,commitment,link,
+event,scan,entry`. `store.put` validates — bad writes return
+`{ok:false,error}` and land in `iterra.v1.quarantine`, never in the store.
+`createdAt` survives re-puts; `updatedAt` bumps.
+
+**Course registry** — `course` is a first-class entity owned by Syllabus.
+Other apps resolve `courseId` via `iterra.courses.byCode(code)` →
+`syllabus:course:<id>` and store only that key. `course`/`topic` strings
+remain display/linkage labels. Never fabricate a `courseId`.
+
+**Events** — `iterra.events.emit(type, payload)` with the catalogue in
+`it.core.eventTypes` (session.completed, card.reviewed, attempt.diverged,
+assignment.due, grade.entered, note.created, routine.logged, …). Payloads
+carry entity ids, not copies. `feed(item)` remains as the compat path and
+journals a `stir` event; emit with a `text` payload mirrors into the feed
+doc so existing readers keep working.
+
+**Links** — `iterra.links.add(fromKey, toKey, kind)`; backlinks via
+`iterra.links.for(key)` → `{out,inn}`.
+
+**Send-to** — `iterra.send({to,action,entity,payload})` resolves
+`{ok,delivered:'direct'|'queued',url}`: direct postMessage when the target
+is mounted, else a pending intake the target's adapter drains on boot
+(returned `url` is `/apps/<to>/?intake=<id>` — open it to deliver).
+Targets register handlers through `iterra.adapter({name,title,summary,
+intakes:{action:handler},wake})`.
+
+**Wake** — the shell posts `{type:'iterra:wake'}` to a keep-alive frame on
+focus; adapters' `wake` re-reads the store. No stale views.
+
 ## 8. Dev topology
 
 Shell dev proxy maps `/apps/<name>` → `localhost:<port>`:

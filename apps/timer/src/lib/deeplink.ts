@@ -13,6 +13,10 @@ export interface SyllabusLink {
   returnUrl?: string;
   /** which terrain app bound this session (syllabus, flashcards, terrain…) */
   from?: string;
+  /** canonical course key + bound commitment — carried onto the session
+      record so completion publishes propagate them (timer.start intake) */
+  courseId?: string;
+  commitmentId?: string;
   autostart: boolean;
 }
 
@@ -30,6 +34,8 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
     block: q.get('block') || undefined,
     returnUrl: q.get('return') || undefined,
     from,
+    courseId: q.get('courseId') || undefined,
+    commitmentId: q.get('commitment') || undefined,
     autostart: q.get('autostart') === '1',
   };
 }

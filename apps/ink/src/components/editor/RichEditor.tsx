@@ -16,7 +16,7 @@ import Underline from '@tiptap/extension-underline';
 import clsx from 'clsx';
 import {
   Bold, Italic, Strikethrough, Code, List, ListOrdered, Quote,
-  Heading1, Heading2, Highlighter, Underline as UnderlineIcon,
+  Heading1, Heading2, Highlighter, Underline as UnderlineIcon, Send,
 } from 'lucide-react';
 import { useStore } from '../../store';
 import { sanitizeDoc } from '../../lib/notes';
@@ -264,6 +264,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [suggest, setSuggest] = useState<SuggestUI | null>(null);
   const suggestRef = useRef<SuggestUI | null>(null);
+  const [sendOpen, setSendOpen] = useState(false);
   // Editor callbacks are bound once at creation — read live values from a ref.
   const latest = useRef({ typewriter, headingAnchors, editable, onUpdate });
   useEffect(() => {
@@ -442,6 +443,35 @@ export const RichEditor: React.FC<RichEditorProps> = ({
           <Btn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} icon={List} title="List" />
           <Btn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} icon={ListOrdered} title="Numbered list" />
           <Btn active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} icon={Quote} title="Quote" />
+          {!!(window as unknown as { iterra?: { send?: unknown } }).iterra?.send && (
+            <>
+              <span className="w-px h-4 bg-paper/15 mx-1" />
+              <span className="relative">
+                <Btn active={sendOpen} onClick={() => setSendOpen(v => !v)} icon={Send} title="Send the selection" />
+                {sendOpen && (
+                  <div
+                    className="absolute top-full right-0 mt-2 w-48 py-1 bg-ink rounded-md shadow-pop border border-paper/10 z-[90]"
+                    onMouseDown={e => e.preventDefault()}
+                  >
+                    <p className="px-3 pt-1.5 pb-1 font-mono text-2xs text-paper/40">send the selection</p>
+                    {([
+                      { to: 'margin', label: 'Margin note' },
+                      { to: 'flashcards', label: 'Flashcards card' },
+                      { to: 'proof', label: 'Proof step' },
+                    ] as const).map(t => (
+                      <button
+                        key={t.to}
+                        onClick={() => { setSendOpen(false); sendSelection(editor, t.to); }}
+                        className="w-full text-left px-3 py-1.5 font-serif text-[13px] text-paper/70 hover:text-paper hover:bg-paper/10 transition-colors"
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </span>
+            </>
+          )}
         </BubbleMenu>
       )}
 
@@ -490,6 +520,36 @@ export const RichEditor: React.FC<RichEditorProps> = ({
       )}
     </div>
   );
+};
+
+/* Workflow B — hand the selection to a sibling place through the canonical
+   send queue: a Margin page, a Flashcards card, or a Proof step. The send
+   resolves with the created entity's deep link, which we then open. */
+const sendSelection = (editor: Editor, to: 'margin' | 'flashcards' | 'proof'): void => {
+  const it = (window as unknown as { iterra?: any }).iterra;
+  if (!it?.send) return;
+  const { from, to: selTo } = editor.state.selection;
+  const sel = editor.state.doc.textBetween(from, selTo, ' ').trim();
+  if (!sel) return;
+  const st = useStore.getState();
+  const page = st.notes.find(n => n.id === st.activeNoteId);
+  const pageTitle = page?.title || 'untitled';
+  const entity = { app: 'ink', type: 'note', id: page?.id ?? 'page', title: pageTitle };
+  const label = to === 'margin' ? 'Margin' : to === 'flashcards' ? 'Flashcards' : 'Proof';
+  const opts =
+    to === 'margin'
+      ? { to, action: 'note.create', entity, payload: { text: sel } }
+      : to === 'flashcards'
+        ? { to, action: 'cards.create', entity, payload: { cards: [{ q: `from “${pageTitle}” — recall`, a: sel }], deckTitle: pageTitle } }
+        : { to, action: 'step.append', entity: { app: 'ink', type: 'note', id: page?.id ?? 'page', title: sel } };
+  Promise.resolve(it.send(opts))
+    .then((res: any) => {
+      st.setNotice({ message: res?.ok ? `Sent to ${label}` : `Couldn't send to ${label}` });
+      if (res?.ok && res.url) {
+        if (it.open) it.open(res.url); else window.open(res.url, '_blank');
+      }
+    })
+    .catch(() => st.setNotice({ message: `Couldn't send to ${label}` }));
 };
 
 const Btn: React.FC<{

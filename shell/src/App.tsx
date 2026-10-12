@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, type Presence, type SharedField, type Entity, type FeedItem } from './hub';
+import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, pendingIntakes, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity } from './hub';
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 import { Dossier } from './Dossier';
+import { Ambient } from './Ambient';
 import { parseHash, appUrl } from './route';
 
 const readHash = () => parseHash(window.location.hash);
@@ -15,19 +16,43 @@ export default function App() {
   const [shared, setShared] = useState<Record<string, SharedField>>({});
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
   const [feed, setFeed] = useState<FeedItem[]>([]);
+  /* the canonical store — every entity every app has ever written,
+     whether or not its frame has ever mounted. The palette, the dossier
+     and the rails read THIS; the index docs stay the thin mirror. */
+  const [entities, setEntities] = useState<StoreEntity[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [unanswered, setUnanswered] = useState<string | null>(null); // mounted place that never said hello
   /* visited places keep their iframes mounted (keep-alive) — the environment
      stays warm: state persists while wandering the terrain. */
   const [frames, setFrames] = useState<Record<string, string>>({});
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  /* queued sends parked in each app's intake — surfaced as 'N waiting'
+     badges so a transfer that will deliver on next open isn't silent */
+  const [intakes, setIntakes] = useState<Record<string, number>>({});
+  const [cheatOpen, setCheatOpen] = useState(false);
   const iframeRefs = useRef<Record<string, HTMLIFrameElement | null>>({});
   const helloRef = useRef<Record<string, number>>({});
 
   useEffect(() => subscribePresences(setPresences), []);
+  useEffect(() => {
+    let alive = true;
+    const pull = () => pendingIntakes().then((m) => { if (alive) setIntakes(m); });
+    pull();
+    const t = window.setInterval(pull, 4000);
+    return () => { alive = false; window.clearInterval(t); };
+  }, []);
   useEffect(() => subscribeShared(setShared), []);
   useEffect(() => subscribeIndexes(setIndexes), []);
   useEffect(() => subscribeFeed(setFeed), []);
+  useEffect(() => {
+    const pull = () => {
+      const it = (window as any).iterra;
+      if (!it?.store?.list) return;
+      it.store.list({}).then((list: StoreEntity[]) => setEntities(list || [])).catch(() => {});
+    };
+    pull();
+    return subscribeStore(pull);
+  }, []);
 
   /* ⌘K / ctrl+K or `/` opens the palette — shell chrome has no text inputs
      of its own so `/` is safe anywhere on the terrain or in chrome */
@@ -41,6 +66,10 @@ export default function App() {
       } else if (e.key === '/' && !typing) {
         e.preventDefault();
         setSearchOpen(true);
+      } else if (e.key === '?' && !typing) {
+        setCheatOpen((v) => !v);
+      } else if (e.key === 'Escape') {
+        setCheatOpen(false);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -53,6 +82,19 @@ export default function App() {
       setActive(id);
       setCourse(ckey);
       if (id) setFrames((f) => (f[id] ? f : { ...f, [id]: appUrl(id) }));
+      /* keep-alive frames must refresh from the store on focus — wake
+         the frame so its adapter re-reads instead of showing a stale view */
+      if (id) {
+        const el = iframeRefs.current[id];
+        if (el) window.setTimeout(() => wakeFrame(el), 60);
+        /* wake-pulse: re-entering an already-live frame flashes a sync dot
+           in the chrome so 'it refreshed from the store' is visible, not
+           assumed. helloRef means the frame answered once this session. */
+        if (el && helloRef.current[id]) {
+          setWoke(id);
+          window.setTimeout(() => setWoke((w) => (w === id ? null : w)), 1600);
+        }
+      }
     };
     window.addEventListener('hashchange', onHash);
     onHash();
@@ -128,6 +170,24 @@ export default function App() {
     return () => window.removeEventListener('message', onMsg);
   }, []);
 
+  /* visibilitychange wake — returning to the terrain's own tab re-reads
+     the active frame from the store too, not just hash navigation. Every
+     adapter answers iterra:wake; this makes 'came back to a stale view'
+     impossible across all 8 places. */
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState !== 'visible' || !active) return;
+      const el = iframeRefs.current[active];
+      if (el && helloRef.current[active]) {
+        wakeFrame(el);
+        setWoke(active);
+        window.setTimeout(() => setWoke((w) => (w === active ? null : w)), 1600);
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [active]);
+
   const enter = useCallback((id: string) => {
     window.location.hash = `/p/${id}`;
   }, []);
@@ -174,6 +234,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [enter, goHome]);
 
+  /* wake pulse — the sync dot shown while a warm frame re-reads the store */
+  const [woke, setWoke] = useState<string | null>(null);
+
   /* watchdog: a mounted frame should say iterra:hello within a few seconds;
      if it never does (dead dev server, 404, crashed app) surface a slim
      notice instead of showing a silent dead frame forever. The hello must
@@ -193,6 +256,24 @@ export default function App() {
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, frames[active || '']]);
+
+  /* auto-retry: the banner doesn't wait for a click the first time —
+     it reloads the frame itself once per mount, then leaves the manual
+     retry for a second failure. Tracked per frame-url so each fresh
+     mount earns one auto-retry. */
+  const autoRetried = useRef<Record<string, string>>({});
+  useEffect(() => {
+    if (!unanswered || unanswered !== active) return;
+    const mountSig = frames[unanswered] || '';
+    if (autoRetried.current[unanswered] === mountSig) return;
+    const t = window.setTimeout(() => {
+      autoRetried.current[unanswered] = mountSig;
+      setFrames((f) => ({ ...f, [unanswered]: `${appUrl(unanswered)}?_inav=${Date.now()}` }));
+      setUnanswered(null);
+    }, 2600);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unanswered, active]);
 
   const activePlace = active ? PLACE_MAP[active] : null;
   const timerEntry = presences['timer'];
@@ -222,6 +303,9 @@ export default function App() {
           >
             <span className="h-5 w-5 text-moss-700">{activePlace.glyph}</span>
             <span className="text-[14px] font-medium text-field-ink">{activePlace.place}</span>
+            {woke === activePlace.id && (
+              <span className="live-dot h-1.5 w-1.5 rounded-full bg-moss-500" title="refreshed from the store" />
+            )}
             <span className="hidden text-[11px] uppercase tracking-[0.12em] text-field-faint sm:inline">
               {activePlace.app}
             </span>
@@ -272,6 +356,13 @@ export default function App() {
                       <span className="block text-[13px] font-medium text-field-ink">{p.place}</span>
                       <span className="block text-[11px] uppercase tracking-[0.1em] text-field-faint">{p.app}</span>
                     </span>
+                    {intakes[p.id] ? (
+                      <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800" title="queued sends deliver on open">
+                        {intakes[p.id]} waiting
+                      </span>
+                    ) : frames[p.id] ? (
+                      <span className="live-dot h-1.5 w-1.5 shrink-0 rounded-full bg-moss-500" title="warm — frame mounted" />
+                    ) : null}
                   </button>
                 ))}
                 {/* linked — entities other apps hold on this place's
@@ -441,6 +532,7 @@ export default function App() {
             <Dossier
               course={course}
               indexes={indexes}
+              entities={entities}
               shared={shared}
               feed={feed}
               onGo={goUrl}
@@ -448,16 +540,51 @@ export default function App() {
               onHome={goHome}
             />
           ) : (
-            <Terrain presences={presences} shared={shared} indexes={indexes} feed={feed} onEnter={enter} onGo={goUrl} />
+            <Terrain presences={presences} mounted={Object.keys(frames)} shared={shared} indexes={indexes} entities={entities} feed={feed} intakes={intakes} onEnter={enter} onGo={goUrl} />
           )}
         </div>
       ) : null}
       <Search
         indexes={indexes}
+        entities={entities}
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onGo={goUrl}
       />
+      {/* the ambient rail — live environment state (running session,
+          what's due, what's next, warm frames) floats over every
+          surface, frames included */}
+      <Ambient
+        entities={entities}
+        mounted={Object.keys(frames)}
+        activePlace={active}
+        onEnter={enter}
+        onGo={goUrl}
+      />
+      {cheatOpen && (
+        <>
+          <div className="fixed inset-0 z-40 bg-field-ink/20" onClick={() => setCheatOpen(false)} />
+          <div className="anim-rise fixed left-1/2 top-24 z-50 w-80 -translate-x-1/2 rounded-lg border border-atlas-300 bg-atlas-50 p-4 shadow-[0_20px_50px_-20px_rgba(29,51,42,0.5)]">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">keys on the terrain</div>
+            <div className="mt-2.5 space-y-1.5 text-[12.5px]">
+              {([
+                ['⌘K / ctrl+K / `/`', 'the palette — every entity, uncapped, send-to on a hit'],
+                ['?', 'this sheet'],
+                ['esc', 'close'],
+                ['space (instruments)', 'start / pause the session'],
+              ] as [string, string][]).map(([k, d]) => (
+                <div key={k} className="flex items-baseline gap-3">
+                  <span className="w-32 shrink-0 rounded bg-atlas-100 px-1.5 py-0.5 text-center font-mono text-[11px] text-field-ink">{k}</span>
+                  <span className="text-field-faint">{d}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 border-t border-atlas-200 pt-2.5 text-[11.5px] text-field-faint">
+              the ambient rail keeps a running session in view on every surface — pause, resume, or finish it without leaving the place you're in.
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 }
