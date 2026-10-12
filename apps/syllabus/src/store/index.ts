@@ -178,9 +178,25 @@ export const useFolio = create<FolioState>()(
           return consumed || !done;
         };
         if (!consumeInbound()) {
-          // one-shot: detach before consuming — consumeInbound's own set()
-          // would re-enter this listener while params are still in the URL.
-          const unsub = useFolio.subscribe(() => { unsub(); consumeInbound(); });
+          // The retry keeps unconsumed params readable until blocks
+          // hydrate. When a retry still can't consume, the ids are
+          // permanently ghost — strip the dead params so deep links
+          // don't linger in the address bar.
+          const stripDead = () => {
+            const url = new URL(window.location.href);
+            url.search = '';
+            window.history.replaceState({}, '', url.toString());
+          };
+          const retry = () => { if (!consumeInbound()) stripDead(); };
+          if (useFolio.persist?.hasHydrated?.()) {
+            // hydration already done — an unconsumed param is a dead link;
+            // yield a tick so mount effects settle, then strip it.
+            setTimeout(retry, 0);
+          } else {
+            // one-shot: detach before consuming — consumeInbound's own set()
+            // would re-enter this listener while params are still in the URL.
+            const unsub = useFolio.subscribe(() => { unsub(); retry(); });
+          }
         }
         maybeNotify(get());
       },
