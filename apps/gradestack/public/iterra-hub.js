@@ -847,6 +847,21 @@
         (deep-link url) the sender can navigate to. ── */
 
   var INTAKE_CAP = 100;
+  /* delivered rows only — pending rows are actionable and never evict.
+     IDB keeps a wider window (500) since senders may poll a result late;
+     the lossy events journal carries the long audit trail anyway. */
+  var INTAKE_IDB_DELIVERED_CAP = 500;
+  function intakePruneDelivered(d) {
+    return idbAll(d, 'intakes').then(function (rows) {
+      var del = (rows || []).filter(function (r) { return r && r.delivered; })
+        .sort(function (a, b) { return (b.delivered || 0) - (a.delivered || 0); });
+      if (del.length <= INTAKE_IDB_DELIVERED_CAP) return;
+      var drop = del.slice(INTAKE_IDB_DELIVERED_CAP);
+      return idbTx(d, 'intakes', 'readwrite', function (s) {
+        drop.forEach(function (r) { s.delete(r.id); });
+      });
+    }).catch(function () { /* prune is housekeeping — never block resolve */ });
+  }
   function intakeSend(opts) {
     opts = opts || {};
     var to = opts.to, action = opts.action;
@@ -870,7 +885,14 @@
       var b = lsRead('intakes');
       b[rec.id] = rec;
       var keys = Object.keys(b);
-      if (keys.length > INTAKE_CAP) for (var i = INTAKE_CAP; i < keys.length; i++) delete b[keys[i]];
+      if (keys.length > INTAKE_CAP) {
+        /* never evict pending rows — a queued send must survive to drain;
+           drop the oldest delivered instead */
+        var delKeys = keys.filter(function (k) { return b[k] && b[k].delivered; })
+          .sort(function (x, y) { return (b[x].delivered || 0) - (b[y].delivered || 0); });
+        var dropN = Math.min(keys.length - INTAKE_CAP, delKeys.length);
+        for (var i = 0; i < dropN; i++) delete b[delKeys[i]];
+      }
       lsWrite('intakes', b);
     }).then(function () {
       _notify('intake', { to: to, id: rec.id, action: action });
@@ -910,7 +932,9 @@
         b[cur.id] = cur;
         lsWrite('intakes', b);
       };
-      if (d) return idbTx(d, 'intakes', 'readonly', function (s) { return s.get(id); }).then(write);
+      if (d) return idbTx(d, 'intakes', 'readonly', function (s) { return s.get(id); })
+        .then(write)
+        .then(function () { return intakePruneDelivered(d); });
       var b = lsRead('intakes');
       return write(b[id]);
     }).then(function () {
