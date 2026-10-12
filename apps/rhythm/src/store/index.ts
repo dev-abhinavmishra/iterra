@@ -557,7 +557,32 @@ export const useRegister = create<RegisterState>()(
     }),
     {
       name: 'rhythm.register.v1',
-      version: 1,
+      version: 2,
+      /* v2: vendored sibling apps always live under /apps/<name> — an
+         absolute http(s) baseUrl persisted before vendoring (the old
+         *.vercel.app prod defaults, or any manual absolute) would make
+         evidence/source links escape the terrain, so normalize them once.
+         modularBaseUrl is untouched — Modular AI isn't vendored. */
+      migrate: (persisted, version) => {
+        const s = persisted as { settings?: AppSettings } | undefined;
+        if (version < 2 && s?.settings) {
+          const vendored: [keyof AppSettings, string][] = [
+            ['timerBaseUrl', 'timer'],
+            ['inkBaseUrl', 'ink'],
+            ['flashcardsBaseUrl', 'flashcards'],
+            ['gradestackBaseUrl', 'gradestack'],
+            ['syllabusBaseUrl', 'syllabus'],
+            ['proofBaseUrl', 'proof'],
+          ];
+          for (const [key, slug] of vendored) {
+            const v = s.settings[key];
+            if (typeof v === 'string' && /^https?:\/\//.test(v)) {
+              (s.settings as unknown as Record<string, string>)[key] = `/apps/${slug}`;
+            }
+          }
+        }
+        return persisted;
+      },
       partialize: (s) => ({
         routines: s.routines,
         entries: s.entries,
