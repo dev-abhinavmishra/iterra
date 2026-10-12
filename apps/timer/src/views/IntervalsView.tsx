@@ -71,7 +71,14 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
     if (run.finished) {
       stationChime();
       vibrate([120, 80, 120, 80, 300]);
-      if (run.routine) saveSession({ duration: routineWork(run.routine), type: 'interval', preset: run.routine.name });
+      if (run.routine) {
+        saveSession({ duration: routineWork(run.routine), type: 'interval', preset: run.routine.name });
+        /* real completion → stir; deep-links back onto this card via ?routine= */
+        (window as any).iterra?.feed?.({
+          text: `route complete · ${run.routine.name}`,
+          url: `/apps/timer/?routine=${encodeURIComponent(run.routine.name)}`,
+        });
+      }
       // pull the app back to the board so ROUTE COMPLETE is actually seen
       if (!active) onRequestView?.();
     }
@@ -110,6 +117,17 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   });
+
+  // ?routine=<name> intake — scroll + ring the named routine; unknown names
+  // degrade to a plain open (silent, per the intake contract). Hooks must live
+  // above the running/finished early-return below.
+  useEffect(() => {
+    if (!focusRoutine) return;
+    const match = [...BUILT_INS, ...custom].find(r => r.name.toLowerCase() === focusRoutine.toLowerCase());
+    if (!match) return;
+    setFocusedId(match.id);
+    cardRefs.current.get(match.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [focusRoutine]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveCustom = () => {
     if (!name.trim() || phases.length === 0) return;
@@ -236,16 +254,6 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
 
   /* ============ PICKER / EDITOR ============ */
   const all = [...BUILT_INS, ...custom];
-
-  // ?routine=<name> intake — scroll + ring the named routine; unknown names
-  // degrade to a plain open (silent, per the intake contract)
-  useEffect(() => {
-    if (!focusRoutine) return;
-    const match = all.find(r => r.name.toLowerCase() === focusRoutine.toLowerCase());
-    if (!match) return;
-    setFocusedId(match.id);
-    cardRefs.current.get(match.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-  }, [focusRoutine]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 py-6">
       <div className="mb-10">
