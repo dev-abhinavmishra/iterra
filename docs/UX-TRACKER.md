@@ -34,12 +34,12 @@ and e2e-verified where the surface is user-visible.
 
 - [x] 21 syllabus commitment → rhythm routine: "plan on the register" (CommitmentDrawer + dossier verb) → `routine.plan` intake → addRoutine
 - [x] 22 rhythm routine → syllabus work block: `block.plan` intake on syllabus → files a commitment from a routine
-- [ ] 23 Dossier "plan the week": batch-send pending commitments to rhythm as one weekly routine
-- [ ] 24 Due-cards → "queue on the register" (a review intention lands in rhythm's log)
+- [x] 23 Dossier "plan the week": batch-send pending commitments to rhythm as one weekly routine
+- [x] 24 Due-cards → "queue on the register" (a review intention lands in rhythm's log)
 - [ ] 25 margin note → ink page (margin send menu gains an ink target)
 - [x] 26 ink selection → margin note (BubbleMenu send — shipped, verified)
 - [x] 27 ink selection → proof problem (`problem.create` intake — richer than step.append)
-- [ ] 28 commitment → proof problem (send a commitment to the workbench as the problem prompt)
+- [x] 28 commitment → proof problem (send a commitment to the workbench as the problem prompt)
 - [ ] 29 card → margin note (a card's q/a becomes note text)
 - [ ] 30 deck → dossier review shortcut (due badge on deck → review)
 - [ ] 31 Send-to on dossier entity rows (⇥ on each row)
@@ -71,8 +71,8 @@ and e2e-verified where the surface is user-visible.
 - [ ] 54 Dossier grade chip: latest grade + delta vs previous
 - [ ] 55 Dossier "related" — courses sharing a topic
 - [x] 56 Unfiled dossier gets the same verbs + "file under…" action
-- [ ] 57 Shelf pins tooltip shows the pin's place
-- [ ] 58 "open solo" also copies the deep-link
+- [x] 57 Shelf pins tooltip shows the pin's place
+- [x] 58 "open solo" also copies the deep-link
 - [ ] 59 Watchdog banner gains a "retry" that auto-fires once
 - [ ] 60 Wake-refresh pulse on frame re-entry (subtle, skip if noisy)
 - [ ] 61 `?` opens a shortcut cheatsheet

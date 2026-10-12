@@ -119,9 +119,88 @@ export function Dossier({
     setSent(r.ok ? 'queued for the register' : `couldn't plan — ${r.error || 'no hub'}`);
     window.setTimeout(() => setSent(null), 4000);
   };
+  /* plan the week: every open commitment becomes one weekly routine on
+     the register — perWeek = the count, so the register tracks 'N of N
+     commitments touched'. */
+  const pendingCommits = courseEnts.filter(
+    (e) => e.type === 'commitment' && e.data && e.data.status !== 'done' && e.data.status !== 'completed',
+  );
+  const planWeek = async () => {
+    const r = await sendTo({
+      to: 'rhythm',
+      action: 'routine.plan',
+      payload: {
+        name: `${display} — this week`,
+        perWeek: Math.max(1, pendingCommits.length),
+        unit: 'commitments',
+        courseId,
+        course: display,
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? 'queued for the register' : `couldn't plan — ${r.error || 'no hub'}`);
+    window.setTimeout(() => setSent(null), 4000);
+  };
+  /* due cards → a review routine: 'queue on the register' writes the
+     intention where daily marks happen, not a hidden counter. */
+  const queueCards = async () => {
+    const r = await sendTo({
+      to: 'rhythm',
+      action: 'routine.plan',
+      payload: {
+        name: `review due cards — ${display}`,
+        perWeek: Math.max(1, dueCards.length),
+        unit: 'cards',
+        courseId,
+        course: display,
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? 'queued for the register' : `couldn't queue — ${r.error || 'no hub'}`);
+    window.setTimeout(() => setSent(null), 4000);
+  };
+  /* the bench verb: the next commitment becomes a Proof problem —
+     'work it' for an exam question lands on the workbench. */
+  const benchCommit = async () => {
+    const r = await sendTo({
+      to: 'proof',
+      action: 'problem.create',
+      payload: {
+        prompt: nextCommit?.title || `${display} — problem`,
+        topic: display,
+        courseId,
+        course: display,
+        source: 'dossier',
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? 'queued for the bench' : `couldn't send — ${r.error || 'no hub'}`);
+    window.setTimeout(() => setSent(null), 4000);
+  };
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
   const pinnedUrls = new Set(pins.map((p) => p.url));
+  /* backlinks — every Link entity touching this course, resolved against
+     the store so the dossier shows what points at it (the cardfile deck
+     filed from a note, the problem sent to the bench…). */
+  const [backlinks, setBacklinks] = useState<{ key: string; title: string; app?: string; url?: string }[]>([]);
+  useEffect(() => {
+    const it = (window as any).iterra;
+    if (!it?.links?.for || !courseEnt?.key) { setBacklinks([]); return; }
+    let alive = true;
+    it.links.for(courseEnt.key).then((links: any[]) => {
+      if (!alive) return;
+      const out = (links || [])
+        .map((l) => {
+          const other = l?.from === courseEnt.key ? l?.to : l?.from;
+          const ent = (entities || []).find((e) => e.key === other);
+          return ent ? { key: ent.key!, title: ent.title || 'entity', app: ent.app, url: ent.url } : null;
+        })
+        .filter(Boolean) as { key: string; title: string; app?: string; url?: string }[];
+      setBacklinks(out.slice(0, 8));
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [courseEnt?.key, entities]);
   /* rows come from the canonical store first (mounted or not), with the
      index mirror folded in for writers that haven't migrated */
   const byApp = useMemo(() => {
@@ -250,6 +329,31 @@ export function Dossier({
             >
               plan on the register →
             </button>
+            {pendingCommits.length > 1 && (
+              <button
+                onClick={planWeek}
+                className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                title={`one weekly routine tracking ${pendingCommits.length} open commitments`}
+              >
+                week ({pendingCommits.length}) → register
+              </button>
+            )}
+            {dueCards.length > 0 && (
+              <button
+                onClick={queueCards}
+                className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+                title="queue card review as a register routine"
+              >
+                queue {dueCards.length} cards →
+              </button>
+            )}
+            <button
+              onClick={benchCommit}
+              className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              title="file the next commitment as a problem on the workbench"
+            >
+              to the bench →
+            </button>
             <span className="text-[11.5px] text-atlas-500">
               {[
                 sessionMins > 0 ? `${sessionMins}m logged` : null,
@@ -259,6 +363,47 @@ export function Dossier({
             </span>
           </div>
           {sent && <div className="anim-fade mt-2 text-[11.5px] text-moss-700">{sent}</div>}
+        </div>
+      )}
+      {/* the log — the sessions this course actually got, newest first */}
+      {sessions.length > 0 && (
+        <div className="mb-8">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+            the log — {sessionMins}m worked
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {[...sessions]
+              .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+              .slice(0, 5)
+              .map((s) => (
+                <button
+                  key={s.key}
+                  onClick={() => s.url && onGo(s.url)}
+                  className="rounded-full border border-atlas-200 bg-atlas-50 px-2.5 py-1 text-[11px] text-field-faint hover:border-moss-400 hover:text-moss-700"
+                >
+                  {s.title || 'session'} · {(s.data?.minutes as number) || '?'}m
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
+      {/* backlinks — what other entities point at this course */}
+      {backlinks.length > 0 && (
+        <div className="mb-8">
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+            linked here
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {backlinks.map((b) => (
+              <button
+                key={b.key}
+                onClick={() => b.url && onGo(b.url)}
+                className="rounded-full border border-atlas-200 bg-atlas-50 px-2.5 py-1 text-[11px] text-field-faint hover:border-moss-400 hover:text-moss-700"
+              >
+                {PLACE_MAP[b.app || '']?.app || b.app || '·'}: {b.title}
+              </button>
+            ))}
+          </div>
         </div>
       )}
       {total === 0 && knownKeys.length > 0 && (
