@@ -170,7 +170,11 @@ export function Ambient({
                 {f!.paused ? `paused ${fmtClock(secLeft)}` : fmtClock(secLeft)}
               </span>
               {typeof f!.totalMin === 'number' && (
-                <span className="hidden text-[10px] text-atlas-400 sm:inline">/ {f!.totalMin}m</span>
+                <span className="hidden text-[10px] text-atlas-400 sm:inline">
+                  {f!.totalMin * 60 - secLeft >= 60
+                    ? `${Math.floor((f!.totalMin * 60 - secLeft) / 60)}m in · `
+                    : ''}/ {f!.totalMin}m
+                </span>
               )}
             </button>
             {courseCode && (
