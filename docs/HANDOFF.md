@@ -75,9 +75,11 @@ contract every app and the shell follows.
 - `/iterra-hub.js` is root-absolute → build MUST copy hub to `dist/` root
   or the mesh 404s in prod (was silently broken until cfda7c6).
 - Solo (unframed) writers can't overwrite a fresh framed presence (35s TTL).
-- `shared.focus` freshness is 3min (per-minute heartbeats while running);
-  generic commons fields are 10min live / 1h dead. It carries `course`
-  (the bound link's ?course=) + `blockId` — dossiers join on either.
+- `shared.focus` freshness is 15min in the rail — running sessions
+  re-stamp every tick; PAUSED sessions now heartbeat every 60s (a paused
+  countdown never ticks, its stamp would otherwise age out live). It
+  carries `course` (the bound link's ?course=) + `blockId` — dossiers
+  join on either.
 - Dedupe JSONs MUST serialize every linkage field (course+topic) — a
   linkage-only change otherwise never republishes (fixed in proof, was
   already right in cardfile; full-entity stringifiers are fine).
@@ -102,6 +104,22 @@ contract every app and the shell follows.
   JSON.parse it as a list crash before the assertion.
 - localStorage writes in-page don't fire storage events to the same window —
   probe feed/index state by writing + reload, or drive the hub API itself.
+- `shared.noteActive` arbitration: `v.at` is the note's own write/access
+  time (siblings compare against their own last write); outer `at` is
+  publisher freshness. Margin + ink re-stamp `at` every 2min, sibling-aware
+  (never over the other desk's fresh stamp); rail + useOtherNoteActive gate
+  at 5min — a dead desk's claim ages out instead of lingering.
+- `timer.control` ops are durable — the adapter pushes `{op,at}` to
+  `timer.ops.v1` (localStorage) BEFORE dispatching, and TimerView dequeues
+  only after the op actually applies; a drain effect retries whenever
+  running/hasTime flips. Ops stale-drop at 30s. An op that lands mid-boot
+  or mid-navigation survives and applies when the session arms.
+- The intake drain lands `result.url` ONLY for the `?intake=` launched
+  record — a warm/direct delivery returns `url` to the sender instead;
+  callers must `onGo(r.url)` (palette ⇥ + dossier sends already do).
+- Intakes are bounded like events: IDB keeps the 500 newest DELIVERED rows
+  (pruned inside intakeResolve); LS evicts oldest delivered first —
+  pending rows are never evicted in either path.
 
 ## Open threads
 
