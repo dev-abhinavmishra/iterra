@@ -271,6 +271,24 @@ export function Ambient({
           </button>
         )}
 
+        {/* a live proof practice session — shared.session is written by
+            proof's adapter and heartbeated while one is active; the same
+            15-min freshness window as shared.focus (a dead workbench's
+            claim ages out rather than lingering). */}
+        {(() => {
+          const ps = shared.session?.v as { topic?: string; minutes?: number; active?: boolean } | undefined;
+          const psFresh = !!ps?.active && now - (shared.session?.at || 0) < 15 * 60 * 1000;
+          if (!psFresh || activePlace === 'proof') return null;
+          return (
+            <button onClick={() => onEnter('proof')} className={chip} title="a practice session is live on the workbench">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-moss-600 live-dot" />
+              <span className="max-w-36 truncate">
+                {ps!.topic || 'practice'}{ps!.minutes ? ` · ${ps!.minutes}m` : ''}
+              </span>
+            </button>
+          );
+        })()}
+
         {/* warm frames — quiet presence dots; hover names the place */}
         {mounted.filter((id) => id !== activePlace).length > 0 && (
           <div className={`${chip} gap-1 px-2`} title="warm places">

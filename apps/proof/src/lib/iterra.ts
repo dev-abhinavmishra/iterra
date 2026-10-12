@@ -144,6 +144,16 @@ export function wireIterra() {
     };
     useWorkbench.subscribe(publishSafe);
     publishSafe();
+    /* a live practice session must keep beating — its stamp is written
+       once at start, then the store is quiet while the student works;
+       the rail's freshness window would age a genuinely live session
+       out and read it as dead. Re-stamp `at` only while one is active. */
+    if (shared) setInterval(() => {
+      try {
+        const v = lastSessionJson ? JSON.parse(lastSessionJson) : null;
+        if (v?.active) shared.setField('session', { v, by: 'proof', at: Date.now() });
+      } catch { /* housekeeping beat — never throw */ }
+    }, 2 * 60 * 1000);
   }
 }
 
