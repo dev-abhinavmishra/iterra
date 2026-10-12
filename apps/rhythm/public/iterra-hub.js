@@ -546,6 +546,7 @@
     });
     /* the shell wakes a hidden frame so views re-read the store */
     window.addEventListener('message', function (ev) {
+      if (ev.origin !== window.location.origin) return;
       var d = ev && ev.data;
       if (d && d.type === 'iterra:wake') _dispatch('wake', { at: Date.now() });
       if (d && d.type === 'iterra:invoke' && typeof d.intake === 'string') {
