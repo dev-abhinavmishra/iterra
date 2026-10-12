@@ -237,10 +237,13 @@
     saveStore && saveStore();            // wrapper runs mirror()
     try { selectDeck && selectDeck(d.id); } catch {}
 
-    /* workflow C: retest cards link back to the entity they test */
-    if (rec && rec.action === 'problem.retest' && rec.entity && rec.entity.key && it?.links?.add) {
+    /* lineage: the sent entity links to every card it produced —
+       'retest' for problem.retest (workflow C), 'derived' for cards.create
+       (workflow A — a margin note's selection becomes real cards). */
+    if (rec && rec.entity && rec.entity.key && it?.links?.add) {
+      const kind = rec.action === 'problem.retest' ? 'retest' : 'derived';
       for (const c of created) {
-        try { await it.links.add(rec.entity.key, `flashcards:card:${c.id}`, 'retest'); } catch {}
+        try { await it.links.add(rec.entity.key, `flashcards:card:${c.id}`, kind); } catch {}
       }
     }
 
