@@ -43,9 +43,9 @@ and e2e-verified where the surface is user-visible.
 - [ ] 29 card → margin note (a card's q/a becomes note text)
 - [ ] 30 deck → dossier review shortcut (due badge on deck → review)
 - [x] 31 Send-to on dossier entity rows (⇥ on each row)
-- [ ] 32 Send-to on terrain rail entries
+- [x] 32 Send-to on terrain rail entries
 - [ ] 33 Bulk send — select several hits, one target (stretch)
-- [ ] 34 Send result → "open it" chip (deep-link toast on delivery)
+- [x] 34 Send result → "open it" chip (deep-link toast on delivery)
 - [x] 35 Queued sends show "delivers when opened" state, not silent
 - [ ] 36 routine.completed → nudge the linked syllabus commitment's progress note
 - [ ] 37 session.completed bound to a routine course auto-marks the register (verify intakeRaw path)
@@ -61,23 +61,23 @@ and e2e-verified where the surface is user-visible.
 - [x] 44 Chrome breadcrumb: place → its course dossier
 - [x] 45 Palette verb section: "start", "review", "plan" queries surface actions, not just entities
 - [x] 46 Palette send-to keyed by stable identity (shipped — survives polls)
-- [ ] 47 Palette entity detail: selected hit → field drawer + action verbs
-- [ ] 48 Palette recency: empty query shows recent entities first
+- [x] 47 Palette entity detail: selected hit → field drawer + action verbs
+- [x] 48 Palette recency: empty query shows recent entities first
 - [x] 49 Pending-intake badge on rail entries + switcher ("2 waiting")
-- [ ] 50 Terrain rail entries actionable (extend ledger verbs → pending intake chips)
-- [ ] 51 Terrain "now" strip: running session + next commitment atop the map
+- [x] 50 Terrain rail entries actionable (extend ledger verbs → pending intake chips)
+- [x] 51 Terrain "now" strip: running session + next commitment atop the map
 - [x] 52 Dossier backlinks section — links.for(course) readout ("what's linked here")
 - [x] 53 Dossier session log: this course's sessions with minutes
-- [ ] 54 Dossier grade chip: latest grade + delta vs previous
-- [ ] 55 Dossier "related" — courses sharing a topic
+- [x] 54 Dossier grade chip: latest grade + delta vs previous
+- [x] 55 Dossier "related" — courses sharing a topic
 - [x] 56 Unfiled dossier gets the same verbs + "file under…" action
 - [x] 57 Shelf pins tooltip shows the pin's place
 - [x] 58 "open solo" also copies the deep-link
-- [ ] 59 Watchdog banner gains a "retry" that auto-fires once
-- [ ] 60 Wake-refresh pulse on frame re-entry (subtle, skip if noisy)
+- [x] 59 Watchdog banner gains a "retry" that auto-fires once
+- [x] 60 Wake-refresh pulse on frame re-entry (subtle, skip if noisy)
 - [x] 61 `?` opens a shortcut cheatsheet
 - [x] 62 prefers-reduced-motion audit pass on new motion
-- [ ] 63 Terrain footer: store stats (N entities · M events · K links)
+- [x] 63 Terrain footer: store stats (N entities · M events · K links)
 - [x] 64 "/" hint lives on the rail, not only the search button
 - [x] 65 Send-to menu names the place, not just the action
 
@@ -115,12 +115,12 @@ and e2e-verified where the surface is user-visible.
 - [x] 92 `timer.control` documented in ADAPTER.md
 - [x] 93 `routine.plan` documented in ADAPTER.md
 - [x] 94 `problem.create` documented in ADAPTER.md
-- [ ] 95 Intake {toast} contract: a drained intake may surface a toast line
-- [ ] 96 links.for surfaced in palette entity detail
-- [ ] 97 Catalogue: `routine.planned`, `session.paused`, `session.resumed`
-- [ ] 98 store.due() helper — dueAt-ordered card query (or documented filter)
-- [ ] 99 visibilitychange wake-refresh verified in all 8 apps
-- [ ] 100 sync adapter: Supabase wiring sketch documented (margin's env vars)
+- [x] 95 Intake {toast} contract: a drained intake may surface a toast line
+- [x] 96 links.for surfaced in palette entity detail
+- [x] 97 Catalogue: `routine.planned`, `session.paused`, `session.resumed`
+- [x] 98 store.due() helper — dueAt-ordered card query (or documented filter)
+- [x] 99 visibilitychange wake-refresh verified in all 8 apps
+- [x] 100 sync adapter: Supabase wiring sketch documented (margin's env vars)
 
 ## F. Motion + designed feel
 

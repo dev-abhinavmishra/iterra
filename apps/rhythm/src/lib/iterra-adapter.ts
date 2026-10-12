@@ -488,7 +488,13 @@ export function registerAdapter() {
           courseId: cid || undefined,
           windowEnd: due,
         });
-        return { url: `/apps/rhythm/?routine=${encodeURIComponent(routine.name)}` };
+        try {
+          it.events?.emit?.('routine.planned', {
+            routineId: routine.id, name: routine.name, courseId: cid || undefined,
+            from: rec?.from, via: 'intake',
+          });
+        } catch { /* journal is best-effort */ }
+        return { url: `/apps/rhythm/?routine=${encodeURIComponent(routine.name)}`, toast: `${routine.name} — on the register` };
       },
     },
     /* a keep-alive frame waking up: re-run the diff in case it missed ticks */

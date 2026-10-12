@@ -335,9 +335,20 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   useEffect(() => {
     const onCtl = (e: Event) => {
       const op = (e as CustomEvent<{ op?: string }>).detail?.op;
-      if (op === 'pause' && running) cd.pause();
-      else if (op === 'resume' && !running && hasTime && cd.remainingMs > 0)
+      const jot = (type: 'session.paused' | 'session.resumed') => {
+        const it = (window as any).iterra;
+        try {
+          it?.events?.emit?.(type, {
+            label: label ?? undefined, courseId: syllabus?.courseId ?? undefined,
+            course: syllabus?.course ?? undefined, remainingSec: Math.round(cd.remainingMs / 1000),
+          });
+        } catch { /* journal best-effort */ }
+      };
+      if (op === 'pause' && running) { cd.pause(); jot('session.paused'); }
+      else if (op === 'resume' && !running && hasTime && cd.remainingMs > 0) {
         cd.resume(isBreak ? completeBreakLive : completeFocusLive);
+        jot('session.resumed');
+      }
       else if (op === 'finish' && hasTime) finishEarly();
     };
     window.addEventListener('timer:control', onCtl);

@@ -87,6 +87,13 @@ export default function App() {
       if (id) {
         const el = iframeRefs.current[id];
         if (el) window.setTimeout(() => wakeFrame(el), 60);
+        /* wake-pulse: re-entering an already-live frame flashes a sync dot
+           in the chrome so 'it refreshed from the store' is visible, not
+           assumed. helloRef means the frame answered once this session. */
+        if (el && helloRef.current[id]) {
+          setWoke(id);
+          window.setTimeout(() => setWoke((w) => (w === id ? null : w)), 1600);
+        }
       }
     };
     window.addEventListener('hashchange', onHash);
@@ -163,6 +170,24 @@ export default function App() {
     return () => window.removeEventListener('message', onMsg);
   }, []);
 
+  /* visibilitychange wake — returning to the terrain's own tab re-reads
+     the active frame from the store too, not just hash navigation. Every
+     adapter answers iterra:wake; this makes 'came back to a stale view'
+     impossible across all 8 places. */
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState !== 'visible' || !active) return;
+      const el = iframeRefs.current[active];
+      if (el && helloRef.current[active]) {
+        wakeFrame(el);
+        setWoke(active);
+        window.setTimeout(() => setWoke((w) => (w === active ? null : w)), 1600);
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [active]);
+
   const enter = useCallback((id: string) => {
     window.location.hash = `/p/${id}`;
   }, []);
@@ -209,6 +234,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [enter, goHome]);
 
+  /* wake pulse — the sync dot shown while a warm frame re-reads the store */
+  const [woke, setWoke] = useState<string | null>(null);
+
   /* watchdog: a mounted frame should say iterra:hello within a few seconds;
      if it never does (dead dev server, 404, crashed app) surface a slim
      notice instead of showing a silent dead frame forever. The hello must
@@ -228,6 +256,24 @@ export default function App() {
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, frames[active || '']]);
+
+  /* auto-retry: the banner doesn't wait for a click the first time —
+     it reloads the frame itself once per mount, then leaves the manual
+     retry for a second failure. Tracked per frame-url so each fresh
+     mount earns one auto-retry. */
+  const autoRetried = useRef<Record<string, string>>({});
+  useEffect(() => {
+    if (!unanswered || unanswered !== active) return;
+    const mountSig = frames[unanswered] || '';
+    if (autoRetried.current[unanswered] === mountSig) return;
+    const t = window.setTimeout(() => {
+      autoRetried.current[unanswered] = mountSig;
+      setFrames((f) => ({ ...f, [unanswered]: `${appUrl(unanswered)}?_inav=${Date.now()}` }));
+      setUnanswered(null);
+    }, 2600);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unanswered, active]);
 
   const activePlace = active ? PLACE_MAP[active] : null;
   const timerEntry = presences['timer'];
@@ -257,6 +303,9 @@ export default function App() {
           >
             <span className="h-5 w-5 text-moss-700">{activePlace.glyph}</span>
             <span className="text-[14px] font-medium text-field-ink">{activePlace.place}</span>
+            {woke === activePlace.id && (
+              <span className="live-dot h-1.5 w-1.5 rounded-full bg-moss-500" title="refreshed from the store" />
+            )}
             <span className="hidden text-[11px] uppercase tracking-[0.12em] text-field-faint sm:inline">
               {activePlace.app}
             </span>
@@ -491,7 +540,7 @@ export default function App() {
               onHome={goHome}
             />
           ) : (
-            <Terrain presences={presences} mounted={Object.keys(frames)} shared={shared} indexes={indexes} entities={entities} feed={feed} onEnter={enter} onGo={goUrl} />
+            <Terrain presences={presences} mounted={Object.keys(frames)} shared={shared} indexes={indexes} entities={entities} feed={feed} intakes={intakes} onEnter={enter} onGo={goUrl} />
           )}
         </div>
       ) : null}

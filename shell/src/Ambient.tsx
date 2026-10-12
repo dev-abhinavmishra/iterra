@@ -118,6 +118,21 @@ export function Ambient({
     }
   }, [entities]);
 
+  /* ── intake.resolved: an app drained a queued send and reported a
+       {toast} line — surface it wherever the terrain is looking ── */
+  useEffect(() => {
+    const it = (window as any).iterra;
+    if (!it?.events?.on) return;
+    const off = it.events.on('intake.resolved', (rec: any) => {
+      const p = rec?.payload || {};
+      if (typeof p.toast !== 'string') return;
+      setToast({ text: p.toast, url: typeof p.url === 'string' ? p.url : undefined });
+      const t = window.setTimeout(() => setToast(null), 6000);
+      void t;
+    });
+    return off;
+  }, []);
+
   /* ── quick-start menu ── */
   const [qsOpen, setQsOpen] = useState(false);
   const topCourses = useMemo(() => {

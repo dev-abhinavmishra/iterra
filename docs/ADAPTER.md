@@ -32,8 +32,10 @@ iterra.adapter({
 ```
 
 `rec` = `{ id, action, from, entity, payload, at }`. Return `{ url }` for the
-shell to navigate to, or `null` when nothing visual happened. Throw → the
-intake stays pending and retries on next drain.
+shell to navigate to, or `null` when nothing visual happened. Return
+`{toast}` (optionally with `url`) for a one-line confirmation the ambient
+rail surfaces via an `intake.resolved` event. Throw → the intake stays
+pending and retries on next drain.
 
 ## What an adapter does
 
@@ -54,10 +56,11 @@ intake stays pending and retries on next drain.
 ## Event catalogue (EVENT_TYPES)
 
 `entity.upserted entity.removed link.added link.removed course.registered
-course.renamed session.started session.completed card.created card.reviewed
+course.renamed session.started session.completed session.paused
+session.resumed card.created card.reviewed
 attempt.made attempt.diverged assignment.due assignment.completed
-grade.entered note.created routine.logged routine.completed deck.imported
-send.delivered stir`
+grade.entered note.created routine.logged routine.completed
+routine.planned deck.imported send.delivered intake.resolved stir`
 
 Emit only types in the catalogue — others are rejected.
 
@@ -81,6 +84,19 @@ Emit only types in the catalogue — others are rejected.
 | `event.intake` | rhythm | legacy `?event` query intake — keep working |
 
 Anything else: the intake stays `pending` until an app registers a handler.
+
+## Store queries
+
+- `iterra.store.list(q)` — `q` filters `app type courseId course topic` +
+  `limit`, sorted newest-updated first.
+- `iterra.store.search(text, q)` — substring match over
+  title/sub/course/topic/id.
+- `iterra.store.due(q)` — `q` filters `app type(default 'card') courseId
+  course before(ms, default now)`; returns entities whose `data.dueAt`
+  is at-or-before `before`, soonest first. The one due-query — apps
+  shouldn't roll their own.
+- `iterra.store.subscribe(cb)` — every put/remove, including remote
+  (BroadcastChannel) writes.
 
 ## Links
 

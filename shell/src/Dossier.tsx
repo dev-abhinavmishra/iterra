@@ -82,7 +82,31 @@ export function Dossier({
   const sessions = courseEnts.filter((e) => e.type === 'session');
   const sessionMins = sessions.reduce((n, e) => n + ((e.data?.minutes as number) || 0), 0);
   const grades = courseEnts.filter((e) => e.type === 'grade');
-  const [sent, setSent] = useState<string | null>(null);
+  /* the book — newest grade + the delta against the one before it, so
+     the dossier shows trajectory, not just a count. */
+  const gradesByRecency = [...grades].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  const latestGrade = gradesByRecency[0] || null;
+  const gradeDelta = (() => {
+    if (gradesByRecency.length < 2) return null;
+    const a = latestGrade?.data?.pct, b = gradesByRecency[1]?.data?.pct;
+    return typeof a === 'number' && typeof b === 'number' ? Math.round(a - b) : null;
+  })();
+  /* related courses — siblings sharing a topic: the two classes that both
+     file 'integration' notes belong one dossier apart. */
+  const related = (() => {
+    const myTopics = new Set(courseEnts.map((e) => (e.topic || '').toLowerCase()).filter(Boolean));
+    if (!myTopics.size) return [];
+    const seen = new Map<string, string>();
+    for (const e of entities || []) {
+      const t = (e.topic || '').toLowerCase();
+      if (!t || !myTopics.has(t)) continue;
+      const c = e.course || e.data?.code;
+      if (!c || String(c).toLowerCase() === key || String(c).toLowerCase() === display.toLowerCase()) continue;
+      seen.set(String(c).toLowerCase(), String(c));
+    }
+    return [...seen.values()].slice(0, 4);
+  })();
+  const [sent, setSent] = useState<{ t: string; url?: string } | null>(null);
   const startSession = async () => {
     const r = await sendTo({
       to: 'timer',
@@ -96,7 +120,7 @@ export function Dossier({
       },
     });
     if (r.url) { onGo(r.url); return; }
-    setSent(r.ok ? 'session queued for the instruments' : `couldn't start — ${r.error || 'no hub'}`);
+    setSent({ t: r.ok ? 'session queued for the instruments' : `couldn't start — ${r.error || 'no hub'}` });
     window.setTimeout(() => setSent(null), 4000);
   };
   /* the transfer verb: hand this course's next commitment to rhythm's
@@ -116,7 +140,7 @@ export function Dossier({
       },
     });
     if (r.url) { onGo(r.url); return; }
-    setSent(r.ok ? 'queued for the register' : `couldn't plan — ${r.error || 'no hub'}`);
+    setSent(r.ok ? { t: 'queued for the register', url: r.url || '/apps/rhythm/' } : { t: `couldn't plan — ${r.error || 'no hub'}` });
     window.setTimeout(() => setSent(null), 4000);
   };
   /* plan the week: every open commitment becomes one weekly routine on
@@ -138,7 +162,7 @@ export function Dossier({
       },
     });
     if (r.url) { onGo(r.url); return; }
-    setSent(r.ok ? 'queued for the register' : `couldn't plan — ${r.error || 'no hub'}`);
+    setSent(r.ok ? { t: 'queued for the register', url: r.url || '/apps/rhythm/' } : { t: `couldn't plan — ${r.error || 'no hub'}` });
     window.setTimeout(() => setSent(null), 4000);
   };
   /* due cards → a review routine: 'queue on the register' writes the
@@ -156,7 +180,7 @@ export function Dossier({
       },
     });
     if (r.url) { onGo(r.url); return; }
-    setSent(r.ok ? 'queued for the register' : `couldn't queue — ${r.error || 'no hub'}`);
+    setSent(r.ok ? { t: 'queued for the register', url: r.url || '/apps/rhythm/' } : { t: `couldn't queue — ${r.error || 'no hub'}` });
     window.setTimeout(() => setSent(null), 4000);
   };
   /* the bench verb: the next commitment becomes a Proof problem —
@@ -174,7 +198,7 @@ export function Dossier({
       },
     });
     if (r.url) { onGo(r.url); return; }
-    setSent(r.ok ? 'queued for the bench' : `couldn't send — ${r.error || 'no hub'}`);
+    setSent(r.ok ? { t: 'queued for the bench', url: r.url || '/apps/proof/' } : { t: `couldn't send — ${r.error || 'no hub'}` });
     window.setTimeout(() => setSent(null), 4000);
   };
   const [pins, setPins] = useState<ShelfPin[]>([]);
@@ -201,7 +225,7 @@ export function Dossier({
       payload: { name: e.title, prompt: e.title, label: e.title, title: e.title, course: e.course || display, courseId },
     });
     if (r.url) { onGo(r.url); return; }
-    setSent(r.ok ? `queued for ${t.label}` : `couldn't send — ${r.error || 'no hub'}`);
+    setSent(r.ok ? { t: `queued for ${t.label}`, url: r.url || undefined } : { t: `couldn't send — ${r.error || 'no hub'}` });
     window.setTimeout(() => setSent(null), 4000);
   };
   /* backlinks — every Link entity touching this course, resolved against
@@ -386,7 +410,32 @@ export function Dossier({
               ].filter(Boolean).join(' · ') || (courseId ? 'registered on the folio' : 'no folio entry yet')}
             </span>
           </div>
-          {sent && <div className="anim-fade mt-2 text-[11.5px] text-moss-700">{sent}</div>}
+          {latestGrade && (
+            <button
+              onClick={() => latestGrade.url && onGo(latestGrade.url)}
+              className="mt-2 inline-flex items-baseline gap-1.5 text-[12px] text-field-faint hover:text-moss-700"
+              title="the latest mark on the book"
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-atlas-500">latest</span>
+              {latestGrade.title}
+              {typeof latestGrade.data?.pct === 'number' && ` · ${Math.round(latestGrade.data.pct)}%`}
+              {gradeDelta !== null && (
+                <span className={gradeDelta >= 0 ? 'text-moss-700' : 'text-amber-700'}>
+                  {gradeDelta >= 0 ? `+${gradeDelta}` : gradeDelta} vs last
+                </span>
+              )}
+            </button>
+          )}
+          {sent && (
+            <div className="anim-fade mt-2 flex items-baseline gap-2 text-[11.5px] text-moss-700">
+              {sent.t}
+              {sent.url && (
+                <button onClick={() => onGo(sent.url!)} className="font-medium underline underline-offset-2">
+                  open it →
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
       {/* the log — the sessions this course actually got, newest first */}
@@ -428,6 +477,22 @@ export function Dossier({
               </button>
             ))}
           </div>
+        </div>
+      )}
+      {/* related — sibling courses sharing a topic */}
+      {related.length > 0 && (
+        <div className="mb-8 flex flex-wrap items-baseline gap-1.5">
+          <span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">kindred desks</span>
+          {related.map((c) => (
+            <button
+              key={c}
+              onClick={() => onGo(`#/c/${encodeURIComponent(c)}`)}
+              className="rounded-full border border-moss-300 bg-moss-50/60 px-2.5 py-1 text-[11px] text-moss-700 hover:bg-moss-50"
+              title="shares a topic with this course"
+            >
+              {c} →
+            </button>
+          ))}
         </div>
       )}
       {total === 0 && knownKeys.length > 0 && (

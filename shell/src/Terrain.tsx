@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PLACES, PLACE_MAP } from './places';
 import type { Presence, SharedField, FeedItem, Entity, StoreEntity } from './hub';
+import { sendTo } from './hub';
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 
 const DATE_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -76,6 +77,7 @@ export function Terrain({
   indexes,
   entities,
   feed,
+  intakes,
   onEnter,
   onGo,
 }: {
@@ -85,6 +87,7 @@ export function Terrain({
   indexes: Record<string, Entity[]>;
   entities: StoreEntity[];
   feed: FeedItem[];
+  intakes?: Record<string, number>;
   onEnter: (id: string) => void;
   onGo: (url: string) => void;
 }) {
@@ -99,6 +102,46 @@ export function Terrain({
   const timerRunning = isStale(timerEntry) ? null : (timerEntry?.summary as any)?.running;
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
+
+  /* store stats — 'N filed · M events · K links' in the footer so the
+     terrain's shared truth is measurable at a glance. */
+  const [stats, setStats] = useState<{ events: number; links: number }>({ events: 0, links: 0 });
+  useEffect(() => {
+    const it = (window as any).iterra;
+    if (!it?.events?.list) return;
+    let alive = true;
+    Promise.all([
+      it.events.list({ limit: 10000 }).then((r: any[]) => (r || []).length).catch(() => 0),
+      (it.links?.list ? it.links.list() : Promise.resolve([])).then((r: any[]) => (r || []).length).catch(() => 0),
+    ]).then(([events, links]) => alive && setStats({ events, links }));
+    return () => { alive = false; };
+  }, [entities.length]);
+
+  /* stir-send — a stirring is real activity, not an entity, but it's
+     still transferable: the line becomes an 'event' entity the receiver
+     files (margin note text, an ink page, a card to review). */
+  const STIR_SENDS = [
+    { to: 'margin', action: 'note.create', label: 'a margin note' },
+    { to: 'ink', action: 'note.create', label: 'an ink page' },
+    { to: 'flashcards', action: 'cards.create', label: 'a card' },
+  ] as const;
+  const [stirSend, setStirSend] = useState<number | null>(null);
+  const [stirSent, setStirSent] = useState<string | null>(null);
+  const sendStir = async (it: FeedItem, t: (typeof STIR_SENDS)[number]) => {
+    setStirSend(null);
+    const r = await sendTo({
+      to: t.to,
+      action: t.action,
+      entity: { app: it.app, type: 'event', id: `stir-${it.at}`, title: it.text, url: it.url } as any,
+      payload: {
+        text: it.text, name: it.text, title: it.text,
+        cards: [{ q: `${it.text} — recall`, a: it.text }],
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setStirSent(r.ok ? `sent → ${t.label}` : "couldn't send");
+    window.setTimeout(() => setStirSent(null), 3000);
+  };
 
   return (
     <div className="terrain-map min-h-full">
@@ -117,13 +160,73 @@ export function Terrain({
             >
               <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-moss-600" />
               {timerRunning.label}
-              {timerRunning.endsInMin != null && ` · ${timerRunning.endsInMin}m`}
+              {timerRunning.endsAt
+                ? ` · ${Math.max(0, Math.ceil((timerRunning.endsAt - Date.now()) / 60000))}m`
+                : timerRunning.paused && typeof timerRunning.remainingSec === 'number'
+                  ? ` · paused ${Math.round(timerRunning.remainingSec / 60)}m`
+                  : ''}
             </a>
           )}
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 pb-16 pt-10 sm:px-10">
+      {/* the now-strip — what's live right now anywhere in the terrain
+          (a running or paused session) plus what's next on the folio,
+          one glance above the places. */}
+      {(() => {
+        const f = shared.focus;
+        const fv = (f?.v || {}) as any;
+        const fFresh = !!f?.at && Date.now() - f.at < 3 * 60 * 1000;
+        const live = fFresh && (fv.running || fv.paused);
+        const leftSec = fv.endsAt
+          ? Math.max(0, Math.round((fv.endsAt - Date.now()) / 1000))
+          : typeof fv.remainingSec === 'number' ? Math.max(0, fv.remainingSec) : null;
+        const leftTxt = leftSec == null ? '' : leftSec < 60 ? `${leftSec}s` : `${Math.ceil(leftSec / 60)}m`;
+        const t = (shared.today?.v || {}) as any;
+        const nextTitle = t?.nextBlock?.title || t?.next || null;
+        const nextCourse = t?.nextBlock?.course || shared.activeCourse?.v?.code || '';
+        if (!live && !nextTitle) return null;
+        return (
+          <div className="mx-auto max-w-6xl px-6 pt-5 sm:px-10">
+            <div className="anim-fade flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-moss-300/80 bg-moss-50/60 px-4 py-2.5">
+              {live ? (
+                <button
+                  onClick={() => onGo('/apps/timer/')}
+                  className="flex min-w-0 items-center gap-2 text-left focus:outline-none"
+                >
+                  <span className="live-dot inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-moss-600" />
+                  <span className="truncate text-[13px] font-medium text-field-ink">
+                    {fv.label || 'in session'}
+                  </span>
+                  <span className="shrink-0 text-[11px] uppercase tracking-[0.12em] text-moss-700">
+                    {fv.paused ? `paused${leftTxt ? ` · ${leftTxt}` : ''}` : `${leftTxt} left`}
+                  </span>
+                </button>
+              ) : (
+                <span className="text-[12px] italic text-atlas-500">nothing running</span>
+              )}
+              {nextTitle && (
+                <button
+                  onClick={() => onGo('/apps/syllabus/')}
+                  className="flex min-w-0 items-baseline gap-2 text-left focus:outline-none"
+                >
+                  <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
+                    then
+                  </span>
+                  <span className="truncate text-[13px] text-field-faint hover:text-moss-700">
+                    {nextTitle}
+                  </span>
+                  {nextCourse && (
+                    <span className="shrink-0 text-[10px] uppercase tracking-[0.1em] text-moss-700">{nextCourse}</span>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      <main className="mx-auto max-w-6xl px-6 pb-16 pt-8 sm:px-10">
         <div className="grid gap-8 lg:grid-cols-[1fr_300px]">
           {/* the places */}
           <section>
@@ -143,6 +246,11 @@ export function Terrain({
                       {p.glyph}
                     </span>
                     <span className="mt-1 flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] text-atlas-500 group-hover:text-moss-600">
+                      {(intakes?.[p.id] ?? 0) > 0 && (
+                        <span className="rounded-full border border-amber-500/40 bg-amber-50 px-1.5 text-[9.5px] font-semibold normal-case tracking-normal text-amber-800">
+                          {intakes![p.id]} waiting
+                        </span>
+                      )}
                       {mounted?.includes(p.id) && (
                         <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-moss-500" title="warm — this place is still mounted" />
                       )}
@@ -439,20 +547,43 @@ export function Terrain({
                     const when = mins < 1 ? 'now' : mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h`;
                     return (
                       <li key={`${it.at}-${i}`} className="anim-stir" style={{ animationDelay: `${Math.min(i, 7) * 26}ms` }}>
-                        <button
-                          onClick={() => (it.url ? onGo(it.url) : onEnter(it.app))}
-                          className="flex w-full items-baseline gap-2 text-left text-[13px] text-field-faint hover:text-moss-700 focus:outline-none"
-                        >
-                          <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-moss-700">
-                            {PLACE_MAP[it.app]?.app || it.app}
-                          </span>
-                          <span className="min-w-0 flex-1 truncate">{it.text}</span>
-                          <span className="shrink-0 text-[10px] text-atlas-500">{when}</span>
-                        </button>
+                        <div className="flex items-baseline gap-1">
+                          <button
+                            onClick={() => (it.url ? onGo(it.url) : onEnter(it.app))}
+                            className="flex min-w-0 flex-1 items-baseline gap-2 text-left text-[13px] text-field-faint hover:text-moss-700 focus:outline-none"
+                          >
+                            <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-[0.1em] text-moss-700">
+                              {PLACE_MAP[it.app]?.app || it.app}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate">{it.text}</span>
+                            <span className="shrink-0 text-[10px] text-atlas-500">{when}</span>
+                          </button>
+                          <button
+                            onClick={() => setStirSend(stirSend === i ? null : i)}
+                            aria-label={`send '${it.text}' to another place`}
+                            className="shrink-0 px-1 text-[12px] text-atlas-400 hover:text-moss-700 focus:outline-none"
+                          >
+                            ⇥
+                          </button>
+                        </div>
+                        {stirSend === i && (
+                          <div className="anim-fade ml-[4.5rem] mt-1 flex flex-wrap gap-1.5">
+                            {STIR_SENDS.map((t) => (
+                              <button
+                                key={t.to}
+                                onClick={() => void sendStir(it, t)}
+                                className="rounded-full border border-atlas-300 bg-atlas-50 px-2 py-0.5 text-[10.5px] font-medium text-moss-700 hover:border-moss-400 hover:bg-moss-50 focus:outline-none"
+                              >
+                                {t.label} →
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </li>
                     );
                   })}
                 </ul>
+                {stirSent && <p className="mt-2 text-[11.5px] text-moss-700">{stirSent}</p>}
               </div>
             )}
             <div className="today-rail max-h-[70vh] space-y-3 overflow-y-auto pr-1">
@@ -460,6 +591,7 @@ export function Terrain({
                 const pres = presences[p.id];
                 const stale = isStale(pres);
                 const items = stale ? [] : p.today(pres?.summary);
+                const waiting = intakes?.[p.id] ?? 0;
                 return (
                   <button
                     key={p.id}
@@ -471,6 +603,11 @@ export function Terrain({
                       <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-field-ink">
                         {p.place}
                       </span>
+                      {waiting > 0 && (
+                        <span className="ml-auto rounded-full border border-amber-500/40 bg-amber-50 px-1.5 py-px text-[10px] font-semibold normal-case tracking-normal text-amber-800">
+                          {waiting} waiting
+                        </span>
+                      )}
                     </div>
                     <ul className="mt-2 space-y-1">
                       {items.length ? (
@@ -494,6 +631,16 @@ export function Terrain({
             </div>
           </aside>
         </div>
+
+        {/* the store's footprint — the shared truth made legible:
+            entities filed, events journaled, links knotted. */}
+        <footer className="mt-10 flex items-baseline gap-3 border-t border-dashed border-atlas-300 pt-4">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-atlas-500">the store</span>
+          <span className="text-[12px] text-field-faint">
+            {(entities || []).length} filed · {stats.events} events · {stats.links} links
+          </span>
+          <span className="ml-auto text-[10.5px] italic text-atlas-400">one terrain — eight places</span>
+        </footer>
       </main>
     </div>
   );

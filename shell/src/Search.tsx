@@ -12,6 +12,7 @@ interface Hit {
   url: string;
   kind: 'entity' | 'place' | 'stir';
   key?: string;
+  uat?: number;
   /* canonical-store provenance — sendable */
   skey?: string;
   stype?: string;
@@ -103,6 +104,7 @@ export function Search({
         sub: [e.type, e.sub, e.course, e.topic].filter(Boolean).join(' · '),
         url: e.url || `#/p/${e.app}`,
         key: e.course || e.topic || undefined,
+        uat: e.updatedAt || 0,
         skey: e.key,
         stype: e.type,
         entity: e,
@@ -135,7 +137,14 @@ export function Search({
         }))
       : [];
     const all = [...places, ...ents, ...stirs];
-    if (!needle) return all.slice(0, 60);
+    if (!needle) {
+      /* recency-first browse: the newest store entities lead, then the
+         places, then the rest — an empty palette answers 'what just
+         happened' before 'where can I go'. */
+      const recent = ents.filter((e) => e.uat).sort((a, b) => (b.uat || 0) - (a.uat || 0));
+      const rest = ents.filter((e) => !recent.includes(e));
+      return [...places, ...recent, ...rest].slice(0, 60);
+    }
     const rank = (h: Hit) => {
       const l = h.label.toLowerCase();
       const s = h.sub.toLowerCase();
@@ -153,29 +162,66 @@ export function Search({
       .map((x) => x.h);
   }, [q, indexes, entities, feed]);
 
-  /* browse mode (no query): group entities under their course/topic so one
-     class's blocks, decks, notes and sessions read as one dossier */
+  /* browse mode (no query): newest entities lead under a 'recent' header,
+     then the places, then course/topic groups — the dossier view plus
+     immediacy. */
   const groups = useMemo<{ header: string | null; items: { h: Hit; i: number }[] }[]>(() => {
     if (q.trim()) return [{ header: null, items: hits.map((h, i) => ({ h, i })) }];
     const places = hits.filter((h) => h.kind === 'place');
+    const nonPlaces = hits.filter((h) => h.kind !== 'place');
+    const recentIdx = new Set(
+      nonPlaces.filter((h) => h.uat).sort((a, b) => (b.uat || 0) - (a.uat || 0)).slice(0, 8).map((h) => hits.indexOf(h)),
+    );
     const byKey = new Map<string, { label: string; items: { h: Hit; i: number }[] }>();
     const loose: { h: Hit; i: number }[] = [];
+    const recent: { h: Hit; i: number }[] = [];
     hits.forEach((h, i) => {
       if (h.kind === 'place') return;
+      if (recentIdx.has(i)) { recent.push({ h, i }); return; }
       const key = (h.key || '').toLowerCase();
       if (!key) { loose.push({ h, i }); return; }
       if (!byKey.has(key)) byKey.set(key, { label: h.key!, items: [] });
       byKey.get(key)!.items.push({ h, i });
     });
-    const out: { header: string | null; items: { h: Hit; i: number }[] }[] = [
-      { header: null, items: places.map((h) => ({ h, i: hits.indexOf(h) })) },
-    ];
+    const out: { header: string | null; items: { h: Hit; i: number }[] }[] = [];
+    if (recent.length) out.push({ header: 'recent', items: recent });
+    out.push({ header: null, items: places.map((h) => ({ h, i: hits.indexOf(h) })) });
     for (const g of byKey.values()) out.push({ header: g.label, items: g.items });
     if (loose.length) out.push({ header: 'elsewhere', items: loose });
     return out;
   }, [hits, q]);
 
   useEffect(() => setSel(0), [hits.length]);
+
+  /* ⇥ drawer — inspect + send: the field drawer shows what the entity IS
+     (type · app · course · when · due), its backlinks via links.for, then
+     the send targets. One surface, three answers. */
+  const sendHit = useMemo(() => {
+    if (!sendForKey) return null;
+    return hits.find((h) => hitId(h) === sendForKey) || null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sendForKey, hits]);
+  const [blinks, setBlinks] = useState<{ key: string; title: string; url?: string }[]>([]);
+  useEffect(() => {
+    const it = (window as any).iterra;
+    const e = sendHit?.entity;
+    if (!it?.links?.for || !e?.key) { setBlinks([]); return; }
+    let alive = true;
+    it.links.for(e.key).then((r: any) => {
+      if (!alive) return;
+      const rows = [...(r?.out || []), ...(r?.inn || [])];
+      const other = (l: any) => (l?.from === e.key ? l?.to : l?.from);
+      setBlinks(
+        rows.slice(0, 6).map((l) => {
+          const k = other(l);
+          const ent = (entities || []).find((x) => x.key === k);
+          return { key: k, title: ent?.title || k?.split(':').slice(2).join(':') || k, url: ent?.url };
+        }),
+      );
+    }).catch(() => {});
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sendForKey]);
 
   /* the global send-to: hand the store entity to a sibling action. When
      the target is live it delivers direct; otherwise it queues as a
@@ -257,7 +303,7 @@ export function Search({
           <span className="text-atlas-300">·</span>
           <span className="tracking-wide">⌘0 terrain</span>
           <span className="text-atlas-300">·</span>
-          <span className="tracking-wide">↑↓ choose · ↵ go · ⌘P pin · → send to</span>
+          <span className="tracking-wide">↑↓ choose · ↵ go · ⌘P pin · → inspect & send</span>
         </div>
         {sentNote && (
           <div className="anim-fade flex items-center gap-2 border-t border-atlas-200 bg-moss-50/60 px-4 py-1.5 text-[11.5px] text-moss-700">
@@ -324,6 +370,33 @@ export function Search({
                       </button>
                       {sendForKey === hitId(h) && (
                         <div className="anim-rise border-t border-atlas-200 bg-atlas-100/60 px-4 py-1.5">
+                          {h.entity && (
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pb-1.5 text-[10.5px] text-atlas-500">
+                              <span className="font-semibold uppercase tracking-[0.1em] text-moss-700">{h.entity.type}</span>
+                              {h.entity.course && <span>· {h.entity.course}</span>}
+                              {h.entity.topic && <span>· {h.entity.topic}</span>}
+                              {typeof h.entity.data?.dueAt === 'number' && (
+                                <span className={h.entity.data.dueAt <= Date.now() ? 'text-amber-700' : ''}>
+                                  · due {new Date(h.entity.data.dueAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </span>
+                              )}
+                              {h.entity.updatedAt ? <span>· {new Date(h.entity.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span> : null}
+                            </div>
+                          )}
+                          {blinks.length > 0 && sendHit === h && (
+                            <div className="flex flex-wrap gap-1 pb-1.5">
+                              {blinks.map((b) => (
+                                <button
+                                  key={b.key}
+                                  onClick={(ev) => { ev.stopPropagation(); if (b.url) { onGo(b.url); onClose(); } }}
+                                  className="rounded-full border border-moss-300 bg-moss-50/70 px-2 py-0.5 text-[10px] text-moss-700 hover:bg-moss-50 focus:outline-none"
+                                  title={b.key}
+                                >
+                                  ⇔ {b.title.length > 28 ? b.title.slice(0, 28) + '…' : b.title}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                           <div className="pb-1 text-[9.5px] font-semibold uppercase tracking-[0.14em] text-atlas-500">
                             send “{h.label}” to…
                           </div>

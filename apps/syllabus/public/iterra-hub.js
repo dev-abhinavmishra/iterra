@@ -352,8 +352,9 @@
     'attempt.made': 1, 'attempt.diverged': 1,
     'assignment.due': 1, 'assignment.completed': 1,
     'grade.entered': 1, 'note.created': 1,
-    'routine.logged': 1, 'routine.completed': 1,
-    'deck.imported': 1, 'send.delivered': 1, 'stir': 1,
+    'routine.logged': 1, 'routine.completed': 1, 'routine.planned': 1,
+    'session.paused': 1, 'session.resumed': 1,
+    'deck.imported': 1, 'send.delivered': 1, 'intake.resolved': 1, 'stir': 1,
   };
 
   var STORE_BUCKETS = ['entities', 'events', 'links', 'intakes', 'meta'];
@@ -641,6 +642,27 @@
     });
   }
 
+  /* due-ordered query — 'what's due' is the terrain's most common read:
+     entities whose data.dueAt (ms or ISO) is at-or-before `before`,
+     soonest first. The one place callers should look for due state. */
+  function storeDue(q) {
+    q = q || {};
+    var before = typeof q.before === 'number' ? q.before : Date.now();
+    var asMs = function (d) {
+      if (typeof d === 'number') return d;
+      var t = Date.parse(d);
+      return isNaN(t) ? null : t;
+    };
+    return storeList({ app: q.app, type: q.type || 'card', courseId: q.courseId, course: q.course }).then(function (rows) {
+      return rows.filter(function (e) {
+        var d = asMs(e && e.data && e.data.dueAt !== undefined ? e.data.dueAt : e && e.dueAt);
+        return d !== null && d <= before;
+      }).sort(function (a, b) {
+        return asMs(a.data && a.data.dueAt !== undefined ? a.data.dueAt : a.dueAt) - asMs(b.data && b.data.dueAt !== undefined ? b.data.dueAt : b.dueAt);
+      });
+    });
+  }
+
   function storeSubscribe(cb) {
     _subs.entity.push(cb);
     return function () { _subs.entity = _subs.entity.filter(function (f) { return f !== cb; }); };
@@ -767,6 +789,14 @@
     });
   }
 
+  function linksList() {
+    return openDB().then(function (d) {
+      if (d) return idbAll(d, 'links');
+      var b = lsRead('links');
+      return Object.keys(b).map(function (k) { return b[k]; });
+    });
+  }
+
   /* ── intakes — typed send-to queue. A sender queues {to,action,entity,
         payload}; the target's adapter drains (creating real entities) on
         poke / boot. Every send is journaled; delivery resolves a result
@@ -865,6 +895,12 @@
         var h = _deliveries[app + ':' + rec.action] || _deliveries[app + ':*'];
         var finish = function (result) {
           intakeResolve(rec.id, result).then(function () {
+            /* {toast} contract — a handler may return a one-line toast the
+               terrain surfaces wherever the resolve landed (ambient rail
+               reads intake.resolved events). */
+            if (result && typeof result.toast === 'string') {
+              try { emit('intake.resolved', { to: rec.to, action: rec.action, toast: result.toast, by: me || undefined }); } catch (e) {}
+            }
             if (launchedFor && rec.id === launchedFor && result && result.url) {
               try { window.location.assign(result.url); return; } catch (e) {}
             }
@@ -1098,6 +1134,7 @@
       get: storeGet,
       list: storeList,
       search: storeSearch,
+      due: storeDue,
       remove: storeRemove,
       subscribe: storeSubscribe,
     },
@@ -1115,6 +1152,7 @@
       add: linkAdd,
       remove: linkRemove,
       for: linksFor,
+      list: linksList,
     },
     intakes: {
       send: intakeSend,
