@@ -623,7 +623,7 @@ export const useFolio = create<FolioState>()(
       importJSON: (text) => {
         try {
           const data = parseFolioBackup(text);
-          if (!data.settings) data.settings = DEFAULT_SETTINGS;
+          data.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
           set({ ...data });
           feed('folio restored', '/apps/syllabus/');
           return { ok: true };
@@ -654,7 +654,15 @@ export const useFolio = create<FolioState>()(
         for (const b of Object.values(blocks)) {
           if (!Array.isArray((b as WorkBlock).reasons)) (b as WorkBlock).reasons = [];
         }
-        return { ...current, ...p, commitments, blocks };
+        // Settings are key-wise too: a blob written before a key existed
+        // (or a partial write) leaves it undefined — and every deep-link
+        // builder dereferences the base URLs. Fill missing keys from
+        // DEFAULT_SETTINGS; only real values win.
+        const settings = { ...DEFAULT_SETTINGS } as AppSettings;
+        for (const [k, v] of Object.entries(p.settings || {})) {
+          if (v !== undefined && v !== null) (settings as Record<string, unknown>)[k] = v;
+        }
+        return { ...current, ...p, commitments, blocks, settings };
       },
       partialize: (s) => ({
         terms: s.terms,

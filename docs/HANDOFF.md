@@ -114,6 +114,23 @@ contract every app and the shell follows.
 - In flight on rhythm child: ink `initialNotes` demo-library strip →
   margin-style welcome note + no seeded folders (standing no-fake-data
   rule — was indexing 3 fabricated notes into #/c/unfiled).
+- Durable-intake wave (07b732b→b980f20): send-to is now exactly-once —
+  per-app serialized drains + atomic IndexedDB claims (`claimedBy/
+  claimedAt`, stale-claim reclaim) end duplicate deliveries (one
+  problem.create previously made 4 problems); thrown/`{retry:true}`/
+  timed-out handlers release the claim and stay pending (previously
+  throws marked records delivered — cold-boot sends evaporated);
+  scheduled re-drains + handler timeout bound hangs; no-handler records
+  stay pending forever. Shell mounts cold apps at `?intake=<first-
+  pending>` (hash nav, iterra:open, slot-migration — shell/src/App.tsx +
+  hub.ts `firstPendingIntake`) so referential results land instead of
+  evaporating; `?intake=` frames for already-delivered records navigate
+  once to the stored `result.url` (the >700ms drain race). Adapter
+  readiness: proof/syllabus await boot before mutating (throw 'app not
+  ready' → retry), rhythm/ink await persist hydration, gradestack
+  `?scanId=` deep link, ink `addNote` honors caller ids (idempotent
+  re-delivery). Check: scripts/intake-matrix-check.cjs — all 14
+  documented actions asserting real target-side effects, 17/17.
 - Landed recently (verify before re-doing): ?block= slip intake + ring
   (2e40d6e), entity urls carry ?block=<id> so dossier/palette/shelf clicks
   land ON the slip, FOCUS pill on bound slips, Sigma→proof pad links,

@@ -37,6 +37,30 @@ shell to navigate to, or `null` when nothing visual happened. Return
 rail surfaces via an `intake.resolved` event. Throw → the intake stays
 pending and retries on next drain.
 
+## Intake delivery semantics (durable)
+
+- **Records persist** in IndexedDB (localStorage fallback) until delivered.
+- **Atomic claim**: before a handler runs, the record is claimed
+  (`claimedBy` + `claimedAt`). Concurrent drains (multiple pokes, frames, or
+  tabs) can never invoke the same handler twice. Claims orphaned by a dead
+  frame go stale and are reclaimed by the next drain.
+- **Serialized per app**: drains for a given app run one-at-a-time.
+- **Retry semantics**: a handler that throws, returns `{retry:true}`, or
+  hits the handler timeout releases its claim and stays `pending`. The hub
+  schedules a re-drain (bounded backoff) until it delivers. A handler that
+  returns `null`/`{url}`/`{toast}` is delivered.
+- **No matching handler**: the record stays `pending` — it is never
+  silently resolved.
+- **`?intake=<id>` launches**: when the shell cold-mounts an app that has a
+  pending intake, it mounts the frame at `/apps/<id>/?intake=<id>`. After
+  the handler delivers, the frame navigates to `result.url`. If the record
+  was already delivered by a concurrent drain, the launched frame still
+  lands once on its stored `result.url`.
+- **Readiness**: handlers that mutate local stores should await their own
+  hydration/boot flag (e.g. `await whenBooted()`) and throw `'app not
+  ready'` until then — the retry path handles the rest. Never mutate a
+  zustand store before its persist rehydrates.
+
 ## What an adapter does
 
 1. **Registers** itself via `iterra.adapter()` at boot (idempotent).

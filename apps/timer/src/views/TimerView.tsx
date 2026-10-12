@@ -169,6 +169,10 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     // wakes with ?completedBlock instead of this frame walking away
     if (iterra?.isFramed?.()) iterra.open(url);
     else window.location.href = url;
+    // the binding is spent — clear it with the session so a hidden framed
+    // mount doesn't keep offering file-back (a second tap double-stamps)
+    setDone(null);
+    resetTimer();
   };
 
   /* ---------- title bar ---------- */
@@ -251,7 +255,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
         // the completion takeover owns the keys — no ghost restarts underneath
         if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); setDone(null); resetTimer(); }
         else if (e.key === 'r' || e.key === 'R') resetTimer();
-        else if (e.key === 'Escape') setDone(null);
+        else if (e.key === 'Escape') { setDone(null); clearBinding(); }
         return;
       }
       if (e.code === 'Space') { e.preventDefault(); flashKey('toggle'); toggle(); }
@@ -321,9 +325,22 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     else cd.start(setMinutes * 60000, completeFocusLive);
   };
 
+  /* the deep-link / intake / chip binding is ONE-SHOT — it belongs to the
+     session it armed. Consume it when that session is finished, reset,
+     re-dialed, dismissed, or filed back; otherwise blockId / course /
+     commitmentId / returnUrl leak into whatever the user starts next
+     (a phantom bound chip, '← syllabus' return, a double file-back). */
+  const clearBinding = () => {
+    if (!syllabus) return;
+    setSyllabus(null);
+    setIntent('');
+    setLabel(presetName);
+  };
+
   const resetTimer = () => {
     vibrate([25, 40, 25]);
     if (chainTimer.current) { clearTimeout(chainTimer.current); chainTimer.current = null; }
+    clearBinding();
     cd.reset(setMinutes * 60000);
     setIsBreak(false);
     setDone(null);
@@ -390,6 +407,9 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   }, [running, hasTime, isBreak, cd.remainingMs]);
 
   const applyMinutes = (m: number) => {
+    /* re-dialing abandons the one-shot binding — the new minutes were
+       chosen by the user, not the link that armed them */
+    clearBinding();
     setSetMinutes(m);
     setLabel(undefined);
     if (!running) { cd.reset(m * 60000); setIsBreak(false); setDone(null); }
