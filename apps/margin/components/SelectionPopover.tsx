@@ -130,7 +130,7 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
     /* Workflow A head — hand the selection to the Flashcards place through
        the canonical send queue; a delivered url is kept on the 'sent' flash
        so the student can open the deck it landed in. */
-    const doSend = async () => {
+    const doSend = async (to: 'flashcards' | 'ink' = 'flashcards') => {
         const it = (window as unknown as { iterra?: any }).iterra;
         if (!it?.send) return;
         setMode('busy');
@@ -145,25 +145,39 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                 const ent = await it.courses?.byCode?.(tag).catch(() => null);
                 if (ent?.key) { course = tag; courseId = ent.key; break; }
             }
-            const res = await it.send({
-                to: 'flashcards',
-                action: 'cards.create',
-                entity: {
-                    app: 'margin',
-                    type: 'note',
-                    id: note?.id ?? `sel-${Date.now()}`,
-                    title: noteTitle,
-                },
-                payload: {
-                    ...(course ? { course } : {}),
-                    ...(courseId ? { courseId } : {}),
-                    cards: [{
-                        q: `from “${noteTitle}” — recall`,
-                        a: sel.length <= 300 ? sel : `${sel.slice(0, 297)}…`,
-                    }],
-                    deckTitle: noteTitle,
-                },
-            });
+            const entity = {
+                app: 'margin',
+                type: 'note',
+                id: note?.id ?? `sel-${Date.now()}`,
+                title: noteTitle,
+            };
+            const res = await it.send(
+                to === 'ink'
+                    ? {
+                          to: 'ink',
+                          action: 'note.create',
+                          entity,
+                          payload: {
+                              ...(course ? { course } : {}),
+                              ...(courseId ? { courseId } : {}),
+                              text: sel,
+                          },
+                      }
+                    : {
+                          to: 'flashcards',
+                          action: 'cards.create',
+                          entity,
+                          payload: {
+                              ...(course ? { course } : {}),
+                              ...(courseId ? { courseId } : {}),
+                              cards: [{
+                                  q: `from “${noteTitle}” — recall`,
+                                  a: sel.length <= 300 ? sel : `${sel.slice(0, 297)}…`,
+                              }],
+                              deckTitle: noteTitle,
+                          },
+                      },
+            );
             setSentUrl(res?.url ?? null);
             flash('sent', true);
             window.getSelection()?.removeAllRanges();
@@ -214,9 +228,13 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                                 {(window as unknown as { iterra?: { send?: unknown } }).iterra?.send && (
                                     <>
                                         <span className="w-px h-4 bg-[var(--line)]" />
-                                        <button className={itemCls} onClick={doSend} disabled={mode === 'busy'} title="Send to Flashcards">
+                                        <button className={itemCls} onClick={() => void doSend('flashcards')} disabled={mode === 'busy'} title="Send to Flashcards">
                                             <Icon name="send" size={14} className="text-ink-3" />
                                             Send
+                                        </button>
+                                        <button className={itemCls} onClick={() => void doSend('ink')} disabled={mode === 'busy'} title="Send selection to a new Ink page">
+                                            <Icon name="edit_note" size={14} className="text-ink-3" />
+                                            Ink
                                         </button>
                                     </>
                                 )}

@@ -36,7 +36,7 @@ and e2e-verified where the surface is user-visible.
 - [x] 22 rhythm routine → syllabus work block: `block.plan` intake on syllabus → files a commitment from a routine
 - [x] 23 Dossier "plan the week": batch-send pending commitments to rhythm as one weekly routine
 - [x] 24 Due-cards → "queue on the register" (a review intention lands in rhythm's log)
-- [ ] 25 margin note → ink page (margin send menu gains an ink target)
+- [x] 25 margin note → ink page (margin send menu gains an ink target)
 - [x] 26 ink selection → margin note (BubbleMenu send — shipped, verified)
 - [x] 27 ink selection → proof problem (`problem.create` intake — richer than step.append)
 - [x] 28 commitment → proof problem (send a commitment to the workbench as the problem prompt)
