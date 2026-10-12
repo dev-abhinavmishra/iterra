@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { Icon, Button, Chip, EmptyState, PageHeader } from '../components/ui';
 import { normalizeAnswer, optionsFor, formatsForTest, csvEscape, downloadFile } from '../lib/grading';
 import { feed } from '../lib/iterra';
+import { useCourseLoggedMinutes, fmtLoggedMinutes } from '../lib/iterra-adapter';
 
 export function ScoreAnalytics() {
   const location = useLocation();
@@ -18,6 +19,7 @@ export function ScoreAnalytics() {
   const [sortBy, setSortBy] = useState<'name' | 'score' | 'recent'>('recent');
 
   const test = tests.find(t => t.id === testId) || tests[0];
+  const loggedMinutes = useCourseLoggedMinutes(test?.courseName);
   const allTestScans = test ? scans.filter(s => s.testId === test.id) : [];
   const batches = Array.from(new Set(allTestScans.map(s => s.batchName).filter(Boolean))) as string[];
   const testScans = selectedBatch ? allTestScans.filter(s => s.batchName === selectedBatch) : allTestScans;
@@ -155,6 +157,9 @@ export function ScoreAnalytics() {
             <span className="ledger-label">Class average</span>
             <p className="font-display text-4xl font-bold text-ink mt-1">{numScanned > 0 ? `${avgPct.toFixed(1)}%` : '—'}</p>
             <div className="mt-3"><div className="w-full bg-hairline rounded-full h-1"><div className="h-full bg-mark rounded-full transition-all duration-700" style={{ width: `${avgPct}%` }} /></div></div>
+            {loggedMinutes != null && (
+              <p className="text-xs text-pencil mt-3">{fmtLoggedMinutes(loggedMinutes)} logged in Timer</p>
+            )}
           </div>
           <div className="px-6 py-5">
             <span className="ledger-label">Spread</span>

@@ -11,7 +11,7 @@ import { openDeep } from '../lib/iterra';
 import { courseColorVar } from '../lib/colors';
 import { fmtMinutes, stampDate, todayISO, isoAtTime, cn } from '../lib/utils';
 import type { Commitment, CommitmentType } from '../lib/types';
-import { CheckCircle2, ExternalLink, Pin, RotateCcw, X } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Pin, RotateCcw, Timer, X } from 'lucide-react';
 
 /**
  * Commitment inspector — the sheet that plans one outcome: deadline, weight,
@@ -63,6 +63,33 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
     });
     if (proposals.length) s.acceptProposals(proposals);
     setConfirmReplan(false);
+  };
+
+  // workflow D: hand the commitment to a bound timer session — the send
+  // queues when timer isn't mounted, so the url it returns either deep-links
+  // the started session or wakes a cold timer on the intake record.
+  const focusWithTimer = async () => {
+    const it = (window as any).iterra;
+    if (!it?.send) return;
+    const res = await it.send({
+      to: 'timer',
+      action: 'timer.start',
+      payload: {
+        commitmentId: commitment.id,
+        label: commitment.title,
+        minutes: commitment.estimatedMinutes || 25,
+        courseId: `syllabus:course:${commitment.courseId}`,
+        course: course?.code,
+      },
+    });
+    const url = res?.ok ? res.url : null;
+    if (!url) return;
+    try {
+      if (it.open) it.open(url);
+      else openDeep(url);
+    } catch {
+      /* navigation is best-effort */
+    }
   };
 
   return (
@@ -308,6 +335,15 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
           ) : (
             <button className="btn btn--ghost flex-1" onClick={() => s.setCommitmentStatus(commitment.id, 'open')}>
               Re-open
+            </button>
+          )}
+          {commitment.status !== 'done' && (window as any).iterra?.send && (
+            <button
+              className="btn btn--ghost inline-flex items-center gap-1.5"
+              onClick={() => void focusWithTimer()}
+              title="Start a bound focus session in Timer"
+            >
+              <Timer size={13} /> Focus with Timer
             </button>
           )}
           <button
