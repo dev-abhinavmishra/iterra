@@ -3,24 +3,42 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of 55d4510)
+## State of the terrain (as of 27a0974)
 
-- Branch `devin/iterra-env`, PR #1 open (not merged — Abhinav decides).
-- All 8 apps vendored under `apps/<name>` + wired: build-time base, hub script
-  before module entry, `register()` presence, suite links → `/apps/<name>`,
-  inbound deep links, ambient commons/index/feed publishers (try/catch'd).
-- `dist/` is gitignored — rebuilt locally for verification
-  (`python3 -m http.server 8090 -d dist` + `scripts/smoke.cjs` over CDP 29229).
-- Smoke: 17/17 (scripts/smoke.cjs — sender chip, dossier+shelf,
-  workflow-card routing, open-the-slip) + focused checks:
-  intake-check.cjs, focus-dossier-check.cjs,
-  drill-check/dossier-drill-check/markbook-drill-check.cjs.
-- Children (SWE-2-max) run standing verify/implement queues:
-  - `devin-4edd25facad54ca0b834833dc9933ffe` — syllabus + gradestack
-  - `devin-a19adc3b30f34c65a10948e003db0905` — proof + timer + flashcards
-  - `devin-b0dcadbd314c4cf1a56cec31d9a0e574` — rhythm + ink + margin
-- Children never commit/push; they attach `.diff` files; head agent reviews,
-  applies, re-runs lint/tests/build, commits to the branch.
+- Branch `devin/iterra-canonical-store`, PR #3 open (Abhinav decides).
+- Canonical entity store lives in `packages/hub/iterra-hub.js` — typed,
+  versioned entities, write validation + quarantine, IndexedDB `iterra` db +
+  localStorage fallback, BroadcastChannel cross-frame propagation. Every app
+  writes through ONE adapter file (docs/ADAPTER.md is the contract;
+  scripts/check-adapters gates the build on all 8).
+- Course registry: `course` is a first-class entity, syllabus owns writes,
+  siblings resolve by code via `courses.byCode` — never fabricated ids.
+- Event bus: `iterra.events.emit/on/list` with a documented catalogue
+  (ADAPTER.md § events); `feed()` stays as a compat shim.
+- Links: `it.links.add/for(key)` backlinks ({out,inn} shape — NOT a flat
+  array, the lanes' docs lied). Send-to: `it.send({to,action,entity,payload})`
+  — direct postMessage when mounted, durable queued intake otherwise;
+  `?intake=<id>` frames navigate to the resolved url.
+- Sync: margin attaches the whole-store Supabase mirror at boot when its env
+  vars exist (docs/SYNC.md — wired, table `iterra_entities`, LWW).
+- Ambient rail: `shell/src/Ambient.tsx` — live session pill (reads
+  shared.focus endsAt, pause/resume/finish via timer.control), due-cards →
+  review, next commitment, register/note chips, "+focus", toasts.
+- UX-TRACKER.md: all 105 wave-1 items shipped. Section F is the wave-2
+  proposal pool; three lanes currently running wave-2 (verify own surfaces
+  live vs seeded store, fix hollows, audit + implement top-3 each):
+  - `devin-9baa5461ace240f2b3da6933f305cfc5` — syllabus+gradestack
+  - `devin-ab66d5e2322242778dcd7d9ef387c556` — rhythm+timer
+  - `devin-88ff261202b24d12961b78e75a27bd42` — flashcards+margin+ink+proof
+- Verify recipe: `./scripts/build.sh` → `python3 -m http.server 8090 -d dist`
+  → drive Chrome (CDP :29229, playwright-core at /tmp/terra-e2e/node_modules).
+  Seed the store via `window.iterra.store.put` on the top page — no app
+  internals needed for shell surfaces. Live pass: 14/14 (wave2.cjs).
+- Per-app bridges landed: syllabus Today/commitment-row sends, gradestack
+  DueCardsChip/DossierChip/folio chips, flashcards deck-bridge + card
+  backlinks + → note + due badge, margin/ink TerrainChips, proof
+  RetestChip/ToMargin/due-column, rhythm folio inbox + provenance badges,
+  timer quick-starts + BoundChip surfaces.
 
 ## Architecture quick map
 
