@@ -71,7 +71,13 @@
      relative; anything under /apps/<place>/ is routed by the shell, other
      same-origin paths are rebased onto this place. */
   function open(url) {
-    if (!framed) { origWindowOpen(url, '_blank', 'noopener'); return; }
+    if (!framed) {
+      var solo;
+      try { solo = new URL(url, window.location.href); } catch (e) { return; }
+      /* http(s)/mailto only — javascript:/data: must never reach window.open */
+      if (solo.protocol !== 'http:' && solo.protocol !== 'https:' && solo.protocol !== 'mailto:') return;
+      origWindowOpen(solo.href, '_blank', 'noopener'); return;
+    }
     /* terrain hash routes ('#/c/<key>' dossier, '#/p/<place>', '#/') pass
        straight through — they address the shell, not a place path */
     if (/^#\//.test(String(url))) {
@@ -80,6 +86,7 @@
     }
     var abs;
     try { abs = new URL(url, window.location.href); } catch (e) { return; }
+    if (abs.protocol !== 'http:' && abs.protocol !== 'https:' && abs.protocol !== 'mailto:') return;
     if (abs.origin !== window.location.origin) { origWindowOpen(abs.href, '_blank', 'noopener'); return; }
     // '/apps/<name>' with or without a trailing slash both count as place
     // paths — selfBase() emits the bare form and file-back relies on it
