@@ -69,7 +69,9 @@ export function Ambient({
   /* ── live focus session ── */
   const f = (shared.focus?.v as FocusState | null) ?? null;
   const focusAt = shared.focus?.at || 0;
-  const focusFresh = !!f && now - focusAt < 15 * 60 * 1000;
+  /* same gate the terrain/dossier use — a running session rewrites each
+     tick and paused ones heartbeat every 60s, so >3m stale means dead */
+  const focusFresh = !!f && now - focusAt < 3 * 60 * 1000;
   const focusLive = focusFresh && (f!.running === true || f!.paused === true);
   const secLeft = f?.running && f.endsAt ? Math.max(0, (f.endsAt - now) / 1000) : f?.remainingSec ?? 0;
   const stale = focusFresh && f!.running && f!.endsAt ? f!.endsAt - now < -5 * 60 * 1000 : false;
@@ -272,12 +274,12 @@ export function Ambient({
         )}
 
         {/* a live proof practice session — shared.session is written by
-            proof's adapter and heartbeated while one is active; the same
-            15-min freshness window as shared.focus (a dead workbench's
-            claim ages out rather than lingering). */}
+            proof's adapter and heartbeated every 2min while one is active;
+            5-min freshness = ~2.5 beats (a dead workbench's claim ages
+            out rather than lingering). */}
         {(() => {
           const ps = shared.session?.v as { topic?: string; minutes?: number; active?: boolean } | undefined;
-          const psFresh = !!ps?.active && now - (shared.session?.at || 0) < 15 * 60 * 1000;
+          const psFresh = !!ps?.active && now - (shared.session?.at || 0) < 5 * 60 * 1000;
           if (!psFresh || activePlace === 'proof') return null;
           return (
             <button onClick={() => onEnter('proof')} className={chip} title="a practice session is live on the workbench">

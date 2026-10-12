@@ -125,7 +125,9 @@ export function Terrain({
     { to: 'ink', action: 'note.create', label: 'an ink page' },
     { to: 'flashcards', action: 'cards.create', label: 'a card' },
   ] as const;
-  const [stirSend, setStirSend] = useState<number | null>(null);
+  /* keyed by stir identity (at:app), not index — the feed prepends on
+     refresh and an index-keyed menu would silently re-target another stir */
+  const [stirSend, setStirSend] = useState<string | null>(null);
   const [stirSent, setStirSent] = useState<string | null>(null);
   const sendStir = async (it: FeedItem, t: (typeof STIR_SENDS)[number]) => {
     setStirSend(null);
@@ -360,7 +362,7 @@ export function Terrain({
                   return { ...line, stale: Date.now() - f.at > COMMONS_FRESH_MS, at: f.at };
                 })
                 .filter((x): x is { app: string; text: string; stale: boolean; at: number } => !!x)
-                .sort((a, b) => a.at - b.at || a.app.localeCompare(b.app));
+                .sort((a, b) => b.at - a.at || a.app.localeCompare(b.app));
               if (!lines.length) return null;
               return (
                 <div className="anim-fade mb-3 rounded-lg border border-moss-300 bg-moss-50/60 p-3.5">
@@ -552,8 +554,9 @@ export function Terrain({
                     const ago = Math.max(0, Date.now() - it.at);
                     const mins = Math.floor(ago / 60000);
                     const when = mins < 1 ? 'now' : mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h`;
+                    const sk = `${it.at}:${it.app}`;
                     return (
-                      <li key={`${it.at}-${i}`} className="anim-stir" style={{ animationDelay: `${Math.min(i, 7) * 26}ms` }}>
+                      <li key={sk} className="anim-stir" style={{ animationDelay: `${Math.min(i, 7) * 26}ms` }}>
                         <div className="flex items-baseline gap-1">
                           <button
                             onClick={() => (it.url ? onGo(it.url) : onEnter(it.app))}
@@ -566,14 +569,14 @@ export function Terrain({
                             <span className="shrink-0 text-[10px] text-atlas-500">{when}</span>
                           </button>
                           <button
-                            onClick={() => setStirSend(stirSend === i ? null : i)}
+                            onClick={() => setStirSend(stirSend === sk ? null : sk)}
                             aria-label={`send '${it.text}' to another place`}
                             className="shrink-0 px-1 text-[12px] text-atlas-400 hover:text-moss-700 focus:outline-none"
                           >
                             ⇥
                           </button>
                         </div>
-                        {stirSend === i && (
+                        {stirSend === sk && (
                           <div className="anim-pop ml-[4.5rem] mt-1 flex flex-wrap gap-1.5">
                             {STIR_SENDS.map((t) => (
                               <button

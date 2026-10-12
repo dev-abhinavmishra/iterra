@@ -301,8 +301,10 @@ export function Dossier({
      carries the course key, or when its bound block's entity does. Commons
      entries older than the live window read as dead — ignore them. */
   const fv = (shared.focus?.v as any);
+  /* same gate as the now-strip/commons: a running session rewrites focus
+     every minute (paused heartbeats every 60s) — >3m stale reads dead */
   const focusLive =
-    fv?.running === true && Date.now() - (shared.focus?.at || 0) < 10 * 60 * 1000;
+    (fv?.running === true || fv?.paused === true) && Date.now() - (shared.focus?.at || 0) < 3 * 60 * 1000;
   const focusIds = new Set(byApp.flatMap((g) => g.ents.map((e) => e.id)));
   const focusMatch =
     focusLive &&
@@ -572,14 +574,14 @@ export function Dossier({
                   </button>
                   <span className="relative shrink-0">
                     <button
-                      onClick={() => setRowSend(rowSend === `${app}-${e.id}-${i}` ? null : `${app}-${e.id}-${i}`)}
+                      onClick={() => setRowSend(rowSend === `${app}|${e.url || ''}|${e.id || ''}|${e.title}` ? null : `${app}|${e.url || ''}|${e.id || ''}|${e.title}`)}
                       aria-label={`send ${e.title} to another app`}
                       title="send to…"
                       className="px-2 py-2.5 text-[12px] text-atlas-400 hover:text-moss-700 focus:outline-none"
                     >
                       ⇥
                     </button>
-                    {rowSend === `${app}-${e.id}-${i}` && (
+                    {rowSend === `${app}|${e.url || ''}|${e.id || ''}|${e.title}` && (
                       <span className="anim-pop absolute right-0 top-full z-30 w-40 rounded-md border border-atlas-300 bg-atlas-50 p-1 shadow-[0_12px_30px_-12px_rgba(29,51,42,0.45)]">
                         {ROW_SENDS.map((t) => (
                           <button
