@@ -12,6 +12,7 @@ import VersionHistory from '../components/editor/VersionHistory';
 import AudioPlayer from '../components/editor/AudioPlayer';
 import RelatedNotes from '../components/editor/RelatedNotes';
 import SharedNoteLink from '../components/SharedNoteLink';
+import TerrainChips from '../components/TerrainChips';
 import { runAction } from '../services/aiService';
 import { exportNoteMarkdown, exportNoteHtml } from '../services/exportService';
 import { sanitizeHtml } from '../services/sanitize';
@@ -568,6 +569,8 @@ const EditorView: React.FC<EditorViewProps> = ({
                     >
                         focus →
                     </a>
+                    {/* terrain bridges — deck backlink + send this note to ink */}
+                    <TerrainChips note={note} getText={() => stripTags(contentRef.current)} />
                     <div className="flex-1" />
                     <IconBtn icon="find_in_page" onClick={() => setFindOpen(true)} title="Find in note (⌘F)" />
                     <IconBtn icon="toc" onClick={() => setPanel(panel === 'outline' ? 'chat' : 'outline')} active={panel === 'outline'} title="Outline" />

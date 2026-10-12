@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useWorkbench } from '../store';
+import { openDeep } from '../lib/iterra';
 import {
   unaidedSuccess, hintLevelSuccess, calibration, calibrationGap,
   errorRecurrence, retrySuccessAfterDelay, topicCoverage, totals,
@@ -25,6 +27,7 @@ export function ProgressView() {
   const coverage = topicCoverage(problems, attempts);
 
   const pct = (r: number | null) => (r == null ? '—' : `${Math.round(r * 100)}%`);
+  const dueByTopic = useDueCardsByTopic(coverage.map((c) => c.topic));
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
@@ -127,7 +130,7 @@ export function ProgressView() {
         <section className="film mt-4 rounded p-4">
           <div className="kicker mb-2">topic coverage — attempted share and unaided rate</div>
           <table className="met-table">
-            <thead><tr><th>topic</th><th>attempted</th><th>coverage</th><th>unaided rate</th></tr></thead>
+            <thead><tr><th>topic</th><th>attempted</th><th>coverage</th><th>unaided rate</th><th>due cards</th></tr></thead>
             <tbody>
               {coverage.map((c) => (
                 <tr key={c.topic}>
@@ -135,15 +138,64 @@ export function ProgressView() {
                   <td className="mono">{c.attempted}/{c.total}</td>
                   <td className="w-40"><div className="meter"><i style={{ width: `${c.total ? (c.attempted / c.total) * 100 : 0}%` }} /></div></td>
                   <td className="mono">{pct(c.unaidedRate)}</td>
+                  <td>
+                    {dueByTopic[c.topic] ? (
+                      <button
+                        className="chip chip--violet"
+                        title={`${dueByTopic[c.topic]} flashcard${dueByTopic[c.topic] === 1 ? '' : 's'} due on ${c.topic}`}
+                        onClick={() => openDeep('/apps/flashcards/')}
+                      >
+                        {dueByTopic[c.topic]} due →
+                      </button>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
-              {!coverage.length && <tr><td colSpan={4} className="text-[12px] text-[var(--color-ink-faint)]">no topics yet</td></tr>}
+              {!coverage.length && <tr><td colSpan={5} className="text-[12px] text-[var(--color-ink-faint)]">no topics yet</td></tr>}
             </tbody>
           </table>
         </section>
       </div>
     </div>
   );
+}
+
+/* iterra bridge — due flashcards per topic (docs/ADAPTER.md):
+   store.list({app:'flashcards'}) filtered by topic/title/course/deck-name
+   match rides to the deck app. Guarded — standalone shows nothing. */
+function useDueCardsByTopic(topics: string[]): Record<string, number> {
+  const [due, setDue] = useState<Record<string, number>>({});
+  useEffect(() => {
+    let live = true;
+    setDue({});
+    const it = (window as any).iterra;
+    if (!it?.store?.list || !topics.length) return;
+    const norm = (s: unknown) => String(s ?? '').toLowerCase().trim();
+    (async () => {
+      const [cards, decks] = await Promise.all([
+        it.store.list({ app: 'flashcards', type: 'card' }).catch(() => []),
+        it.store.list({ app: 'flashcards', type: 'deck' }).catch(() => []),
+      ]);
+      if (!live) return;
+      const deckTitle = new Map((decks || []).map((d: any) => [d.id, norm(d.title)]));
+      const counts: Record<string, number> = {};
+      const now = Date.now();
+      for (const c of cards || []) {
+        const dueAt = c?.data?.dueAt;
+        if (dueAt == null || dueAt > now) continue;
+        const hay = [norm(c.data?.topic), norm(c.title), norm(c.sub), norm(c.course), deckTitle.get(c.data?.deckId) || ''].join(' | ');
+        for (const t of topics) {
+          const nt = norm(t);
+          if (nt && hay.includes(nt)) { counts[t] = (counts[t] || 0) + 1; break; }
+        }
+      }
+      if (live) setDue(counts);
+    })();
+    return () => {
+      live = false;
+    };
+  }, [topics.join('|')]);
+  return due;
 }
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {

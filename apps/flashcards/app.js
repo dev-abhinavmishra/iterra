@@ -765,6 +765,7 @@ function renderDeckMeta(d) {
     `<span>${relTime(d.lastStudiedAt)}</span>` +
     (d.flipped ? `<span>sides swapped</span>` : '') +
     proofCtxSpan(d);
+  renderDeckBridge(d);
 }
 
 /* "proof session · <topic>" context on decks proof exported — only when the
@@ -776,6 +777,76 @@ function proofCtxSpan(d) {
   if (!e || e.by !== 'proof' || !e.v || e.v.active !== true ||
       !Number.isFinite(e.at) || Date.now() - e.at > 10 * 60 * 1000) return '';
   return `<span>proof session · ${esc(e.v.topic || 'untitled')}</span>`;
+}
+
+/* ── terrain bridge — deck-level hops + per-card sources (docs/ADAPTER.md):
+   '#/c/<code>' opens the dossier; it.send delivers real intakes
+   (timer.start, log.activity); a card's 'from' backlink is
+   links.for(cardKey).inn resolved against store entities. Standalone —
+   no window.iterra — the strip stays empty. */
+
+let _bridgeDeckId = null;   // which deck the 'logged' ack belongs to
+let _bridgeLogged = false;
+
+function renderDeckBridge(d) {
+  const host = $('deck-bridge');
+  if (!host) return;
+  const it = window.iterra;
+  if (!it || !it.store || !d) { host.innerHTML = ''; _bridgeDeckId = null; _bridgeLogged = false; return; }
+  if (d.id !== _bridgeDeckId) { _bridgeDeckId = d.id; _bridgeLogged = false; }
+  host.innerHTML =
+    (d.course ? `<button class="bridge-chip" data-bact="dossier" title="Open the ${esc(d.course)} dossier">dossier →</button>` : '') +
+    `<button class="bridge-chip" data-bact="session" title="Start a 25-minute session on this deck">session →</button>` +
+    (_bridgeLogged
+      ? `<span class="bridge-chip logged">logged to the register ✓</span>`
+      : `<button class="bridge-chip" data-bact="log" title="Stamp a review on the rhythm register">log a review →</button>`);
+  host.querySelectorAll('[data-bact]').forEach(btn => btn.addEventListener('click', () => {
+    const act = btn.dataset.bact;
+    if (act === 'dossier') { try { it.open(`#/c/${encodeURIComponent(d.course)}`); } catch {} return; }
+    if (!it.send) return;
+    btn.disabled = true;
+    const req = act === 'session'
+      ? { to: 'timer', action: 'timer.start', payload: { label: `review ${d.title}`, minutes: 25, course: d.course, courseId: d.courseId } }
+      : { to: 'rhythm', action: 'log.activity', payload: { kind: 'review', label: `reviewed ${d.title}`, course: d.course, courseId: d.courseId } };
+    it.send(req).then(res => {
+      if (act === 'session') { try { it.open ? it.open((res && res.url) || '/apps/timer/') : window.open('/apps/timer/', '_blank'); } catch {} }
+      else { _bridgeLogged = true; renderDeckBridge(d); toast('Logged on the register'); }
+    }).catch(() => { btn.disabled = false; });
+  }));
+}
+
+/* per-card source backlink — a note/attempt that derived this card rides
+   in as a link ('margin:note:x' → 'flashcards:card:y', 'derived'|'retest');
+   resolve the other end for a real title/url before offering the jump. */
+function wireCardSources(table, d) {
+  const it = window.iterra;
+  if (!it?.links?.for || !it?.store?.get) return;
+  const live = new Set(d.cards.map(c => c.id));
+  table.querySelectorAll('.card-row[data-id]').forEach(row => {
+    const id = row.dataset.id;
+    if (!live.has(id)) return;
+    it.links.for(`flashcards:card:${id}`).then(res => {
+      const l = (((res && res.inn) || []).find(x => x && typeof x.from === 'string'));
+      if (!l || !row.isConnected) return null;
+      const app = String(l.from).split(':')[0];
+      return it.store.get(l.from).then(ent => ({ app, ent })).catch(() => ({ app, ent: null }));
+    }).then(hit => {
+      if (!hit || !row.isConnected) return;
+      const cell = row.querySelector('.cell.def');
+      if (!cell || cell.querySelector('.source-chip')) return;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'source-chip';
+      b.textContent = `from ${hit.app} →`;
+      b.title = (hit.ent && hit.ent.title) ? String(hit.ent.title) : `linked ${hit.app} entity`;
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        const url = (hit.ent && hit.ent.url) || `/apps/${hit.app}/`;
+        try { it.open ? it.open(url) : window.open(url, '_blank'); } catch { window.open(url, '_blank'); }
+      });
+      cell.appendChild(b);
+    }).catch(() => {});
+  });
 }
 
 function statStripHTML(d) {
@@ -1355,6 +1426,7 @@ function renderEditor() {
   }
   wireEditorRows(table);
   wireDrag(table);
+  wireCardSources(table, d);
 }
 
 function wireEditorRows(table) {
