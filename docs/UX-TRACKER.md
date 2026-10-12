@@ -63,10 +63,10 @@ and e2e-verified where the surface is user-visible.
 - [x] 46 Palette send-to keyed by stable identity (shipped — survives polls)
 - [ ] 47 Palette entity detail: selected hit → field drawer + action verbs
 - [ ] 48 Palette recency: empty query shows recent entities first
-- [ ] 49 Pending-intake badge on rail entries + switcher ("2 waiting")
+- [x] 49 Pending-intake badge on rail entries + switcher ("2 waiting")
 - [ ] 50 Terrain rail entries actionable (extend ledger verbs → pending intake chips)
 - [ ] 51 Terrain "now" strip: running session + next commitment atop the map
-- [ ] 52 Dossier backlinks section — links.for(course) readout ("what's linked here")
+- [x] 52 Dossier backlinks section — links.for(course) readout ("what's linked here")
 - [x] 53 Dossier session log: this course's sessions with minutes
 - [ ] 54 Dossier grade chip: latest grade + delta vs previous
 - [ ] 55 Dossier "related" — courses sharing a topic
@@ -75,11 +75,11 @@ and e2e-verified where the surface is user-visible.
 - [x] 58 "open solo" also copies the deep-link
 - [ ] 59 Watchdog banner gains a "retry" that auto-fires once
 - [ ] 60 Wake-refresh pulse on frame re-entry (subtle, skip if noisy)
-- [ ] 61 `?` opens a shortcut cheatsheet
-- [ ] 62 prefers-reduced-motion audit pass on new motion
+- [x] 61 `?` opens a shortcut cheatsheet
+- [x] 62 prefers-reduced-motion audit pass on new motion
 - [ ] 63 Terrain footer: store stats (N entities · M events · K links)
 - [x] 64 "/" hint lives on the rail, not only the search button
-- [ ] 65 Send-to menu names the place, not just the action
+- [x] 65 Send-to menu names the place, not just the action
 
 ## D. In-app bridge surfaces — each app shows its siblings
 
@@ -111,10 +111,10 @@ and e2e-verified where the surface is user-visible.
 
 ## E. Contracts + data layer
 
-- [ ] 91 Pause-aware shared.focus (paused + remainingMin published)
-- [ ] 92 `timer.control` documented in ADAPTER.md
-- [ ] 93 `routine.plan` documented in ADAPTER.md
-- [ ] 94 `problem.create` documented in ADAPTER.md
+- [x] 91 Pause-aware shared.focus (paused + remainingMin published)
+- [x] 92 `timer.control` documented in ADAPTER.md
+- [x] 93 `routine.plan` documented in ADAPTER.md
+- [x] 94 `problem.create` documented in ADAPTER.md
 - [ ] 95 Intake {toast} contract: a drained intake may surface a toast line
 - [ ] 96 links.for surfaced in palette entity detail
 - [ ] 97 Catalogue: `routine.planned`, `session.paused`, `session.resumed`
@@ -126,7 +126,7 @@ and e2e-verified where the surface is user-visible.
 
 - [ ] 101 Ambient rail anim-rise consistent with the terrain's motion system
 - [ ] 102 Countdown digits borrow the timer's split-flap character in miniature
-- [ ] 103 Session pill breathes in the final minute
+- [x] 103 Session pill breathes in the final minute
 - [ ] 104 Send-to menu springs (not pop-in)
 - [ ] 105 Dossier verbs stagger on mount
 
