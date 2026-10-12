@@ -467,6 +467,29 @@ export function registerAdapter() {
         }
         return { url: '/apps/rhythm/' };
       },
+      /* {name, course?, courseId?, dueAt?, perWeek?, minutes?, unit?} →
+         a real Routine on the register: syllabus's 'plan on the register'
+         sends a commitment here so it's scheduled where marks happen.
+         The canonical course key is projected into a local ref first. */
+      'routine.plan': async (rec: any) => {
+        const p = (rec?.payload ?? {}) as Record<string, any>;
+        const name = typeof p.name === 'string' && p.name.trim() ? p.name.trim() : rec?.entity?.title;
+        if (!name) return { ok: false };
+        const cid = await projectCourse(p);
+        const due = typeof p.dueAt === 'string' ? p.dueAt.slice(0, 10) : undefined;
+        const minutes = Number(p.minutes) > 0 ? Math.round(Number(p.minutes)) : undefined;
+        const routine = useRegister.getState().addRoutine({
+          name,
+          measure: 'count',
+          unit: p.unit || (minutes ? 'min' : 'times'),
+          perWeek: Math.max(1, Math.min(14, Math.round(Number(p.perWeek) || 1))),
+          weekdays: [0, 1, 2, 3, 4, 5, 6],
+          minimumLabel: minutes ? `${minutes}m` : undefined,
+          courseId: cid || undefined,
+          windowEnd: due,
+        });
+        return { url: `/apps/rhythm/?routine=${encodeURIComponent(routine.name)}` };
+      },
     },
     /* a keep-alive frame waking up: re-run the diff in case it missed ticks */
     wake: () => {

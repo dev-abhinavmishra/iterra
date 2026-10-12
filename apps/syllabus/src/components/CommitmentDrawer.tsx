@@ -92,6 +92,33 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
     }
   };
 
+  // transfer UX: file this commitment ONTO rhythm's register — it lands as a
+  // real routine (due-date window, minutes as the minimum) so planning
+  // happens where marks happen.
+  const planOnRegister = async () => {
+    const it = (window as any).iterra;
+    if (!it?.send) return;
+    const res = await it.send({
+      to: 'rhythm',
+      action: 'routine.plan',
+      payload: {
+        name: commitment.title,
+        courseId: `syllabus:course:${commitment.courseId}`,
+        course: course?.code,
+        dueAt: commitment.dueAt,
+        minutes: commitment.estimatedMinutes || undefined,
+      },
+    });
+    const url = res?.ok ? res.url : null;
+    if (!url) return;
+    try {
+      if (it.open) it.open(url);
+      else openDeep(url);
+    } catch {
+      /* navigation is best-effort */
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-40 flex justify-end bg-[rgb(var(--desk-rgb)/0.6)]"
@@ -344,6 +371,15 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
               title="Start a bound focus session in Timer"
             >
               <Timer size={13} /> Focus with Timer
+            </button>
+          )}
+          {commitment.status !== 'done' && (window as any).iterra?.send && (
+            <button
+              className="btn btn--ghost inline-flex items-center gap-1.5"
+              onClick={() => void planOnRegister()}
+              title="Plan it on rhythm's register — lands as a routine"
+            >
+              Plan on the register
             </button>
           )}
           <button

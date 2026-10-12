@@ -99,6 +99,26 @@ export function Dossier({
     setSent(r.ok ? 'session queued for the instruments' : `couldn't start — ${r.error || 'no hub'}`);
     window.setTimeout(() => setSent(null), 4000);
   };
+  /* the transfer verb: hand this course's next commitment to rhythm's
+     register — it lands as a real routine (due window + minutes), so
+     planning happens where marks happen. */
+  const planRegister = async () => {
+    const src = nextCommit;
+    const r = await sendTo({
+      to: 'rhythm',
+      action: 'routine.plan',
+      payload: {
+        name: src?.title || `${display} study`,
+        courseId,
+        course: display,
+        dueAt: src?.data?.dueAt,
+        minutes: src?.data?.estimatedMinutes,
+      },
+    });
+    if (r.url) { onGo(r.url); return; }
+    setSent(r.ok ? 'queued for the register' : `couldn't plan — ${r.error || 'no hub'}`);
+    window.setTimeout(() => setSent(null), 4000);
+  };
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
   const pinnedUrls = new Set(pins.map((p) => p.url));
@@ -223,6 +243,13 @@ export function Dossier({
                 next: {nextCommit.title} →
               </button>
             )}
+            <button
+              onClick={planRegister}
+              className="rounded-md border border-atlas-300 bg-atlas-50 px-3 py-1.5 text-[12px] font-medium text-field-faint hover:border-moss-400 hover:text-moss-700"
+              title="file the next commitment on rhythm's register as a routine"
+            >
+              plan on the register →
+            </button>
             <span className="text-[11.5px] text-atlas-500">
               {[
                 sessionMins > 0 ? `${sessionMins}m logged` : null,
