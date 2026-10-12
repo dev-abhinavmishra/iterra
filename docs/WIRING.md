@@ -122,7 +122,11 @@ Also honored:
   (standalone — no `from=` gate; unknown names degrade to a plain open)
 - **syllabus**: `?block=<id>` → select that work slip on Today (stashed at
   boot, consumed once blocks hydrate — the subscribe-retry guards the
-  persist-hydration race)
+  persist-hydration race); `?commitment=<id>` → open that commitment's
+  drawer (index entities for uncovered commitments link here; ghost ids
+  degrade silently)
+- **gradestack**: `?scanId=<id>` → open that sheet's review modal
+  (one-shot, strips; `testId` stays as the working filter)
 
 Match each app's existing param-stripping style (`history.replaceState`).
 
@@ -200,6 +204,25 @@ is the `/apps/<name>/...` deep link back to the thing that changed.
 file a stir under its course even when the text never spells the key and
 the url isn't an indexed entity. Pass them whenever the event has a known
 course/topic; never synthesize from titles.
+
+A **bulk filing is one event, not N** — per-record stirs are suppressed
+during a filing wave and the caller emits one summary stir; suppressed
+records still index. Syllabus pattern: `beginBulkFeed()`/`endBulkFeed()`
+(module-level depth gate in the store) + `stir()` for the summary
+(`commitments filed: N · <code>`, `commitments seeded: N`, `courses
+filed: N`). Gradestack pattern: `_mergedIds`, a transient un-partialed
+store field the ambient watcher skips emit for; mergeRemote/importData
+populate it (`register synced: N`, `register restored: N`).
+
+**Announce only trusted states** — gradestack's needsReview fork is the
+model: a flagged sheet's grade is provisional, so arrival emits
+`scanned: <test> — needs review` (no pct), `marked: <test> · <pct>` only
+for trusted grades, and `scan reviewed: <student> · <pct>` when the flag
+actually clears (a re-grade that stays flagged emits nothing).
+
+Stirs may emit from a **store-subscription watcher** (set-diffing in
+`lib/iterra.ts`), not only action call-sites — additions arriving through
+any path (sync, import, duplication) announce once.
 
 Rules: publish on mount + whenever the underlying state changes (not on a
 timer — presence already heartbeats). Read defensively (`at` freshness,
