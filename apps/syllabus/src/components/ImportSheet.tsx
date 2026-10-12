@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useFolio } from '../store';
+import { beginBulkFeed, endBulkFeed, stir, useFolio } from '../store';
 import { Field, FInput, FSelect } from './Field';
 import { parseImportPayload, type ImportPayload, type ImportRow } from '../lib/import';
 import { cn, fmtMinutes } from '../lib/utils';
@@ -90,19 +90,30 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
       });
       courseId = c.id;
     }
-    for (const r of checked) {
-      s.addCommitment({
-        courseId,
-        type: r.type,
-        title: r.title,
-        detail: r.detail,
-        dueAt: r.dueAt,
-        weight: r.weight,
-        estimatedMinutes: r.estimatedMinutes,
-        pinned: false,
-        dependencies: [],
-        recurrence: r.recur ? 'weekly' : undefined,
-      });
+    beginBulkFeed();
+    try {
+      for (const r of checked) {
+        s.addCommitment({
+          courseId,
+          type: r.type,
+          title: r.title,
+          detail: r.detail,
+          dueAt: r.dueAt,
+          weight: r.weight,
+          estimatedMinutes: r.estimatedMinutes,
+          pinned: false,
+          dependencies: [],
+          recurrence: r.recur ? 'weekly' : undefined,
+        });
+      }
+    } finally {
+      endBulkFeed();
+    }
+    const code = useFolio.getState().courses[courseId]?.code;
+    if (checked.length > 1) {
+      stir(`commitments filed: ${checked.length} · ${code ?? 'no course'}`, '/apps/syllabus/', code);
+    } else {
+      stir(`commitment filed: ${checked[0].title}`, '/apps/syllabus/', code);
     }
     setFiled(checked.length);
   };

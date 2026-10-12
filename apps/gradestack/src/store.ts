@@ -399,6 +399,9 @@ export const useStore = create<AppState>()(
             ...(data.settings?.gradingScale ? { gradingScale: data.settings.gradingScale } : {}),
             ...(typeof data.settings?.partialCredit === 'boolean' ? { partialCredit: data.settings.partialCredit } : {}),
             ...(theme === 'system' || theme === 'light' || theme === 'dark' ? { theme } : {}),
+            // imported ids ride the same suppression channel as cloud merges —
+            // 'register restored' announces the wave; per-record stirs held
+            _mergedIds: new Set([...newTests, ...newScans].map((x) => x.id)),
           });
           const n = newTests.length + newScans.length;
           if (n) stir(`register restored: ${n} record${n === 1 ? '' : 's'}`, '/apps/gradestack/');

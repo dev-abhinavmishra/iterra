@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
-import { useFolio, selectActiveTerm, selectTermCourses, selectCourseCommitments } from '../store';
+import { useFolio, selectActiveTerm, selectTermCourses, selectCourseCommitments, beginBulkFeed, endBulkFeed, stir } from '../store';
 import { Field, FInput, FSelect } from '../components/Field';
 import { Stamp } from '../components/Stamp';
 import { courseColorVar, nextCourseColor, COURSE_COLORS } from '../lib/colors';
@@ -410,17 +410,27 @@ const TEMPLATES = {
 type TemplateKind = keyof typeof TEMPLATES;
 
 function seedTemplate(s: ReturnType<typeof useFolio.getState>, courseId: string, kind: TemplateKind, termStart: string) {
-  for (const t of TEMPLATES[kind]) {
-    s.addCommitment({
-      courseId,
-      type: t.type,
-      title: t.title,
-      dueAt: isoAtTime(addDaysISO(termStart, t.offset), '23:59'),
-      weight: t.weight,
-      estimatedMinutes: t.minutes,
-      recurrence: 'recurrence' in t ? 'weekly' : undefined,
-    });
+  // one filing event: per-row stirs held, a single summary announces the seed
+  beginBulkFeed();
+  try {
+    for (const t of TEMPLATES[kind]) {
+      s.addCommitment({
+        courseId,
+        type: t.type,
+        title: t.title,
+        dueAt: isoAtTime(addDaysISO(termStart, t.offset), '23:59'),
+        weight: t.weight,
+        estimatedMinutes: t.minutes,
+        recurrence: 'recurrence' in t ? 'weekly' : undefined,
+      });
+    }
+  } finally {
+    endBulkFeed();
   }
+  // `s` is the caller's render snapshot — taken before addCourse — so the
+  // new course isn't in it; read fresh state for the stir's course key
+  const code = useFolio.getState().courses[courseId]?.code;
+  stir(`commitments seeded: ${TEMPLATES[kind].length} · ${code ?? 'course'}`, '/apps/syllabus/', code);
 }
 
 /* ── Filed terms — file a new term or amend the active one ── */

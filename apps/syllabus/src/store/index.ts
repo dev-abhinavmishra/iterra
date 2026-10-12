@@ -95,14 +95,23 @@ interface FolioState extends FolioData {
   resetFolio: () => void;
 }
 
+/* While a bulk filing runs (import rows, template seeding, onboarding
+   course intake), per-row stirs are held — the caller emits ONE summary
+   stir after endBulkFeed; a filing wave is one event, not N. */
+let bulkFeedDepth = 0;
+export const beginBulkFeed = () => { bulkFeedDepth += 1; };
+export const endBulkFeed = () => { bulkFeedDepth = Math.max(0, bulkFeedDepth - 1); };
+
 // Unified activity stream (docs/WIRING.md §7): emit only real state changes.
 const feed = (text: string, url?: string, course?: string) => {
+  if (bulkFeedDepth) return;
   try {
     (window as any).iterra?.feed?.({ text, url, course });
   } catch {
     /* feed is best-effort */
   }
 };
+export const stir = feed;
 
 const EMPTY_DATA: FolioData = {
   terms: {},

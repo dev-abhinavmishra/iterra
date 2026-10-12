@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { useFolio } from '../store';
+import { useFolio, beginBulkFeed, endBulkFeed, stir } from '../store';
 import { Field, FInput, FSelect } from '../components/Field';
 import { Stamp } from '../components/Stamp';
 import { addDaysISO, stampDate } from '../lib/utils';
@@ -63,14 +63,20 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       endDate,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
-    for (const r of filled) {
-      addCourse({
-        termId: term.id,
-        code: r.code.trim() || r.name.trim().slice(0, 8).toUpperCase() || 'COURSE',
-        name: r.name.trim() || r.code.trim() || 'Untitled',
-        color: r.color,
-      });
+    beginBulkFeed();
+    try {
+      for (const r of filled) {
+        addCourse({
+          termId: term.id,
+          code: r.code.trim() || r.name.trim().slice(0, 8).toUpperCase() || 'COURSE',
+          name: r.name.trim() || r.code.trim() || 'Untitled',
+          color: r.color,
+        });
+      }
+    } finally {
+      endBulkFeed();
     }
+    stir(`courses filed: ${filled.length}`, '/apps/syllabus/');
     onDone();
   };
 
