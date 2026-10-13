@@ -332,7 +332,7 @@ export function Dossier({
     ((fv.course && String(fv.course).toLowerCase() === key) || (fv.blockId && focusIds.has(fv.blockId)));
   const knownKeys = [...new Set(
     Object.values(indexes).flatMap((list) =>
-      (list || []).flatMap((e) => [e.course, e.topic].filter(Boolean) as string[]),
+      (list || []).flatMap((e) => (e ? [e.course, e.topic].filter(Boolean) : []) as string[]),
     ),
   )].filter((k) => k.toLowerCase() !== key).slice(0, 6);
 
