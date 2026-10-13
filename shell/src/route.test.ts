@@ -14,21 +14,21 @@ const store: Record<string, string> = {};
 
 describe('parseHash', () => {
   it('terrain on empty/root', () => {
-    expect(parseHash('')).toEqual({ place: '', course: '' });
-    expect(parseHash('#/')).toEqual({ place: '', course: '' });
+    expect(parseHash('')).toEqual({ place: '', course: '', query: '' });
+    expect(parseHash('#/')).toEqual({ place: '', course: '', query: '' });
   });
   it('place route', () => {
-    expect(parseHash('#/p/ink')).toEqual({ place: 'ink', course: '' });
+    expect(parseHash('#/p/ink')).toEqual({ place: 'ink', course: '', query: '' });
   });
   it('unknown place falls back to terrain', () => {
-    expect(parseHash('#/p/nope')).toEqual({ place: '', course: '' });
+    expect(parseHash('#/p/nope')).toEqual({ place: '', course: '', query: '' });
   });
   it('course route decodes the key', () => {
-    expect(parseHash('#/c/MTH')).toEqual({ place: '', course: 'MTH' });
-    expect(parseHash('#/c/Early%20Modern')).toEqual({ place: '', course: 'Early Modern' });
+    expect(parseHash('#/c/MTH')).toEqual({ place: '', course: 'MTH', query: '' });
+    expect(parseHash('#/c/Early%20Modern')).toEqual({ place: '', course: 'Early Modern', query: '' });
   });
   it('course wins over trailing place text', () => {
-    expect(parseHash('#/c/MTH')).not.toEqual({ place: 'c', course: '' });
+    expect(parseHash('#/c/MTH')).not.toEqual({ place: 'c', course: '', query: '' });
   });
 });
 

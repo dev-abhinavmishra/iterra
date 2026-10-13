@@ -383,7 +383,7 @@
      iterra.v1.quarantine (cap 20) so a bad publisher can't corrupt readers.
      ═══════════════════════════════════════════════════════════════════════ */
 
-  var SCHEMA_V = 1;
+  var SCHEMA_V = 2;
   var DB_NAME = 'iterra';
   var DB_V = 1;
   var ENTITY_TYPES = {
@@ -391,7 +391,24 @@
     deck: 1, quiz: 1, problem: 1, attempt: 1, session: 1, goal: 1,
     grade: 1, routine: 1, experiment: 1, assessment: 1, block: 1,
     commitment: 1, link: 1, event: 1, scan: 1, entry: 1,
+    topic: 1, material: 1, followup: 1, task: 1, workflow: 1,
   };
+
+  /* Explicit relationship kinds + legacy alias normalization */
+  var RELATIONSHIP_KINDS = {
+    derivedFrom: 'derivedFrom',
+    derived: 'derivedFrom',
+    scheduledFor: 'scheduledFor',
+    practicedIn: 'practicedIn',
+    assessedBy: 'assessedBy',
+    followUpFor: 'followUpFor',
+    retest: 'followUpFor',
+    related: 'related',
+  };
+  function normalizeRelKind(kind) {
+    if (!kind || typeof kind !== 'string') return 'related';
+    return RELATIONSHIP_KINDS[kind] || kind;
+  }
 
   /* The documented event catalogue. emit() accepts only these — an unknown
      verb is a contract bug and gets rejected like a malformed entity. */
@@ -407,6 +424,14 @@
     'routine.logged': 1, 'routine.completed': 1, 'routine.planned': 1,
     'session.paused': 1, 'session.resumed': 1,
     'deck.imported': 1, 'send.delivered': 1, 'intake.resolved': 1, 'stir': 1,
+    /* explicit cross-module workflow outcome events */
+    'deckCreated': 1, 'materialAttached': 1, 'reviewBlockScheduled': 1,
+    'focusSessionStarted': 1, 'focusSessionCompleted': 1,
+    'focusSessionInterrupted': 1, 'focusSessionCanceled': 1,
+    'followUpTaskCreated': 1, 'sourceMaterialAttached': 1,
+    'problemRetryScheduled': 1, 'targetedReviewCreated': 1,
+    'studyActivityLogged': 1, 'sourceChanged': 1, 'sourceChangeReviewed': 1,
+    'contextUpdated': 1, 'commandExecuted': 1, 'commandFailed': 1,
   };
 
   var STORE_BUCKETS = ['entities', 'events', 'links', 'intakes', 'meta'];
@@ -542,10 +567,19 @@
   }
 
   function validateRef(ref) {
-    // refs are 'app:type:id' strings or {app,type,id}
-    if (typeof ref === 'string' && ref.split(':').length === 3) return ref;
-    if (ref && typeof ref === 'object' && typeof ref.app === 'string' && typeof ref.type === 'string' && typeof ref.id === 'string') {
-      return ref.app + ':' + ref.type + ':' + ref.id;
+    // refs are 'app:type:id' strings or {key} or {app,type,id}
+    if (typeof ref === 'string') {
+      var parts = ref.split(':');
+      if (parts.length >= 3 && parts[0] && parts[1] && parts.slice(2).join(':')) {
+        return parts[0] + ':' + parts[1] + ':' + parts.slice(2).join(':');
+      }
+      return null;
+    }
+    if (ref && typeof ref === 'object') {
+      if (typeof ref.key === 'string') return validateRef(ref.key);
+      if (typeof ref.app === 'string' && typeof ref.type === 'string' && typeof ref.id === 'string' && ref.app && ref.type && ref.id) {
+        return ref.app + ':' + ref.type + ':' + ref.id;
+      }
     }
     return null;
   }
@@ -554,7 +588,7 @@
 
   var _bc = null;
   try { if (typeof BroadcastChannel !== 'undefined') _bc = new BroadcastChannel('iterra.core.v1'); } catch (e) { _bc = null; }
-  var _subs = { entity: [], event: [], link: [], intake: [], any: [] };
+  var _subs = { entity: [], event: [], link: [], intake: [], context: [], command: [], any: [] };
   function _notify(kind, data) {
     var msg = { kind: kind, data: data, at: Date.now(), by: me || undefined };
     try { if (_bc) _bc.postMessage(msg); } catch (e) {}
@@ -914,16 +948,80 @@
     return function () { _subs.event = _subs.event.filter(function (f) { return f !== h; }); };
   }
 
-  /* ── links — generic edges between entities. Backlinks queryable. ── */
+  /* ── links — typed relationships between entities. Backlinks queryable. ── */
 
   function linkKey(from, to, kind) { return from + '|' + (kind || 'related') + '|' + to; }
-  function linkAdd(fromRef, toRef, kind) {
+  function attachLinkArrayHelpers(res) {
+    var all = (res.out || []).concat(res.inn || []);
+    try {
+      Object.defineProperty(res, 'all', { value: all, enumerable: false, configurable: true });
+      ['map', 'filter', 'slice', 'forEach', 'find', 'some', 'every'].forEach(function (fn) {
+        if (typeof Array.prototype[fn] === 'function') {
+          Object.defineProperty(res, fn, {
+            value: function () { return Array.prototype[fn].apply(all, arguments); },
+            enumerable: false,
+            configurable: true,
+          });
+        }
+      });
+      if (typeof Symbol !== 'undefined' && Symbol.iterator) {
+        Object.defineProperty(res, Symbol.iterator, {
+          value: function () { return all[Symbol.iterator](); },
+          enumerable: false,
+          configurable: true,
+        });
+      }
+    } catch (e) {}
+    return res;
+  }
+
+  function linkAdd(fromRef, toRef, kind, meta) {
+    var opts = null;
+    if (fromRef && typeof fromRef === 'object' && toRef === undefined && (fromRef.from || fromRef.source)) {
+      opts = fromRef;
+      fromRef = opts.from || opts.source;
+      toRef = opts.to || opts.target;
+      kind = opts.kind || opts.type;
+      meta = opts.meta;
+    }
     var from = validateRef(fromRef), to = validateRef(toRef);
     if (!from || !to) return Promise.resolve(badWrite('link refs must be app:type:id', { from: fromRef, to: toRef }));
-    var rec = { key: linkKey(from, to, kind), from: from, to: to, kind: kind || 'related', by: me || '?', at: Date.now() };
+    var rawKind = kind || 'related';
+    var canonicalKind = normalizeRelKind(rawKind);
+    var now = Date.now();
+    var cleanMeta = meta && typeof meta === 'object' ? Object.assign({}, meta) : undefined;
+    var rec = {
+      key: linkKey(from, to, rawKind),
+      from: from,
+      to: to,
+      kind: rawKind,
+      canonicalKind: canonicalKind,
+      by: (opts && opts.by) || me || '?',
+      at: (opts && typeof opts.at === 'number') ? opts.at : now,
+      updatedAt: now,
+    };
+    if (opts && opts.courseId) rec.courseId = String(opts.courseId);
+    else if (cleanMeta && cleanMeta.courseId) rec.courseId = String(cleanMeta.courseId);
+    if (opts && opts.course) rec.course = String(opts.course);
+    else if (cleanMeta && cleanMeta.course) rec.course = String(cleanMeta.course);
+    if (opts && opts.topic) rec.topic = String(opts.topic);
+    else if (cleanMeta && cleanMeta.topic) rec.topic = String(cleanMeta.topic);
+    if (opts && opts.workflowId) rec.workflowId = String(opts.workflowId);
+    else if (cleanMeta && cleanMeta.workflowId) rec.workflowId = String(cleanMeta.workflowId);
+    if (cleanMeta) rec.meta = cleanMeta;
+
     return openDB().then(function (d) {
-      if (d) return idbTx(d, 'links', 'readwrite', function (s) { s.put(rec); });
+      if (d) {
+        return idbTx(d, 'links', 'readonly', function (s) { return s.get(rec.key); }).then(function (prev) {
+          if (prev && prev.at) rec.at = prev.at;
+          if (prev && prev.meta && rec.meta) rec.meta = Object.assign({}, prev.meta, rec.meta);
+          return idbTx(d, 'links', 'readwrite', function (s) { s.put(rec); });
+        });
+      }
       var b = lsRead('links');
+      var prev = b[rec.key];
+      if (prev && prev.at) rec.at = prev.at;
+      if (prev && prev.meta && rec.meta) rec.meta = Object.assign({}, prev.meta, rec.meta);
       b[rec.key] = rec;
       var keys = Object.keys(b);
       if (keys.length > LS_CAPS.links) for (var i = LS_CAPS.links; i < keys.length; i++) delete b[keys[i]];
@@ -933,30 +1031,80 @@
       return { ok: true, link: rec };
     });
   }
+
+  function linkUpdateMeta(fromRef, toRef, kind, patchMeta) {
+    var from = validateRef(fromRef), to = validateRef(toRef);
+    if (!from || !to) return Promise.resolve(badWrite('link refs must be app:type:id', { from: fromRef, to: toRef }));
+    var rawKind = kind || 'related';
+    var canon = normalizeRelKind(rawKind);
+    return linksList().then(function (rows) {
+      var target = (rows || []).find(function (l) {
+        return l && l.from === from && l.to === to && (l.kind === rawKind || normalizeRelKind(l.kind) === canon);
+      });
+      if (!target) {
+        return linkAdd(from, to, rawKind, patchMeta);
+      }
+      var mergedMeta = Object.assign({}, target.meta || {}, patchMeta || {});
+      return linkAdd({
+        from: target.from,
+        to: target.to,
+        kind: target.kind,
+        courseId: target.courseId,
+        course: target.course,
+        topic: target.topic,
+        workflowId: target.workflowId,
+        at: target.at,
+        meta: mergedMeta,
+      });
+    });
+  }
+
   function linkRemove(fromRef, toRef, kind) {
+    if (typeof fromRef === 'string' && toRef === undefined && fromRef.indexOf('|') >= 0) {
+      var directKey = fromRef;
+      return openDB().then(function (d) {
+        if (d) return idbTx(d, 'links', 'readwrite', function (s) { s.delete(directKey); });
+        var b = lsRead('links');
+        delete b[directKey];
+        lsWrite('links', b);
+      }).then(function () {
+        _notify('link', { op: 'remove', key: directKey });
+        return { ok: true };
+      });
+    }
     var from = validateRef(fromRef), to = validateRef(toRef);
     if (!from || !to) return Promise.resolve(badWrite('link refs', null));
     var key = linkKey(from, to, kind);
+    var altKey = linkKey(from, to, normalizeRelKind(kind));
     return openDB().then(function (d) {
-      if (d) return idbTx(d, 'links', 'readwrite', function (s) { s.delete(key); });
+      if (d) return idbTx(d, 'links', 'readwrite', function (s) {
+        s.delete(key);
+        if (altKey !== key) s.delete(altKey);
+      });
       var b = lsRead('links');
       delete b[key];
+      if (altKey !== key) delete b[altKey];
       lsWrite('links', b);
     }).then(function () {
       _notify('link', { op: 'remove', key: key });
       return { ok: true };
     });
   }
-  function linksFor(ref) {
+
+  function linksFor(ref, filterOpts) {
     var key = validateRef(ref);
-    if (!key) return Promise.resolve({ out: [], inn: [] });
+    if (!key) return Promise.resolve(attachLinkArrayHelpers({ out: [], inn: [] }));
+    var wantKind = filterOpts && filterOpts.kind ? normalizeRelKind(filterOpts.kind) : null;
     var collect = function (rows) {
       var out = [], inn = [];
       (rows || []).forEach(function (l) {
+        if (!l) return;
+        if (!l.canonicalKind) l.canonicalKind = normalizeRelKind(l.kind);
+        if (wantKind && l.canonicalKind !== wantKind && l.kind !== filterOpts.kind) return;
         if (l.from === key) out.push(l);
         if (l.to === key) inn.push(l);
       });
-      return { out: out, inn: inn };
+      return attachLinkArrayHelpers({ out: out, inn: inn });
     };
     return openDB().then(function (d) {
       if (d) return idbAll(d, 'links').then(collect);
@@ -965,12 +1113,40 @@
     });
   }
 
-  function linksList() {
-    return openDB().then(function (d) {
-      if (d) return idbAll(d, 'links');
-      var b = lsRead('links');
-      return Object.keys(b).map(function (k) { return b[k]; });
+  function linksBetween(refA, refB) {
+    var a = validateRef(refA), b = validateRef(refB);
+    if (!a || !b) return Promise.resolve([]);
+    return linksList().then(function (rows) {
+      return (rows || []).filter(function (l) {
+        return l && ((l.from === a && l.to === b) || (l.from === b && l.to === a));
+      });
     });
+  }
+
+  function linksList(filterOpts) {
+    var wantKind = filterOpts && filterOpts.kind ? normalizeRelKind(filterOpts.kind) : null;
+    var wantCourseId = filterOpts && filterOpts.courseId ? String(filterOpts.courseId) : null;
+    var wantCourse = filterOpts && filterOpts.course ? String(filterOpts.course).toLowerCase() : null;
+    var filter = function (rows) {
+      return (rows || []).filter(function (l) {
+        if (!l) return false;
+        if (!l.canonicalKind) l.canonicalKind = normalizeRelKind(l.kind);
+        if (wantKind && l.canonicalKind !== wantKind && l.kind !== filterOpts.kind) return false;
+        if (wantCourseId && l.courseId !== wantCourseId) return false;
+        if (wantCourse && String(l.course || '').toLowerCase() !== wantCourse) return false;
+        return true;
+      });
+    };
+    return openDB().then(function (d) {
+      if (d) return idbAll(d, 'links').then(filter);
+      var b = lsRead('links');
+      return filter(Object.keys(b).map(function (k) { return b[k]; }));
+    });
+  }
+
+  function linksSubscribe(cb) {
+    _subs.link.push(cb);
+    return function () { _subs.link = _subs.link.filter(function (f) { return f !== cb; }); };
   }
 
   /* ── intakes — typed send-to queue. A sender queues {to,action,entity,
@@ -1249,9 +1425,22 @@
                the toast would never surface (the original dead-emit bug). */
             var settled = [Promise.resolve(intakeResolve(rec.id, result)).catch(function () {})];
             /* journal every delivery — send.delivered is the always-on
-               record; intake.resolved below carries the optional toast */
+               record; intake.resolved below carries the optional toast.
+               Background actions (log.activity, timer.control) record their
+               resultUrl without setting `url` on send.delivered so the shell
+               doesn't hijack the user's current view on background work. */
+            var isBg = rec.action === 'log.activity' || rec.action === 'timer.control' ||
+              (rec.payload && rec.payload.background === true) ||
+              (result && result.navigate === false);
             try {
-              settled.push(Promise.resolve(eventEmit('send.delivered', { to: rec.to, action: rec.action, id: rec.id, url: (result && result.url) || undefined, by: me || undefined })).catch(function () {}));
+              settled.push(Promise.resolve(eventEmit('send.delivered', {
+                to: rec.to,
+                action: rec.action,
+                id: rec.id,
+                url: isBg ? undefined : ((result && result.url) || undefined),
+                resultUrl: (result && result.url) || undefined,
+                by: me || undefined,
+              })).catch(function () {}));
             } catch (e) {}
             if (result && typeof result.toast === 'string') {
               try {
@@ -1957,6 +2146,189 @@
     });
   };
 
+  /* ── continuous navigation & workflow context ──
+     Carries currentObject, courseId, course, topic, originatingWorkflow,
+     plannedBlock, and activeSession across module transitions and reloads.
+     Never fabricates course associations from passive visits. */
+  var CONTEXT_KEY = 'iterra.v1.context';
+  function contextGet() {
+    try {
+      var c = JSON.parse(localStorage.getItem(CONTEXT_KEY) || 'null');
+      return c && typeof c === 'object' && !Array.isArray(c) ? c : { updatedAt: 0 };
+    } catch (e) { return { updatedAt: 0 }; }
+  }
+  function contextSet(next) {
+    if (!next || typeof next !== 'object' || Array.isArray(next)) return contextGet();
+    var stamped = Object.assign({}, next, { updatedAt: Date.now(), updatedBy: me || next.updatedBy || undefined });
+    try { localStorage.setItem(CONTEXT_KEY, JSON.stringify(stamped)); } catch (e) {}
+    _notify('context', stamped);
+    try { window.dispatchEvent(new CustomEvent('iterra:context', { detail: stamped })); } catch (e) {}
+    return stamped;
+  }
+  function contextUpdate(patch) {
+    if (!patch || typeof patch !== 'object') return contextGet();
+    var cur = contextGet();
+    var next = Object.assign({}, cur, patch);
+    return contextSet(next);
+  }
+  function contextClear(keys) {
+    if (Array.isArray(keys) && keys.length) {
+      var cur = contextGet();
+      keys.forEach(function (k) { delete cur[k]; });
+      return contextSet(cur);
+    }
+    var empty = { updatedAt: Date.now() };
+    try { localStorage.setItem(CONTEXT_KEY, JSON.stringify(empty)); } catch (e) {}
+    _notify('context', empty);
+    try { window.dispatchEvent(new CustomEvent('iterra:context', { detail: empty })); } catch (e) {}
+    return empty;
+  }
+  function contextSubscribe(cb) {
+    var h = function (ev) {
+      if (ev.key === CONTEXT_KEY) { try { cb(contextGet()); } catch (e) {} }
+    };
+    var h2 = function (ev) {
+      if (ev && ev.detail) { try { cb(ev.detail); } catch (e) {} }
+    };
+    window.addEventListener('storage', h);
+    window.addEventListener('iterra:context', h2);
+    _subs.context.push(cb);
+    return function () {
+      window.removeEventListener('storage', h);
+      window.removeEventListener('iterra:context', h2);
+      _subs.context = _subs.context.filter(function (f) { return f !== cb; });
+    };
+  }
+
+  /* ── explicit commands — separate from events ──
+     Commands request work, validate inputs, carry object & course/topic
+     references, prevent duplicate side effects via idempotency keys, and
+     return a structured result { ok, commandId, ref, entity, relationships,
+     data, error, code } only after durable state is committed. */
+  var COMMANDS_KEY = 'iterra.v1.store.commands';
+  var COMMAND_CAP = 300;
+  var _cmdHandlers = {};
+  var _cmdInflight = {};
+
+  function readCommandsMap() {
+    try { return JSON.parse(localStorage.getItem(COMMANDS_KEY) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function writeCommandsMap(map) {
+    try {
+      var keys = Object.keys(map);
+      if (keys.length > COMMAND_CAP) {
+        keys.sort(function (a, b) { return (map[a].at || 0) - (map[b].at || 0); });
+        for (var i = 0; i < keys.length - COMMAND_CAP; i++) delete map[keys[i]];
+      }
+      localStorage.setItem(COMMANDS_KEY, JSON.stringify(map));
+    } catch (e) {}
+  }
+
+  function commandRegister(name, handler) {
+    if (typeof name !== 'string' || !name || typeof handler !== 'function') return function () {};
+    _cmdHandlers[name] = handler;
+    return function () { if (_cmdHandlers[name] === handler) delete _cmdHandlers[name]; };
+  }
+
+  function commandExec(name, input, opts) {
+    if (typeof name !== 'string' || !name.trim()) {
+      return Promise.resolve({ ok: false, code: 'INVALID_COMMAND', error: 'Command name is required' });
+    }
+    if (input !== undefined && (typeof input !== 'object' || input === null || Array.isArray(input))) {
+      return Promise.resolve({ ok: false, code: 'INVALID_INPUT', error: 'Command input must be an object' });
+    }
+    var payload = input || {};
+    opts = opts || {};
+    var idemKey = opts.idempotencyKey || payload.idempotencyKey || null;
+    if (idemKey) {
+      var mapKey = 'idem:' + name + ':' + String(idemKey);
+      if (_cmdInflight[mapKey]) return _cmdInflight[mapKey];
+      var existingMap = readCommandsMap();
+      var prior = existingMap[mapKey];
+      if (prior && prior.status === 'completed' && prior.result && prior.result.ok) {
+        return Promise.resolve(Object.assign({}, prior.result, { deduplicated: true, commandId: prior.commandId }));
+      }
+    }
+    var h = _cmdHandlers[name];
+    if (!h) {
+      return Promise.resolve({ ok: false, code: 'UNKNOWN_COMMAND', error: 'No handler registered for command: ' + name });
+    }
+    var cmdId = 'cmd-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    var run = Promise.resolve().then(function () {
+      return h(payload, { commandId: cmdId, by: me || opts.by || undefined, idempotencyKey: idemKey });
+    }).then(function (res) {
+      if (!res || typeof res !== 'object') {
+        res = { ok: false, code: 'EMPTY_RESULT', error: 'Command handler returned no result' };
+      }
+      var finalRes = Object.assign({ commandId: cmdId }, res);
+      var map = readCommandsMap();
+      var rec = {
+        commandId: cmdId,
+        name: name,
+        idempotencyKey: idemKey || undefined,
+        status: finalRes.ok ? 'completed' : 'failed',
+        result: finalRes,
+        by: me || opts.by || undefined,
+        at: Date.now(),
+      };
+      map[cmdId] = rec;
+      if (idemKey && finalRes.ok) {
+        map['idem:' + name + ':' + String(idemKey)] = rec;
+      }
+      writeCommandsMap(map);
+      _notify('command', rec);
+      return finalRes;
+    }).catch(function (err) {
+      var errMsg = (err && err.message) ? String(err.message) : String(err);
+      var failRes = { ok: false, commandId: cmdId, code: (err && err.code) || 'EXECUTION_ERROR', error: errMsg };
+      var map = readCommandsMap();
+      var rec = {
+        commandId: cmdId,
+        name: name,
+        idempotencyKey: idemKey || undefined,
+        status: 'failed',
+        result: failRes,
+        by: me || opts.by || undefined,
+        at: Date.now(),
+      };
+      map[cmdId] = rec;
+      writeCommandsMap(map);
+      _notify('command', rec);
+      return failRes;
+    }).finally(function () {
+      if (idemKey) delete _cmdInflight['idem:' + name + ':' + String(idemKey)];
+    });
+
+    if (idemKey) _cmdInflight['idem:' + name + ':' + String(idemKey)] = run;
+    return run;
+  }
+
+  function commandGet(idOrIdem) {
+    var map = readCommandsMap();
+    return Promise.resolve(map[idOrIdem] || null);
+  }
+
+  function commandsList(q) {
+    q = q || {};
+    var map = readCommandsMap();
+    var rows = Object.keys(map)
+      .filter(function (k) { return k.indexOf('idem:') !== 0; })
+      .map(function (k) { return map[k]; })
+      .filter(function (r) {
+        if (!r) return false;
+        if (q.name && r.name !== q.name) return false;
+        if (q.status && r.status !== q.status) return false;
+        return true;
+      })
+      .sort(function (a, b) { return (b.at || 0) - (a.at || 0); });
+    return Promise.resolve(typeof q.limit === 'number' ? rows.slice(0, q.limit) : rows);
+  }
+
+  function commandsOn(cb) {
+    _subs.command.push(cb);
+    return function () { _subs.command = _subs.command.filter(function (f) { return f !== cb; }); };
+  }
+
   window.iterra = {
     register: register,
     focus: focus,
@@ -2000,9 +2372,27 @@
     },
     links: {
       add: linkAdd,
+      updateMeta: linkUpdateMeta,
       remove: linkRemove,
       for: linksFor,
+      between: linksBetween,
       list: linksList,
+      subscribe: linksSubscribe,
+    },
+    context: {
+      get: contextGet,
+      set: contextSet,
+      update: contextUpdate,
+      clear: contextClear,
+      subscribe: contextSubscribe,
+    },
+    commands: {
+      register: commandRegister,
+      exec: commandExec,
+      get: commandGet,
+      list: commandsList,
+      on: commandsOn,
+      handlers: _cmdHandlers,
     },
     intakes: {
       send: intakeSend,
@@ -2016,6 +2406,12 @@
     send: send,
     adapter: adapter,
     sync: { attach: syncAttach, status: syncStatus },
-    core: { version: SCHEMA_V, eventTypes: EVENT_TYPES, entityTypes: ENTITY_TYPES },
+    core: {
+      version: SCHEMA_V,
+      eventTypes: EVENT_TYPES,
+      entityTypes: ENTITY_TYPES,
+      relationshipKinds: RELATIONSHIP_KINDS,
+      normalizeRelKind: normalizeRelKind,
+    },
   };
 })();
