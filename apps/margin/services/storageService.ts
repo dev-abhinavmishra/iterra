@@ -96,12 +96,18 @@ const NOTE_TYPES = new Set(['AUDIO', 'PDF', 'VIDEO', 'TEXT', 'IMAGE']);
 const isNoteRecord = (n: any): n is Note =>
     !!n && typeof n.id === 'string' && typeof n.content === 'string' && NOTE_TYPES.has(n.type);
 
+/* The cloud pull is a one-shot cold-start sync — while the local store stays
+   empty every refreshNotes()/mount would otherwise re-download /api/notes
+   (or the SPA fallback page) for nothing. */
+let cloudSyncAttempted = false;
+
 export const getAllNotes = async (): Promise<Note[]> => {
     const rawNotes = await tx(NOTES_STORE, 'readonly', s => s.getAll() as IDBRequest<Note[]>);
     const localNotes = (rawNotes || []).filter(isNoteRecord);
 
     // If local is empty, try to fetch from cloud (one-time sync)
-    if (localNotes.length === 0) {
+    if (localNotes.length === 0 && !cloudSyncAttempted) {
+        cloudSyncAttempted = true;
         try {
             const res = await fetch('/api/notes');
             // A static host's SPA fallback answers 200 with index.html — only a
