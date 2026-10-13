@@ -55,6 +55,7 @@ import {
 } from './context/ContextPanel';
 import { parseHash, placeHashFromAppUrl, type WorkspaceSection } from './route';
 import { PLACE_COMPONENTS } from './apps';
+import IntegrationModals from './integration/ModalsHost';
 import { useWorkspaceTheme } from './ui/theme';
 import { Dialog, DropdownMenu, IconButton } from './ui/primitives';
 import { type WorkspaceObject } from './ui/ObjectRow';
@@ -1170,6 +1171,9 @@ export default function App() {
           ))}
         </div>
       </Dialog>
+
+      {/* Cross-module workflow modals — any place dispatches 'iterra:modal' */}
+      <IntegrationModals />
     </div>
   );
 }

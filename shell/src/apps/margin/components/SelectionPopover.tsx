@@ -128,9 +128,10 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
         }
     };
 
-    /* Workflow A head — hand the selection to the Flashcards place through
-       the canonical send queue; a delivered url is kept on the 'sent' flash
-       so the student can open the deck it landed in. */
+    /* Workflow A head — hand the selection to a sibling place through the
+       shared review modals (preview + provenance before anything is saved).
+       Integrated: dispatch 'iterra:modal' — the shell host owns the dialog.
+       Standalone fallback stays on the legacy send queue. */
     const doSend = async (to: 'flashcards' | 'ink' = 'flashcards') => {
         const it = (window as unknown as { iterra?: any }).iterra;
         if (!it?.send) return;
@@ -146,18 +147,41 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                 const ent = await it.courses?.byCode?.(tag).catch(() => null);
                 if (ent?.key) { course = tag; courseId = ent.key; break; }
             }
-            const entity = {
+            const sourceRef = {
                 app: 'margin',
                 type: 'note',
                 id: note?.id ?? `sel-${Date.now()}`,
                 title: noteTitle,
             };
+            if ((window as any).__iterraIntegrated) {
+                window.dispatchEvent(new CustomEvent('iterra:modal', {
+                    detail: to === 'ink'
+                        ? {
+                              kind: 'attach-ink',
+                              sourceRef,
+                              sourceTitle: noteTitle,
+                              initialText: sel,
+                              initialCourse: course,
+                          }
+                        : {
+                              kind: 'create-deck',
+                              sourceRef,
+                              sourceTitle: noteTitle,
+                              selectedText: sel,
+                              initialCourse: course,
+                              initialCourseId: courseId,
+                          },
+                }));
+                hide();
+                window.getSelection()?.removeAllRanges();
+                return;
+            }
             const res = await it.send(
                 to === 'ink'
                     ? {
                           to: 'ink',
                           action: 'note.create',
-                          entity,
+                          entity: sourceRef,
                           payload: {
                               ...(course ? { course } : {}),
                               ...(courseId ? { courseId } : {}),
@@ -167,7 +191,7 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                     : {
                           to: 'flashcards',
                           action: 'cards.create',
-                          entity,
+                          entity: sourceRef,
                           payload: {
                               ...(course ? { course } : {}),
                               ...(courseId ? { courseId } : {}),
@@ -229,13 +253,13 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                                 {(window as unknown as { iterra?: { send?: unknown } }).iterra?.send && (
                                     <>
                                         <span className="w-px h-4 bg-[var(--line)]" />
-                                        <button className={itemCls} onClick={() => void doSend('flashcards')} disabled={mode === 'busy'} title="Send to Flashcards">
+                                        <button className={itemCls} onClick={() => void doSend('flashcards')} disabled={mode === 'busy'} title="Review and save this selection as a Flashcards deck">
                                             <Icon name="send" size={14} className="text-ink-3" />
-                                            Send
+                                            → Deck
                                         </button>
-                                        <button className={itemCls} onClick={() => void doSend('ink')} disabled={mode === 'busy'} title="Send selection to a new Ink page">
+                                        <button className={itemCls} onClick={() => void doSend('ink')} disabled={mode === 'busy'} title="Review and attach this selection to a new Ink page">
                                             <Icon name="edit_note" size={14} className="text-ink-3" />
-                                            Ink
+                                            → Note
                                         </button>
                                     </>
                                 )}

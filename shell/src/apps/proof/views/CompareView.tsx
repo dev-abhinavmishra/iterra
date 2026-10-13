@@ -128,6 +128,28 @@ export function CompareView({
     onAttempt(a);
   };
 
+  /* Workflow: proof → folio — open the shared schedule-review modal bound
+     to this exact problem (scheduleProblemRetry also stamps Proof's own
+     spaced queue, so the two never diverge). */
+  const planRetryInFolio = () => {
+    if (!problem) return;
+    const course = problem.courseId
+      ? useWorkbench.getState().courses[problem.courseId]?.code
+      : undefined;
+    window.dispatchEvent(new CustomEvent('iterra:modal', {
+      detail: {
+        kind: 'schedule-review',
+        materialRef: { app: 'proof', type: 'problem', id: problem.id },
+        materialTitle: problem.topic || 'untitled problem',
+        inheritedCourse: course,
+        inheritedCourseId: problem.courseId || undefined,
+        inheritedTopic: problem.topic || undefined,
+        followUpForRef: `proof:attempt:${attemptId}`,
+        defaultPhase: 'practice',
+      },
+    }));
+  };
+
   if (!attempt || !problem) {
     return (
       <div className="mx-auto max-w-4xl p-10 text-center text-[var(--color-paper)]">
@@ -407,6 +429,11 @@ export function CompareView({
             <button className="btn btn--ghost" onClick={retryNow}>
               <span className="inline-flex items-center gap-1.5"><RotateCcw size={12} /> Retry now</span>
             </button>
+            {(window as any).__iterraIntegrated && (
+              <button className="btn btn--ghost" onClick={planRetryInFolio} title="Schedule a linked retry block in the Planning folio">
+                <span className="inline-flex items-center gap-1.5"><ArrowRight size={12} /> Plan retry</span>
+              </button>
+            )}
             <button className="btn btn--blueprint" onClick={() => (attempt.sessionId ? goSession(attempt.sessionId) : goView('library'))}>
               {attempt.sessionId ? 'Back to session' : 'Back to library'} <ArrowRight size={12} className="ml-1 inline" />
             </button>

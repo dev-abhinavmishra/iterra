@@ -127,6 +127,7 @@ export const FLASHCARDS_MARKUP = `<div class="app">
           <h1 class="deck-title" id="deck-title">—</h1>
           <div class="deck-meta" id="deck-meta"></div>
           <div class="deck-bridge" id="deck-bridge"></div>
+          <div id="fc-source-banner" class="fc-source-banner"></div>
         </div>
         <div class="deck-actions">
           <button class="pill" id="starred-filter" title="Study starred cards only (*)"><i class="dot"></i>Starred only</button>

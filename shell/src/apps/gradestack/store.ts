@@ -45,6 +45,9 @@ export interface Test {
      'weights.import' intake — e.g. { exam: 50, assignment: 30 }. Display/
      export only; gradestack has no weighting model of its own. */
   weights?: Record<string, number>;
+  /* question → topic map, written back by the createTargetedReview command
+     so follow-up review work can reuse it next time */
+  questionTopics?: Record<number, string>;
 }
 
 export interface Scan {

@@ -759,6 +759,12 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const empty = !d;
     els.emptyStage.hidden = !empty;
     els.deckView.hidden = empty;
+    /* the React island listens for this and portals the source-freshness
+       banner (derivedFrom provenance, changed-source review) into
+       #fc-source-banner — vanilla can't render it on its own */
+    try {
+      window.dispatchEvent(new CustomEvent('fc:deck', { detail: { deckId: d ? d.id : null } }));
+    } catch {}
     if (!d) { if (!(window as any).__iterraIntegrated) document.title = 'flashcards — decks that live in a link'; return; }
   
     // drop ids that no longer exist (cards may have been deleted)
@@ -888,25 +894,29 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       if (act === 'dossier') { try { it.open(`#/c/${encodeURIComponent(d.course)}`); } catch {} return; }
       /* typed command path — scheduleReviewBlock attaches this exact deck
          to the new block (scheduledFor), so starting the block in Planning
-         comes back here instead of landing on a bare timer. */
+         comes back here instead of landing on a bare timer. The shared
+         schedule-review modal lets the student pick day, time, and topic
+         before the block is committed. */
       if (act === 'plan') {
         btn.disabled = true;
-        it.commands.exec('scheduleReviewBlock', {
-          materialRef: 'flashcards:deck:' + d.id,
-          title: 'Review ' + d.title,
-          course: d.course || null,
-          courseId: d.courseId || null,
-          plannedMinutes: 25,
-        }).then(res => {
-          if (res && res.ok) {
+        const onDone = (e) => {
+          window.removeEventListener('iterra:modal:done', onDone);
+          if (e.detail && e.detail.kind === 'schedule-review') {
             toast('Review block planned');
-            const url = res && res.data && res.data.blockRef ? '#/p/syllabus' : '#/c/' + encodeURIComponent(d.course || 'unfiled');
-            try { it.open ? it.open(url) : window.location.hash = url; } catch {}
-          } else {
-            btn.disabled = false;
-            toast(res && res.error ? res.error : 'Couldn\'t plan a block');
+            try { it.open ? it.open('#/p/syllabus') : window.location.hash = '#/p/syllabus'; } catch {}
           }
-        }).catch(() => { btn.disabled = false; toast('Couldn\'t plan a block'); });
+        };
+        window.addEventListener('iterra:modal:done', onDone);
+        window.dispatchEvent(new CustomEvent('iterra:modal', {
+          detail: {
+            kind: 'schedule-review',
+            materialRef: 'flashcards:deck:' + d.id,
+            materialTitle: d.title,
+            inheritedCourse: d.course || undefined,
+            inheritedCourseId: d.courseId || undefined,
+            defaultPhase: 'review',
+          },
+        }));
         return;
       }
       if (!it.send) return;

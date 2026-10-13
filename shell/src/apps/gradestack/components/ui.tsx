@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { placeActive } from '../../active';
 
 /* ── Icon ─────────────────────────────────────────────────── */
 export function Icon({ name, size = 20, fill = false, className = '' }: {
@@ -203,6 +204,7 @@ export function Modal({ onClose, title, subtitle, children, footer, wide }: {
   // collapse the sheet beneath them), and focus moves inside on open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (!placeActive('gradestack')) return;
       if (e.key !== 'Escape') return;
       const dialogs = document.querySelectorAll('[role="dialog"]');
       const top = dialogs[dialogs.length - 1];

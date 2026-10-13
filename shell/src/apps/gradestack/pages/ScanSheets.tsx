@@ -9,6 +9,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { Icon, Button, Input, Select, Chip, Modal, BubbleMark, Field } from '../components/ui';
 import { gradeResponses, optionsFor, isMultiple, formatsForTest, normalizeAnswer, letterFor } from '../lib/grading';
 import { shrinkImage } from '../store';
+import { placeActive } from '../../active';
 
 export function ScanSheets() {
   const tests = useStore(state => state.tests);
@@ -338,7 +339,7 @@ export function ScanSheets() {
   // Escape dismisses the crop/review overlay like every other sheet.
   useEffect(() => {
     if (!isReviewingImage) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsReviewingImage(false); };
+    const onKey = (e: KeyboardEvent) => { if (!placeActive('gradestack')) return; if (e.key === 'Escape') setIsReviewingImage(false); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [isReviewingImage]);

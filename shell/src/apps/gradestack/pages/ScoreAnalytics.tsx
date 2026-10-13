@@ -6,6 +6,7 @@ import { normalizeAnswer, optionsFor, formatsForTest, csvEscape, downloadFile } 
 import { feed } from '../lib/iterra';
 import { useCourseLoggedMinutes, fmtLoggedMinutes, folioUrlFor } from '../lib/iterra-adapter';
 import { openTerrain } from '../components/terrain';
+import { execCommand } from '../../../integration/commands';
 
 export function ScoreAnalytics() {
   const location = useLocation();
@@ -18,6 +19,11 @@ export function ScoreAnalytics() {
   const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
   const [studentSearch, setStudentSearch] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'score' | 'recent'>('recent');
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewTopics, setReviewTopics] = useState('');
+  const [reviewKind, setReviewKind] = useState<'syllabus-block' | 'flashcards-deck' | 'both'>('both');
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const [reviewMsg, setReviewMsg] = useState<string | null>(null);
 
   const test = tests.find(t => t.id === testId) || tests[0];
   const loggedMinutes = useCourseLoggedMinutes(test?.courseName);
@@ -145,6 +151,11 @@ export function ScoreAnalytics() {
         <Button variant="outline" icon="download" onClick={exportCSV} disabled={numScanned === 0} className="h-10 text-sm">
           Gradebook CSV
         </Button>
+        {(window as any).__iterraIntegrated && (
+          <Button variant="outline" icon="assignment_return" onClick={() => { setReviewMsg(null); setReviewOpen(true); }} className="h-10 text-sm">
+            Targeted review
+          </Button>
+        )}
         <Link to={`/scan?testId=${test.id}`} className="inline-flex items-center gap-2 bg-mark text-on-mark font-semibold text-sm px-5 h-10 rounded-md hover:bg-mark-deep transition-colors">
           <Icon name="document_scanner" size={18} />
           Scan sheets
@@ -358,6 +369,118 @@ export function ScoreAnalytics() {
           </table>
         </div>
       </div>
+
+      {/* Targeted review — topics come from the question map when it exists;
+          otherwise the instructor names them (never inferred from the score). */}
+      {reviewOpen && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 p-4"
+          onClick={() => !reviewBusy && setReviewOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create targeted review"
+        >
+          <div
+            className="w-full max-w-md rounded-lg border border-hairline-strong bg-paper p-5 text-ink shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-hairline pb-3">
+              <div>
+                <div className="ledger-label">assessment → follow-up</div>
+                <h3 className="font-display text-lg font-semibold mt-1">Create targeted review</h3>
+              </div>
+              <button type="button" onClick={() => setReviewOpen(false)} className="rounded px-2 py-1 text-sm text-pencil hover:bg-surface-container-low">✕</button>
+            </div>
+            <div className="py-4 space-y-4">
+              {test.questionTopics && Object.keys(test.questionTopics).length > 0 ? (
+                <div>
+                  <div className="ledger-label mb-1.5">Topics from the question map</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Array.from(new Set(Object.values(test.questionTopics))).map((t) => (
+                      <Chip key={t} tone="neutral">{t}</Chip>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-pencil leading-snug">
+                  This assessment has no question-to-topic map. A total score can't tell you what to
+                  review — name the topics to follow up and the workspace will create the review work
+                  linked back here.
+                </p>
+              )}
+              <div>
+                <label className="ledger-label block mb-1.5" htmlFor="tr-topics">Follow-up topics</label>
+                <input
+                  id="tr-topics"
+                  className="w-full h-9 px-3 rounded-md border border-hairline-strong bg-form-raised text-sm font-medium text-ink focus:border-mark focus:ring-2 focus:ring-mark/15 outline-none transition-all placeholder:text-faint"
+                  placeholder="e.g. related rates, chain rule"
+                  value={reviewTopics}
+                  onChange={(e) => setReviewTopics(e.target.value)}
+                />
+                <p className="text-[10.5px] text-faint mt-1">Comma-separated; merged with the question map when present.</p>
+              </div>
+              <div>
+                <div className="ledger-label mb-1.5">Create</div>
+                <div className="flex flex-col gap-1.5">
+                  {([
+                    ['both', 'Review block + flashcards deck'],
+                    ['syllabus-block', 'Planned block in the folio'],
+                    ['flashcards-deck', 'Flashcards deck only'],
+                  ] as const).map(([k, label]) => (
+                    <label key={k} className="flex items-center gap-2 text-[13px] text-ink cursor-pointer">
+                      <input
+                        type="radio"
+                        name="tr-kind"
+                        checked={reviewKind === k}
+                        onChange={() => setReviewKind(k)}
+                        className="accent-[var(--color-mark,#2f5d3a)]"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {reviewMsg && <p className="text-xs font-medium text-mark-deep">{reviewMsg}</p>}
+            </div>
+            <div className="flex justify-end gap-2 border-t border-hairline pt-3">
+              <button type="button" onClick={() => setReviewOpen(false)} className="px-3 py-1.5 rounded-md border border-hairline-strong text-xs font-semibold text-ink hover:border-ink transition-colors">
+                Close
+              </button>
+              <button
+                type="button"
+                disabled={reviewBusy}
+                onClick={async () => {
+                  setReviewBusy(true);
+                  setReviewMsg(null);
+                  try {
+                    const res = await execCommand<any>('createTargetedReview', {
+                      assessmentRef: `gradestack:assessment:${test.id}`,
+                      selectedTopics: reviewTopics.split(',').map((t) => t.trim()).filter(Boolean),
+                      reviewKind,
+                      course: test.courseName || undefined,
+                    });
+                    if (res.ok) {
+                      const bits: string[] = [];
+                      if (res.data?.blockRef) bits.push('review block');
+                      if (res.data?.deckRef) bits.push('deck');
+                      setReviewMsg(`Created ${bits.join(' + ') || 'follow-up work'} linked to ${res.data?.course || test.courseName || 'the course'}.`);
+                    } else {
+                      setReviewMsg(res.error || 'Could not create review work.');
+                    }
+                  } catch (err) {
+                    setReviewMsg(String(err));
+                  } finally {
+                    setReviewBusy(false);
+                  }
+                }}
+                className="px-4 py-1.5 rounded-md bg-mark text-on-mark text-xs font-semibold hover:bg-mark-deep transition-colors disabled:opacity-50"
+              >
+                {reviewBusy ? 'Creating…' : 'Create review work'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

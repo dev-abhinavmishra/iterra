@@ -186,45 +186,49 @@
   }
 }
 
+/* every utility is scoped under the place root — no bare global classes
+   can leak onto the terrain or another place */
 @layer utilities {
-  .text-display {
-    @apply font-display text-4xl lg:text-5xl font-semibold leading-tight;
-  }
-  .text-headline-lg {
-    @apply font-display text-3xl font-semibold leading-tight;
-  }
-  .text-headline-md {
-    @apply font-display text-2xl font-semibold leading-snug;
-  }
-  .text-headline-sm {
-    @apply font-display text-xl font-semibold leading-snug;
-  }
-  .text-body-lg {
-    @apply font-sans text-lg leading-relaxed;
-  }
-  .text-body-md {
-    @apply font-sans text-base leading-relaxed;
-  }
-  .text-body-sm {
-    @apply font-sans text-sm leading-normal;
-  }
-  /* Document surface — a bordered sheet, not a floating card */
-  .doc {
-    @apply bg-form border border-hairline rounded-md;
-  }
-  .doc-raised {
-    @apply bg-form-raised border border-hairline rounded-md;
-  }
-  /* Ledger label — quiet, sentence-weight, not shouted caps */
-  .ledger-label {
-    @apply text-[11px] font-semibold text-pencil tracking-wide;
-  }
-  .card-shadow {
-    box-shadow: 0 1px 0 rgba(33,43,36,.04), 0 8px 20px -12px rgba(33,43,36,.18);
-  }
-  .glass {
-    @apply bg-form/90 backdrop-blur-md border border-hairline;
-    box-shadow: 0 1px 0 rgba(33,43,36,.04), 0 8px 20px -12px rgba(33,43,36,.18);
+  .it-place-gradestack {
+    .text-display {
+      @apply font-display text-4xl lg:text-5xl font-semibold leading-tight;
+    }
+    .text-headline-lg {
+      @apply font-display text-3xl font-semibold leading-tight;
+    }
+    .text-headline-md {
+      @apply font-display text-2xl font-semibold leading-snug;
+    }
+    .text-headline-sm {
+      @apply font-display text-xl font-semibold leading-snug;
+    }
+    .text-body-lg {
+      @apply font-sans text-lg leading-relaxed;
+    }
+    .text-body-md {
+      @apply font-sans text-base leading-relaxed;
+    }
+    .text-body-sm {
+      @apply font-sans text-sm leading-normal;
+    }
+    /* Document surface — a bordered sheet, not a floating card */
+    .doc {
+      @apply bg-form border border-hairline rounded-md;
+    }
+    .doc-raised {
+      @apply bg-form-raised border border-hairline rounded-md;
+    }
+    /* Ledger label — quiet, sentence-weight, not shouted caps */
+    .ledger-label {
+      @apply text-[11px] font-semibold text-pencil tracking-wide;
+    }
+    .card-shadow {
+      box-shadow: 0 1px 0 rgba(33,43,36,.04), 0 8px 20px -12px rgba(33,43,36,.18);
+    }
+    .glass {
+      @apply bg-form/90 backdrop-blur-md border border-hairline;
+      box-shadow: 0 1px 0 rgba(33,43,36,.04), 0 8px 20px -12px rgba(33,43,36,.18);
+    }
   }
 }
 

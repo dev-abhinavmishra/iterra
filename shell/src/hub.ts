@@ -222,12 +222,6 @@ export async function pendingIntakes(): Promise<Record<string, IntakeWait>> {
   return out;
 }
 
-export function wakeFrame(frame: HTMLIFrameElement | null | undefined) {
-  try {
-    frame?.contentWindow?.postMessage({ type: 'iterra:wake' }, window.location.origin);
-  } catch { /* cross-origin or dead frame — nothing to wake */ }
-}
-
 /** subscribe to canonical-store changes (entity puts/removes, events,
     links, intake writes). Re-read via storeList / storeSearch — the
     callback payload is just a poke. */
