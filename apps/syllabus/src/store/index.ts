@@ -13,7 +13,7 @@ import type {
   WorkBlock,
 } from '../lib/types';
 import type { ProposedBlock } from '../lib/schedule';
-import { uid, weekStartISO, addDaysISO } from '../lib/utils';
+import { uid, weekStartISO, addDaysISO, dueDateISO, localDateISO, localTimeHHMM, isoAtTime, todayISO } from '../lib/utils';
 import { estimateRatio, missedBlocks, remainingMinutes } from '../lib/schedule';
 import { exportFolio, parseFolioBackup } from '../lib/backup';
 
@@ -303,12 +303,12 @@ export const useFolio = create<FolioState>()(
           // term's end date — the syllabus keeps its rhythm.
           if (status === 'done' && c.recurrence === 'weekly') {
             const term = s.terms[c.courseId ? s.courses[c.courseId]?.termId ?? '' : ''];
-            const nextDue = addDaysISO(c.dueAt.slice(0, 10), 7);
+            const nextDue = addDaysISO(dueDateISO(c.dueAt), 7);
             if (!term?.endDate || nextDue <= term.endDate) {
               const next: Commitment = {
                 ...c,
                 id: uid('k_'),
-                dueAt: nextDue + c.dueAt.slice(10),
+                dueAt: isoAtTime(nextDue, localTimeHHMM(c.dueAt)),
                 status: 'open',
                 grade: undefined,
                 loggedMinutes: 0,
@@ -592,7 +592,7 @@ export const useFolio = create<FolioState>()(
         const actual = blocks.reduce((sum, b) => sum + (b.actualMinutes ?? 0), 0);
         const carryovers = blocks.filter((b) => b.state === 'missed' || b.state === 'deferred').map((b) => b.id);
         const completedCommitments = Object.values(s.commitments)
-          .filter((c) => c.completedAt && c.completedAt.slice(0, 10) >= weekStart && c.completedAt.slice(0, 10) < addDaysISO(weekStart, 7))
+          .filter((c) => c.completedAt && localDateISO(c.completedAt) >= weekStart && localDateISO(c.completedAt) < addDaysISO(weekStart, 7))
           .map((c) => c.id);
         const review: Review = {
           weekStart,
@@ -729,7 +729,7 @@ export function selectWeekKey(s: FolioState, date: ISODate): ISODate {
 }
 
 export function commitmentDueISO(c: Commitment): ISODate {
-  return c.dueAt.slice(0, 10);
+  return dueDateISO(c.dueAt);
 }
 
 // ── Optional desk reminders (browser Notification API — never required) ─────
@@ -740,12 +740,12 @@ function maybeNotify(s: FolioState) {
   if (!s.settings.remindersEnabled) return;
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const soon = addDaysISO(today, 2);
   const open = Object.values(s.commitments).filter((c) => c.status === 'open');
-  const overdue = open.filter((c) => c.dueAt.slice(0, 10) < today).length;
+  const overdue = open.filter((c) => dueDateISO(c.dueAt) < today).length;
   const dueSoon = open.filter((c) => {
-    const d = c.dueAt.slice(0, 10);
+    const d = dueDateISO(c.dueAt);
     return d >= today && d <= soon;
   }).length;
   if (overdue === 0 && dueSoon === 0) return;

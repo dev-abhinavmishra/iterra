@@ -13,6 +13,7 @@ import {
   stampDate,
   todayISO,
   isoAtTime,
+  dueDateISO,
   cn,
 } from '../lib/utils';
 import type { Commitment, CommitmentType, LinkedApp } from '../lib/types';
@@ -236,12 +237,13 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
               </thead>
               <tbody>
                 {schedule.map((c) => {
-                  const late = c.status === 'open' && c.dueAt.slice(0, 10) < todayISO();
+                  const late = c.status === 'open' && dueDateISO(c.dueAt) < todayISO();
                   const filed = c.status === 'done';
+                  const dropped = c.status === 'dropped';
                   return (
                     <tr
                       key={c.id}
-                      className={cn('row-hit', late && 'late-row', filed && 'filed-row')}
+                      className={cn('row-hit', late && 'late-row', (filed || dropped) && 'filed-row', dropped && 'opacity-55')}
                       onClick={() => onInspect(c.id)}
                       role="button"
                       tabIndex={0}
@@ -249,10 +251,10 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                       title={`Open ${c.title}`}
                     >
                       <td className="mono text-[11px] whitespace-nowrap">
-                        {late ? <span className="font-semibold">LATE&nbsp;{stampDate(c.dueAt.slice(0, 10))}</span> : stampDate(c.dueAt.slice(0, 10))}
+                        {late ? <span className="font-semibold">LATE&nbsp;{stampDate(dueDateISO(c.dueAt))}</span> : stampDate(dueDateISO(c.dueAt))}
                       </td>
                       <td className="slab text-[14px] font-medium">
-                        <span className={cn(filed && 'line-through')}>
+                        <span className={cn((filed || dropped) && 'line-through', dropped && 'text-[color:var(--color-ink-faint)]')}>
                           {c.pinned && <Pin size={11} className="inline -mt-0.5 mr-1 text-[color:var(--color-ink-faint)]" aria-label="Pinned" />}
                           {c.title}
                         </span>
@@ -267,12 +269,14 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
                       <td className="text-right no-print">
                         {filed
                           ? <Stamp text="DONE" tone="ok" className="!text-[7.5px] !border-[1.5px] !px-1 !py-0" />
-                          : late
-                            ? <span className="mono text-[9px] font-semibold text-[color:var(--color-late)]">LATE</span>
-                            : <span className="mono text-[9px] text-[color:var(--color-ink-faint)]">OPEN</span>}
+                          : dropped
+                            ? <span className="mono text-[9px] text-[color:var(--color-ink-faint)]">DROPPED</span>
+                            : late
+                              ? <span className="mono text-[9px] font-semibold text-[color:var(--color-late)]">LATE</span>
+                              : <span className="mono text-[9px] text-[color:var(--color-ink-faint)]">OPEN</span>}
                       </td>
                       <td className="text-right no-print" onClick={(e) => e.stopPropagation()}>
-                        {!filed && <RowSends c={c} code={course.code} />}
+                        {!filed && !dropped && <RowSends c={c} code={course.code} />}
                       </td>
                     </tr>
                   );

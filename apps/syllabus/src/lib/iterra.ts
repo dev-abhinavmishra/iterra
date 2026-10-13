@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { useFolio } from '../store';
-import { todayISO } from './utils';
+import { todayISO, dueDateISO } from './utils';
 import { commitmentEntity } from './iterra-adapter';
 import type { Commitment } from './types';
 
@@ -48,7 +48,7 @@ function summary(): FolioSummary | null {
   const commitments = Object.values(s.commitments);
 
   const slips = blocks.filter((b) => b.plannedDate === today && b.state !== 'done').length;
-  const overdue = commitments.filter((c) => c.status === 'open' && typeof c.dueAt === 'string' && c.dueAt.slice(0, 10) < today).length;
+  const overdue = commitments.filter((c) => c.status === 'open' && typeof c.dueAt === 'string' && dueDateISO(c.dueAt) < today).length;
 
   const best = nextWorkBlock(s);
   let top: string | null = null;

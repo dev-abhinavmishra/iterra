@@ -13,6 +13,7 @@ import {
   todayISO,
   weekStartISO,
   isoAtTime,
+  dueDateISO,
   cn,
 } from '../lib/utils';
 import { remainingMinutes, atRisk } from '../lib/schedule';
@@ -58,7 +59,7 @@ export function SemesterView({
     );
     for (let w = start; w <= term.endDate && out.length < 24; w = addDaysISO(w, 7)) {
       const wEnd = addDaysISO(w, 7);
-      const inWeek = open.filter((c) => c.dueAt.slice(0, 10) >= w && c.dueAt.slice(0, 10) < wEnd);
+      const inWeek = open.filter((c) => dueDateISO(c.dueAt) >= w && dueDateISO(c.dueAt) < wEnd);
       out.push({
         week: w,
         due: inWeek.length,
@@ -307,7 +308,7 @@ function CourseDossierCard({
   const done = commitments.filter((c) => c.status === 'done');
   const remain = open.reduce((sum, c) => sum + remainingMinutes(c), 0);
   const nextDue = open.filter((c) => remainingMinutes(c) > 0).sort((a, b) => a.dueAt.localeCompare(b.dueAt))[0];
-  const lateCount = open.filter((c) => c.dueAt.slice(0, 10) < todayISO()).length;
+  const lateCount = open.filter((c) => dueDateISO(c.dueAt) < todayISO()).length;
   const risks = atRisk(open, todayISO(), s.commitments);
 
   return (
@@ -359,7 +360,7 @@ function CourseDossierCard({
         )}
         {nextDue && (
           <span className="mono text-[color:var(--color-ink-faint)]">
-            next: {nextDue.title.slice(0, 28)}{nextDue.title.length > 28 ? '…' : ''} {stampDate(nextDue.dueAt.slice(0, 10))}
+            next: {nextDue.title.slice(0, 28)}{nextDue.title.length > 28 ? '…' : ''} {stampDate(dueDateISO(nextDue.dueAt))}
           </span>
         )}
       </div>
@@ -374,8 +375,8 @@ function CourseDossierCard({
             >
               <BookOpen size={11} className="text-[color:var(--color-ink-faint)] shrink-0" />
               <span className="slab text-[13.5px] group-hover:underline decoration-1 underline-offset-2 truncate">{c.title}</span>
-              <span className={cn('mono text-[10px] ml-auto shrink-0', c.dueAt.slice(0, 10) < todayISO() ? 'text-[color:var(--color-late)] font-semibold' : 'text-[color:var(--color-ink-faint)]')}>
-                {stampDate(c.dueAt.slice(0, 10))}
+              <span className={cn('mono text-[10px] ml-auto shrink-0', dueDateISO(c.dueAt) < todayISO() ? 'text-[color:var(--color-late)] font-semibold' : 'text-[color:var(--color-ink-faint)]')}>
+                {stampDate(dueDateISO(c.dueAt))}
               </span>
             </button>
           ))}

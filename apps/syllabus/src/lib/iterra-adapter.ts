@@ -8,7 +8,7 @@
    Store writes are incremental — only the entity that changed is put. */
 
 import { useFolio } from '../store';
-import { addDaysISO, clamp, diffDaysISO, todayISO } from './utils';
+import { addDaysISO, clamp, diffDaysISO, dueDateISO, isoAtTime, todayISO } from './utils';
 import type { Commitment, Course, Term, WorkBlock } from './types';
 import type { ProposedBlock } from './schedule';
 
@@ -389,7 +389,7 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
   const term = s.terms[course.termId];
   const fallbackTarget =
     term?.endDate && term.endDate >= today ? term.endDate : addDaysISO(today, 7);
-  const target = anchor?.dueAt ? anchor.dueAt.slice(0, 10) : fallbackTarget;
+  const target = anchor?.dueAt ? dueDateISO(anchor.dueAt) : fallbackTarget;
 
   if (!anchor) {
     anchor = s.addCommitment({
@@ -397,7 +397,7 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
       type: 'custom',
       title: `${course.code || course.name} — study plan`,
       detail: 'Filed by study-plan.request so plan blocks have somewhere to live.',
-      dueAt: `${target}T23:59:00`,
+      dueAt: isoAtTime(target, '23:59'),
       weight: 0,
       estimatedMinutes: 0,
       pinned: false,
@@ -458,7 +458,7 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
           name: `study ${anchor.title}`,
           course: course.code || course.name,
           courseId: courseKey,
-          dueAt: `${target}T23:59:00`,
+          dueAt: isoAtTime(target, '23:59'),
           perWeek: Math.min(7, Math.max(1, Math.round(days))),
           minutes: size,
           unit: 'min',
@@ -517,7 +517,7 @@ export function registerAdapter() {
           type: 'custom',
           title: `${course.code || course.name} — planned work`,
           detail: 'Filed by block.plan so incoming slips have somewhere to live.',
-          dueAt: `${date}T23:59:00`,
+          dueAt: isoAtTime(date, '23:59'),
           weight: 0,
           estimatedMinutes: 0,
           pinned: false,

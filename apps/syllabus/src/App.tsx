@@ -14,7 +14,7 @@ import { ImportSheet } from './components/ImportSheet';
 import { parseImportPayload, type ImportPayload } from './lib/import';
 import { Onboarding } from './views/Onboarding';
 import { HelpOverlay } from './components/HelpOverlay';
-import { todayISO, stampDate, dowName } from './lib/utils';
+import { todayISO, stampDate, dowName, modalOpen } from './lib/utils';
 
 export interface RouteState {
   view: ViewKey;
@@ -86,7 +86,7 @@ export function App() {
         return;
       }
       if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (route.inspectId) return; // drawer owns its keys
+      if (route.inspectId || modalOpen()) return; // a sheet/drawer owns its keys
       switch (e.key) {
         case 't':
           goView('today');

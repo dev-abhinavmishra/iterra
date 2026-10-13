@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFolio } from '../store';
 import type { Course, CommitmentType } from '../lib/types';
-import { fmtMinutes, isoAtTime, stampDate, todayISO } from '../lib/utils';
+import { fmtMinutes, isoAtTime, stampDate, todayISO, modalOpen } from '../lib/utils';
 import { CornerDownLeft } from 'lucide-react';
 
 /**
@@ -21,6 +21,7 @@ export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFoc
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
+      if (modalOpen()) return; // a sheet/drawer owns the keys — don't open behind it
       if (e.key.toLowerCase() === autoFocusKey.toLowerCase()) {
         e.preventDefault();
         setOpen(true);
@@ -35,7 +36,11 @@ export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFoc
 
   const parse = () => {
     const p = parseQuick(value, courses);
-    if (!p.title) return;
+    if (!p.title) {
+      setFlash('needs a title — e.g. “Problem set 4 @math210 due:+7”');
+      setTimeout(() => setFlash(''), 2600);
+      return;
+    }
     if (!p.course) {
       setFlash(`needs @course — e.g. @${courses[0]?.code.toLowerCase() ?? 'math211'}`);
       setTimeout(() => setFlash(''), 2600);
@@ -147,26 +152,32 @@ function parseQuick(raw: string, courses: Course[]): Parsed {
     if (d === 'today') due = todayISO();
     else if (d === 'tomorrow') due = addDays(todayISO(), 1);
     else if (/^\+(\d+)d?$/.test(d)) due = addDays(todayISO(), Number(d.slice(1).replace('d', '')));
-    else if (/^\d{4}-\d{2}-\d{2}$/.test(d)) due = d;
+    else if (/^\d{4}-\d{2}-\d{2}$/.test(d) && isRealDate(d)) due = d;
     else if (/^(\d{1,2})\/(\d{1,2})$/.test(d)) {
       const [m, dd] = d.split('/').map(Number);
+      // m/d means this year if it hasn't passed, else next — but only
+      // when the civil date actually exists (13/40 must not roll over).
       const y = new Date().getFullYear();
-      const cand = `${y}-${String(m).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
-      due = cand >= todayISO() ? cand : `${y + 1}-${String(m).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+      for (const yy of [y, y + 1]) {
+        const cand = `${yy}-${String(m).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
+        if (isRealDate(cand) && cand >= todayISO()) { due = cand; break; }
+      }
     }
     rest = rest.replace(dueMatch[0], ' ');
   }
   const minMatch = rest.match(/~(\d+)\s*m?(?:in)?/i);
   if (minMatch) {
-    minutes = Math.max(15, Number(minMatch[1]));
+    minutes = Math.min(2400, Math.max(15, Number(minMatch[1])));
     rest = rest.replace(minMatch[0], ' ');
   }
   const hourMatch = rest.match(/~(\d+(?:\.\d+)?)h/i);
   if (hourMatch) {
-    minutes = Math.max(15, Math.round(Number(hourMatch[1]) * 60));
+    minutes = Math.min(2400, Math.max(15, Math.round(Number(hourMatch[1]) * 60)));
     rest = rest.replace(hourMatch[0], ' ');
   }
-  const pinMatch = rest.match(/!\w*/);
+  // '!pin'/'!pinned' is the pin token — a bare '!' is punctuation and stays
+  // in the title.
+  const pinMatch = rest.match(/!pin(?:ned)?\b/i);
   if (pinMatch) {
     pinned = true;
     rest = rest.replace(pinMatch[0], ' ');
@@ -183,6 +194,12 @@ function describeParsed(p: Parsed): string {
   parts.push(fmtMinutes(p.minutes));
   if (p.pinned) parts.push('pinned');
   return `parsed: ${parts.join(' · ')}`;
+}
+
+/** True when 'YYYY-MM-DD' names a real civil date (not 2026-13-40 or Feb 30). */
+function isRealDate(iso: string): boolean {
+  const d = new Date(`${iso}T00:00:00`);
+  return !isNaN(d.getTime()) && addDays(iso, 0) === iso;
 }
 
 function addDays(iso: string, n: number): string {
