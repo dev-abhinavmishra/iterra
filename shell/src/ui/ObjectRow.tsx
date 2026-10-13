@@ -10,7 +10,6 @@ import {
   Award,
   Activity,
   PanelRightOpen,
-  ArrowUpRight,
   Share2,
 } from 'lucide-react';
 import { PLACE_MAP, formatEntityType } from '../places';
@@ -299,8 +298,8 @@ export function ObjectRow({
         </button>
       )}
 
-      {/* Actions: Send-to, Pin, Inspect Context, Open */}
-      <div className="flex items-center gap-0.5 shrink-0">
+      {/* Actions: Send-to, Pin, Inspect Context (the row itself opens the object) */}
+      <div className="flex items-center gap-0.5 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
         <DropdownMenu
           trigger={(_open, toggle) => (
             <IconButton label={`Send "${item.title}" to another tool`} onClick={toggle}>
@@ -359,17 +358,6 @@ export function ObjectRow({
             <PanelRightOpen className="h-3.5 w-3.5" />
           </IconButton>
         )}
-
-        <IconButton
-          label={`Open ${item.title} in ${moduleLabel}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelectContext?.(item);
-            onOpen(item.url);
-          }}
-        >
-          <ArrowUpRight className="h-3.5 w-3.5" />
-        </IconButton>
       </div>
     </div>
   );

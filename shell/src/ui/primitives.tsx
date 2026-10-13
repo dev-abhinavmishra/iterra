@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { X, Link2, ArrowUpRight } from 'lucide-react';
+import { X, Link2, ArrowUpRight, ChevronDown } from 'lucide-react';
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 
@@ -370,6 +370,38 @@ export function Dialog({
         </div>
         <div className="p-4">{children}</div>
       </div>
+    </div>
+  );
+}
+
+/* ── Disclosure — hides secondary detail behind a quiet expander ─────────── */
+
+export function Disclosure({
+  label,
+  children,
+  defaultOpen = false,
+  className = '',
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={className}>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-1.5 rounded-[4px] py-1 text-left text-[11.5px] font-medium text-[var(--color-mute)] hover:text-[var(--color-ink)] transition-colors cursor-pointer"
+      >
+        <ChevronDown
+          className={`h-3 w-3 shrink-0 text-[var(--color-faint)] transition-transform ${open ? '' : '-rotate-90'}`}
+        />
+        <span>{label}</span>
+      </button>
+      {open && <div className="mt-1.5">{children}</div>}
     </div>
   );
 }

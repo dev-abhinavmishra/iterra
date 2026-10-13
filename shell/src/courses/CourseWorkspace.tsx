@@ -761,7 +761,6 @@ export function CourseWorkspace({
               {/* Schedule & Next Work */}
               <section>
                 <SectionHeader
-                  kicker="Schedule"
                   title="Planned Blocks & Commitments"
                   count={scheduleItems.length}
                   action={
@@ -817,7 +816,6 @@ export function CourseWorkspace({
               {/* Materials & Notes */}
               <section>
                 <SectionHeader
-                  kicker="Materials"
                   title="Notes, Recordings & Study Sheets"
                   count={materials.length}
                   action={
@@ -859,7 +857,6 @@ export function CourseWorkspace({
               {/* Practice: Decks, Quizzes & Problems */}
               <section>
                 <SectionHeader
-                  kicker="Practice"
                   title="Decks, Quizzes & Calculations"
                   count={practiceItems.length}
                   action={
@@ -905,7 +902,6 @@ export function CourseWorkspace({
               {/* Results & Focus Log */}
               <section>
                 <SectionHeader
-                  kicker="Results & Log"
                   title="Assessments & Logged Sessions"
                   count={resultItems.length}
                   action={
@@ -1015,7 +1011,6 @@ export function CourseWorkspace({
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHeader
-                kicker="Materials"
                 title={`Notes, Recordings & Study Guides (${materials.length})`}
               />
               <div className="flex items-center gap-2">
@@ -1066,7 +1061,6 @@ export function CourseWorkspace({
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHeader
-                kicker="Practice"
                 title={`Flashcard Decks, Quizzes & Calculation Problems (${practiceItems.length})`}
               />
               <div className="flex items-center gap-2">
@@ -1132,7 +1126,6 @@ export function CourseWorkspace({
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHeader
-                kicker="Schedule"
                 title={`Planned Blocks, Commitments & Attendance Routines (${scheduleItems.length})`}
               />
               <div className="flex items-center gap-2">
@@ -1205,7 +1198,6 @@ export function CourseWorkspace({
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHeader
-                kicker="Results & Time Log"
                 title={`Assessments, Grades & Focus Sessions (${resultItems.length})`}
               />
               <div className="flex items-center gap-2">

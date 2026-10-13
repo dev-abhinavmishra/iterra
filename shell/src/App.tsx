@@ -24,6 +24,7 @@ import {
   LayoutDashboard,
   Library,
   Wrench,
+  EllipsisVertical,
 } from 'lucide-react';
 import { PLACES, PLACE_MAP } from './places';
 import {
@@ -951,49 +952,78 @@ export default function App() {
             </DropdownMenu>
           )}
 
-          {/* Save / Persistence Status */}
-          <div
-            title={persistenceStatus.detail}
-            className="hidden xl:inline-flex items-center gap-1.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/50 px-2 py-1 text-[11px] text-[var(--color-mute)]"
-          >
-            <CheckCircle2
-              className={`h-3 w-3 shrink-0 ${
-                persistenceStatus.tone === 'warn'
-                  ? 'text-[var(--color-warn)]'
-                  : 'text-[var(--color-accent)]'
-              }`}
-            />
-            <span>{persistenceStatus.label}</span>
-          </div>
-
-          {/* Theme Toggle (Paper / Graphite) */}
-          <IconButton
-            label={
-              theme === 'paper'
-                ? 'Switch to Graphite / Silver theme'
-                : 'Switch to Paper theme'
-            }
-            onClick={() => setTheme()}
-          >
-            {theme === 'paper' ? (
-              <Moon className="h-3.5 w-3.5" />
-            ) : (
-              <Sun className="h-3.5 w-3.5" />
+          {/* Workspace overflow — theme, shortcuts, and the save-status
+              readout fold into one quiet menu instead of three chrome
+              buttons */}
+          <DropdownMenu
+            align="right"
+            trigger={(_open, toggle) => (
+              <button
+                type="button"
+                onClick={toggle}
+                title="Workspace options"
+                aria-label="Workspace options"
+                className="inline-flex h-7 w-7 items-center justify-center rounded-[5px] border border-transparent text-[var(--color-mute)] hover:bg-[var(--color-sheet-2)] hover:text-[var(--color-ink)] transition-colors cursor-pointer"
+              >
+                <EllipsisVertical className="h-4 w-4" />
+              </button>
             )}
-          </IconButton>
-
-          {/* Keyboard Shortcuts */}
-          <IconButton
-            label="Keyboard shortcuts (?)"
-            onClick={() => setCheatOpen(true)}
-            className="hidden sm:inline-flex"
           >
-            <HelpCircle className="h-3.5 w-3.5" />
-          </IconButton>
+            {(close) => (
+              <div className="w-56 p-1">
+                {/* save state — read-only line, the detail lives on the row */}
+                <div className="flex items-center gap-2 px-2.5 py-1.5" title={persistenceStatus.detail}>
+                  <CheckCircle2
+                    className={`h-3.5 w-3.5 shrink-0 ${
+                      persistenceStatus.tone === 'warn'
+                        ? 'text-[var(--color-warn)]'
+                        : 'text-[var(--color-accent)]'
+                    }`}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-medium text-[var(--color-ink)]">
+                      {persistenceStatus.label}
+                    </div>
+                    <div className="text-[10.5px] text-[var(--color-faint)] truncate">
+                      {persistenceStatus.detail}
+                    </div>
+                  </div>
+                </div>
+                <div className="my-1 border-t border-[var(--color-line)]" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    setTheme();
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                >
+                  {theme === 'paper' ? (
+                    <Moon className="h-3.5 w-3.5 text-[var(--color-mute)]" />
+                  ) : (
+                    <Sun className="h-3.5 w-3.5 text-[var(--color-mute)]" />
+                  )}
+                  <span>{theme === 'paper' ? 'Graphite theme' : 'Paper theme'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    setCheatOpen(true);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                >
+                  <HelpCircle className="h-3.5 w-3.5 text-[var(--color-mute)]" />
+                  <span>Keyboard shortcuts</span>
+                  <kbd className="ml-auto rounded border border-[var(--color-line)] bg-[var(--color-sheet-2)] px-1 font-mono text-[10px] text-[var(--color-faint)]">?</kbd>
+                </button>
+              </div>
+            )}
+          </DropdownMenu>
 
           {/* Shared Context Panel Toggle */}
           <IconButton
-            label={contextOpen ? 'Hide Context Inspector' : 'Show Context Inspector'}
+            label={contextOpen ? 'Hide panel' : 'Show details panel'}
             active={contextOpen}
             onClick={toggleContext}
           >

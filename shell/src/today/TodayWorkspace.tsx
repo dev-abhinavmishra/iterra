@@ -654,7 +654,7 @@ export function TodayWorkspace({
           <div className="space-y-6 lg:col-span-7">
             {/* ── 2. RESUME WORKING ── */}
             <section aria-label="Resume working">
-              <SectionHeader kicker="01 · Continue" title="Resume Working" />
+              <SectionHeader title="Resume Working" />
               {resumeObject ? (
                 <div className="rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                   <div className="flex items-start justify-between gap-3">
@@ -782,9 +782,7 @@ export function TodayWorkspace({
 
             {/* ── 3. NEXT UP (Scheduled Work) ── */}
             <section aria-label="Next up scheduled work">
-              <SectionHeader
-                kicker="02 · Schedule"
-                title="Next Up"
+              <SectionHeader title="Next Up"
                 action={
                   <button
                     type="button"
@@ -884,9 +882,7 @@ export function TodayWorkspace({
 
             {/* ── 6. RECENT WORK ── */}
             <section aria-label="Recent work">
-              <SectionHeader
-                kicker="03 · Workspace Objects"
-                title="Recent Work"
+              <SectionHeader title="Recent Work"
                 count={recentWork.length}
                 action={
                   <button
@@ -938,9 +934,7 @@ export function TodayWorkspace({
           <div className="space-y-6 lg:col-span-5">
             {/* ── 4. REVIEW & FOLLOW-UP ── */}
             <section aria-label="Review and follow-up">
-              <SectionHeader
-                kicker="04 · Active Recall & Follow-Up"
-                title="Review Queue"
+              <SectionHeader title="Review Queue"
                 count={reviewItems.length}
               />
               {reviewItems.length > 0 ? (
@@ -1019,9 +1013,7 @@ export function TodayWorkspace({
 
             {/* ── 5. COURSE OVERVIEW ── */}
             <section aria-label="Course overview">
-              <SectionHeader
-                kicker="05 · Courses"
-                title="Course Overview"
+              <SectionHeader title="Course Overview"
                 count={courseGroups.length}
                 action={
                   <button
@@ -1120,7 +1112,7 @@ export function TodayWorkspace({
             {/* ── Recent Activity Stream (only when real activity exists) ── */}
             {feed.length > 0 && (
               <section aria-label="Recent workspace activity">
-                <SectionHeader kicker="06 · Log" title="Recent Activity" />
+                <SectionHeader title="Recent Activity" />
                 <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
                   {feed.slice(0, 5).map((f, idx) => (
                     <button
@@ -1147,10 +1139,7 @@ export function TodayWorkspace({
 
         {/* ── 7. SPECIALIZED TOOLS DIRECTORY STRIP (Compact, functional names first) ── */}
         <section aria-label="Workspace tools" className="pt-2 border-t border-[var(--color-line)]">
-          <SectionHeader
-            kicker="Tools"
-            title="Specialized Working Surfaces"
-          />
+          <SectionHeader title="Tools" />
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {PLACES.map((p) => {
               const pres = presences[p.id];

@@ -206,7 +206,7 @@ export function CoursesIndex({
 
         {/* Unfiled Workspace Card */}
         <section className="pt-2">
-          <SectionHeader kicker="General" title="Unfiled Workspace Objects" />
+          <SectionHeader title="Unfiled Items" />
           <button
             type="button"
             onClick={() => onGo('#/c/unfiled')}

@@ -18,7 +18,7 @@ import type { Entity, SharedField, StoreEntity } from '../hub';
 import { sendTo } from '../hub';
 import { execCommand } from '../integration/commands';
 import { isPinned, togglePin } from '../shelf';
-import { Badge, Button, IconButton } from '../ui/primitives';
+import { Badge, Button, Disclosure, IconButton } from '../ui/primitives';
 import {
   type WorkspaceObject,
   toWorkspaceObject,
@@ -34,6 +34,18 @@ export interface LinkedEdge {
   app: string;
   type: string;
   url: string;
+}
+
+const REL_KIND_LABELS: Record<string, string> = {
+  derivedFrom: 'derived from',
+  scheduledFor: 'scheduled',
+  practicedIn: 'practiced',
+  assessedBy: 'assessed by',
+  followUpFor: 'follow-up',
+};
+
+function formatRelKind(kind: string): string {
+  return REL_KIND_LABELS[kind] || kind;
 }
 
 /**
@@ -452,7 +464,7 @@ export function ContextPanel({
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-[var(--color-line)] px-3.5">
         <div className="flex items-center gap-2">
           <span className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--color-mute)]">
-            Context Inspector
+            Details
           </span>
         </div>
         <IconButton label="Close context panel" onClick={onClose}>
@@ -523,107 +535,73 @@ export function ContextPanel({
             </div>
           </section>
 
-          {/* 1. Course & Topic */}
-          <section className="p-3.5 space-y-2.5">
-            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
-              Course &amp; Topic
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 p-2">
-                <div className="text-[10.5px] text-[var(--color-faint)]">Course</div>
-                {resolvedCourse ? (
-                  <button
-                    type="button"
-                    onClick={() => onGo(`#/c/${encodeURIComponent(resolvedCourse.code)}`)}
-                    className="mt-0.5 flex items-center gap-1 text-left text-[12.5px] font-semibold text-[var(--color-accent)] hover:underline cursor-pointer"
-                  >
-                    <BookOpen className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{resolvedCourse.code}</span>
-                    <ArrowUpRight className="h-3 w-3 shrink-0" />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => onGo('#/c/unfiled')}
-                    className="mt-0.5 text-[12px] text-[var(--color-mute)] hover:text-[var(--color-accent)] cursor-pointer"
-                  >
-                    Unfiled →
-                  </button>
-                )}
-                {resolvedCourse?.name && (
-                  <div className="truncate text-[11px] text-[var(--color-mute)]">{resolvedCourse.name}</div>
-                )}
-              </div>
-
-              <div className="rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 p-2">
-                <div className="text-[10.5px] text-[var(--color-faint)]">Topic</div>
-                {object.topic ? (
+          {/* 1. Course & Topic — one quiet line, not two boxed cells */}
+          <section className="px-3.5 py-2.5">
+            <div className="flex items-center gap-1.5 text-[12.5px] min-w-0">
+              <BookOpen className="h-3.5 w-3.5 shrink-0 text-[var(--color-faint)]" />
+              {resolvedCourse ? (
+                <button
+                  type="button"
+                  onClick={() => onGo(`#/c/${encodeURIComponent(resolvedCourse.code)}`)}
+                  className="font-semibold text-[var(--color-accent)] hover:underline cursor-pointer truncate"
+                  title={resolvedCourse.name}
+                >
+                  {resolvedCourse.code}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onGo('#/c/unfiled')}
+                  className="text-[var(--color-mute)] hover:text-[var(--color-accent)] cursor-pointer"
+                >
+                  Unfiled
+                </button>
+              )}
+              {object.topic && (
+                <>
+                  <span className="text-[var(--color-faint)]">·</span>
                   <button
                     type="button"
                     onClick={() => onGo(`#/c/${encodeURIComponent(object.topic!)}`)}
-                    className="mt-0.5 flex items-center gap-1 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:text-[var(--color-accent)] cursor-pointer"
+                    className="truncate text-[var(--color-ink)] hover:text-[var(--color-accent)] cursor-pointer"
                   >
-                    <span className="truncate">{object.topic}</span>
-                    <ArrowUpRight className="h-3 w-3 shrink-0 opacity-60" />
+                    {object.topic}
                   </button>
-                ) : (
-                  <div className="mt-0.5 text-[12px] text-[var(--color-faint)]">None assigned</div>
-                )}
-              </div>
+                </>
+              )}
+              {resolvedCourse?.name && (
+                <span className="truncate text-[11px] text-[var(--color-faint)]">
+                  {resolvedCourse.name}
+                </span>
+              )}
             </div>
           </section>
 
-          {/* 2. Source & Provenance */}
-          <section className="p-3.5 space-y-2">
-            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
-              Source &amp; Provenance
-            </div>
-            <div className="space-y-1.5 text-[12px]">
-              <div className="flex items-center justify-between text-[var(--color-mute)]">
-                <span>Tool</span>
-                <span className="font-medium text-[var(--color-ink)]">
-                  {place ? `${place.label} · ${place.app}` : object.app}
-                </span>
+          {/* 2. Where it came from — only when a real source exists */}
+          {sourceEdges.length > 0 && (
+            <section className="p-3.5 space-y-1.5">
+              <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
+                From
               </div>
-              {object.updatedAt ? (
-                <div className="flex items-center justify-between text-[var(--color-mute)]">
-                  <span>Last updated</span>
-                  <span className="font-mono text-[11.5px] text-[var(--color-ink)]">
-                    {formatRelativeTime(object.updatedAt)}
-                  </span>
-                </div>
-              ) : null}
-              <div className="flex items-center justify-between text-[var(--color-mute)]">
-                <span>Persistence</span>
-                <span className="text-[11.5px] text-[var(--color-accent)] font-medium">
-                  Saved in workspace
-                </span>
-              </div>
-            </div>
-
-            {sourceEdges.length > 0 && (
-              <div className="pt-1.5 space-y-1">
-                <div className="text-[11px] font-medium text-[var(--color-mute)]">Origin / Derived from:</div>
-                {sourceEdges.map((src) => (
-                  <button
-                    key={src.key}
-                    type="button"
-                    onClick={() => onGo(src.url)}
-                    className="flex w-full items-center gap-2 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/70 px-2.5 py-1.5 text-left text-[12px] hover:border-[var(--color-accent)] cursor-pointer"
-                  >
-                    <Link2 className="h-3.5 w-3.5 shrink-0 text-[var(--color-accent)]" />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium text-[var(--color-ink)]">{src.title}</div>
-                      <div className="text-[10.5px] text-[var(--color-faint)]">
-                        {src.kind} · {PLACE_MAP[src.app]?.label || src.app}
-                      </div>
+              {sourceEdges.map((src) => (
+                <button
+                  key={src.key}
+                  type="button"
+                  onClick={() => onGo(src.url)}
+                  className="flex w-full items-center gap-2 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/70 px-2.5 py-1.5 text-left text-[12px] hover:border-[var(--color-accent)] cursor-pointer"
+                >
+                  <Link2 className="h-3.5 w-3.5 shrink-0 text-[var(--color-accent)]" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium text-[var(--color-ink)]">{src.title}</div>
+                    <div className="text-[10.5px] text-[var(--color-faint)]">
+                      {formatRelKind(src.kind)} · {PLACE_MAP[src.app]?.label || src.app}
                     </div>
-                    <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-[var(--color-faint)]" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </section>
+                  </div>
+                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-[var(--color-faint)]" />
+                </button>
+              ))}
+            </section>
+          )}
 
           {/* 3. Connected Work */}
           <section className="p-3.5 space-y-2.5">
@@ -644,7 +622,7 @@ export function ContextPanel({
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium text-[var(--color-ink)]">{edge.title}</div>
                       <div className="text-[10.5px] text-[var(--color-faint)]">
-                        {formatEntityType(edge.type)} in {PLACE_MAP[edge.app]?.label || edge.app} ({edge.kind})
+                        {formatEntityType(edge.type)} in {PLACE_MAP[edge.app]?.label || edge.app} · {formatRelKind(edge.kind)}
                       </div>
                     </div>
                     <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-[var(--color-faint)]" />
@@ -657,12 +635,10 @@ export function ContextPanel({
               </p>
             )}
 
-            {/* Attach to existing study block / commitment */}
+            {/* Attach to an existing block — behind a disclosure so the
+                panel doesn't lead with plumbing */}
             {openCommitments.length > 0 && object.type !== 'commitment' && object.type !== 'block' && (
-              <div className="pt-1">
-                <label className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">
-                  Attach to scheduled block / commitment
-                </label>
+              <Disclosure label="Attach to a planned block…" className="pt-0.5">
                 <div className="flex items-center gap-1.5">
                   <select
                     value={attachCommitmentId}
@@ -686,7 +662,7 @@ export function ContextPanel({
                     Attach
                   </Button>
                 </div>
-              </div>
+              </Disclosure>
             )}
 
             {/* Related in same course/topic */}
@@ -810,129 +786,168 @@ export function ContextPanel({
                 </button>
               )}
 
-              {/* Create Follow-up Study Block in Syllabus — attaches this
-                  object as the block's material via scheduleReviewBlock,
-                  so starting the block opens the real deck/note/problem. */}
-              {object.app !== 'syllabus' && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const r = await execCommand('scheduleReviewBlock', {
-                      materialRef: object.key,
-                      title: `Follow up: ${object.title}`,
-                      course: object.course,
-                      courseId: object.courseId,
-                      topic: object.topic,
-                      plannedMinutes: 25,
-                    });
-                    if (r.ok) {
-                      showMsg('Scheduled study block in Planning');
-                    } else {
-                      showMsg(`Action failed: ${r.error || 'unavailable'}`);
-                    }
-                  }}
-                  className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
-                >
-                  <Calendar className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
-                  <span className="flex-1">Create follow-up study block</span>
-                </button>
-              )}
+              {/* Less-used handoffs fold away — same actions, less noise */}
+              <Disclosure label="More actions" className="pt-0.5">
+                <div className="grid gap-1.5">
+                  {/* Create Follow-up Study Block in Syllabus — attaches this
+                      object as the block's material via scheduleReviewBlock,
+                      so starting the block opens the real deck/note/problem. */}
+                  {object.app !== 'syllabus' && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const r = await execCommand('scheduleReviewBlock', {
+                          materialRef: object.key,
+                          title: `Follow up: ${object.title}`,
+                          course: object.course,
+                          courseId: object.courseId,
+                          topic: object.topic,
+                          plannedMinutes: 25,
+                        });
+                        if (r.ok) {
+                          showMsg('Scheduled study block in Planning');
+                        } else {
+                          showMsg(`Action failed: ${r.error || 'unavailable'}`);
+                        }
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
+                    >
+                      <Calendar className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
+                      <span className="flex-1">Plan a study block</span>
+                    </button>
+                  )}
 
-              {/* Schedule Routine in Attendance (Rhythm) */}
-              {object.app !== 'rhythm' && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    void triggerAction({
-                      to: 'rhythm',
-                      action: 'routine.plan',
-                      payload: {
-                        name: object.title,
-                        course: object.course,
-                        courseId: object.courseId,
-                        minutes: 25,
-                      },
-                      successLabel: 'Added routine to Attendance',
-                    })
-                  }
-                  className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
-                >
-                  <CheckSquare className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
-                  <span className="flex-1">Add to weekly Attendance</span>
-                </button>
-              )}
+                  {/* Schedule Routine in Attendance (Rhythm) */}
+                  {object.app !== 'rhythm' && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void triggerAction({
+                          to: 'rhythm',
+                          action: 'routine.plan',
+                          payload: {
+                            name: object.title,
+                            course: object.course,
+                            courseId: object.courseId,
+                            minutes: 25,
+                          },
+                          successLabel: 'Added routine to Attendance',
+                        })
+                      }
+                      className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
+                    >
+                      <CheckSquare className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
+                      <span className="flex-1">Add to weekly Attendance</span>
+                    </button>
+                  )}
 
-              {/* Send to Notes (Ink) */}
-              {object.app !== 'ink' && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    void triggerAction({
-                      to: 'ink',
-                      action: 'note.create',
-                      payload: {
-                        title: object.title,
-                        text: object.sub ? `${object.title}\n\n${object.sub}` : object.title,
-                        course: object.course,
-                      },
-                      successLabel: 'Created note in Notes (Ink)',
-                    })
-                  }
-                  className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
-                >
-                  <FileText className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
-                  <span className="flex-1">Open as note in Notes (Ink)</span>
-                </button>
-              )}
+                  {/* Send to Notes (Ink) */}
+                  {object.app !== 'ink' && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void triggerAction({
+                          to: 'ink',
+                          action: 'note.create',
+                          payload: {
+                            title: object.title,
+                            text: object.sub ? `${object.title}\n\n${object.sub}` : object.title,
+                            course: object.course,
+                          },
+                          successLabel: 'Created note in Notes (Ink)',
+                        })
+                      }
+                      className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
+                    >
+                      <FileText className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
+                      <span className="flex-1">Open as a note</span>
+                    </button>
+                  )}
 
-              {/* Send to Study Materials (Margin) */}
-              {object.app !== 'margin' && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    void triggerAction({
-                      to: 'margin',
-                      action: 'note.create',
-                      payload: {
-                        title: object.title,
-                        text: object.sub || object.title,
-                        course: object.course,
-                      },
-                      successLabel: 'Sent to Study Materials (Margin)',
-                    })
-                  }
-                  className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
-                  <span className="flex-1">Send to Study Materials (Margin)</span>
-                </button>
-              )}
+                  {/* Send to Study Materials (Margin) */}
+                  {object.app !== 'margin' && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void triggerAction({
+                          to: 'margin',
+                          action: 'note.create',
+                          payload: {
+                            title: object.title,
+                            text: object.sub || object.title,
+                            course: object.course,
+                          },
+                          successLabel: 'Sent to Study Materials (Margin)',
+                        })
+                      }
+                      className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
+                      <span className="flex-1">Save to study materials</span>
+                    </button>
+                  )}
 
-              {/* Send to Calculations (Proof) */}
-              {object.app !== 'proof' && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    void triggerAction({
-                      to: 'proof',
-                      action: 'problem.create',
-                      payload: {
-                        prompt: object.title,
-                        topic: object.topic || object.course || 'Practice',
-                        course: object.course,
-                        courseId: object.courseId,
-                        source: object.app,
-                      },
-                      successLabel: 'Added problem to Calculations (Proof)',
-                    })
-                  }
-                  className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
-                >
-                  <Sigma className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
-                  <span className="flex-1">Work as problem in Calculations</span>
-                </button>
-              )}
+                  {/* Send to Calculations (Proof) */}
+                  {object.app !== 'proof' && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void triggerAction({
+                          to: 'proof',
+                          action: 'problem.create',
+                          payload: {
+                            prompt: object.title,
+                            topic: object.topic || object.course || 'Practice',
+                            course: object.course,
+                            courseId: object.courseId,
+                            source: object.app,
+                          },
+                          successLabel: 'Added problem to Calculations (Proof)',
+                        })
+                      }
+                      className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
+                    >
+                      <Sigma className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
+                      <span className="flex-1">Work it as a problem</span>
+                    </button>
+                  )}
+                </div>
+              </Disclosure>
             </div>
+          </section>
+
+          {/* 5. Details — provenance meta hidden behind a disclosure */}
+          <section className="p-3.5">
+            <Disclosure label="Details">
+              <div className="space-y-1.5 text-[12px] pt-0.5">
+                <div className="flex items-center justify-between text-[var(--color-mute)]">
+                  <span>Tool</span>
+                  <span className="font-medium text-[var(--color-ink)]">
+                    {place ? `${place.label} · ${place.app}` : object.app}
+                  </span>
+                </div>
+                {object.updatedAt ? (
+                  <div className="flex items-center justify-between text-[var(--color-mute)]">
+                    <span>Last updated</span>
+                    <span className="font-mono text-[11.5px] text-[var(--color-ink)]">
+                      {formatRelativeTime(object.updatedAt)}
+                    </span>
+                  </div>
+                ) : null}
+                <div className="flex items-center justify-between text-[var(--color-mute)]">
+                  <span>Persistence</span>
+                  <span className="text-[11.5px] text-[var(--color-accent)] font-medium">
+                    Saved in workspace
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-[var(--color-mute)]">
+                  <span>Reference</span>
+                  <span className="font-mono text-[10.5px] text-[var(--color-faint)] truncate" title={object.key}>
+                    {object.key}
+                  </span>
+                </div>
+              </div>
+            </Disclosure>
           </section>
         </div>
       )}
