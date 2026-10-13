@@ -47,8 +47,11 @@ export default function App() {
   const settings = useSettings();
   // views mount on first visit and stay mounted — switching hides rather than
   // unmounts, so a running countdown, stopwatch laps, ringing alarms and
-  // routine progress all survive navigation
-  const [mounted, setMounted] = useState<Set<View>>(() => new Set<View>(['timer']));
+  // routine progress all survive navigation.
+  // 'clock' mounts eagerly: the alarm fire-check lives inside ClockView, so a
+  // lazy mount would let an enabled alarm sit silently due until the user
+  // happened to open the Clock tab — the one view nobody watches.
+  const [mounted, setMounted] = useState<Set<View>>(() => new Set<View>(['timer', 'clock']));
   // at most one takeover owns the screen — the first to surface keeps it;
   // competing ones (e.g. a countdown finishing during a ringing alarm) wait
   // hidden in their own view, still reachable by manual navigation
