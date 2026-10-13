@@ -29,7 +29,9 @@ export function useCountdown() {
     onDone.current = done ?? null;
     setRunning(true);
   };
-  const pause = () => setRunning(false);
+  /* bank the exact remaining time on pause — freezing the last tick's value
+     would silently shave up to a 50ms tick interval off every pause/resume */
+  const pause = () => { setRemainingMs(Math.max(0, endAt.current - Date.now())); setRunning(false); };
   const resume = (done?: () => void) => {
     endAt.current = Date.now() + remainingMs;
     if (done) onDone.current = done;
@@ -57,7 +59,6 @@ export function useStopwatch() {
 
   useEffect(() => {
     if (!running) return;
-    startAt.current = performance.now();
     const tick = () => {
       setElapsed(banked.current + (performance.now() - startAt.current));
       raf.current = requestAnimationFrame(tick);
@@ -66,8 +67,15 @@ export function useStopwatch() {
     return () => cancelAnimationFrame(raf.current);
   }, [running]);
 
-  const start = () => setRunning(true);
-  const pause = () => { banked.current = elapsed; setRunning(false); };
+  /* startAt is stamped in start() (not the effect) so a pause landing before
+     the first frame can't bank elapsed against a stale anchor */
+  const start = () => { if (!running) { startAt.current = performance.now(); setRunning(true); } };
+  /* bank the true elapsed at pause-time, not the last rendered frame —
+     that frame is up to ~16ms stale and every pause/resume lost it */
+  const pause = () => {
+    if (running) { banked.current += performance.now() - startAt.current; setElapsed(banked.current); }
+    setRunning(false);
+  };
   const reset = () => { setRunning(false); banked.current = 0; setElapsed(0); };
 
   return { elapsed, running, start, pause, reset };
@@ -177,8 +185,16 @@ export function useRoutineRunner() {
     setRemainingMs(first.seconds * 1000);
     setRunning(true);
   };
-  const pause = () => setRunning(false);
-  const resume = () => { endAt.current = Date.now() + remainingMs; setRunning(true); };
+  /* bank the exact remaining time on pause — same shave-the-tick fix as
+     the countdown (rAF leaves the last frame up to ~16ms stale) */
+  const pause = () => { if (running) setRemainingMs(Math.max(0, endAt.current - Date.now())); setRunning(false); };
+  /* a finished run must not resume — remainingMs is 0 and the routine is
+     over; keys land on this path from the ROUTE COMPLETE screen */
+  const resume = () => {
+    if (!routine || finished) return;
+    endAt.current = Date.now() + remainingMs;
+    setRunning(true);
+  };
   const quit = () => { setRunning(false); setRoutine(null); setFinished(false); };
 
   const isLastLeg = routine ? (round >= routine.rounds && phaseIdx >= routine.phases.length - 1) : false;

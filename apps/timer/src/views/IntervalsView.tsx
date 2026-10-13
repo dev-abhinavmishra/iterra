@@ -109,6 +109,12 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
       const t = e.target as HTMLElement;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
       if (editing) { if (e.key === 'Escape') setEditing(false); return; }
+      /* ROUTE COMPLETE owns the keys — Space/Enter/Esc all dismiss to the
+         picker (Space must not fall through to resume a finished run) */
+      if (run.finished) {
+        if (e.code === 'Space' || e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); run.quit(); }
+        return;
+      }
       if (e.code === 'Space') { e.preventDefault(); if (run.routine) { flashKey('toggle'); run.running ? run.pause() : run.resume(); } }
       else if (e.key === 'r' || e.key === 'R') { if (run.routine) { flashKey('restart'); run.start(run.routine); } }
       else if (e.key === 'Escape') { if (run.routine) { flashKey('quit'); run.quit(); } }
@@ -131,7 +137,10 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
 
   const saveCustom = () => {
     if (!name.trim() || phases.length === 0) return;
-    const r: Routine = { id: Math.random().toString(36).slice(2, 8), name: name.trim(), phases, rounds };
+    /* a nameless phase would flap a blank board mid-run — fall back to its
+       position so the runner always has a real label to announce */
+    const cleanPhases = phases.map((p, i) => ({ ...p, name: p.name.trim() || `Phase ${i + 1}` }));
+    const r: Routine = { id: Math.random().toString(36).slice(2, 8), name: name.trim(), phases: cleanPhases, rounds };
     const next = [...custom, r];
     setCustom(next);
     localStorage.setItem(ROUTINES_KEY, JSON.stringify(next));
@@ -281,6 +290,8 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
               <button
                 onClick={() => deleteCustom(r.id)}
                 className="absolute top-4 right-4 text-ink-faint hover:text-[color:var(--color-signal)] transition-colors"
+                aria-label={`Delete route ${r.name}`}
+                title="Delete route"
               >
                 <Trash2 size={15} />
               </button>
@@ -334,13 +345,14 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
             >
               <div className="flex items-center justify-between mb-5">
                 <span className="engraved text-xs">New route</span>
-                <button onClick={() => setEditing(false)} className="text-flap-dim hover:text-flap-ink"><X size={18} /></button>
+                <button onClick={() => setEditing(false)} className="text-flap-dim hover:text-flap-ink" aria-label="Close" title="Close"><X size={18} /></button>
               </div>
 
               <input
                 name="route-name"
                 value={name} onChange={e => setName(e.target.value)}
                 placeholder="Route name — e.g. Kettlebell ladder"
+                maxLength={32}
                 className="w-full mb-5 bg-[#0F0C06] border border-[rgba(242,233,207,0.12)] rounded-lg px-4 py-2.5 text-sm text-flap-ink placeholder:text-flap-dim focus:outline-none focus:border-[rgba(242,233,207,0.3)] font-body"
               />
 
@@ -356,10 +368,10 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
                     />
                     <div className="flex items-center gap-1">
                       <button onClick={() => setPhases(phases.map((x, j) => j === i ? { ...x, seconds: Math.max(5, x.seconds - (x.seconds > 60 ? 30 : 5)) } : x))}
-                        className="w-7 h-7 rounded bg-board-3 text-flap-ink text-sm">−</button>
+                        className="w-7 h-7 rounded bg-board-3 text-flap-ink text-sm" aria-label={`Shorten ${p.name || `phase ${i + 1}`}`} title="Shorter">−</button>
                       <span className="w-12 text-center font-display font-bold text-flap-ink text-sm">{fmtDur(p.seconds)}</span>
                       <button onClick={() => setPhases(phases.map((x, j) => j === i ? { ...x, seconds: Math.min(3600, x.seconds + (x.seconds >= 60 ? 30 : 5)) } : x))}
-                        className="w-7 h-7 rounded bg-board-3 text-flap-ink text-sm">+</button>
+                        className="w-7 h-7 rounded bg-board-3 text-flap-ink text-sm" aria-label={`Lengthen ${p.name || `phase ${i + 1}`}`} title="Longer">+</button>
                     </div>
                     <button
                       onClick={() => setPhases(phases.map((x, j) => j === i ? { ...x, kind: x.kind === 'work' ? 'rest' : 'work' } : x))}
@@ -368,7 +380,7 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
                       {p.kind === 'rest' ? 'Rest' : 'Work'}
                     </button>
                     <button onClick={() => setPhases(phases.filter((_, j) => j !== i))}
-                      className="text-flap-dim hover:text-signal-bright"><Trash2 size={14} /></button>
+                      className="text-flap-dim hover:text-signal-bright" aria-label={`Remove ${p.name || `phase ${i + 1}`}`} title="Remove phase"><Trash2 size={14} /></button>
                   </div>
                 ))}
               </div>
@@ -383,9 +395,9 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
               <div className="flex items-center justify-between mb-6">
                 <span className="engraved text-[10px]">Rounds</span>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setRounds(r => Math.max(1, r - 1))} className="w-8 h-8 rounded bg-board-3 text-flap-ink">−</button>
+                  <button onClick={() => setRounds(r => Math.max(1, r - 1))} className="w-8 h-8 rounded bg-board-3 text-flap-ink" aria-label="Fewer rounds" title="Fewer rounds">−</button>
                   <span className="w-10 text-center font-display font-bold text-flap-ink text-lg">{rounds}</span>
-                  <button onClick={() => setRounds(r => Math.min(20, r + 1))} className="w-8 h-8 rounded bg-board-3 text-flap-ink">+</button>
+                  <button onClick={() => setRounds(r => Math.min(20, r + 1))} className="w-8 h-8 rounded bg-board-3 text-flap-ink" aria-label="More rounds" title="More rounds">+</button>
                 </div>
               </div>
 
