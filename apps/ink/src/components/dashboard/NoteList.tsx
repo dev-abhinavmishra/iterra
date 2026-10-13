@@ -275,6 +275,15 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, now, isActive, onSelect, onPi
   return (
     <div
       onClick={onSelect}
+      /* The whole card is the affordance — give it a keyboard way in too.
+         Inner buttons stopPropagation, so activating them never selects. */
+      role="button"
+      tabIndex={0}
+      aria-current={isActive ? 'true' : undefined}
+      onKeyDown={e => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); }
+      }}
       className={clsx(
         'group relative rounded cursor-pointer transition-colors duration-100 px-3 py-2.5',
         isActive
