@@ -145,15 +145,18 @@
     }, true);
 
     /* Terrain chords a focused frame would otherwise eat: ⌘K palette,
-       ⌘0/` home, ⌘1-8 places. Bubble phase so the app's own shortcuts get
-       first claim — a defaultPrevented ⌘K (ink/margin palettes) stays
-       theirs; anything unclaimed goes to the shell. Framed only. */
+       ⌘0/` home, ⌘1-8 places. An app shipping its own chord declares it
+       at register() via ownKeys (ink/margin own ⌘K) and the terrain
+       yields it — a plain defaultPrevented check can't work here because
+       app listeners sit at window, which fires AFTER this document one. */
     document.addEventListener('keydown', function (ev) {
       if (!framed || ev.defaultPrevented) return;
       if (!(ev.metaKey || ev.ctrlKey) || ev.altKey || ev.shiftKey) return;
       var k = ev.key;
       var fwd = k === 'k' || k === 'K' || k === '`' || k === '0' || (k >= '1' && k <= '8');
       if (!fwd) return;
+      var own = (opts && opts.ownKeys) || [];
+      if (own.indexOf(k.toLowerCase()) >= 0) return;
       ev.preventDefault();
       say({ type: 'iterra:hotkey', key: k.toLowerCase() });
     });
