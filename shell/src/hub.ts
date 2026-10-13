@@ -269,7 +269,9 @@ export function readIndexes(): Record<string, Entity[]> {
     if (!m) continue;
     try {
       const d = JSON.parse(localStorage.getItem(k) || 'null');
-      out[m[1]] = Array.isArray(d?.entities) ? d.entities : [];
+      /* index docs can carry nulls (sparse-array deletes serialize as
+         null) — drop non-entities here so no consumer has to re-guard */
+      out[m[1]] = Array.isArray(d?.entities) ? d.entities.filter((e: Entity | null) => e && typeof e === 'object') : [];
     } catch { /* ignore */ }
   }
   return out;
