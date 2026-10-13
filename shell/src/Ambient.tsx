@@ -180,7 +180,12 @@ export function Ambient({
           <span className="text-[10px] opacity-60">open →</span>
         </button>
       )}
-      <div className="pointer-events-auto flex max-w-full items-center gap-1.5 overflow-x-auto">
+      {/* chips live inside the horizontal scrollport; the qs menu must NOT —
+          overflow-x:auto computes overflow-y non-visible too, so an
+          upward-opening panel inside is clipped away entirely (it renders,
+          invisible, while its backdrop eats every click on the page) */}
+      <div className="pointer-events-auto flex max-w-full items-center gap-1.5">
+        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
         {/* the running (or paused) session — seconds-accurate countdown from
             endsAt; controls steer the real countdown inside the frame */}
         {focusLive && !stale && activePlace !== 'timer' && (
@@ -312,7 +317,10 @@ export function Ambient({
           </div>
         )}
 
-        <div className="relative">
+        </div>
+        {/* + focus lives outside the scrollport so its menu can open upward
+            unclipped; z-40 lifts the panel above terrain content */}
+        <div className="relative z-40 shrink-0">
           <button onClick={() => setQsOpen((v) => !v)} className={chip} title="start a session">
             <span className="text-moss-700">+</span>
             <span className="text-[10.5px]">focus</span>

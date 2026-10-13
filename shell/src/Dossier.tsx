@@ -215,9 +215,24 @@ export function Dossier({
     { to: 'rhythm', action: 'routine.plan', label: 'the register' },
     { to: 'timer', action: 'timer.start', label: 'a session' },
   ];
+  /* anchored to the trigger's viewport rect: the entity lists are
+     overflow-hidden, so an in-flow dropdown gets clipped to the last
+     row's edge — position:fixed escapes the clip entirely */
   const [rowSend, setRowSend] = useState<string | null>(null);
+  const [rowSendRect, setRowSendRect] = useState<{ top: number; right: number } | null>(null);
+  const openRowSend = (key: string | null, ev?: React.MouseEvent) => {
+    if (key === null) { setRowSend(null); setRowSendRect(null); return; }
+    const r = (ev?.currentTarget as HTMLElement)?.getBoundingClientRect();
+    setRowSend(key);
+    if (r) {
+      const MENU_H = 208;
+      const top = r.bottom + 4 + MENU_H > window.innerHeight ? Math.max(8, r.top - MENU_H - 4) : r.bottom + 4;
+      setRowSendRect({ top, right: window.innerWidth - r.right });
+    }
+  };
   const sendRow = async (app: string, e: Entity, t: { to: string; action: string; label: string }) => {
     setRowSend(null);
+    setRowSendRect(null);
     const r = await sendTo({
       to: t.to,
       action: t.action,
@@ -574,15 +589,23 @@ export function Dossier({
                   </button>
                   <span className="relative shrink-0">
                     <button
-                      onClick={() => setRowSend(rowSend === `${app}|${e.url || ''}|${e.id || ''}|${e.title}` ? null : `${app}|${e.url || ''}|${e.id || ''}|${e.title}`)}
+                      onClick={(ev) => openRowSend(rowSend === `${app}|${e.url || ''}|${e.id || ''}|${e.title}` ? null : `${app}|${e.url || ''}|${e.id || ''}|${e.title}`, ev)}
                       aria-label={`send ${e.title} to another app`}
                       title="send to…"
                       className="px-2 py-2.5 text-[12px] text-atlas-400 hover:text-moss-700 focus:outline-none"
                     >
                       ⇥
                     </button>
-                    {rowSend === `${app}|${e.url || ''}|${e.id || ''}|${e.title}` && (
-                      <span className="anim-pop absolute right-0 top-full z-30 w-40 rounded-md border border-atlas-300 bg-atlas-50 p-1 shadow-[0_12px_30px_-12px_rgba(29,51,42,0.45)]">
+                    {rowSend === `${app}|${e.url || ''}|${e.id || ''}|${e.title}` && rowSendRect && (
+                      <>
+                        {/* outside-click dismiss — the menu is fixed now,
+                            escaped its clipping ancestor, so the backdrop
+                            closes it rather than the row losing it */}
+                        <span className="fixed inset-0 z-30 block" onClick={() => openRowSend(null)} />
+                        <span
+                          className="anim-pop fixed z-40 w-40 rounded-md border border-atlas-300 bg-atlas-50 p-1 shadow-[0_12px_30px_-12px_rgba(29,51,42,0.45)]"
+                          style={{ top: rowSendRect.top, right: rowSendRect.right, transformOrigin: 'top right' }}
+                        >
                         {ROW_SENDS.map((t) => (
                           <button
                             key={t.to}
@@ -592,7 +615,8 @@ export function Dossier({
                             → {t.label}
                           </button>
                         ))}
-                      </span>
+                        </span>
+                      </>
                     )}
                   </span>
                   <button
