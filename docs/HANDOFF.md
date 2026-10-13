@@ -233,3 +233,18 @@ contract every app and the shell follows.
   invisible backdrop swallowed clicks; frame ⌘K forwarding yields via
   register opts `ownKeys` (defaultPrevented can't work — the hub's
   document listener precedes window-level app handlers).
+- Polish wave (27a738b→72e0067): Escape now dismisses every shell popover
+  (switcher, rail quick-start, dossier row-send, stir send, cheat) — they
+  had backdrop-click only, and a stranded backdrop eats the next click
+  invisibly; palette Escape peels the send menu before closing the palette
+  itself. Global :focus-visible moss ring — ~19 controls dropped the
+  outline with no replacement. readIndexes filters null entries (sparse-
+  array deletes in index docs serialize as null — crashed the whole shell
+  on a flatMap deref). Stirrings collapse consecutive identical
+  app+text+url rows to 'text ×N'. intake-matrix-check takes ITERRA_BASE /
+  ITERRA_CDP — run it against a spare port (node static-serve dist PORT)
+  so matrix entities never pollute the browsed origin; it seeds a term+
+  MTH course into syllabus.folio.v1 when the folio is empty so block.plan
+  can resolve (block.plan legitimately url:nulls on a course-less folio).
+  Six scripts/appcheck-<app>.cjs (lane D) take BASE/CDP env — same spare-
+  origin rule applies; they double as per-app clickpath regressions.
