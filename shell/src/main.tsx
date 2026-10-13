@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { placeHashFromAppUrl } from './route';
+import { registerIntegrationCommands } from './integration/commands';
+import { runIntegrationMigrations, installCrossTabSync } from './integration/migration';
 
 /* One document, one terrain — app-to-app links can't open real windows
    anymore. Apps call iterra.open('/apps/<p>/…') (the hub posts
@@ -42,6 +44,13 @@ const shim = () => {
 };
 if ((window as any).iterra) shim();
 else window.addEventListener('load', shim, { once: true });
+
+/* Cross-module integration: register typed commands (hub script loads
+   synchronously before this module), run versioned migrations, and keep
+   persisted app stores rehydrated across tabs. */
+registerIntegrationCommands();
+void runIntegrationMigrations().catch(() => {});
+installCrossTabSync();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
