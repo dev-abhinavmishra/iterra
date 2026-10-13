@@ -3,6 +3,7 @@ import { useFolio } from '../store';
 import { Field, FInput, FSelect, FTextarea } from '../components/Field';
 import { Stamp } from '../components/Stamp';
 import { LinkForm } from '../views/CourseView';
+import { placeActive } from '../../active';
 import { selectLinksFor } from '../store';
 import { useShallow } from 'zustand/react/shallow';
 import { remainingMinutes, reversePlan } from '../lib/schedule';
@@ -39,6 +40,7 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (!placeActive('syllabus')) return;
       if (e.key === 'Escape') {
         const t = e.target as HTMLElement;
         if (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA' && t.tagName !== 'SELECT') onClose();

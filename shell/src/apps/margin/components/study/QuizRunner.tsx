@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Quiz } from '../../types';
 import { Btn, Icon, IconBtn, ProgressBar } from '../ui/primitives';
 import { recordQuizAttempt, correctOptionIndex } from '../../services/studyService';
+import { placeActive } from '../../../active';
 
 interface QuizRunnerProps {
     quiz: Quiz;
@@ -72,6 +73,7 @@ const QuizRunner: React.FC<QuizRunnerProps> = ({ quiz: initialQuiz, onExit }) =>
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             const t = e.target as HTMLElement;
+            if (!placeActive('margin')) return;
             if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
             if (e.key === 'Escape') { e.preventDefault(); exit(); }
             else if (finished) return;

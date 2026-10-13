@@ -759,7 +759,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const empty = !d;
     els.emptyStage.hidden = !empty;
     els.deckView.hidden = empty;
-    if (!d) { document.title = 'flashcards — decks that live in a link'; return; }
+    if (!d) { if (!(window as any).__iterraIntegrated) document.title = 'flashcards — decks that live in a link'; return; }
   
     // drop ids that no longer exist (cards may have been deleted)
     const live = new Set(d.cards.map(c => c.id));
@@ -770,7 +770,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     state.write.order = state.write.order.filter(id => live.has(id));
     state.review.idx = Math.min(state.review.idx, Math.max(0, state.review.order.length - 1));
   
-    document.title = `${d.title} — flashcards`;
+    if (!(window as any).__iterraIntegrated) document.title = `${d.title} — flashcards`;
     els.deckTitle.textContent = d.title;
     const s = deckStats(d);
     renderDeckMeta(d);

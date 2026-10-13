@@ -5,6 +5,7 @@ import Skeleton from '../components/Skeleton';
 import { Icon, IconBtn, Btn, Modal, Divider } from '../components/ui/primitives';
 import FormatToolbar, { FormatState } from '../components/editor/FormatToolbar';
 import FloatingToolbar, { InlineAIAction } from '../components/editor/FloatingToolbar';
+import { placeActive } from '../../active';
 import NoteMetaBar from '../components/editor/NoteMetaBar';
 import OutlinePanel, { OutlineItem } from '../components/editor/OutlinePanel';
 import FindReplace, { unwrapFindMarks } from '../components/editor/FindReplace';
@@ -423,6 +424,7 @@ const EditorView: React.FC<EditorViewProps> = ({
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
+            if (!placeActive('margin')) return;
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
                 e.preventDefault();
                 setFindOpen(true);

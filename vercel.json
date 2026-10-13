@@ -3,7 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/apps/:app/:path*", "destination": "/apps/:app/index.html" },
     { "source": "/((?!api/|iterra-hub\\.js).*)", "destination": "/index.html" }
   ]
 }

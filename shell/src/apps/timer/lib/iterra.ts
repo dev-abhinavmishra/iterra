@@ -11,6 +11,20 @@ function runningFromTitle(): { label: string; endsInMin: number } | null {
   return { label: m[3], endsInMin: Math.max(0, Math.round(sec / 60)) };
 }
 
+/* the live-session record TimerView already publishes every second —
+   inside the terrain the tab title belongs to the shell, so the countdown
+   is read from the durable record instead of scraped off document.title. */
+function runningFromLive(): { label: string; endsInMin: number } | null {
+  try {
+    const live = JSON.parse(localStorage.getItem('timer.session.live.v1') || 'null');
+    if (!live?.running || !live.endsAt) return null;
+    const sec = Math.max(0, Math.round((live.endsAt - Date.now()) / 1000));
+    return { label: live.label || 'Focus', endsInMin: Math.max(0, Math.round(sec / 60)) };
+  } catch {
+    return null;
+  }
+}
+
 export function timerSummary() {
   const dayStart = new Date();
   dayStart.setHours(0, 0, 0, 0);
@@ -19,7 +33,7 @@ export function timerSummary() {
       .filter((s) => s.timestamp >= dayStart.getTime())
       .reduce((n, s) => n + s.duration, 0) / 60,
   );
-  return { running: runningFromTitle(), todayMin };
+  return { running: runningFromLive() ?? runningFromTitle(), todayMin };
 }
 
 export function wireIterra() {

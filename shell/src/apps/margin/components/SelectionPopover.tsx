@@ -4,6 +4,7 @@ import { runAction, parseJsonArray } from '../services/aiService';
 import { createDeck } from '../services/studyService';
 import type { Note } from '../types';
 import { Icon, Spinner } from './ui/primitives';
+import { placeActive } from '../../active';
 
 interface SelectionPopoverProps {
     onAddToChat: (text: string) => void;
@@ -73,7 +74,7 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
         const onDown = () => { selecting.current = true; };
         const onUp = () => { selecting.current = false; update(); };
         const onScroll = () => { if (mode === 'idle') hide(); };
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') hide(); };
+        const onKey = (e: KeyboardEvent) => { if (!placeActive('margin')) return; if (e.key === 'Escape') hide(); };
 
         document.addEventListener('selectionchange', update);
         document.addEventListener('mousedown', onDown);

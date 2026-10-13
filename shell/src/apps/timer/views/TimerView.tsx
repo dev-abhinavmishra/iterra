@@ -286,6 +286,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const mutedRef = useRef(false);
   mutedRef.current = takeoverMuted;
   useEffect(() => {
+    if ((window as any).__iterraIntegrated) return;
     if (!takeoverMuted) {
       if (running) document.title = `${fmt(cd.secondsLeft)} — ${isBreak ? 'Break' : (label || 'Focus')}`;
       else document.title = 'Timer — Time Instruments';

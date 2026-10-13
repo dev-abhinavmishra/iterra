@@ -87,7 +87,7 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
      so hiding this view never resets it mid-alarm and the hidden countdown's
      title writer can't stomp it (it mutes itself while a takeover owns) */
   useEffect(() => {
-    if (!firing) return;
+    if (!firing || (window as any).__iterraIntegrated) return;
     document.title = `● ${(firing.label || 'Alarm').toUpperCase()} — Timer`;
     return () => { document.title = 'Timer — Time Instruments'; };
   }, [firing]);

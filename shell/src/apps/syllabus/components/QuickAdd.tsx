@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFolio } from '../store';
 import type { Course, CommitmentType } from '../lib/types';
 import { fmtMinutes, isoAtTime, stampDate, todayISO, modalOpen } from '../lib/utils';
+import { placeActive } from '../../active';
 import { CornerDownLeft } from 'lucide-react';
 
 /**
@@ -19,6 +20,7 @@ export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFoc
   useEffect(() => {
     if (!autoFocusKey) return;
     const onKey = (e: KeyboardEvent) => {
+      if (!placeActive('syllabus')) return;
       const t = e.target as HTMLElement;
       if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
       if (modalOpen()) return; // a sheet/drawer owns the keys — don't open behind it

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Deck, Flashcard } from '../../types';
 import { Btn, Icon, IconBtn } from '../ui/primitives';
 import { dueCards, gradeCard, reviewCard } from '../../services/studyService';
+import { placeActive } from '../../../active';
 
 interface ReviewSessionProps {
     deck: Deck;
@@ -84,6 +85,7 @@ const ReviewSession: React.FC<ReviewSessionProps> = ({ deck: initialDeck, onExit
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
+            if (!placeActive('margin')) return;
             const t = e.target as HTMLElement;
             if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
             if (e.key === ' ') { e.preventDefault(); flip(); }

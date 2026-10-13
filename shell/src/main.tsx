@@ -11,6 +11,23 @@ import { runIntegrationMigrations, installCrossTabSync } from './integration/mig
    iterra:open to window.parent, which is this same window now) or raw
    window.open; route both into the hash. Anything that doesn't name a
    place falls through to a real window. */
+/* Boot landing on a legacy /apps/<place>/<path>?<query> URL (bookmarks,
+   shared links, the old multi-app deploy): translate into the hash route
+   before React mounts so deep links keep working. */
+{
+  const m = window.location.pathname.match(/^\/apps\/([a-z]+)((?:\/[^?#]*)?)/);
+  if (m) {
+    const q = window.location.search.replace(/^\?/, '');
+    const sub = m[2] && m[2] !== '/' ? `p=${encodeURIComponent(m[2].slice(1))}` : '';
+    const merged = [q, sub].filter(Boolean).join('&');
+    window.history.replaceState(
+      {},
+      '',
+      `/#/p/${m[1]}${merged ? `?${merged}` : ''}${window.location.hash || ''}`,
+    );
+  }
+}
+
 const realOpen = window.open.bind(window);
 window.open = ((url?: string | URL, target?: string, features?: string) => {
   const u = typeof url === 'string' ? url : url?.toString() || '';

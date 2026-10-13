@@ -76,8 +76,10 @@ export default function App({ query = '' }: { query?: string }) {
     if (rootRef.current) rootRef.current.dataset.motion = settings.motion;
   }, [settings.motion]);
 
-  // document title carries the registrar wordmark
+  // document title carries the registrar wordmark — standalone only;
+  // inside the terrain the shell owns the title
   useEffect(() => {
+    if ((window as any).__iterraIntegrated) return;
     document.title = term ? `${term.name} — Syllabus` : 'Syllabus — Registrar’s Planning Folio';
   }, [term]);
 

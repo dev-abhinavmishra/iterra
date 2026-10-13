@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { placeActive } from '../../../active';
 
 /* "Index" primitives — the only sanctioned building blocks.
    Tokens live in index.css (--paper/--card/--ink/--line/--mark). */
@@ -196,6 +197,7 @@ export const Modal: React.FC<{
         modalStack.push(id);
         const onKey = (e: KeyboardEvent) => {
             if (e.key !== 'Escape') return;
+            if (!placeActive('margin')) return;
             if (modalStack[modalStack.length - 1] !== id) return;
             e.stopImmediatePropagation();
             e.preventDefault();

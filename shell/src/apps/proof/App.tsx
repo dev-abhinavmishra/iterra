@@ -75,6 +75,7 @@ function ProofWorkbench() {
   }, [booted, consumeInbound]);
 
   useEffect(() => {
+    if ((window as any).__iterraIntegrated) return;
     document.title = 'Proof · iterra';
     return () => { document.title = 'iterra — an integrated study terrain'; };
   }, []);

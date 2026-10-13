@@ -4,6 +4,7 @@ import { getAllNotes, saveNote } from '../services/storageService';
 import { searchNotes } from '../services/searchService';
 import { exportNoteMarkdown } from '../services/exportService';
 import { Btn, Card, Divider, EmptyState, Modal } from '../components/ui/primitives';
+import { placeActive } from '../../active';
 import NoteCard, { CardLayout } from '../components/library/NoteCard';
 import LibraryToolbar, { SortKey, TypeFilter } from '../components/library/LibraryToolbar';
 import BulkBar from '../components/library/BulkBar';
@@ -144,6 +145,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({
 
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
+            if (!placeActive('margin')) return;
             if (e.key === 'Escape') setSelected(new Set());
         };
         window.addEventListener('keydown', onKey);

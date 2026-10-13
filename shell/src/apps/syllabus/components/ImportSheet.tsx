@@ -3,6 +3,7 @@ import { beginBulkFeed, endBulkFeed, stir, useFolio } from '../store';
 import { Field, FInput, FSelect } from './Field';
 import { parseImportPayload, type ImportPayload, type ImportRow } from '../lib/import';
 import { cn, fmtMinutes, dueDateISO, isoAtTime } from '../lib/utils';
+import { placeActive } from '../../active';
 import type { CommitmentType } from '../lib/types';
 import { FileDown, X } from 'lucide-react';
 
@@ -32,6 +33,7 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (!placeActive('syllabus')) return;
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);

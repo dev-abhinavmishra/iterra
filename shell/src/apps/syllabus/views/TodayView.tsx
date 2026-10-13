@@ -22,6 +22,7 @@ import {
 } from '../lib/utils';
 import { courseColorVar } from '../lib/colors';
 import { Check, X, CalendarPlus, Inbox } from 'lucide-react';
+import { placeActive } from '../../active';
 import type { ISODate, WorkBlock } from '../lib/types';
 
 /**
@@ -83,6 +84,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
   // j/k selection, enter=inspect, d=done, x=defer
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (!placeActive('syllabus')) return;
       const t = e.target as HTMLElement;
       if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
       // defer sheet or any other modal (commitment drawer, help, import)
