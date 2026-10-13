@@ -248,12 +248,10 @@ export function Tabs<K extends string = string>({
 /* ── Section Header ──────────────────────────────────────────────────────── */
 
 export function SectionHeader({
-  kicker,
   title,
   count,
   action,
 }: {
-  kicker?: string;
   title: string;
   count?: number;
   action?: React.ReactNode;
@@ -261,11 +259,6 @@ export function SectionHeader({
   return (
     <div className="mb-2.5 flex items-baseline justify-between gap-2">
       <div className="flex items-baseline gap-2 min-w-0">
-        {kicker && (
-          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent)]">
-            {kicker}
-          </span>
-        )}
         <h2 className="text-[14px] font-semibold tracking-tight text-[var(--color-ink)] truncate">
           {title}
         </h2>

@@ -983,7 +983,7 @@ export function CourseWorkspace({
               {/* Activity Mentions */}
               {mentions.length > 0 && (
                 <section>
-                  <SectionHeader kicker="Activity" title="Recent Course Events" />
+                  <SectionHeader title="Recent Course Events" />
                   <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
                     {mentions.map((f, i) => (
                       <button

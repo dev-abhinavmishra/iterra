@@ -298,7 +298,7 @@ export function ObjectRow({
         </button>
       )}
 
-      {/* Actions: Send-to, Pin, Inspect Context (the row itself opens the object) */}
+      {/* Actions: Send-to, Pin, Details (the row itself opens the object) */}
       <div className="flex items-center gap-0.5 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
         <DropdownMenu
           trigger={(_open, toggle) => (
@@ -348,7 +348,7 @@ export function ObjectRow({
 
         {onSelectContext && (
           <IconButton
-            label={`Inspect context & connections for ${item.title}`}
+            label={`Show details for ${item.title}`}
             active={selected}
             onClick={(e) => {
               e.stopPropagation();

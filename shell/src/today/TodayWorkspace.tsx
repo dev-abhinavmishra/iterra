@@ -701,7 +701,7 @@ export function TodayWorkspace({
                         icon={<PanelRightOpen className="h-3.5 w-3.5" />}
                         onClick={() => onSelectObject(resumeObject)}
                       >
-                        Inspect
+                        Details
                       </Button>
                     )}
                   </div>
@@ -969,7 +969,7 @@ export function TodayWorkspace({
                             variant="ghost"
                             size="xs"
                             onClick={() => onSelectObject(rev.object!)}
-                            title="Inspect in Context Panel"
+                            title="Show in details panel"
                           >
                             <PanelRightOpen className="h-3.5 w-3.5" />
                           </Button>

@@ -1023,7 +1023,7 @@ export default function App() {
 
           {/* Shared Context Panel Toggle */}
           <IconButton
-            label={contextOpen ? 'Hide panel' : 'Show details panel'}
+            label={contextOpen ? 'Hide details panel' : 'Show details panel'}
             active={contextOpen}
             onClick={toggleContext}
           >

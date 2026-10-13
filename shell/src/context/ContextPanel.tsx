@@ -467,7 +467,7 @@ export function ContextPanel({
             Details
           </span>
         </div>
-        <IconButton label="Close context panel" onClick={onClose}>
+        <IconButton label="Close details panel" onClick={onClose}>
           <X className="h-4 w-4" />
         </IconButton>
       </div>
@@ -956,9 +956,9 @@ export function ContextPanel({
 
   return (
     <>
-      {/* Desktop right-hand docked inspector */}
+      {/* Desktop right-hand docked details panel */}
       <aside
-        aria-label="Context inspector"
+        aria-label="Details panel"
         className="hidden lg:block w-80 shrink-0 border-l border-[var(--color-line)] bg-[var(--color-sheet)] h-full overflow-hidden"
       >
         {panelBody}
@@ -974,7 +974,7 @@ export function ContextPanel({
         <aside
           role="dialog"
           aria-modal="true"
-          aria-label="Context inspector"
+          aria-label="Details panel"
           className="anim-rise relative z-10 h-full w-80 max-w-[88vw] border-l border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-2xl"
         >
           {panelBody}

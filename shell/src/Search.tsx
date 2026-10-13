@@ -132,7 +132,7 @@ export function Search({
             {
               app: 'terrain',
               kind: 'command' as const,
-              label: 'Toggle Context Inspector panel',
+              label: 'Toggle details panel',
               sub: 'Command · Workspace',
               url: '#/',
               run: () => onToggleContext(),
