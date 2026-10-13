@@ -549,6 +549,17 @@ html[data-theme='night'] .board-inset { background: #0A0B0F; }
     box-shadow: 0 1px 0 var(--wall-panel-line) inset, 0 8px 20px var(--wall-panel-glow);
   }
 
+  /* keyboard focus — the station board's signal ring: a bright outline on
+     keys, chips, the dial and any bare button (icon controls had only a
+     colour hover before, invisible to keyboard users) */
+  .key:focus-visible,
+  .chip:focus-visible,
+  [role="slider"]:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--color-signal-bright);
+    outline-offset: 2px;
+  }
+
   .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
   .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

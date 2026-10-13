@@ -113,7 +113,12 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     if (!paused) return;
     const iv = setInterval(beat, 60000);
     return () => clearInterval(iv);
-  }, [running, paused, isBreak, label, intent, syllabus, remainingSec, cd.totalMs, cd.remainingMs]);
+    /* deliberately NOT keyed on remainingMs/secondsLeft: a running session
+       publishes endsAt once — frames compute the countdown locally and a
+       per-tick republish would rewrite the shared doc 20x a second. A paused
+       session freezes remainingMs, so the same value republishes unchanged.
+       eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [running, paused, isBreak, label, intent, syllabus, cd.totalMs]);
 
   /* commons read: index.syllabus — when this session came in bound to a
      block, resolve the block's real title from the folio's entity index
@@ -274,7 +279,9 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
         // the completion takeover owns the keys — no ghost restarts underneath
         if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); setDone(null); resetTimer(); }
         else if (e.key === 'r' || e.key === 'R') resetTimer();
-        else if (e.key === 'Escape') { setDone(null); clearBinding(); }
+        /* Escape dismisses to the dial too — dismissing but leaving the
+           countdown parked at 00:00 stranded the board on a dead 'run' panel */
+        else if (e.key === 'Escape') resetTimer();
         return;
       }
       if (e.code === 'Space') { e.preventDefault(); flashKey('toggle'); toggle(); }
@@ -481,6 +488,10 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   const dispSec = hasTime ? cd.secondsLeft : setMinutes * 60;
   const dispStr = fmt(dispSec);
   const flipSize = Math.max(64, Math.min(150, Math.round(vp.w / (dispStr.length === 5 ? 7.2 : 8))));
+  /* the dial is a 60-minute knob but quick chips go to 90 and custom to
+     180 — grow its scale in 30m steps so a >60m set doesn't paint every
+     tick lit behind a bezel engraved '60' */
+  const dialMax = Math.min(180, Math.max(60, Math.ceil(setMinutes / 30) * 30));
 
   /* ======================= RENDER ======================= */
   return (
@@ -593,7 +604,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                 transition={{ duration: 0.25 }}
                 className="flex flex-col items-center gap-6"
               >
-                <RotaryDial minutes={setMinutes} onChange={applyMinutes} size={250} disabled={running}>
+                <RotaryDial minutes={setMinutes} onChange={applyMinutes} size={250} max={dialMax} disabled={running}>
                   <div className="flex flex-col items-center">
                     <FlipRow text={fmt(setMinutes * 60)} size={46} sound={false} />
                     <span className="label-wall text-[9px] mt-1">Turn to set</span>
@@ -707,7 +718,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                 )}
                 <hr className="rule-h" />
                 <p className="text-[11px] text-ink-faint font-body leading-relaxed">
-                  Step away and the board takes over — focus mode fills the screen after 12 seconds idle.
+                  Step away and the board takes over — focus mode fills the screen after 10 seconds idle.
                 </p>
               </motion.div>
             )}
@@ -831,13 +842,13 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
             >
               <div className="flex items-center justify-between mb-5">
                 <span className="engraved text-xs">Set duration</span>
-                <button onClick={() => setCustomOpen(false)} className="text-flap-dim hover:text-flap-ink"><X size={18} /></button>
+                <button onClick={() => setCustomOpen(false)} className="text-flap-dim hover:text-flap-ink" aria-label="Close" title="Close"><X size={18} /></button>
               </div>
               <div className="flex items-center justify-center gap-4 mb-6">
-                <KeyButton className="w-11 h-11 !rounded-lg" onClick={() => setCustomMin(m => Math.max(1, m - 1))}><Minus size={16} /></KeyButton>
+                <KeyButton className="w-11 h-11 !rounded-lg" onClick={() => setCustomMin(m => Math.max(1, m - 1))} title="One minute less"><Minus size={16} /></KeyButton>
                 <FlipRow text={String(customMin).padStart(2, '0')} size={64} sound={false} />
                 <span className="engraved text-xs">MIN</span>
-                <KeyButton className="w-11 h-11 !rounded-lg" onClick={() => setCustomMin(m => Math.min(180, m + 1))}><Plus size={16} /></KeyButton>
+                <KeyButton className="w-11 h-11 !rounded-lg" onClick={() => setCustomMin(m => Math.min(180, m + 1))} title="One minute more"><Plus size={16} /></KeyButton>
               </div>
               <input
                 name="custom-minutes"

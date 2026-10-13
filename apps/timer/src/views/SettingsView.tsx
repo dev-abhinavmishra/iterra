@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Palette, CheckCircle2, RefreshCcw, AlertTriangle, X, Volume2, Gauge, Keyboard, MoonStar } from 'lucide-react';
+import { Palette, CheckCircle2, RefreshCcw, AlertTriangle, Volume2, Gauge, Keyboard, MoonStar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { vibrate, cn } from '../lib/utils';
 import { clearSessions } from '../lib/stats';
@@ -116,7 +116,7 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
                     ? 'bg-[color:var(--color-signal)]'
                     : 'bg-[rgb(var(--ink-rgb)_/_0.16)] shadow-[inset_0_0_0_1px_rgb(var(--ink-rgb)_/_0.35),inset_0_2px_4px_rgb(var(--ink-rgb)_/_0.2)]'
                 )}
-                role="switch" aria-checked={row.on}
+                role="switch" aria-checked={row.on} aria-label={row.title}
               >
                 <motion.span
                   initial={false}

@@ -203,6 +203,8 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
                     <button
                       onClick={() => { vibrate(15); save(alarms.filter(x => x.id !== a.id)); }}
                       className="p-2 rounded-md text-ink-faint hover:text-[color:var(--color-signal)] transition-colors"
+                      aria-label={`Delete alarm ${a.label}`}
+                      title="Delete alarm"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -231,19 +233,19 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
             >
               <div className="flex items-center justify-between mb-5">
                 <span className="engraved text-xs">New alarm</span>
-                <button onClick={() => setShowAdd(false)} className="text-flap-dim hover:text-flap-ink"><X size={18} /></button>
+                <button onClick={() => setShowAdd(false)} className="text-flap-dim hover:text-flap-ink" aria-label="Close" title="Close"><X size={18} /></button>
               </div>
               <div className="flex items-center justify-center gap-3 mb-5">
                 <div className="flex flex-col items-center gap-2">
-                  <KeyButton className="w-10 h-10 !rounded-lg" onClick={() => setNewH(h => (h + 1) % 24)}><Plus size={14} /></KeyButton>
+                  <KeyButton className="w-10 h-10 !rounded-lg" onClick={() => setNewH(h => (h + 1) % 24)} title="Hour up"><Plus size={14} /></KeyButton>
                   <FlipRow text={String(newH).padStart(2, '0')} size={52} sound={false} />
-                  <KeyButton className="w-10 h-10 !rounded-lg" onClick={() => setNewH(h => (h + 23) % 24)}><span className="text-lg leading-none">−</span></KeyButton>
+                  <KeyButton className="w-10 h-10 !rounded-lg" onClick={() => setNewH(h => (h + 23) % 24)} title="Hour down"><span className="text-lg leading-none">−</span></KeyButton>
                 </div>
                 <span className="engraved text-2xl pb-2">:</span>
                 <div className="flex flex-col items-center gap-2">
-                  <KeyButton className="w-10 h-10 !rounded-lg" onClick={() => setNewM(m => (m + 5) % 60)}><Plus size={14} /></KeyButton>
+                  <KeyButton className="w-10 h-10 !rounded-lg" onClick={() => setNewM(m => (m + 5) % 60)} title="Five minutes up"><Plus size={14} /></KeyButton>
                   <FlipRow text={String(newM).padStart(2, '0')} size={52} sound={false} />
-                  <KeyButton className="w-10 h-10 !rounded-lg" onClick={() => setNewM(m => (m + 55) % 60)}><span className="text-lg leading-none">−</span></KeyButton>
+                  <KeyButton className="w-10 h-10 !rounded-lg" onClick={() => setNewM(m => (m + 55) % 60)} title="Five minutes down"><span className="text-lg leading-none">−</span></KeyButton>
                 </div>
               </div>
               <input
