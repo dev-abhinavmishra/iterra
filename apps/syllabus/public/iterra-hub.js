@@ -21,11 +21,21 @@
   var DOC_PREFIX = 'iterra.v1.doc.';
   var framed = false;
   try { framed = window.parent && window.parent !== window; } catch (e) { framed = false; }
+  /* integrated terrain: the shell mounts the places as components in this
+     same document — no frame, but the environment contract (say/open/
+     hotkeys) still routes through postMessage-to-self. */
+  if (!framed && window.__iterraIntegrated === true) framed = true;
 
   var me = null;
-  var opts = {};
-  var lastSummaryJson = '';
-  var lastWriteAt = 0;
+  /* per-app registry — the integrated terrain mounts every place in this
+     one document, so register() must hold independent identities, not a
+     single global pair. regs[app] = {title, summary, own, timer};
+     lastSummary/lastWrite are keyed per app for the same reason. `me`
+     stays the *focused* place — open()/feed() attribution — and follows
+     iterra.focus() as the terrain switches places. */
+  var regs = {};
+  var lastSummary = {};
+  var lastWrite = {};
   /* pristine window.open, captured before interceptNav patches it — the
      standalone passthroughs must call the real one or they recurse. */
   var origWindowOpen = window.open ? window.open.bind(window) : function () {};
@@ -37,30 +47,32 @@
     try { localStorage.setItem(APPS_KEY, JSON.stringify(map)); } catch (e) {}
   }
 
-  function publishSummary() {
-    if (!me || !opts.summary) return;
+  function publishSummaryFor(app) {
+    var r = regs[app];
+    if (!r || !r.summary) return;
     var s;
-    try { s = opts.summary() || null; } catch (e) { s = null; }
+    try { s = r.summary() || null; } catch (e) { s = null; }
     var j = JSON.stringify(s);
     // heartbeat: identical summaries still refresh `at` every ~10s so the
     // rail can tell a live-but-static place from a dead one's last state
-    if (j === lastSummaryJson) {
+    if (j === lastSummary[app]) {
       var now = Date.now();
-      if (now - lastWriteAt < 10000) return;
-      lastWriteAt = now;
+      if (now - lastWrite[app] < 10000) return;
+      lastWrite[app] = now;
     } else {
-      lastSummaryJson = j;
-      lastWriteAt = Date.now();
+      lastSummary[app] = j;
+      lastWrite[app] = Date.now();
     }
     var map = readApps();
-    var cur = map[me];
+    var cur = map[app];
     // a solo (unframed) copy never overwrites the framed instance's live
     // presence — but a framed entry gone stale (>35s, writer dead) no
     // longer blocks solo publication
     if (!framed && cur && cur.framed && Date.now() - (cur.at || 0) < 35000) return;
-    map[me] = { app: me, title: (opts && opts.title) || me, summary: s, at: Date.now(), framed: framed };
+    map[app] = { app: app, title: r.title || app, summary: s, at: Date.now(), framed: framed };
     writeApps(map);
   }
+  function publishSummary() { publishSummaryFor(me); }
 
   function say(msg) {
     if (!framed) return;
@@ -101,7 +113,7 @@
     // deployment — return links land there framed or solo, so a standalone
     // timer can still file back to a standalone syllabus. Upstream apps
     // (no register call, no /apps/ path) keep the plain origin.
-    if (me && /^\/apps\/[^/]+(\/|$)/.test(window.location.pathname)) return '/apps/' + me;
+    if (me && (/^\/apps\/[^/]+(\/|$)/.test(window.location.pathname) || window.__iterraIntegrated)) return '/apps/' + me;
     return window.location.origin.replace(/\/$/, '');
   }
 
@@ -148,37 +160,66 @@
        ⌘0/` home, ⌘1-8 places. An app shipping its own chord declares it
        at register() via ownKeys (ink/margin own ⌘K) and the terrain
        yields it — a plain defaultPrevented check can't work here because
-       app listeners sit at window, which fires AFTER this document one. */
-    document.addEventListener('keydown', function (ev) {
+       app listeners sit at window, which fires AFTER this document one.
+       Skipped in the integrated terrain: the shell IS the parent and
+       handles the chords itself (ownKeys consulted via iterra.ownKeys). */
+    if (!window.__iterraIntegrated) document.addEventListener('keydown', function (ev) {
       if (!framed || ev.defaultPrevented) return;
       if (!(ev.metaKey || ev.ctrlKey) || ev.altKey || ev.shiftKey) return;
       var k = ev.key;
       var fwd = k === 'k' || k === 'K' || k === '`' || k === '0' || (k >= '1' && k <= '8');
       if (!fwd) return;
-      var own = (opts && opts.ownKeys) || [];
+      var own = (me && regs[me] && regs[me].own) || [];
       if (own.indexOf(k.toLowerCase()) >= 0) return;
       ev.preventDefault();
       say({ type: 'iterra:hotkey', key: k.toLowerCase() });
     });
   }
 
-  var registered = false;
   function register(app, o) {
-    me = app;
-    opts = o || opts || {};
-    publishSummary();
+    /* keep-alive world: registering doesn't mean you're in front — a lazy
+       chunk mounts whenever its place is visited, sometimes while another
+       place is focused. `me` belongs to wantMe (set by focus()); a register
+       claims it only when this app is the one the terrain wants, or when
+       nobody's claimed it yet (standalone/legacy first-register). An
+       explicit focus(null) — terrain home — is NOT 'nobody': a background
+       register mustn't light up while no place is in front. */
+    if (wantMe === undefined || wantMe === app) me = app;
+    o = o || {};
+    var cur = regs[app];
+    regs[app] = { title: o.title || (cur && cur.title), summary: o.summary || (cur && cur.summary), own: o.ownKeys || (cur && cur.own) || [], live: true };
+    publishSummaryFor(app);
     say({ type: 'iterra:hello', app: app, url: window.location.pathname + window.location.search });
-    if (registered) return; // re-registration refreshes summary only —
+    if (cur && cur.live) return; // re-registration refreshes summary only —
     // a second heartbeat/listener would double-write the same presence key
-    registered = true;
     // keep the presence fresh; summaries are cheap (JSON-diffed)
-    setInterval(publishSummary, 3000);
-    window.addEventListener('focus', publishSummary);
+    setInterval(function () { publishSummaryFor(app); }, 3000);
+    window.addEventListener('focus', function () { publishSummaryFor(app); });
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', publishSummary);
+      document.addEventListener('DOMContentLoaded', function () { publishSummaryFor(app); });
     }
     interceptNav();
   }
+
+  /* the terrain tells the hub which place is in front — `me` follows so
+     open()/feed() attribute correctly even when background places stay
+     mounted (keep-alive). wantMe remembers the intent when the place's
+       chunk is still loading: register() applies it on arrival, and `me`
+       drops to null in the gap so the hidden place's key handlers die
+       immediately rather than keep firing until the next register.
+       undefined = no intent expressed yet; null = intent is 'no place'. */
+  var wantMe = undefined;
+  function focus(app) {
+    wantMe = app || null;
+    me = app && regs[app] ? app : null;
+  }
+
+  /* the shell's own chord handler asks which keys the active place owns */
+  function ownKeys(app) { return (regs[app] && regs[app].own) || []; }
+
+  /* keep-alive places gate their window-level key handlers on this — an
+     inactive place's DOM can't hold focus but its listeners still fire. */
+  function active() { return me; }
 
   /* Shared per-namespace documents — the hub store siblings can read.
      Convention: `iterra.doc('shared')` is the commons — every app may read
@@ -250,7 +291,7 @@
       var it0 = cur.items[i];
       if (it0 && it0.app === (me || '?') && it0.text === text && now - it0.at < 2000) return;
     }
-    cur.items.unshift({ app: me || '?', text: text, url: item.url || undefined, course: item.course || undefined, topic: item.topic || undefined, at: now });
+    cur.items.unshift({ app: item.app || me || '?', text: text, url: item.url || undefined, course: item.course || undefined, topic: item.topic || undefined, at: now });
     cur.items = cur.items.slice(0, 30);
     try { localStorage.setItem(FEED_KEY, JSON.stringify(cur)); } catch (e) {}
   }
@@ -449,10 +490,14 @@
     try { q = JSON.parse(localStorage.getItem('iterra.v1.quarantine') || '[]'); } catch (e) { q = []; }
     q.unshift({ reason: reason, raw: raw && raw.key, at: Date.now() });
     try { localStorage.setItem('iterra.v1.quarantine', JSON.stringify(q.slice(0, 20))); } catch (e) {}
-    return { ok: false, error: reason };
+    /* `invalid` marks a VALIDATION reject — quarantined, skipped by design,
+       never retried. The sync merge checks for it explicitly: any other
+       {ok:false} result is a storage-layer failure, which must hold the
+       pull checkpoint and be retried, not silently skipped. */
+    return { ok: false, error: reason, invalid: true };
   }
 
-  function validateEntity(raw) {
+  function validateEntity(raw, opts) {
     if (!raw || typeof raw !== 'object') return badWrite('entity not an object', raw);
     if (typeof raw.id !== 'string' || !raw.id || raw.id.length > 200) return badWrite('entity.id required (string ≤200)', raw);
     if (typeof raw.type !== 'string' || !ENTITY_TYPES[raw.type]) return badWrite('entity.type not in schema: ' + raw.type, raw);
@@ -468,6 +513,11 @@
       if (j && j.length > 65536) return badWrite('entity.data >64KB', raw);
     }
     var now = Date.now();
+    /* opts.preserveUpdatedAt is the sync-merge path only: a remote row must
+       keep ITS edit stamp — restamping to now would inflate local recency
+       and flip per-key last-writer-wins comparisons (a merely-re-written
+       local row could outrank a genuinely newer remote edit). */
+    var keepTs = !!(opts && opts.preserveUpdatedAt) && typeof raw.updatedAt === 'number';
     return {
       ok: true,
       entity: {
@@ -478,7 +528,7 @@
         sub: raw.sub || undefined, url: raw.url || undefined,
         lang: raw.lang || undefined, data: raw.data === undefined ? undefined : raw.data,
         createdAt: typeof raw.createdAt === 'number' ? raw.createdAt : now,
-        updatedAt: now,
+        updatedAt: keepTs ? raw.updatedAt : now,
         v: typeof raw.v === 'number' ? raw.v : SCHEMA_V,
       },
     };
@@ -578,19 +628,53 @@
     return openDB().then(function () { return _dbMode; });
   }
 
-  function storePut(raw) {
-    var v = validateEntity(raw);
+  function storePut(raw, opts) {
+    var v = validateEntity(raw, opts);
     if (!v.ok) return Promise.resolve(v);
     var e = v.entity;
     return openDB().then(function (d) {
       if (d) {
+        if (opts && opts.base !== undefined) {
+          /* Compare-and-swap: the caller (a sync merge) resolved the winner
+             against `base` — if the row moved under it, a local write raced
+             the merge window and must NOT be clobbered. Read + check + put
+             in ONE transaction so nothing interleaves. */
+          return new Promise(function (res, rej) {
+            var t = d.transaction('entities', 'readwrite');
+            var s = t.objectStore('entities');
+            var g = s.get(e.key);
+            var outcome = { ok: true };
+            g.onsuccess = function () {
+              var cur = g.result || null;
+              var base = opts.base || null;
+              if ((cur ? canonEntity(cur) : 'null') !== (base ? canonEntity(base) : 'null')) {
+                outcome = { ok: false, raced: true };
+                try { t.abort(); } catch (x) {}
+                return;
+              }
+              if (cur && cur.createdAt) e.createdAt = cur.createdAt;
+              s.put(e);
+            };
+            g.onerror = function () { try { t.abort(); } catch (x) {} };
+            t.oncomplete = function () { res(outcome); };
+            t.onerror = function () { rej(t.error); };
+            t.onabort = function () { res(outcome); };
+          });
+        }
         return idbTx(d, 'entities', 'readonly', function (s) { return s.get(e.key); }).then(function (prev) {
           if (prev && prev.createdAt) e.createdAt = prev.createdAt;
           return idbTx(d, 'entities', 'readwrite', function (s) { s.put(e); });
-        });
+        }).then(function () { return { ok: true }; });
       }
       var b = lsRead('entities');
-      if (b[e.key] && b[e.key].createdAt) e.createdAt = b[e.key].createdAt;
+      var cur = b[e.key] || null;
+      if (opts && opts.base !== undefined) {
+        var base = opts.base || null;
+        if ((cur ? canonEntity(cur) : 'null') !== (base ? canonEntity(base) : 'null')) {
+          return { ok: false, raced: true };
+        }
+      }
+      if (cur && cur.createdAt) e.createdAt = cur.createdAt;
       b[e.key] = e;
       /* cap: evict oldest-updated beyond LS_CAPS.entities */
       var keys = Object.keys(b);
@@ -599,15 +683,24 @@
         for (var i = LS_CAPS.entities; i < keys.length; i++) delete b[keys[i]];
       }
       lsWrite('entities', b);
-    }).then(function () {
+      return { ok: true };
+    }).then(function (r) {
+      if (r && r.raced) return r; // CAS miss — no notify, no push; caller re-resolves
+      /* propagate failures verbatim — mapping a non-raced {ok:false} to a
+         success-shaped result would fire _notify/syncPush for a write that
+         never committed */
+      if (r && r.ok === false) return r;
       _notify('entity', { op: 'put', entity: e });
       syncPush(e);
       return { ok: true, entity: e };
     }).catch(function (err) {
-      /* IDB mid-flight failure → drop to LS and retry once */
+      /* IDB mid-flight failure → drop to LS and retry once. Forward opts —
+         a sync merge's preserveUpdatedAt must survive the retry or the
+         remote stamp gets restamped to now and the row wins comparisons it
+         shouldn't. */
       if (_dbMode === 'idb') {
         _dbMode = 'ls'; _dbp = Promise.resolve(null);
-        return storePut(raw);
+        return storePut(raw, opts);
       }
       return { ok: false, error: String(err) };
     });
@@ -659,13 +752,49 @@
     });
   }
 
-  function storeRemove(key) {
+  function storeRemove(key, opts) {
     return openDB().then(function (d) {
-      if (d) return idbTx(d, 'entities', 'readwrite', function (s) { s.delete(key); });
+      if (d) {
+        if (opts && opts.base !== undefined) {
+          /* Same CAS contract as storePut — a tombstone merge removes only
+             while the row still matches what it resolved against. */
+          return new Promise(function (res, rej) {
+            var t = d.transaction('entities', 'readwrite');
+            var s = t.objectStore('entities');
+            var g = s.get(key);
+            var outcome = { ok: true };
+            g.onsuccess = function () {
+              var cur = g.result || null;
+              var base = opts.base || null;
+              if ((cur ? canonEntity(cur) : 'null') !== (base ? canonEntity(base) : 'null')) {
+                outcome = { ok: false, raced: true };
+                try { t.abort(); } catch (x) {}
+                return;
+              }
+              s.delete(key);
+            };
+            g.onerror = function () { try { t.abort(); } catch (x) {} };
+            t.oncomplete = function () { res(outcome); };
+            t.onerror = function () { rej(t.error); };
+            t.onabort = function () { res(outcome); };
+          });
+        }
+        return idbTx(d, 'entities', 'readwrite', function (s) { s.delete(key); }).then(function () { return { ok: true }; });
+      }
       var b = lsRead('entities');
+      if (opts && opts.base !== undefined) {
+        var cur = b[key] || null;
+        var base = opts.base || null;
+        if ((cur ? canonEntity(cur) : 'null') !== (base ? canonEntity(base) : 'null')) {
+          return { ok: false, raced: true };
+        }
+      }
       delete b[key];
       lsWrite('entities', b);
-    }).then(function () {
+      return { ok: true };
+    }).then(function (r) {
+      if (r && r.raced) return r;
+      if (r && r.ok === false) return r; // never map a failure to a committed remove
       _notify('entity', { op: 'remove', key: key });
       syncPushRemove(key);
       return { ok: true };
@@ -1292,53 +1421,507 @@
        }
 
      iterra.sync.attach(adapter) wires it: pulls remote entities newer than
-     the local clock, merges them through storePut (validation + quarantine
-     still apply — bad remote data can't bypass the contract), then mirrors
-     every subsequent local put/remove outward. One adapter at a time;
-     attach() again replaces it. */
-  var _sync = { adapter: null, attachedAt: 0, lastPull: 0, error: null };
+     the last successful pull (a persisted checkpoint — NOT the local entity
+     watermark, which would silently miss remote updates to older entities),
+     merges each key against its local copy through onConflict + storePut
+     (validation + quarantine still apply — bad remote data can't bypass the
+     contract), then mirrors every subsequent local put/remove outward. One
+     adapter at a time; attach() again replaces it.
 
-  function syncAttach(adapter) {
+     adapter.pull contract: `pull(since)` returns either a bare Entity[]
+     (legacy — the checkpoint then falls back to the local pull-start clock)
+     or { rows: Entity[], watermark: number }, where watermark is the highest
+     stamp observed this pull in the ADAPTER's own stamp domain — e.g. a
+     server-written `synced_at` column. The checkpoint must never live in a
+     different clock domain than the rows it filters: comparing the reader's
+     local pull-start against writer-side edit stamps means a row committed
+     late (retry-queue drain, slow push, skewed device clock) carries a stamp
+     older than the checkpoint and is permanently invisible to every peer.
+     Rows may instead carry { key, __deleted: true, deletedAt?, updatedAt? }
+     tombstones — a remote delete is merged as a local remove (a newer local
+     edit wins and is pushed back out to resurrect the remote row). */
+  var _sync = { adapter: null, attachedAt: 0, lastPull: 0, error: null, merging: {}, pulling: false, pullTimer: null, out: [] };
+
+  /* A bound adapter re-pulls on this interval — remote edits from OTHER
+     devices only arrive via pull, so without it the mirror is stale between
+     reloads. The pull is incremental (checkpointed), so idle ticks are a
+     cheap no-row query. */
+  var SYNC_POLL_MS = 60000;
+
+  /* The persisted checkpoint is the adapter watermark MINUS this overlap:
+     a row can be stamped (or committed by a still-open transaction) just
+     before the watermark was observed yet only become visible after it —
+     backing the checkpoint up re-fetches that trailing window instead of
+     permanently skipping it. Re-fetched rows are per-key idempotent merges,
+     so the overlap costs a few extra rows, never a missed update. */
+  var SYNC_CK_OVERLAP_MS = 60000;
+
+  /* pull checkpoints persist per adapter name — a restart picks up where the
+     last pull stopped instead of re-fetching (or missing) remote history.
+     v2: the stamp domain changed (adapter watermark, not local pull-start),
+     so the key bumped — first attach re-pulls everything once (idempotent). */
+  var SYNC_CK_KEY = 'iterra.v2.sync.ck';
+  function syncCkRead(name) {
+    try {
+      var d = JSON.parse(localStorage.getItem(SYNC_CK_KEY) || '{}') || {};
+      var v = d[name];
+      return typeof v === 'number' ? v : 0;
+    } catch (e) { return 0; }
+  }
+  function syncCkWrite(name, ms) {
+    try {
+      var d = JSON.parse(localStorage.getItem(SYNC_CK_KEY) || '{}') || {};
+      d[name] = ms;
+      localStorage.setItem(SYNC_CK_KEY, JSON.stringify(d));
+    } catch (e) {}
+  }
+
+  /* ── outbound retry queue ──
+     A put/remove whose adapter call failed is held and re-attempted on the
+     next successful pull tick — a transient outage must not silently strand
+     a local write forever. Deduped by key (a newer op for the same key
+     supersedes the stale one), capped, and persisted per adapter name so an
+     offline write survives a reload. Entries carry ONLY {op,key} — no
+     snapshot: at drain time the CURRENT local entity is re-read, so a stale
+     body can never clobber a newer remote row. */
+  var SYNC_OUT_KEY = 'iterra.v1.sync.out';
+  var SYNC_OUT_MAX = 500;
+
+  function syncOutRead(name) {
+    try {
+      var d = JSON.parse(localStorage.getItem(SYNC_OUT_KEY) || '{}') || {};
+      var v = d[name];
+      if (!Array.isArray(v)) return [];
+      return v.filter(function (q) {
+        return q && typeof q.key === 'string' && (q.op === 'put' || q.op === 'remove');
+      }).slice(-SYNC_OUT_MAX);
+    } catch (e) { return []; }
+  }
+  function syncOutWrite(name, ops) {
+    try {
+      var d = JSON.parse(localStorage.getItem(SYNC_OUT_KEY) || '{}') || {};
+      if (ops && ops.length) d[name] = ops; else delete d[name];
+      localStorage.setItem(SYNC_OUT_KEY, JSON.stringify(d));
+    } catch (e) {}
+  }
+  function syncOutName() { var a = _sync.adapter; return (a && a.name) || 'sync'; }
+  function syncOutEnqueue(op, key, at) {
+    _sync.out = _sync.out.filter(function (q) { return q.key !== key; });
+    var e = { op: op, key: key };
+    /* 'remove' entries carry the delete's own clock: a live key only cancels
+       the remove when its stamp is NEWER than the delete — a copy the sync
+       itself resurrected (stamp ≤ delete time) must not cancel it, or a
+       failed remote delete quietly un-deletes. */
+    if (typeof at === 'number') e.at = at;
+    _sync.out.push(e);
+    if (_sync.out.length > SYNC_OUT_MAX) _sync.out.shift();
+    syncOutWrite(syncOutName(), _sync.out);
+  }
+  /* A successful adapter op for a key discharges anything still owed for it —
+     the remote just got the newer truth. */
+  function syncOutDrop(key) {
+    if (!_sync.out.length) return;
+    var next = _sync.out.filter(function (q) { return q.key !== key; });
+    if (next.length !== _sync.out.length) {
+      _sync.out = next;
+      syncOutWrite(syncOutName(), _sync.out);
+    }
+  }
+  /* Retry every owed op, in order, against CURRENT local state:
+     - 'put' re-reads the entity — deleted or merged-away keys drop out
+       instead of sending a stale body.
+     - 'remove' whose live key is stamped NEWER than the delete (q.at) was
+       genuinely re-created — a user write or a fresher remote edit merged
+       in — and becomes a put of that entity. A live key stamped at-or-
+       before the delete is just the sync resurrecting a copy the failed
+       remote delete never erased: the remove is re-attempted AND the local
+       copy is re-deleted so the user's delete isn't lost. */
+  function syncOutDrain() {
+    var a = _sync.adapter;
+    if (!a || !_sync.out.length) return Promise.resolve();
+    var batch = _sync.out.slice();
+    _sync.out = [];
+    var failed = [];
+    var chain = Promise.resolve();
+    batch.forEach(function (q) {
+      chain = chain.then(function () {
+        var attempt = storeGet(q.key).then(function (ent) {
+          if (q.op === 'remove') {
+            if (ent && (ent.updatedAt || 0) > (q.at || 0)) return a.put(ent);
+            var remote = (typeof a.remove === 'function') ? a.remove(q.key) : undefined;
+            if (!ent) return remote;
+            /* sync-resurrected copy — re-apply the delete locally once the
+               remote remove lands. storeRemove→syncPushRemove issues the
+               remote remove again (idempotent) and keeps books clean. */
+            return Promise.resolve(remote).then(function () { return storeRemove(q.key); });
+          }
+          return ent ? a.put(ent) : undefined;
+        });
+        return Promise.resolve(attempt).catch(function (e) {
+          _sync.error = String(e && e.message || e);
+          failed.push(q);
+        });
+      });
+    });
+    return chain.then(function () {
+      if (failed.length) {
+        /* ops enqueued mid-drain for the same key already supersede the
+           older failed attempt — keep the newer one only */
+        var newer = {};
+        _sync.out.forEach(function (q) { newer[q.key] = true; });
+        _sync.out = failed.filter(function (q) { return !newer[q.key]; })
+          .concat(_sync.out)
+          .slice(-SYNC_OUT_MAX);
+      }
+      syncOutWrite(syncOutName(), _sync.out);
+    });
+  }
+
+  /* Deterministic content comparison for stamp ties. Plain JSON.stringify is
+     NOT usable here: the remote body round-trips through Postgres jsonb (or
+     any store) which doesn't preserve key order, so identical content
+     stringifies differently — every equal-stamp refetch would fire a
+     spurious push-back. Sort keys recursively and drop undefined, matching
+     how JSON.stringify serializes each side. */
+  function canonStr(v) {
+    if (v === null || typeof v !== 'object') return JSON.stringify(v);
+    if (v instanceof Array) return '[' + v.map(canonStr).join(',') + ']';
+    var keys = Object.keys(v).filter(function (k) { return typeof v[k] !== 'undefined'; }).sort();
+    return '{' + keys.map(function (k) { return JSON.stringify(k) + ':' + canonStr(v[k]); }).join(',') + '}';
+  }
+  /* Sync-meta fields ('__deleted', adapter stamps) are transport, not
+     content — strip them before comparing. */
+  function canonEntity(e) {
+    if (!e || typeof e !== 'object') return 'null';
+    var c = {};
+    Object.keys(e).forEach(function (k) {
+      if (!(k.charAt(0) === '_' && k.charAt(1) === '_')) c[k] = e[k];
+    });
+    return canonStr(c);
+  }
+
+  /* A local copy that wins LWW is pushed back out so the remote converges
+     without a local write (no push→pull loop). Convergence pushes owe the
+     remote too — a failure queues the key so the next tick re-attempts it,
+     same as syncPush. */
+  function syncPushBack(adapter, rkey, ent) {
+    try {
+      Promise.resolve(adapter.put(ent)).then(
+        function () { syncOutDrop(rkey); },
+        function (e) {
+          _sync.error = String(e && e.message || e);
+          syncOutEnqueue('put', rkey);
+        });
+    } catch (e) {
+      _sync.error = String(e && e.message || e);
+      syncOutEnqueue('put', rkey);
+    }
+  }
+
+  /* Merge one batch of remote rows against their local copies — shared by the
+     attach pull and every periodic re-pull. Resolves to the number of HARD
+     merge failures (storage errors, not validation skips): the caller must
+     NOT advance the pull checkpoint past them, or a transient local failure
+     permanently skips a remote row. */
+  function syncMergeAll(adapter, remote) {
+    remote = remote || [];
+    var chain = Promise.resolve();
+    var failures = 0;
+    remote.forEach(function (re) {
+      chain = chain.then(function () {
+        /* entity keys are 'app:type:id' — derive it when the adapter returns
+           rows that carry parts but not the joined key */
+        var rkey = re && (typeof re.key === 'string' ? re.key
+          : (re.app && re.type && re.id ? re.app + ':' + re.type + ':' + re.id : null));
+        if (!rkey) return;
+        /* Per-key last-writer-wins, resolved under compare-and-swap: the
+           winner is chosen against the local copy read at decision time, and
+           the write commits only while that copy is still current — a user
+           write racing the merge aborts it (raced) and the winner is
+           re-resolved against the NEWER local instead of being clobbered.
+           A local that strictly wins is pushed back out so the remote
+           converges without a local write (no push→pull loop). */
+        var racedRetry = function (depth, priorOwed) {
+          delete _sync.merging[rkey];
+          if (depth >= 3) {
+            /* still racing — owe the freshest local state to the drain
+               rather than spin a live writer */
+            return storeGet(rkey).then(function (cur) {
+              if (cur) syncOutEnqueue('put', rkey);
+              else syncOutEnqueue('remove', rkey, (priorOwed && priorOwed.at) || Date.now());
+            });
+          }
+          return storeGet(rkey).then(function (cur) { return attempt(cur, depth + 1); });
+        };
+        var attempt = function (local, depth) {
+          /* Whatever was already owed for this key BEFORE the merge — the
+             merge's own suppressed echo will overwrite the queue entry via
+             dedupe, and reconcile needs the REAL owed op to restore (an owed
+             remove with a newer stamp must not be dropped just because the
+             merge wrote cleanly). */
+          var priorOwed = _sync.out.filter(function (q) { return q.key === rkey; })[0] || null;
+          /* Remote tombstone: the delete propagates locally UNLESS the local
+             copy was edited after the remote delete — that edit wins and is
+             pushed back out, resurrecting the remote row. deletedAt is the
+             writer's clock at delete time; a missing stamp falls back to the
+             deleted entity's own updatedAt, and failing that to 0 — an
+             unstamped delete loses to ANY local copy rather than silently
+             erasing it. */
+          if (re.__deleted === true) {
+            if (!local) return;
+            var delAt = typeof re.deletedAt === 'number' ? re.deletedAt : (re.updatedAt || 0);
+            if ((local.updatedAt || 0) > delAt) {
+              syncPushBack(adapter, rkey, local);
+              return;
+            }
+            /* same per-key echo suppression as merge puts — the applied
+               remove must not push a remote delete back out */
+            _sync.merging[rkey] = true;
+            return storeRemove(rkey, { base: local }).then(
+              function (r2) {
+                if (r2 && r2.raced) return racedRetry(depth, priorOwed);
+                /* If a user put re-created the key while the tombstone
+                   merged, owe a put so the remote row resurrects with the
+                   newest body. Otherwise restore whatever was owed before
+                   (or discharge the echo the suppressed remove just made —
+                   the remote is already deleted, it's what sent the
+                   tombstone). */
+                return storeGet(rkey).then(function (cur) {
+                  delete _sync.merging[rkey];
+                  if (cur) syncOutEnqueue('put', rkey);
+                  else if (priorOwed) syncOutEnqueue(priorOwed.op, rkey, priorOwed.at);
+                  else syncOutDrop(rkey);
+                }, function (e) {
+                  /* a leaked merging flag would suppress this key's pushes
+                     into the owed queue forever — release it, then let the
+                     rejection fail the pull (checkpoint held, retried). */
+                  delete _sync.merging[rkey];
+                  throw e;
+                });
+              },
+              function (e) {
+                delete _sync.merging[rkey];
+                failures++;
+                _sync.error = 'merge-remove ' + rkey + ': ' + String(e && e.message || e);
+              });
+          }
+          var merged;
+          if (local && (local.updatedAt || 0) > (re.updatedAt || 0)) {
+            syncPushBack(adapter, rkey, local);
+            return;
+          }
+          if (local && (local.updatedAt || 0) === (re.updatedAt || 0)) {
+            /* Stamp tie with divergent content: resolve it canonically — the
+               canonically-LARGER body wins, identically on every replica. A
+               per-device "local wins" rule would leave two replicas holding
+               different bodies forever. The adapter's onConflict is bypassed
+               here: a custom resolver could pick differently per device and
+               break convergence. */
+            var lc = canonEntity(local), rc = canonEntity(re);
+            if (lc === rc) return;
+            if (lc > rc) {
+              syncPushBack(adapter, rkey, local);
+              return;
+            }
+            merged = re;
+          } else {
+            merged = typeof adapter.onConflict === 'function' ? adapter.onConflict(local, re) : re;
+            if (!merged) return;
+          }
+          /* Per-key echo suppression: only pushes of THIS key are held
+             while its merge put is in flight — a global flag would
+             silently drop unrelated local writes happening mid-pull.
+             preserveUpdatedAt keeps the remote edit stamp so future
+             comparisons stay honest. `base` makes the write a CAS. */
+          _sync.merging[rkey] = true;
+          return storePut(merged, { preserveUpdatedAt: true, base: local }).then(
+            function (res) {
+              if (res && res.raced) return racedRetry(depth, priorOwed);
+              /* A validation REJECT ({ok:false,invalid:true}) is not a
+                 diverged store to reconcile — storePut already quarantined
+                 the row, and the contract is skip-by-design. Enqueueing ops
+                 here was the exact opposite: 'remove' tombstoned the remote
+                 row outright (the tombstone then propagated to every peer)
+                 and 'put' overwrote it with the stale local copy — remote
+                 data loss on schema skew (a newer entity type, an oversized
+                 data payload, a non-schema row written out-of-band). Skip it
+                 wholesale; the owed ops captured before the merge stay owed.
+                 But {ok:false} WITHOUT `invalid` is a storage-layer failure
+                 (storePut's catch — LS/IDB error), not a quarantine: count
+                 it so the pull checkpoint holds and the row re-fetches next
+                 pull instead of being silently skipped forever. */
+              if (res && res.ok === false) {
+                delete _sync.merging[rkey];
+                if (res.invalid) return;
+                failures++;
+                _sync.error = 'merge ' + rkey + ': ' + String(res.error || 'write failed');
+                return;
+              }
+              var stored = res && res.entity;
+              return storeGet(rkey).then(function (cur) {
+                delete _sync.merging[rkey];
+                /* Reconcile the owed entry the suppressed syncPush made:
+                   store still holds exactly the merged body → it was our
+                   own echo → put back what was owed BEFORE the merge (an
+                   owed remove outranking this row's stamp still deletes it)
+                   or discharge outright. Anything else (a user write or
+                   delete raced the merge) → owe the matching op so the
+                   drain pushes/removes the freshest truth. */
+                if (cur && stored && canonEntity(cur) === canonEntity(stored)) {
+                  if (priorOwed && !(priorOwed.op === 'remove' && (cur.updatedAt || 0) > (priorOwed.at || 0))) {
+                    syncOutEnqueue(priorOwed.op, rkey, priorOwed.at);
+                  } else syncOutDrop(rkey);
+                }
+                else if (cur) syncOutEnqueue('put', rkey);
+                else syncOutEnqueue('remove', rkey, Date.now());
+              }, function (e) {
+                /* same flag-release as the tombstone path — a stuck
+                   _sync.merging entry would queue-gate this key forever */
+                delete _sync.merging[rkey];
+                throw e;
+              });
+            },
+            function (e) {
+              delete _sync.merging[rkey];
+              /* a storage-layer failure (quota, IDB abort) must hold the
+                 checkpoint — the row is re-fetched next pull. A validation
+                 reject ({ok:false}) resolves normally instead: quarantined
+                 rows are skipped by design, not retried forever. */
+              failures++;
+              _sync.error = 'merge ' + rkey + ': ' + String(e && e.message || e);
+            });
+        };
+        return storeGet(rkey).then(function (local) { return attempt(local, 0); });
+      });
+    });
+    return chain.then(function () { return failures; });
+  }
+
+  /* One incremental pull+merge against the bound adapter. The checkpoint is
+     the adapter-reported WATERMARK (its own stamp domain — a server-side
+     commit stamp like synced_at), backed off by SYNC_CK_OVERLAP_MS so a row
+     stamped by a still-committing writer isn't permanently skipped. A bare
+     array response is the legacy contract and falls back to the local
+     pull-start clock. The checkpoint only advances when every row merged
+     cleanly — a hard merge failure re-fetches the window next pull instead
+     of losing the row. */
+  function syncPullNow() {
+    var a = _sync.adapter;
+    var name = a.name || 'sync';
+    var pullStart = Date.now();
+    var pending;
+    try {
+      pending = a.pull(syncCkRead(name));
+    } catch (e) {
+      /* a synchronously-throwing pull must surface like a rejected one —
+         otherwise it escapes as a plain throw and wedges the pulling flag */
+      _sync.error = String(e && e.message || e);
+      return Promise.resolve({ ok: false, error: _sync.error });
+    }
+    return Promise.resolve(pending).then(function (res) {
+      /* normalize {rows, watermark} | bare array */
+      var rows = res && res.rows ? res.rows : (res || []);
+      var watermark = res && typeof res.watermark === 'number' && isFinite(res.watermark)
+        ? res.watermark : pullStart;
+      return syncMergeAll(a, rows).then(function (failures) {
+        return { pulled: rows.length, watermark: watermark, failures: failures };
+      });
+    }).then(function (r) {
+      _sync.lastPull = Date.now();
+      if (!r.failures) {
+        var next = Math.max(0, r.watermark - SYNC_CK_OVERLAP_MS);
+        /* never regress — an earlier adapter generation (or a lower
+           watermark from a thin pull) must not re-open already-merged
+           history */
+        if (next > syncCkRead(name)) syncCkWrite(name, next);
+      }
+      /* remote is reachable — flush anything owed. A queued op that fails
+         again re-enqueues itself; drain errors never fail the pull. */
+      return syncOutDrain().then(function () { return { ok: true, pulled: r.pulled }; });
+    }).catch(function (e) {
+      _sync.error = String(e && e.message || e);
+      return { ok: false, error: _sync.error };
+    });
+  }
+
+  /* Interval wrapper: never overlap two pulls, and a failed tick lands in
+     status().error while the next tick retries — sync doesn't silently die. */
+  function syncPullTick() {
+    if (!_sync.adapter || _sync.pulling) return;
+    _sync.pulling = true;
+    syncPullNow().then(function () { _sync.pulling = false; });
+  }
+
+  function syncAttach(adapter, opts) {
     if (!adapter || typeof adapter.pull !== 'function' || typeof adapter.put !== 'function') {
       return Promise.resolve({ ok: false, error: 'adapter needs pull(since) and put(entity)' });
     }
+    if (_sync.pullTimer) { clearInterval(_sync.pullTimer); _sync.pullTimer = null; }
     _sync.adapter = adapter;
     _sync.attachedAt = Date.now();
     _sync.error = null;
-    return storeList({}).then(function (all) {
-      var newest = 0;
-      for (var i = 0; i < all.length; i++) if ((all[i].updatedAt || 0) > newest) newest = all[i].updatedAt;
-      return adapter.pull(newest).then(function (remote) {
-        remote = remote || [];
-        var chain = Promise.resolve();
-        remote.forEach(function (re) {
-          chain = chain.then(function () {
-            /* resolver may swap the remote copy; validation still gates it */
-            var merged = typeof adapter.onConflict === 'function' ? adapter.onConflict(null, re) : re;
-            if (merged) return storePut(merged).then(function () {});
-          });
-        });
-        return chain.then(function () {
-          _sync.lastPull = Date.now();
-          return { ok: true, pulled: remote.length, adapter: adapter.name || 'sync' };
-        });
-      }).catch(function (e) {
-        _sync.error = String(e && e.message || e);
-        return { ok: false, error: _sync.error };
-      });
+    var name = adapter.name || 'sync';
+    /* this adapter's owed ops — the previous adapter's backlog stays
+       persisted under its own name until it's bound again */
+    _sync.out = syncOutRead(name);
+    return syncPullNow().then(function (r) {
+      if (!r.ok) return { ok: false, error: r.error };
+      /* bound — keep polling so remote edits from other devices land between
+         reloads. unref'd so the timer can't hold a node/test process open. */
+      var ms = (opts && typeof opts.pollMs === 'number' && opts.pollMs > 0) ? opts.pollMs : SYNC_POLL_MS;
+      var t = setInterval(syncPullTick, ms);
+      if (t && typeof t.unref === 'function') t.unref();
+      _sync.pullTimer = t;
+      return { ok: true, pulled: r.pulled, adapter: name };
     });
   }
 
   function syncPush(entity) {
     var a = _sync.adapter;
     if (!a) return;
-    try { a.put(entity); } catch (e) { _sync.error = String(e && e.message || e); }
+    /* Merge-suppressed puts — both the merge's own write AND any user write
+       racing it — enqueue an owed 'put'. The merge completion reconciles:
+       if the store still holds exactly what was merged in, the entry is
+       discharged (no echo); a differing body means a real local write raced
+       the merge and the freshest state must go out. */
+    if (_sync.merging[entity.key]) { syncOutEnqueue('put', entity.key); return; }
+    try {
+      Promise.resolve(a.put(entity)).then(
+        function () { syncOutDrop(entity.key); },
+        /* a rejected adapter call is recorded AND owed — the next pull tick
+           drains the queue instead of the write being silently stranded */
+        function (e) {
+          _sync.error = String(e && e.message || e);
+          syncOutEnqueue('put', entity.key);
+        });
+    } catch (e) {
+      _sync.error = String(e && e.message || e);
+      syncOutEnqueue('put', entity.key);
+    }
   }
 
   function syncPushRemove(key) {
+    /* Tombstone merges DO produce removes — a remote delete applied locally
+       must not echo a remote delete back out (it would be harmless —
+       idempotent — but could clobber a concurrent remote resurrection). */
     var a = _sync.adapter;
-    if (!a || typeof a.remove !== 'function') return;
-    try { a.remove(key); } catch (e) { _sync.error = String(e && e.message || e); }
+    if (!a) return;
+    /* Same merge-window accounting as syncPush: owe the remove so a user
+       delete racing a merge isn't dropped; the merge completion reconciles
+       it against whatever the store holds afterwards. */
+    if (_sync.merging[key]) { syncOutEnqueue('remove', key, Date.now()); return; }
+    if (typeof a.remove !== 'function') return;
+    try {
+      Promise.resolve(a.remove(key)).then(
+        function () { syncOutDrop(key); },
+        function (e) {
+          _sync.error = String(e && e.message || e);
+          syncOutEnqueue('remove', key, Date.now());
+        });
+    } catch (e) {
+      _sync.error = String(e && e.message || e);
+      syncOutEnqueue('remove', key, Date.now());
+    }
   }
 
   function syncStatus() {
@@ -1348,6 +1931,8 @@
       attachedAt: _sync.attachedAt || null,
       lastPull: _sync.lastPull || null,
       error: _sync.error,
+      /* outbound ops still owed to the remote (deduped, persisted) */
+      queued: _sync.out.length,
     };
   }
 
@@ -1374,6 +1959,9 @@
 
   window.iterra = {
     register: register,
+    focus: focus,
+    ownKeys: ownKeys,
+    active: active,
     open: open,
     openApp: function (name, url) { open(url || ('/apps/' + name + '/')); },
     selfBase: selfBase,

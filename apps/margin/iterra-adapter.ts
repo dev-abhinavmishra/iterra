@@ -18,36 +18,138 @@ import { supabase } from './services/supabaseClient';
 /* ── whole-store sync (docs/SYNC.md) — margin already owns a Supabase
    client for its usage counters; when the env vars exist we ALSO attach
    the canonical store's remote mirror. One frame owning the adapter is
-   enough: BroadcastChannel carries remote merges to every sibling. */
-let syncAttached = false;
-function attachItterraSync() {
+   enough: BroadcastChannel carries remote merges to every sibling.
+
+   Rows are owned: `user_id` stamps the auth uid and RLS restricts the
+   table to the signed-in user — anonymous sign-in must be enabled on the
+   project, otherwise the attach stays off and the store stays local. */
+let syncUid: string | null = null; // uid the live adapter is bound to
+let syncRetry: ReturnType<typeof setTimeout> | null = null;
+let syncWatcher = false;
+async function attachItterraSync() {
   const it = window.iterra;
-  if (syncAttached || !it?.sync?.attach || !supabase) return;
-  syncAttached = true;
-  it.sync.attach({
-    name: 'supabase',
+  if (!it?.sync?.attach || !supabase) return;
+  const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+  const uid = data.session?.user?.id;
+  if (!uid || syncUid === uid) return; // unsigned → RLS rejects every call; same uid → already bound
+  const res = await it.sync.attach({
+    /* the pull checkpoint is keyed by adapter name — name it per-owner so a
+       sign-in swap doesn't inherit the previous user's watermark and skip
+       their rows */
+    name: `supabase:${uid}`,
     pull: async (since: number) => {
-      const { data, error } = await supabase
-        .from('iterra_entities')
-        .select('body')
-        .gt('updatedAt', since);
-      if (error) throw error;
-      return (data ?? []).map((r: any) => r.body);
+      /* Delta pulls filter on `synced_at` — the DATABASE's own stamp, set by
+         trigger at commit. The entity's `updatedAt` can't be used here: it's
+         the writer's client clock at edit time, so a write that arrives late
+         (retry-queue drain, offline put, skewed device clock) would carry a
+         stamp older than the pull checkpoint and stay invisible to every
+         peer forever. `since` is the last watermark — server-clock domain —
+         backed off by the hub's overlap window, so late-committing rows
+         still fall inside the next pull.
+         Page through the full result: PostgREST caps a single response at
+         ~1000 rows, and a short, unordered read would leave the rows past
+         the cap permanently behind the advancing checkpoint. Ordering by
+         synced_at+key makes each page deterministic and the LAST row's
+         synced_at the observed high-water mark. */
+      const out: any[] = [];
+      let watermark = since;
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data: rows, error } = await supabase
+          .from('iterra_entities')
+          .select('key, body, deleted, "deletedAt", synced_at')
+          .eq('user_id', uid)
+          .gte('synced_at', new Date(since).toISOString())
+          .order('synced_at', { ascending: true })
+          .order('key', { ascending: true })
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        for (const r of rows ?? []) {
+          const st = Date.parse(r.synced_at) || 0;
+          if (st > watermark) watermark = st;
+          if (r.deleted) {
+            /* tombstone: the hub merges it as a local remove unless a newer
+               local edit wins — deletedAt is the delete's wall-clock stamp,
+               body.updatedAt the deleted entity's last edit stamp. */
+            const b = r.body && typeof r.body === 'object' ? r.body : {};
+            out.push({
+              key: r.key || b.key,
+              __deleted: true,
+              deletedAt: typeof r.deletedAt === 'number' ? r.deletedAt : st,
+              updatedAt: b.updatedAt,
+            });
+          } else {
+            out.push(r.body);
+          }
+        }
+        if (!rows || rows.length < PAGE) break;
+      }
+      return { rows: out, watermark };
     },
     put: async (e: any) => {
-      await supabase.from('iterra_entities').upsert({
-        key: e.key ?? `${e.app}:${e.type}:${e.id}`,
-        app: e.app,
-        type: e.type,
-        courseId: e.courseId ?? null,
-        updatedAt: e.updatedAt ?? Date.now(),
-        body: e,
-      });
+      /* supabase-js resolves PostgREST failures as {error} — it does NOT
+         reject. Without the check a denied/failed write would look exactly
+         like success: no sync.status().error, no retry queue, and the remote
+         stays silently diverged.
+         `updatedAt` keeps the entity's edit stamp (peer-merge LWW compares
+         it); `synced_at` is stamped by the database trigger at commit — the
+         pull filter's clock domain. `deleted:false` resurrects a tombstoned
+         row when a queued/local put lands after a remote delete. */
+      const { error } = await supabase.from('iterra_entities').upsert(
+        {
+          key: e.key ?? `${e.app}:${e.type}:${e.id}`,
+          app: e.app,
+          type: e.type,
+          courseId: e.courseId ?? null,
+          user_id: uid,
+          updatedAt: e.updatedAt ?? Date.now(),
+          deleted: false,
+          deletedAt: null,
+          body: e,
+        },
+        { onConflict: 'user_id,key' },
+      );
+      if (error) throw error;
     },
     remove: async (key: string) => {
-      await supabase.from('iterra_entities').delete().eq('key', key);
+      /* Soft-delete: a real DELETE would leave no trace for peers to pull —
+         their local copies would live forever (and a stale queued put could
+         resurrect the row silently). The tombstone row keeps `body` so
+         deletedAt/updatedAt still resolve LWW against a newer local edit. */
+      const { error } = await supabase
+        .from('iterra_entities')
+        .update({ deleted: true, deletedAt: Date.now() })
+        .eq('key', key)
+        .eq('user_id', uid);
+      if (error) throw error;
     },
-    onConflict: (_l: any, r: any) => r,
+    onConflict: (l: any, r: any) => ((r?.updatedAt || 0) >= (l?.updatedAt || 0) ? r : l),
+  });
+  /* Only mark bound on a successful first pull. A failed attach must retry —
+     marking it up-front would leave sync silently dead until reload. */
+  if (res && res.ok !== false) {
+    syncUid = uid;
+    return;
+  }
+  if (!syncRetry) {
+    syncRetry = setTimeout(() => {
+      syncRetry = null;
+      void attachItterraSync();
+    }, 30000);
+  }
+}
+
+function watchItterraSync() {
+  if (syncWatcher || !supabase) return;
+  syncWatcher = true;
+  void attachItterraSync();
+  /* anonymous sign-in lands after boot — attach when the session appears
+     instead of requiring a reload after first run. A DIFFERENT uid also
+     re-attaches (the per-uid adapter name restarts the checkpoint). On
+     sign-out the adapter stays bound to the stale uid: its calls fail RLS
+     and surface in sync.status().error until reload — contained, if inelegant. */
+  supabase.auth.onAuthStateChange((_e: any, session: any) => {
+    if (session?.user?.id) void attachItterraSync();
   });
 }
 
@@ -160,6 +262,9 @@ export function registerAdapter() {
 
   /* published snapshots — an entity is only put when its wire shape moved */
   const published = new Map<string, string>();
+  /* keys whose last put failed/quarantined, keyed to their rejected wire
+     shape — retried when the shape changes, never in a hot loop */
+  const failedPublishes = new Map<string, string>();
   let chain: Promise<void> = Promise.resolve();
   const drain = () => {
     chain = chain.then(async () => {
@@ -171,7 +276,6 @@ export function registerAdapter() {
       const wanted = new Map<string, { ent: Record<string, unknown> | null; key: string }>();
       for (const n of notes) {
         const key = `margin:note:${n.id}`;
-        wanted.set(key, { ent: null, key });
         const { course, courseId } = await courseForNote(n);
         const ent = noteEntity(n, { course, courseId });
         wanted.set(key, { ent, key });
@@ -184,18 +288,36 @@ export function registerAdapter() {
         const key = `margin:quiz:${q.id}`;
         wanted.set(key, { ent: quizEntity(q), key });
       }
+      /* Only mark a key published once the store actually takes it —
+         marking first meant a failed/quarantined write was silently never
+         retried. `failedPublishes` pins the rejected wire shape so a
+         permanently-bad entity doesn't retry every tick, while a CHANGED
+         shape still gets its second chance. */
       for (const [key, { ent }] of wanted) {
         if (!ent) continue;
         const j = JSON.stringify(ent);
-        if (published.get(key) !== j) {
-          published.set(key, j);
-          await it.store.put(ent).catch(() => {});
+        if (published.get(key) !== j && failedPublishes.get(key) !== j) {
+          const r = await it.store.put(ent).catch(() => null);
+          if (r && r.ok !== false) {
+            published.set(key, j);
+            failedPublishes.delete(key);
+          } else {
+            failedPublishes.set(key, j);
+          }
         }
+      }
+      /* a failed wire shape whose entity is gone must be forgotten — a
+         later re-create with identical content should get a fresh attempt */
+      for (const key of [...failedPublishes.keys()]) {
+        if (!wanted.has(key)) failedPublishes.delete(key);
       }
       for (const key of [...published.keys()]) {
         if (!wanted.has(key)) {
-          published.delete(key);
-          await it.store.remove(key).catch(() => {});
+          /* same contract on the way out: drop the marker only once the
+             local remove lands — the remote remove is queued/retried by the
+             hub's outbound queue either way */
+          const ok = await it.store.remove(key).then(() => true).catch(() => false);
+          if (ok) published.delete(key);
         }
       }
       /* emits — a note id the diff has never seen is 'note.created' news */
@@ -245,7 +367,7 @@ export function registerAdapter() {
     wake: () => { drain(); },
   });
 
-  attachItterraSync();
+  watchItterraSync();
 }
 
 /* iterra.ts side-imports this module, and this module imports back from

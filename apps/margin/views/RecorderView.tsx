@@ -13,6 +13,12 @@ interface RecorderViewProps {
     onSelectMic?: (deviceId: string) => void;
 }
 
+/* /api/transcribe's decoded-byte ceiling — derived from Vercel's 4.5MB
+   request-body cap (≈4/3× base64 + a small JSON envelope), so ~3MiB of
+   audio is the real maximum. Check BEFORE encoding: a bigger blob can only
+   ever 413, and the audio still gets offered for audio-only save. */
+const MAX_AUDIO_BYTES = 3 * 1024 * 1024;
+
 const formatTime = (totalSeconds: number) => {
     const s = Math.max(0, Math.floor(totalSeconds));
     const h = Math.floor(s / 3600);
@@ -187,6 +193,12 @@ const RecorderView: React.FC<RecorderViewProps> = ({ onSaveSession, onCancel, au
 
         if (blob.size < 1000) {
             setErrorMessage('No audio was captured. Try recording again.');
+            return;
+        }
+
+        if (blob.size > MAX_AUDIO_BYTES) {
+            setFailedAudio({ blob, mimeType });
+            setErrorMessage('That recording is too long to transcribe (max ~3MB) — you can still save the audio below.');
             return;
         }
 

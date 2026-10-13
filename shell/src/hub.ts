@@ -4,21 +4,47 @@
 declare global {
   interface Window {
     iterra?: {
+      register(app: string, opts: { title?: string; summary?: () => unknown; ownKeys?: string[] }): void;
+      focus?(app: string): void;
+      ownKeys?(app: string): string[];
+      active?(): string | undefined;
       apps(): Record<string, Presence>;
       open(url: string): void;
-      doc(ns: string): { get(): unknown; set(v: unknown): void; subscribe(cb: (v: unknown) => void): () => void };
+      openApp?(name: string, url?: string): void;
+      selfBase?(): string;
+      interceptNav?(): void;
+      doc(ns: string): {
+        get(): unknown;
+        set(v: unknown): void;
+        setField?(field: string, v: unknown): void;
+        subscribe(cb: (v: unknown) => void): () => void;
+      };
+      index?(app: string): Entity[];
+      onIndex?(cb: () => void): () => void;
+      feed?(item: { app?: string; text: string; url?: string; course?: string; topic?: string }): void;
+      ready?: Promise<unknown>;
       isFramed(): boolean;
+      adapter?(o: {
+        name: string;
+        title?: string;
+        summary?: () => unknown;
+        intakes?: Record<string, (rec: IntakeRecord) => unknown>;
+        wake?: () => void;
+      }): unknown;
       store?: {
+        ready?: Promise<unknown>;
         put(e: Record<string, unknown>): Promise<{ ok: boolean; entity?: StoreEntity; error?: string }>;
         get(key: string): Promise<StoreEntity | null>;
         list(q?: { app?: string; type?: string; courseId?: string }): Promise<StoreEntity[]>;
         search(text: string): Promise<StoreEntity[]>;
+        due?(q?: Record<string, unknown>): Promise<StoreEntity[]>;
         remove(key: string): Promise<{ ok: boolean }>;
         subscribe(cb: (kind: string, data: unknown) => void): () => void;
       };
       courses?: {
         list(): Promise<StoreEntity[]>;
         byCode(code: string): Promise<StoreEntity | null>;
+        resolve?(ref: unknown): Promise<StoreEntity | null>;
       };
       send?(opts: SendOpts): Promise<SendResult>;
       events?: {
@@ -26,8 +52,42 @@ declare global {
         list(q?: { type?: string; app?: string; limit?: number }): Promise<StoreEvent[]>;
         on(match: string | string[], cb: (rec: StoreEvent) => void): () => void;
       };
+      links?: {
+        add(l: Record<string, unknown>): unknown;
+        remove(id: string): unknown;
+        for(key: string): Promise<unknown[]>;
+        list(q?: Record<string, unknown>): Promise<unknown[]>;
+      };
+      intakes?: {
+        send(opts: SendOpts): Promise<SendResult>;
+        pending(app: string): Promise<IntakeRecord[]>;
+        get(id: string): Promise<IntakeRecord | null>;
+        resolve(id: string, result: unknown): Promise<unknown>;
+        onDeliver(app: string, action: string | ((rec: IntakeRecord) => unknown), handler?: (rec: IntakeRecord) => unknown): () => void;
+        when(id: string, timeoutMs?: number): Promise<IntakeRecord | null>;
+        drain(app: string, done?: () => void): void;
+      };
+      sync?: {
+        attach(adapter: Record<string, unknown>): Promise<unknown>;
+        status(): Record<string, unknown>;
+      };
+      core?: { version: number; eventTypes: Record<string, number>; entityTypes: Record<string, number> };
     };
   }
+}
+
+export interface IntakeRecord {
+  id: string;
+  to: string;
+  from?: string;
+  action: string;
+  entity?: Partial<StoreEntity>;
+  payload?: Record<string, unknown>;
+  at?: number;
+  delivered?: boolean;
+  result?: { url?: string; toast?: string; [k: string]: unknown };
+  attempts?: number;
+  lastError?: string;
 }
 
 /* ── canonical store client (the hub's shared layer — WIRING §8/ADAPTER) ── */

@@ -1,0 +1,294 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────────
+   GradeStack — "Mark Book" design system
+   The app dressed like the documents it produces: an institutional
+   examination register. Paper, ink, hairline rules, mark-sense
+   green, and a grading red reserved for corrections.
+   ───────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Paper & ink */
+  --color-paper: #EEF0E8;          /* app background — pale sage paper */
+  --color-form: #FAFBF6;           /* document surface */
+  --color-form-raised: #FFFFFF;    /* raised inputs/menus */
+  --color-ink: #212B24;            /* primary text — green-black */
+  --color-pencil: #5B675E;         /* secondary text */
+  --color-faint: #8B9489;          /* tertiary text */
+
+  /* Rules */
+  --color-hairline: #D9DDCF;       /* hairline borders */
+  --color-hairline-strong: #BCC5B4;
+
+  /* Mark-sense green — the scantron colour, the brand */
+  --color-mark: #14604A;
+  --color-mark-deep: #0E4836;
+  --color-mark-mist: #DCE8DE;      /* fills, active states */
+  --color-mark-mist-2: #E9F1EA;    /* lighter fill */
+  --color-on-mark: #FFFFFF;
+
+  /* Teacher's correction red — corrections & review only */
+  --color-red: #B23B2C;
+  --color-red-mist: #F4E1DA;
+
+  /* Sparse warning */
+  --color-gold: #8F6E1F;
+  --color-gold-mist: #F0E7CB;
+
+  /* Semantic aliases (legacy class names keep working) */
+  --color-primary: var(--color-mark);
+  --color-secondary: var(--color-pencil);
+  --color-tertiary: var(--color-faint);
+  --color-background: var(--color-paper);
+  --color-surface: var(--color-form);
+  --color-on-background: var(--color-ink);
+  --color-on-primary: var(--color-on-mark);
+  --color-on-surface: var(--color-ink);
+  --color-on-surface-variant: var(--color-pencil);
+  --color-outline: var(--color-hairline-strong);
+  --color-outline-variant: var(--color-hairline);
+  --color-surface-container-lowest: var(--color-form);
+  --color-surface-container-low: #F4F6EF;
+  --color-surface-container: #EBEEE3;
+  --color-surface-container-high: #E0E4D6;
+  --color-surface-variant: var(--color-surface-container);
+  --color-primary-container: var(--color-mark-mist);
+  --color-on-primary-container: var(--color-mark-deep);
+  --color-error: var(--color-red);
+  --color-error-container: var(--color-red-mist);
+  --color-success: var(--color-mark);
+
+  /* Type */
+  --font-sans: "Public Sans", system-ui, sans-serif;
+  --font-serif: "Zilla Slab", Georgia, serif;
+  --font-display: "Zilla Slab", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Restrained radius scale — printed documents, not bubbles */
+  --rounded-sm: 2px;
+  --rounded-DEFAULT: 4px;
+  --rounded-md: 5px;
+  --rounded-lg: 8px;
+  --rounded-xl: 10px;
+  --rounded-2xl: 14px;
+  --rounded-full: 9999px;
+
+  --spacing-gutter: 1.5rem;
+  --spacing-container-max: 1280px;
+}
+
+.it-place-gradestack {
+  --color-paper: #EEF0E8;
+  --color-form: #FAFBF6;
+  --color-form-raised: #FFFFFF;
+  --color-ink: #212B24;
+  --color-pencil: #5B675E;
+  --color-faint: #8B9489;
+  --color-hairline: #D9DDCF;
+  --color-hairline-strong: #BCC5B4;
+  --color-mark: #14604A;
+  --color-mark-deep: #0E4836;
+  --color-mark-mist: #DCE8DE;
+  --color-mark-mist-2: #E9F1EA;
+  --color-on-mark: #FFFFFF;
+  --color-red: #B23B2C;
+  --color-red-mist: #F4E1DA;
+  --color-gold: #8F6E1F;
+  --color-gold-mist: #F0E7CB;
+  --color-primary: var(--color-mark);
+  --color-secondary: var(--color-pencil);
+  --color-tertiary: var(--color-faint);
+  --color-background: var(--color-paper);
+  --color-surface: var(--color-form);
+  --color-on-background: var(--color-ink);
+  --color-on-primary: var(--color-on-mark);
+  --color-on-surface: var(--color-ink);
+  --color-on-surface-variant: var(--color-pencil);
+  --color-outline: var(--color-hairline-strong);
+  --color-outline-variant: var(--color-hairline);
+  --color-surface-container-lowest: var(--color-form);
+  --color-surface-container-low: #F4F6EF;
+  --color-surface-container: #EBEEE3;
+  --color-surface-container-high: #E0E4D6;
+  --color-surface-variant: var(--color-surface-container);
+  --color-primary-container: var(--color-mark-mist);
+  --color-on-primary-container: var(--color-mark-deep);
+  --color-error: var(--color-red);
+  --color-error-container: var(--color-red-mist);
+  --color-success: var(--color-mark);
+  --font-sans: "Public Sans", system-ui, sans-serif;
+  --font-serif: "Zilla Slab", Georgia, serif;
+  --font-display: "Zilla Slab", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --rounded-sm: 2px;
+  --rounded-DEFAULT: 4px;
+  --rounded-md: 5px;
+  --rounded-lg: 8px;
+  --rounded-xl: 10px;
+  --rounded-2xl: 14px;
+  --rounded-full: 9999px;
+  --spacing-gutter: 1.5rem;
+  --spacing-container-max: 1280px;
+
+  color-scheme: light;
+}
+.it-place-gradestack.dark {
+  color-scheme: dark;
+  --color-paper: #161C18;
+  --color-form: #1E2620;
+  --color-form-raised: #273028;
+  --color-ink: #E6EBE4;
+  --color-pencil: #9BA79B;
+  --color-faint: #6E7A6F;
+
+  --color-hairline: #323B33;
+  --color-hairline-strong: #49544A;
+
+  --color-mark: #7FBFA0;
+  --color-mark-deep: #9FD4BA;
+  --color-mark-mist: #25392E;
+  --color-mark-mist-2: #1F2E25;
+  --color-on-mark: #10231B;
+
+  --color-red: #DC8672;
+  --color-red-mist: #3E241E;
+
+  --color-gold: #C9A750;
+  --color-gold-mist: #352D15;
+
+  --color-surface-container-low: #1B231E;
+  --color-surface-container: #242D26;
+  --color-surface-container-high: #2E3830;
+}
+
+@layer base {
+  .it-place-gradestack * {
+    @apply border-hairline;
+  }
+  .it-place-gradestack {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+  .it-place-gradestack h1, .it-place-gradestack h2, .it-place-gradestack h3, .it-place-gradestack h4, .it-place-gradestack h5, .it-place-gradestack h6 {
+    @apply font-display font-semibold tracking-tight text-ink;
+  }
+  .it-place-gradestack ::selection {
+    background: var(--color-mark-mist);
+    color: var(--color-mark-deep);
+  }
+  .it-place-gradestack :focus-visible {
+    outline: 2px solid var(--color-mark);
+    outline-offset: 2px;
+  }
+  .it-place-gradestack input[type="number"]::-webkit-outer-spin-button,
+  .it-place-gradestack input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .text-display {
+    @apply font-display text-4xl lg:text-5xl font-semibold leading-tight;
+  }
+  .text-headline-lg {
+    @apply font-display text-3xl font-semibold leading-tight;
+  }
+  .text-headline-md {
+    @apply font-display text-2xl font-semibold leading-snug;
+  }
+  .text-headline-sm {
+    @apply font-display text-xl font-semibold leading-snug;
+  }
+  .text-body-lg {
+    @apply font-sans text-lg leading-relaxed;
+  }
+  .text-body-md {
+    @apply font-sans text-base leading-relaxed;
+  }
+  .text-body-sm {
+    @apply font-sans text-sm leading-normal;
+  }
+  /* Document surface — a bordered sheet, not a floating card */
+  .doc {
+    @apply bg-form border border-hairline rounded-md;
+  }
+  .doc-raised {
+    @apply bg-form-raised border border-hairline rounded-md;
+  }
+  /* Ledger label — quiet, sentence-weight, not shouted caps */
+  .ledger-label {
+    @apply text-[11px] font-semibold text-pencil tracking-wide;
+  }
+  .card-shadow {
+    box-shadow: 0 1px 0 rgba(33,43,36,.04), 0 8px 20px -12px rgba(33,43,36,.18);
+  }
+  .glass {
+    @apply bg-form/90 backdrop-blur-md border border-hairline;
+    box-shadow: 0 1px 0 rgba(33,43,36,.04), 0 8px 20px -12px rgba(33,43,36,.18);
+  }
+}
+
+/* ── The bubble — the app's signature control ───────────────── */
+
+.it-place-gradestack .bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1.5px solid var(--color-hairline-strong);
+  color: var(--color-pencil);
+  background: transparent;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease, transform .1s ease;
+  user-select: none;
+}
+.it-place-gradestack .bubble:hover {
+  border-color: var(--color-mark);
+  color: var(--color-mark);
+}
+.it-place-gradestack .bubble[data-filled="true"] {
+  background: var(--color-mark);
+  border-color: var(--color-mark);
+  color: var(--color-on-mark);
+}
+.it-place-gradestack .bubble[data-filled="true"] .material-symbols-outlined {
+  font-variation-settings: 'FILL' 1;
+}
+
+@keyframes bubble-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.it-place-gradestack .bubble-pop { animation: bubble-pop .18s ease-out; }
+
+/* Sheet-preview bubbles keep their printed-ink look */
+.it-place-gradestack .bubble-filled {
+  background-color: var(--color-mark) !important;
+  color: white !important;
+  border-color: var(--color-mark) !important;
+  animation: bubble-pop 0.2s ease-out;
+}
+
+/* ── Print ──────────────────────────────────────────────────── */
+.it-place-gradestack .print-mode-active {
+  background-color: white !important;
+  padding: 0 !important;
+}
+.it-place-gradestack .print-mode-active .paper-sheet {
+  box-shadow: none !important;
+  border: 1px dashed #ccc !important;
+  margin: 0 auto !important;
+}
+
+/* ── Ledger scrollbar ───────────────────────────────────────── */
+.it-place-gradestack .table-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.it-place-gradestack .table-scroll::-webkit-scrollbar-track {
+  background: var(--color-surface-container-low);
+}
+.it-place-gradestack .table-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-hairline-strong);
+  border-radius: var(--rounded-full);
+}

@@ -5,7 +5,7 @@ import { readJsonBody } from './_http';
 export const config = {
     api: {
         bodyParser: {
-            sizeLimit: '10mb',
+            sizeLimit: '4.5mb',
         },
     },
 };
@@ -15,19 +15,36 @@ export default async function handler(req: any, res: any) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
+    /* Validate before reserving quota — a malformed request should never
+       consume then refund a use. */
+    const { notes, query, history } = readJsonBody(req);
+    if (typeof query !== 'string' || !query.trim()) {
+        return res.status(400).json({ error: 'query is required.' });
+    }
+    if ((notes !== undefined && !Array.isArray(notes)) || (history !== undefined && !Array.isArray(history))) {
+        return res.status(400).json({ error: 'notes and history must be arrays.' });
+    }
+
     const ticket = await reserveLimit(req, res);
     if (!ticket) return; // 429 already sent
 
     try {
-        const { notes, query, history } = readJsonBody(req);
-
-        const corpusContext = (notes || []).map((n: any) => `
+        /* Cap the corpus — an oversized prompt just burns the call into a
+           provider error. 50k chars per doc, ~250k total. */
+        let corpusBudget = 250000;
+        const corpusContext = (notes || []).slice(0, 60).map((n: any) => {
+            const body = String(n?.transcript ?? n?.content ?? '').slice(0, 50000);
+            const doc = `
         <DOCUMENT>
-            <ID>${n.id}</ID>
-            <TITLE>${n.title}</TITLE>
-            <CONTENT>${n.transcript || n.content}</CONTENT>
+            <ID>${n?.id ?? ''}</ID>
+            <TITLE>${n?.title ?? ''}</TITLE>
+            <CONTENT>${body}</CONTENT>
         </DOCUMENT>
-        `).join('\n\n');
+        `;
+            const take = corpusBudget > 0 ? doc.slice(0, corpusBudget) : '';
+            corpusBudget -= doc.length;
+            return take;
+        }).join('\n\n');
 
         const systemInstruction = `You are a dynamic knowledge synthesis engine. You have access to the user's library of notes.
         Your goal is to satisfy the user's query by synthesizing information STRICTLY from these notes.
@@ -69,11 +86,11 @@ export default async function handler(req: any, res: any) {
 
         const messages: ChatMessage[] = [
             { role: 'system', content: systemInstruction },
-            ...(history || []).map((h: any) => ({
-                role: h.role === 'model' ? 'assistant' : 'user',
-                content: h.text,
+            ...(history || []).slice(0, 40).map((h: any) => ({
+                role: h && h.role === 'model' ? 'assistant' : 'user',
+                content: String(h?.text ?? '').slice(0, 20000),
             })),
-            { role: 'user', content: query },
+            { role: 'user', content: query.slice(0, 20000) },
         ];
 
         const { content, provider } = await chatCompletion(messages, {

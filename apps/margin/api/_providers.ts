@@ -59,9 +59,6 @@ const PROVIDERS: ProviderDef[] = [
     },
 ];
 
-// Statuses that mean "try the next provider" rather than "give up".
-const RETRYABLE = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
-
 export interface CompletionResult {
     content: string;
     provider: string;
@@ -114,7 +111,6 @@ export async function chatCompletion(
                 console.warn(`[providers] ${p.label} failed ${res.status}: ${detail}`);
                 // For rate-limits/server errors we fail over; for other 4xx (bad
                 // model, etc.) we also move on so a single misconfig can't break the app.
-                if (RETRYABLE.has(res.status) || res.status >= 400) continue;
                 continue;
             }
 

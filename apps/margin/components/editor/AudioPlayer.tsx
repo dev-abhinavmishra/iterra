@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Note } from '../../types';
-import { IconBtn } from '../ui/primitives';
+import { fetchNoteMedia } from '../../services/storageService';
+import { Icon, IconBtn } from '../ui/primitives';
 
 interface AudioPlayerProps {
     note: Note;
@@ -26,26 +27,53 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ note }) => {
     const [current, setCurrent] = useState(0);
     const [duration, setDuration] = useState(0);
     const [speedIdx, setSpeedIdx] = useState(0);
+    /* A marker note whose media can't be fetched must NOT render a
+       playable-looking control that does nothing. */
+    const [mediaFailed, setMediaFailed] = useState(false);
 
-    // Build a blob URL from the stored base64 source.
+    /* sourceData can arrive as a cloud media marker — or from a legacy row
+       carrying a non-string mimeType. Normalize to primitives once so every
+       guard stays honest: `note.sourceData?.mimeType.startsWith` used to
+       TypeError on a null marker and take the whole app to the error
+       boundary. Primitive deps also keep the blob effect from re-running
+       over a re-created (but equal) sourceData object. */
+    const mime = typeof note.sourceData?.mimeType === 'string' ? note.sourceData.mimeType : '';
+    const sourceData = typeof note.sourceData?.data === 'string' ? note.sourceData.data : '';
+
+    // Build a blob URL from the stored base64 source. A note restored from
+    // cloud may carry only the mimeType marker (media bytes are stripped
+    // from the list response) — lazy-fetch them on demand then build.
     useEffect(() => {
-        if (!note.sourceData?.mimeType.startsWith('audio/')) return;
+        if (!mime.startsWith('audio/')) return;
         let objectUrl: string | null = null;
-        try {
-            const bin = atob(note.sourceData.data);
-            const bytes = new Uint8Array(bin.length);
-            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-            objectUrl = URL.createObjectURL(new Blob([bytes], { type: note.sourceData.mimeType }));
-            setUrl(objectUrl);
-        } catch (e) {
-            console.error('Failed to build audio blob URL', e);
-        }
+        let cancelled = false;
+        const build = (data: string) => {
+            if (cancelled || !data) return;
+            try {
+                const bin = atob(data);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                objectUrl = URL.createObjectURL(new Blob([bytes], { type: mime }));
+                setUrl(objectUrl);
+            } catch (e) {
+                console.error('Failed to build audio blob URL', e);
+                setMediaFailed(true);
+            }
+        };
+        if (sourceData) build(sourceData);
+        else void fetchNoteMedia(note.id).then((m) => {
+            if (cancelled) return;
+            if (m) build(m.data);
+            else setMediaFailed(true);
+        });
         return () => {
+            cancelled = true;
             if (objectUrl) URL.revokeObjectURL(objectUrl);
             setUrl(null);
             setPlaying(false);
+            setMediaFailed(false);
         };
-    }, [note.id, note.sourceData]);
+    }, [note.id, mime, sourceData]);
 
     const seekTo = (seconds: number) => {
         const el = audioRef.current;
@@ -69,7 +97,29 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ note }) => {
         if (audioRef.current) audioRef.current.playbackRate = SPEEDS[next];
     };
 
-    if (!note.sourceData?.mimeType.startsWith('audio/')) return null;
+    if (!mime.startsWith('audio/')) return null;
+
+    /* Marker note whose lazy media fetch came back empty (offline, unsigned,
+       or the cloud row never stored media): say so, don't fake a player. */
+    if (mediaFailed) {
+        return (
+            <div className="mb-5 flex items-center gap-2.5 bg-card border border-line rounded-[var(--r-lg)] px-3.5 py-2.5 text-ink-3">
+                <Icon name="cloud_off" size={16} />
+                <span className="font-sans text-[12px]">Audio unavailable — the cloud copy wasn't reachable.</span>
+            </div>
+        );
+    }
+
+    /* Inline data builds synchronously, so !url means the lazy fetch is still
+       in flight — show a quiet placeholder instead of a dead control. */
+    if (!url) {
+        return (
+            <div className="mb-5 flex items-center gap-2.5 bg-card border border-line rounded-[var(--r-lg)] px-3.5 py-3 text-ink-3">
+                <Icon name="graphic_eq" size={16} className="animate-pulse" />
+                <span className="font-sans text-[12px]">Loading audio…</span>
+            </div>
+        );
+    }
 
     const progress = duration ? (current / duration) * 100 : 0;
     const pins = (note.pinnedMoments || []).filter(p => p.seconds >= 0 && (!duration || p.seconds <= duration));

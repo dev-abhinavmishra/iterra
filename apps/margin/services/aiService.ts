@@ -201,15 +201,17 @@ export const blobToBase64 = (blob: Blob): Promise<string> => {
     });
 };
 
-// 4.5 Analysis Session Management
+// 4.5 Analysis Session Management — /api/sessions is user-scoped and needs
+// the Supabase session JWT; apiFetch attaches it (plus x-user-id). Unsigned
+// calls get a 401 which surfaces like any other fetch failure.
 export const getAnalysisSessions = async (): Promise<any[]> => {
-    const res = await fetch('/api/sessions');
+    const res = await apiFetch('/api/sessions');
     if (!res.ok) throw new Error("Failed to load sessions");
     return await res.json();
 };
 
 export const loadAnalysisSession = async (id: string): Promise<any> => {
-    const res = await fetch('/api/sessions', {
+    const res = await apiFetch('/api/sessions', {
         method: 'PUT', // Using PUT for fetching by ID in this implementation
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
@@ -219,7 +221,7 @@ export const loadAnalysisSession = async (id: string): Promise<any> => {
 };
 
 export const saveAnalysisSession = async (session: { id?: string, title: string, messages: any[] }): Promise<any> => {
-    const res = await fetch('/api/sessions', {
+    const res = await apiFetch('/api/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(session)
@@ -229,7 +231,7 @@ export const saveAnalysisSession = async (session: { id?: string, title: string,
 };
 
 export const deleteAnalysisSession = async (id: string): Promise<void> => {
-    const res = await fetch('/api/sessions', {
+    const res = await apiFetch('/api/sessions', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })

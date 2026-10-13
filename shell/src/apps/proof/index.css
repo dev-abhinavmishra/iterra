@@ -1,0 +1,802 @@
+@import 'tailwindcss';
+@import 'katex/dist/katex.min.css';
+
+@theme {
+  /* ── Typography ──────────────────────────────────────────────
+     Archivo    — prompts, controls, UI chrome
+     Newsreader — wordmark + document mastheads only
+     IBM Plex Mono — measured values, timers, codes, metadata   */
+  --font-ui: var(--font-sans, system-ui, sans-serif);
+  --font-serif: var(--font-place, 'Iowan Old Style', Palatino, Georgia, serif);
+  --font-mono: var(--font-mono, ui-monospace, 'SF Mono', Menlo, monospace);
+
+  /* ── Bench + paper ───────────────────────────────────────────
+     Graphite bench; off-white calculation paper with a faint
+     square reticle — drafting film, not a ruled notebook.       */
+  --color-bench: #22302a;
+  --color-bench-deep: #1a2620;
+  --color-bench-edge: #141f19;
+  --color-paper: #f5f2e6;
+  --color-paper-dim: #ece7d6;
+  --color-film: #f8f5ea; /* transient sheets: drawers, popovers */
+  --color-form: #faf7ee;
+  --color-ink: #22302a;
+  --color-ink-soft: #4f5f56;
+  --color-ink-faint: #7d8b82;
+  --color-rule: #d8d0b8;
+  --color-rule-dark: #b3ab92;
+
+  /* ── The palette — blueprint blue, correction violet, amber ── */
+  --color-blueprint: #2f5d46;
+  --color-blueprint-deep: #22443a;
+  --color-correct: #6b4fa8; /* correction violet */
+  --color-correct-deep: #553d88;
+  --color-hint: #9c7b46; /* hint amber — hints only */
+  --color-hint-deep: #7d6234;
+  --color-grid: #7fb89f; /* paper reticle */
+
+  --ink-rgb: 34 48 42;
+  --paper-rgb: 245 242 230;
+  --blueprint-rgb: 47 93 70;
+  --correct-rgb: 107 79 168;
+  --hint-rgb: 156 123 70;
+  --bench-rgb: 34 48 42;
+
+  --shadow-sheet: 0 1px 0 rgb(255 255 255 / 0.3) inset, 0 12px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+  --shadow-slip: 0 1px 2px rgb(0 0 0 / 0.18), 0 6px 14px rgb(0 0 0 / 0.16);
+  --shadow-tab: 2px 2px 5px rgb(0 0 0 / 0.35);
+
+  --animate-fold-open: fold-open 0.5s cubic-bezier(0.25, 0.9, 0.3, 1) both;
+  --animate-slip-in: slip-in 0.3s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  --animate-sheet-in: sheet-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-rail-pop: rail-pop 0.28s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  --animate-draw: draw 0.7s ease-out both;
+
+  /* solution pane folds open from its top edge — the worked answer
+     arriving on the bench. A state change, not a celebration. */
+  @keyframes fold-open {
+    from { transform: perspective(1400px) rotateX(-72deg); opacity: 0; }
+    60% { transform: perspective(1400px) rotateX(8deg); opacity: 1; }
+    to { transform: perspective(1400px) rotateX(0deg); opacity: 1; }
+  }
+  @keyframes slip-in {
+    from { transform: translateY(-8px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes sheet-in {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes rail-pop {
+    from { transform: scale(0.2); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  /* connectors between attempt steps and solution steps draw
+     themselves once both sides exist */
+  @keyframes draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+}
+
+.it-place-proof {
+
+  /* ── Typography ──────────────────────────────────────────────
+     Archivo    — prompts, controls, UI chrome
+     Newsreader — wordmark + document mastheads only
+     IBM Plex Mono — measured values, timers, codes, metadata   */
+  --font-ui: var(--font-sans, system-ui, sans-serif);
+  --font-serif: var(--font-place, 'Iowan Old Style', Palatino, Georgia, serif);
+  --font-mono: var(--font-mono, ui-monospace, 'SF Mono', Menlo, monospace);
+
+  /* ── Bench + paper ───────────────────────────────────────────
+     Graphite bench; off-white calculation paper with a faint
+     square reticle — drafting film, not a ruled notebook.       */
+  --color-bench: #22302a;
+  --color-bench-deep: #1a2620;
+  --color-bench-edge: #141f19;
+  --color-paper: #f5f2e6;
+  --color-paper-dim: #ece7d6;
+  --color-film: #f8f5ea; /* transient sheets: drawers, popovers */
+  --color-form: #faf7ee;
+  --color-ink: #22302a;
+  --color-ink-soft: #4f5f56;
+  --color-ink-faint: #7d8b82;
+  --color-rule: #d8d0b8;
+  --color-rule-dark: #b3ab92;
+
+  /* ── The palette — blueprint blue, correction violet, amber ── */
+  --color-blueprint: #2f5d46;
+  --color-blueprint-deep: #22443a;
+  --color-correct: #6b4fa8; /* correction violet */
+  --color-correct-deep: #553d88;
+  --color-hint: #9c7b46; /* hint amber — hints only */
+  --color-hint-deep: #7d6234;
+  --color-grid: #7fb89f; /* paper reticle */
+
+  --ink-rgb: 34 48 42;
+  --paper-rgb: 245 242 230;
+  --blueprint-rgb: 47 93 70;
+  --correct-rgb: 107 79 168;
+  --hint-rgb: 156 123 70;
+  --bench-rgb: 34 48 42;
+
+  --shadow-sheet: 0 1px 0 rgb(255 255 255 / 0.3) inset, 0 12px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+  --shadow-slip: 0 1px 2px rgb(0 0 0 / 0.18), 0 6px 14px rgb(0 0 0 / 0.16);
+  --shadow-tab: 2px 2px 5px rgb(0 0 0 / 0.35);
+
+  --animate-fold-open: fold-open 0.5s cubic-bezier(0.25, 0.9, 0.3, 1) both;
+  --animate-slip-in: slip-in 0.3s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+  --animate-sheet-in: sheet-in 0.34s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-rail-pop: rail-pop 0.28s cubic-bezier(0.2, 1.2, 0.4, 1) both;
+  --animate-draw: draw 0.7s ease-out both;
+
+  /* solution pane folds open from its top edge — the worked answer
+     arriving on the bench. A state change, not a celebration. */
+
+  height: 100%;
+  font-family: var(--font-ui);
+  color: var(--color-ink);
+  background-color: var(--color-bench);
+  background-image:
+    radial-gradient(1200px 700px at 30% -10%, rgb(255 255 255 / 0.05), transparent 60%),
+    radial-gradient(900px 600px at 110% 110%, rgb(0 0 0 / 0.28), transparent 55%);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  display: block;
+  overflow-x: clip;
+}
+
+.it-place-proof ::selection { background: rgb(var(--blueprint-rgb) / 0.25); }
+
+/* ── Calculation pad — the sheet the work happens on ────────────
+   Off-white paper with a faint square reticle (engineering
+   computation paper). The grid is a reticle, not ruled lines. */
+.it-place-proof .pad {
+  position: relative;
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.4), transparent 160px),
+    repeating-linear-gradient(0deg, rgb(var(--blueprint-rgb) / 0.05) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(90deg, rgb(var(--blueprint-rgb) / 0.05) 0 1px, transparent 1px 22px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.03'/%3E%3C/svg%3E");
+  box-shadow: var(--shadow-sheet);
+  border-radius: 3px;
+}
+
+/* darker blueprint rule along the pad's top edge — the sheet's
+   registration mark */
+.it-place-proof .pad::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, var(--color-blueprint-deep), var(--color-blueprint) 40%, rgb(var(--blueprint-rgb) / 0.55));
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ── Transient film — drawers, popovers, review slips ─────────── */
+.it-place-proof .film {
+  background: var(--color-film);
+  border: 1px solid var(--color-rule);
+  box-shadow: var(--shadow-slip);
+}
+
+/* ── Proof rail — the workbench signature ───────────────────────
+   Left rail of numbered step nodes on a vertical hairline.      */
+.it-place-proof .rail {
+  position: relative;
+}
+.it-place-proof .rail::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 15px;
+  width: 0;
+  border-left: 1.5px solid rgb(var(--blueprint-rgb) / 0.4);
+}
+.it-place-proof .rail-node {
+  position: relative;
+  z-index: 1;
+  width: 31px;
+  height: 31px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid rgb(var(--blueprint-rgb) / 0.55);
+  background: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-blueprint-deep);
+}
+.it-place-proof .rail-node--new {
+  animation: var(--animate-rail-pop);
+}
+.it-place-proof .rail-node--correct {
+  border-color: var(--color-blueprint);
+  background: var(--color-blueprint);
+  color: #fff;
+}
+.it-place-proof .rail-node--divergent {
+  border-color: var(--color-correct);
+  color: var(--color-correct-deep);
+  background: rgb(var(--correct-rgb) / 0.12);
+}
+.it-place-proof .rail-node--hint {
+  border-color: var(--color-hint);
+  color: var(--color-hint-deep);
+}
+/* confidence tick at the rail head */
+.it-place-proof .rail-head {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+/* step connector drawn between attempt + solution (post-compare) */
+.it-place-proof .connector-draw {
+  stroke-dasharray: 1;
+  animation: var(--animate-draw);
+}
+
+/* ── Proof-document atoms ──────────────────────────────────────
+   The app is named Proof — the rail is the proof's spine, each
+   node an assertion, and the verdict arrives as an ink stamp. */
+
+/* therefore-node — the rail's conclusion step */
+.it-place-proof .rail-node--therefore {
+  border-color: var(--color-blueprint-deep);
+  font-size: 13px;
+}
+.it-place-proof .rail-node--therefore.rail-node--filled {
+  background: var(--color-blueprint-deep);
+  color: var(--color-paper);
+  border-color: var(--color-blueprint-deep);
+}
+
+/* confidence tick at the rail head — a turnstile flag */
+.it-place-proof .rail-conf {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 1.5px solid rgb(var(--blueprint-rgb) / 0.6);
+  border-radius: 3px;
+  background: var(--color-paper);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-blueprint-deep);
+}
+.it-place-proof .rail-conf i {
+  font-style: normal;
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.75;
+}
+
+/* the rail's vertical hairline draws downward on mount */
+.it-place-proof .rail--draw::before {
+  transform-origin: top;
+  animation: rail-line 0.55s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+@keyframes rail-line {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+/* ── Verdict stamp — the proof gets inked ─────────────────────
+   Boxed ink mark that drops in like a rubber stamp. */
+.it-place-proof .stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px 4px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-2.5deg);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.35' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.92 0.08'/%3E%3C/filter%3E%3Crect width='120' height='40' filter='url(%23r)'/%3E%3C/svg%3E");
+  mask-size: 120px 40px;
+}
+.it-place-proof .stamp--in {
+  animation: stamp-in 0.42s cubic-bezier(0.3, 1.4, 0.4, 1) both;
+}
+@keyframes stamp-in {
+  0% { transform: rotate(-2.5deg) scale(1.9) translateY(-10px); opacity: 0; }
+  55% { transform: rotate(-2.5deg) scale(0.94) translateY(1px); opacity: 1; }
+  75% { transform: rotate(-2.5deg) scale(1.04) translateY(0); }
+  to { transform: rotate(-2.5deg) scale(1) translateY(0); opacity: 1; }
+}
+.it-place-proof .stamp--verified { color: var(--color-blueprint-deep); }
+.it-place-proof .stamp--tentative { color: var(--color-correct-deep); }
+.it-place-proof .stamp--broken { color: var(--color-correct-deep); }
+
+/* q.e.d. tombstone — marks the end of a worked proof */
+.it-place-proof .qed {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  margin-left: 0.35em;
+  border: 1.5px solid var(--color-ink-soft);
+  vertical-align: -0.05em;
+}
+
+/* ── Segmented difficulty meter — five bars, not dots ───────── */
+.it-place-proof .diff {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+}
+.it-place-proof .diff > i {
+  display: block;
+  width: 4px;
+  border-radius: 1px;
+  background: rgb(var(--ink-rgb) / 0.16);
+  border: 1px solid rgb(var(--ink-rgb) / 0.18);
+}
+.it-place-proof .diff > i.on {
+  background: var(--color-blueprint);
+  border-color: var(--color-blueprint-deep);
+}
+.it-place-proof .diff > i:nth-child(1) { height: 3px; }
+.it-place-proof .diff > i:nth-child(2) { height: 5px; }
+.it-place-proof .diff > i:nth-child(3) { height: 7px; }
+.it-place-proof .diff > i:nth-child(4) { height: 8.5px; }
+.it-place-proof .diff > i:nth-child(5) { height: 10px; }
+
+/* ── Segmented control — write/draw and order toggles ───────── */
+.it-place-proof .seg {
+  display: inline-flex;
+  border: 1px solid var(--color-rule-dark);
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--color-form);
+}
+.it-place-proof .seg > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  border-right: 1px solid var(--color-rule);
+}
+.it-place-proof .seg > button:last-child { border-right: none; }
+.it-place-proof .seg > button.seg--on {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.it-place-proof .seg > button:not(.seg--on):hover { background: rgb(var(--ink-rgb) / 0.06); }
+.it-place-proof .seg > button:focus-visible { outline: 2px solid var(--color-blueprint); outline-offset: -2px; }
+
+/* ── Margin annotation — the grader's note beside the break ─── */
+.it-place-proof .margin-note {
+  border-left: 2px solid var(--color-correct);
+  padding: 2px 0 2px 10px;
+  color: var(--color-correct-deep);
+  font-style: italic;
+}
+
+/* ── Assertion card — a step of the proof on the rail ───────── */
+.it-place-proof .assert {
+  position: relative;
+}
+.it-place-proof .assert::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 0.7em;
+  width: 8px;
+  border-top: 1.5px solid rgb(var(--blueprint-rgb) / 0.45);
+}
+
+/* turnstile mark used beside "to prove" headers */
+.it-place-proof .turnstile {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--color-blueprint);
+  margin-right: 2px;
+}
+
+/* ── Field atoms ────────────────────────────────────────────���─── */
+.it-place-proof .f-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  display: block;
+  margin-bottom: 4px;
+}
+.f-input,
+.f-select,
+.it-place-proof .f-textarea {
+  width: 100%;
+  background: var(--color-form);
+  border: 1px solid var(--color-rule-dark);
+  border-radius: 2px;
+  padding: 7px 9px;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  color: var(--color-ink);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.f-input:focus-visible,
+.f-select:focus-visible,
+.it-place-proof .f-textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-blueprint);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.05), 0 0 0 2px rgb(var(--blueprint-rgb) / 0.22);
+}
+.f-input::placeholder,
+.it-place-proof .f-textarea::placeholder {
+  color: var(--color-ink-faint);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+.it-place-proof .btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  border-radius: 2px;
+  border: 1px solid var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+.it-place-proof .btn:hover {
+  background: #43484f;
+}
+.it-place-proof .btn:active {
+  transform: translateY(1px);
+}
+.it-place-proof .btn:focus-visible {
+  outline: 2px solid var(--color-blueprint);
+  outline-offset: 2px;
+}
+.it-place-proof .btn--ghost {
+  background: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-rule-dark);
+}
+.it-place-proof .btn--ghost:hover {
+  background: rgb(var(--ink-rgb) / 0.07);
+}
+.it-place-proof .btn--blueprint {
+  background: var(--color-blueprint);
+  border-color: var(--color-blueprint);
+}
+.it-place-proof .btn--blueprint:hover {
+  background: var(--color-blueprint-deep);
+}
+.it-place-proof .btn--correct {
+  background: var(--color-correct);
+  border-color: var(--color-correct);
+}
+.it-place-proof .btn--correct:hover {
+  background: var(--color-correct-deep);
+}
+.it-place-proof .btn--hint {
+  background: transparent;
+  color: var(--color-hint-deep);
+  border-color: var(--color-hint);
+}
+.it-place-proof .btn--hint:hover {
+  background: rgb(var(--hint-rgb) / 0.1);
+}
+.it-place-proof .btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* icon micro-action */
+.it-place-proof .xbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.it-place-proof .xbtn:hover {
+  background: rgb(var(--ink-rgb) / 0.09);
+  color: var(--color-ink);
+}
+.it-place-proof .xbtn:focus-visible {
+  outline: 2px solid var(--color-blueprint);
+  outline-offset: 1px;
+}
+
+/* ── Bench tabs (top nav) ─────────────────────────────────────── */
+.it-place-proof .dtab {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(245 242 230 / 0.55);
+  padding: 9px 16px 8px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  position: relative;
+  top: 1px;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s;
+}
+.it-place-proof .dtab:hover {
+  color: rgb(245 242 230 / 0.85);
+  background: rgb(245 242 230 / 0.08);
+}
+.it-place-proof .dtab--on {
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border-color: var(--color-rule-dark);
+}
+.it-place-proof .dtab:focus-visible {
+  outline: 2px solid var(--color-paper);
+  outline-offset: -2px;
+}
+
+/* ── Type helpers ─────────────────────────────────────────────── */
+.it-place-proof .mono {
+  font-family: var(--font-mono);
+}
+.it-place-proof .serif {
+  font-family: var(--font-serif);
+}
+.it-place-proof .kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+.it-place-proof .hrule {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-ink-faint);
+}
+.hrule::before,
+.it-place-proof .hrule::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--color-rule);
+}
+
+/* ── Result marks — symbol + word, color never the only signal ── */
+.it-place-proof .mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.it-place-proof .mark--correct { color: var(--color-blueprint-deep); }
+.it-place-proof .mark--partial { color: var(--color-correct-deep); }
+.it-place-proof .mark--incorrect { color: var(--color-correct-deep); }
+.it-place-proof .mark--hint { color: var(--color-hint-deep); }
+
+/* small state chip on library rows */
+.it-place-proof .chip {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--color-rule-dark);
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+}
+.it-place-proof .chip--blue { border-color: rgb(var(--blueprint-rgb) / 0.5); color: var(--color-blueprint-deep); }
+.it-place-proof .chip--violet { border-color: rgb(var(--correct-rgb) / 0.5); color: var(--color-correct-deep); }
+.it-place-proof .chip--amber { border-color: rgb(var(--hint-rgb) / 0.55); color: var(--color-hint-deep); }
+
+/* ── Hint treatment — amber belongs to hints only ─────────────── */
+.it-place-proof .hint-pane {
+  border: 1px dashed rgb(var(--hint-rgb) / 0.7);
+  background: rgb(var(--hint-rgb) / 0.06);
+  border-radius: 3px;
+}
+
+/* worked-solution pane — folds open */
+.it-place-proof .solution-pane {
+  transform-origin: top center;
+}
+.it-place-proof .solution-pane--in {
+  animation: var(--animate-fold-open);
+}
+
+/* ── Worked document typography ───────────────────────────────── */
+.it-place-proof .doc {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.it-place-proof .doc p { margin: 0 0 0.55em; }
+.it-place-proof .doc h1,
+.it-place-proof .doc h2,
+.it-place-proof .doc h3,
+.it-place-proof .doc h4 {
+  font-weight: 650;
+  margin: 0.9em 0 0.4em;
+  line-height: 1.25;
+}
+.it-place-proof .doc h1 { font-size: 1.3em; }
+.it-place-proof .doc h2 { font-size: 1.15em; }
+.it-place-proof .doc h3 { font-size: 1.02em; }
+.it-place-proof .doc ul,
+.it-place-proof .doc ol { margin: 0 0 0.6em 1.3em; }
+.it-place-proof .doc ul { list-style: disc; }
+.it-place-proof .doc ol { list-style: decimal; }
+.it-place-proof .doc code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: rgb(var(--ink-rgb) / 0.07);
+  padding: 0.08em 0.35em;
+  border-radius: 2px;
+}
+.it-place-proof .doc pre {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  background: rgb(var(--ink-rgb) / 0.05);
+  border: 1px solid var(--color-rule);
+  border-radius: 3px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  margin: 0 0 0.6em;
+}
+.it-place-proof .doc pre code { background: none; padding: 0; }
+.it-place-proof .doc blockquote {
+  border-left: 2px solid var(--color-rule-dark);
+  padding-left: 10px;
+  color: var(--color-ink-soft);
+  margin: 0 0 0.6em;
+}
+.it-place-proof .doc a { color: var(--color-blueprint); text-decoration: underline; }
+.it-place-proof .doc img { max-width: 100%; border-radius: 2px; }
+.it-place-proof .doc .katex-display { margin: 0.5em 0; }
+.it-place-proof .doc hr { border: none; border-top: 1px solid var(--color-rule); margin: 0.8em 0; }
+
+/* ── Comparison table (progress metrics — print-like grids) ───── */
+.it-place-proof .met-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.it-place-proof .met-table th {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  text-align: left;
+  padding: 5px 8px;
+  border-bottom: 2px solid var(--color-ink);
+}
+.it-place-proof .met-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-rule);
+  vertical-align: top;
+  font-size: 13px;
+}
+.it-place-proof .met-table tr:last-child td { border-bottom: none; }
+
+/* measured value — mono bar meter */
+.it-place-proof .meter {
+  height: 8px;
+  background: rgb(var(--ink-rgb) / 0.08);
+  border: 1px solid var(--color-rule-dark);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.it-place-proof .meter > i {
+  display: block;
+  height: 100%;
+  background: var(--color-blueprint);
+}
+.it-place-proof .meter--violet > i { background: var(--color-correct); }
+.it-place-proof .meter--amber > i { background: var(--color-hint); }
+
+/* ── Drawing pad ──────────────────────────────────────────────── */
+.it-place-proof .drawpad {
+  background: var(--color-form);
+  border: 1px solid var(--color-rule-dark);
+  border-radius: 3px;
+  cursor: crosshair;
+  touch-action: none;
+  background-image:
+    repeating-linear-gradient(0deg, rgb(var(--blueprint-rgb) / 0.06) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(90deg, rgb(var(--blueprint-rgb) / 0.06) 0 1px, transparent 1px 18px);
+}
+
+/* ── Focus visibility everywhere ──────────────────────────────── */
+.it-place-proof :focus-visible {
+  outline-color: var(--color-blueprint);
+}
+.pad :focus-visible,
+.it-place-proof .film :focus-visible {
+  outline: 2px solid var(--color-blueprint);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 1px rgb(var(--blueprint-rgb) / 0.2);
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────── */
+.it-place-proof * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule-dark) transparent;
+}
+.it-place-proof *::-webkit-scrollbar { width: 8px; height: 8px; }
+.it-place-proof *::-webkit-scrollbar-thumb { background: var(--color-rule-dark); border-radius: 4px; }
+.it-place-proof *::-webkit-scrollbar-track { background: transparent; }
+
+
+/* ── Reduced motion — one preference, honored everywhere ──────── */
+.it-place-proof[data-motion='reduced'] *,
+.it-place-proof[data-motion='reduced'] *::before,
+.it-place-proof[data-motion='reduced'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .it-place-proof:not([data-motion='full']) *,
+  .it-place-proof:not([data-motion='full']) *::before,
+  .it-place-proof:not([data-motion='full']) *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ── Print — a worked solution should print like one ──────────── */
+@media print {
+  .it-place-proof .no-print { display: none !important; }
+  .it-place-proof .pad {
+    box-shadow: none;
+    border: none;
+    background: #fff;
+  }
+  .it-place-proof .pad::before { display: none; }
+  .it-place-proof main { overflow: visible !important; }
+  .it-place-proof .solution-pane { transform: none !important; }
+}

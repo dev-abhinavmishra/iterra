@@ -47,6 +47,9 @@ function devApiPlugin(): Plugin {
                         headers: req.headers,
                         body,
                         query: Object.fromEntries(new URL(url, 'http://localhost').searchParams),
+                        // handlers resolve the caller's IP for the anonymous
+                        // quota pin — keep the dev path honest too
+                        socket: { remoteAddress: req.socket?.remoteAddress },
                     };
 
                     try {
@@ -74,6 +77,7 @@ export default defineConfig(({ mode, command }) => {
         'OPENROUTER_API_KEY', 'OPENROUTER_MODEL', 'OPENROUTER_VISION_MODEL',
         'GEMINI_API_KEY', 'GEMINI_MODEL', 'GEMINI_VISION_MODEL',
         'SUPABASE_URL', 'SUPABASE_KEY', 'DAILY_FREE_LIMIT',
+        'ANON_IP_LIMIT_MULT', 'TRANSCRIBE_DAILY_LIMIT', 'TITLE_DAILY_LIMIT',
     ]) {
         if (env[key]) process.env[key] = env[key];
     }

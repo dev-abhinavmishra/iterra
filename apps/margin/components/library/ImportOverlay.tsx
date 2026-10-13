@@ -15,7 +15,14 @@ export interface ImportItem {
     error?: string;
 }
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB — inline base64 ceiling
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB — local parse ceiling (pdf/docx/txt never upload raw)
+/* Per-type caps mirror the DEPLOY ceiling, not the parser setting: Vercel
+   caps function request bodies at 4.5MB, and the upload is ~4/3× base64
+   plus a small JSON envelope — so ~3MiB decoded is the true maximum for
+   /api/transcribe and /api/document alike. A doomed upload fails here with
+   a clear message instead of a platform 413 mid-flight. */
+const MAX_AUDIO_SIZE = 3 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 3 * 1024 * 1024;
 export const IMPORT_ACCEPT = '.pdf,.docx,.txt,.md,.jpg,.jpeg,.png,.webp,.mp3,.wav,.m4a';
 
 const PHASE_LABEL: Record<ImportPhase, string> = {
@@ -68,15 +75,17 @@ const readFileAsBase64 = (f: File, onProgress: (pct: number) => void): Promise<s
 
 /** One file → one Note. Same pipeline the old drop zone used; images now save type IMAGE. */
 const processFile = async (file: File, onPhase: (phase: ImportPhase, progress?: number) => void): Promise<Note> => {
-    if (file.size > MAX_FILE_SIZE) {
-        throw new Error(`Too large (${(file.size / 1024 / 1024).toFixed(1)}MB) — the limit is 20MB.`);
-    }
-
     const isImage = file.type.startsWith('image/');
     const isPdf = file.type === 'application/pdf';
     const isText = file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.txt');
     const isDocx = file.name.endsWith('.docx') || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     const isAudio = file.type.startsWith('audio/');
+
+    const cap = isAudio ? MAX_AUDIO_SIZE : isImage ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
+    if (file.size > cap) {
+        const mb = Math.round(cap / 1024 / 1024);
+        throw new Error(`Too large (${(file.size / 1024 / 1024).toFixed(1)}MB) — the limit is ${mb}MB.`);
+    }
 
     const base: Pick<Note, 'id' | 'date' | 'tags'> = {
         id: newNoteId(),
@@ -216,7 +225,9 @@ export const useNoteImport = (onImport: (note: Note) => void): NoteImport => {
         }
     }, [flush]);
 
-    return { items, finished, start, dismiss: flush, running: runningRef.current };
+    /* runningRef is the re-entry guard; the exposed flag derives from items so
+       it stays reactive for consumers (a ref snapshot would freeze stale). */
+    return { items, finished, start, dismiss: flush, running: items !== null };
 };
 
 /* ---------- visuals ---------- */

@@ -1,13 +1,41 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { PLACES, PLACE_MAP } from './places';
-import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, wakeFrame, pendingIntakes, firstPendingIntake, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity, type IntakeWait } from './hub';
+import { subscribePresences, subscribeShared, subscribeIndexes, subscribeFeed, subscribeStore, pendingIntakes, firstPendingIntake, type Presence, type SharedField, type Entity, type FeedItem, type StoreEntity, type IntakeWait } from './hub';
 import { Terrain } from './Terrain';
 import { Search } from './Search';
 import { Dossier } from './Dossier';
 import { Ambient } from './Ambient';
-import { parseHash, appUrl } from './route';
+import { parseHash, placeHashFromAppUrl } from './route';
+import type { StoreEvent as StoreEventT } from './hub';
+import { PLACE_COMPONENTS } from './apps';
 
 const readHash = () => parseHash(window.location.hash);
+
+/* A place is a mounted React subtree, not an iframe — a crash in one
+   must not take the terrain down with it. Boundary gives the place a
+   retry surface instead of a dead panel. */
+class PlaceBoundary extends Component<{ name: string; onReset: () => void; children: ReactNode }, { err: Error | null }> {
+  state = { err: null as Error | null };
+  static getDerivedStateFromError(err: Error) { return { err }; }
+  componentDidCatch(err: Error) { console.error(`[iterra] ${this.props.name} crashed`, err); }
+  render() {
+    if (!this.state.err) return this.props.children;
+    return (
+      <div className="flex h-full items-center justify-center bg-paper">
+        <div className="it-card-in anim-rise max-w-sm text-center">
+          <div className="it-heading">{this.props.name} hit a snag</div>
+          <p className="mt-1.5 text-[12.5px] text-mute">{String(this.state.err?.message || this.state.err)}</p>
+          <button
+            className="it-btn mt-4"
+            onClick={() => { this.setState({ err: null }); this.props.onReset(); }}
+          >
+            restart {this.props.name}
+          </button>
+        </div>
+      </div>
+    );
+  }
+}
 
 export default function App() {
   const [active, setActive] = useState<string>(() => readHash().place);
@@ -16,33 +44,28 @@ export default function App() {
   const [shared, setShared] = useState<Record<string, SharedField>>({});
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
   const [feed, setFeed] = useState<FeedItem[]>([]);
-  /* the canonical store — every entity every app has ever written,
-     whether or not its frame has ever mounted. The palette, the dossier
-     and the rails read THIS; the index docs stay the thin mirror. */
+  /* the canonical store — every entity every app has ever written. The
+     palette, the dossier and the rails read THIS; the index docs stay
+     the thin mirror. */
   const [entities, setEntities] = useState<StoreEntity[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [unanswered, setUnanswered] = useState<string | null>(null); // mounted place that never said hello
-  /* frames take seconds to boot a 1-2MB bundle — until iterra:hello lands
-     the slot is a blank panel, so track which mounts are still waking and
-     show that instead of nothing */
-  const [booting, setBooting] = useState<Record<string, number>>({});
-  /* per-src mount timestamps — a remount (nonce-nav, watchdog retry,
-     intake relaunch) restarts the clock; the hello that clears booting
-     must postdate the src that produced it (same rule the watchdog uses) */
-  const mountAtRef = useRef<Record<string, number>>({});
-  const srcSeenRef = useRef<Record<string, string>>({});
-  /* visited places keep their iframes mounted (keep-alive) — the environment
-     stays warm: state persists while wandering the terrain. */
-  const [frames, setFrames] = useState<Record<string, string>>({});
-  const framesRef = useRef<Record<string, string>>({});
-  framesRef.current = frames;
+  /* mounted places — keep-alive: a visited place stays mounted
+     (display:none) so a running timer or half-written note survives a
+     trip back to the map. Value = the query the place is currently
+     addressed by (hash-carried deep links). */
+  const [mounted, setMounted] = useState<Record<string, string>>({});
+  const mountedRef = useRef(mounted);
+  mountedRef.current = mounted;
+  /* bumped when a warm place regains focus — adapters re-read the store */
+  const [wakeTick, setWakeTick] = useState(0);
+  const [woke, setWoke] = useState<string | null>(null);
+  /* bump to force-remount a place (error boundary retry) */
+  const [restarts, setRestarts] = useState<Record<string, number>>({});
   const [switcherOpen, setSwitcherOpen] = useState(false);
   /* queued sends parked in each app's intake — surfaced as 'N waiting'
      badges so a transfer that will deliver on next open isn't silent */
   const [intakes, setIntakes] = useState<Record<string, IntakeWait>>({});
   const [cheatOpen, setCheatOpen] = useState(false);
-  const iframeRefs = useRef<Record<string, HTMLIFrameElement | null>>({});
-  const helloRef = useRef<Record<string, number>>({});
 
   useEffect(() => subscribePresences(setPresences), []);
   useEffect(() => {
@@ -73,64 +96,88 @@ export default function App() {
     return () => { if (t) window.clearTimeout(t); off(); };
   }, []);
 
-  /* ⌘K / ctrl+K or `/` opens the palette — shell chrome has no text inputs
-     of its own so `/` is safe anywhere on the terrain or in chrome */
+  /* ⌘K / ctrl+K or `/` opens the palette; `?` the cheat sheet.
+     A place may own a chord (ink's ⌘K, proof's ?) — declared at register()
+     via ownKeys, so the terrain yields when that place is in front. */
+  const owns = useCallback((key: string) => {
+    const it = (window as any).iterra;
+    return !!(active && it?.ownKeys?.(active)?.includes(key));
+  }, [active]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       const typing = t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable);
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        if (owns('k')) return;
         e.preventDefault();
         setSearchOpen((o) => !o);
       } else if (e.key === '/' && !typing) {
+        if (owns('/')) return;
         e.preventDefault();
         setSearchOpen(true);
       } else if (e.key === '?' && !typing) {
+        if (owns('?')) return;
+        e.preventDefault();
         setCheatOpen((v) => !v);
       } else if (e.key === 'Escape') {
         setCheatOpen(false);
         setSwitcherOpen(false);
-        /* the palette manages its own Escape (Search.tsx) — closing it here
-           too would double-toggle nothing but is harmless; skip to keep the
-           input's stopPropagation contract intact */
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [owns]);
 
   useEffect(() => {
     const onHash = () => {
-      const { place: id, course: ckey } = readHash();
+      const { place: id, course: ckey, query } = readHash();
       setActive(id);
       setCourse(ckey);
+      /* tell the hub which place is in front — feed/open attribution and
+         the ownKeys yield follow the active place */
+      if (id) (window as any).iterra?.focus?.(id);
+      if (!id) return;
       /* mount at the deepest pending ?intake= when one exists — a bare
-         mount drains the queue without ever landing on the result.url,
-         so 'delivers when opened' would silently evaporate (e.g. a queued
-         timer.start resolving to its bound autostart link). */
-      if (id && !framesRef.current[id]) {
+         mount drains the queue without ever landing on the delivered
+         record (e.g. a queued timer.start resolving to its bound link). */
+      if (!mountedRef.current[id] && !query.includes('intake=')) {
         firstPendingIntake(id).then((pid) => {
-          setFrames((f) => (f[id] ? f : { ...f, [id]: pid ? `/apps/${id}/?intake=${pid}` : appUrl(id) }));
+          setMounted((m) => (m[id] ? m : { ...m, [id]: pid ? `intake=${pid}${query ? `&${query}` : ''}` : query }));
         });
+      } else {
+        setMounted((m) => ({ ...m, [id]: query }));
       }
-      /* keep-alive frames must refresh from the store on focus — wake
-         the frame so its adapter re-reads instead of showing a stale view */
-      if (id) {
-        const el = iframeRefs.current[id];
-        if (el) window.setTimeout(() => wakeFrame(el), 60);
-        /* wake-pulse: re-entering an already-live frame flashes a sync dot
-           in the chrome so 'it refreshed from the store' is visible, not
-           assumed. helloRef means the frame answered once this session. */
-        if (el && helloRef.current[id]) {
-          setWoke(id);
-          window.setTimeout(() => setWoke((w) => (w === id ? null : w)), 1600);
-        }
+      /* warm place regaining focus — adapters re-read the store; the
+         dot in the chrome makes the refresh visible. Places share this
+         window now, so the iterra:wake postMessage lands on the same
+         listeners the adapters already subscribe. */
+      if (mountedRef.current[id]) {
+        setWakeTick((t) => t + 1);
+        setWoke(id);
+        window.setTimeout(() => {
+          window.postMessage({ type: 'iterra:wake', app: id }, window.location.origin);
+        }, 60);
+        window.setTimeout(() => setWoke((w) => (w === id ? null : w)), 1600);
       }
     };
     window.addEventListener('hashchange', onHash);
     onHash();
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+
+  /* visibilitychange wake — returning to the terrain's tab re-reads the
+     active place from the store, same contract as hash re-entry */
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState !== 'visible' || !active || !mountedRef.current[active]) return;
+      window.postMessage({ type: 'iterra:wake', app: active }, window.location.origin);
+      setWoke(active);
+      window.setTimeout(() => setWoke((w) => (w === active ? null : w)), 1600);
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [active]);
 
   useEffect(() => {
     const place = active ? PLACE_MAP[active] : null;
@@ -141,108 +188,6 @@ export default function App() {
         : 'iterra — an integrated study terrain';
   }, [active, course]);
 
-  /* environment navigation: apps post iterra:open with an /apps/<p>/ URL. */
-  useEffect(() => {
-    const onMsg = (ev: MessageEvent) => {
-      if (ev.origin !== window.location.origin) return;
-      const d = ev.data;
-      if (!d || typeof d !== 'object' || typeof d.type !== 'string') return;
-      if (d.type === 'iterra:open' && typeof d.url === 'string') {
-        // terrain hash routes address the shell itself (dossier, home)
-        if (/^#\//.test(d.url)) {
-          window.location.hash = d.url.slice(1);
-          return;
-        }
-        const m = d.url.match(/^\/apps\/([a-z]+)(\/[^?#]*)?(\?[^#]*)?/);
-        if (!m || !PLACE_MAP[m[1]]) {
-          if (/^https?:/.test(d.url)) window.open(d.url, '_blank', 'noopener');
-          return;
-        }
-        const [, id, p = '/', q = ''] = m;
-        const url = `/apps/${id}${p}${q}`;
-        if (!q && !framesRef.current[id]) {
-          /* bare open onto a cold place with queued intakes — mount at the
-             intake URL so the boot drain lands on result.url instead of
-             evaporating it (same rule as hash entry). */
-          firstPendingIntake(id).then((pid) => {
-            setFrames((f) => (f[id] ? f : { ...f, [id]: pid ? `/apps/${id}/?intake=${pid}` : url }));
-          });
-        } else {
-          setFrames((f) => {
-            // identical src => React no-ops and the nav is lost; bust it with a
-            // nonce the app ignores so a repeat link still re-navigates
-            if (f[id] === url) {
-              return { ...f, [id]: `${url}${q ? '&' : '?'}_inav=${Date.now()}` };
-            }
-            return { ...f, [id]: url };
-          });
-        }
-        window.location.hash = `/p/${id}`;
-      }
-      if (d.type === 'iterra:hotkey' && typeof d.key === 'string') {
-        // frame-forwarded terrain chords (hub yields to the app's own ⌘K)
-        const k = d.key;
-        if (k === 'k') { setSearchOpen((o) => !o); return; }
-        if (k === '0' || k === '`') { goHome(); return; }
-        const n = Number(k);
-        if (n >= 1 && n <= PLACES.length) enter(PLACES[n - 1].id);
-        return;
-      }
-      if (d.type === 'iterra:hello' && typeof d.app === 'string' && PLACE_MAP[d.app]) {
-        const helloApp = d.app as string;
-        helloRef.current[helloApp] = Date.now();
-        setUnanswered((u) => (u === helloApp ? null : u));
-        setBooting((b) => {
-          if (!b[helloApp]) return b;
-          const n = { ...b };
-          delete n[helloApp];
-          return n;
-        });
-        const raw = typeof d.url === 'string' ? d.url : '';
-        // only trust hello urls that actually point at the claimed place
-        const url = raw.startsWith(`/apps/${helloApp}`) ? raw : `/apps/${helloApp}/`;
-        // which mounted frame spoke? if it migrated to another place
-        // (in-frame nav that slipped the intercepts), heal the slot back.
-        const slot = Object.entries(iframeRefs.current).find(([, el]) => el?.contentWindow === ev.source);
-        if (slot && slot[0] !== helloApp) {
-          const backId = slot[0];
-          /* the vacated slot remounts its app fresh — if that app has queued
-             intakes, boot it at ?intake=<id> so the drain lands on result.url. */
-          firstPendingIntake(backId).then((pid) => {
-            setFrames((f) => ({
-              ...f,
-              [helloApp]: url,
-              [backId]: pid ? `/apps/${backId}/?intake=${pid}` : appUrl(backId),
-            }));
-          });
-          window.location.hash = `/p/${helloApp}`;
-        } else {
-          setFrames((f) => (f[helloApp] ? f : { ...f, [helloApp]: url }));
-        }
-      }
-    };
-    window.addEventListener('message', onMsg);
-    return () => window.removeEventListener('message', onMsg);
-  }, []);
-
-  /* visibilitychange wake — returning to the terrain's own tab re-reads
-     the active frame from the store too, not just hash navigation. Every
-     adapter answers iterra:wake; this makes 'came back to a stale view'
-     impossible across all 8 places. */
-  useEffect(() => {
-    const onVis = () => {
-      if (document.visibilityState !== 'visible' || !active) return;
-      const el = iframeRefs.current[active];
-      if (el && helloRef.current[active]) {
-        wakeFrame(el);
-        setWoke(active);
-        window.setTimeout(() => setWoke((w) => (w === active ? null : w)), 1600);
-      }
-    };
-    document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
-  }, [active]);
-
   const enter = useCallback((id: string) => {
     window.location.hash = `/p/${id}`;
   }, []);
@@ -251,29 +196,91 @@ export default function App() {
     window.location.hash = '/';
   }, []);
 
-  /* shared deep-link router — palette hits, feed items, commons lines all
-     land here; mirrors the iterra:open message path */
+  /* shared deep-link router — palette hits, feed items, commons lines,
+     and (via the iterra.open shim) the apps' own cross-place links all
+     land here. Old-style /apps/<place>/<path>?<query> urls become
+     '#/p/<place>?<query>' — the app's own path segment is folded into
+     the query as 'p=' so nothing is lost. */
   const goUrl = useCallback((url: string) => {
     if (url.startsWith('#')) {
       window.location.hash = url.slice(1);
       return;
     }
-    const m = url.match(/^\/apps\/([a-z]+)(\/[^?#]*)?(\?[^#]*)?/);
-    if (!m || !PLACE_MAP[m[1]]) {
-      /* external entity urls (a syllabus resource link, say) can't frame —
-         same escape hatch as the iterra:open path */
+    const hit = placeHashFromAppUrl(url);
+    if (!hit) {
       if (/^https?:/.test(url)) window.open(url, '_blank', 'noopener');
       return;
     }
-    const [, id, p = '/', q = ''] = m;
-    const full = `/apps/${id}${p}${q}`;
-    setFrames((f) => ({ ...f, [id]: f[id] === full ? `${full}${q ? '&' : '?'}_inav=${Date.now()}` : full }));
-    window.location.hash = `/p/${id}`;
+    const p = url.match(/^\/apps\/[a-z]+(\/[^?#]*)/)?.[1];
+    const extra = p && p !== '/' ? `${hit.query ? '&' : ''}p=${encodeURIComponent(p.slice(1))}` : '';
+    const q = `${hit.query}${extra}`;
+    const target = `/p/${hit.place}${q ? `?${q}` : ''}`;
+    /* identical hash => no hashchange => nav lost; bust with a nonce the
+       place ignores so a repeat link still re-navigates */
+    if (window.location.hash === `#${target}`) {
+      window.location.hash = `${target}${q ? '&' : '?'}_inav=${Date.now()}`;
+      return;
+    }
+    window.location.hash = target;
   }, []);
 
+  /* app→app navigation: apps call iterra.open('/apps/<p>/...') or raw
+     window.open — the hub's shim posts iterra:open to the parent, which
+     IS this window now, and bare window.open calls get patched in
+     main.tsx to land here too. */
+  useEffect(() => {
+    const onMsg = (ev: MessageEvent) => {
+      if (ev.origin !== window.location.origin) return;
+      const d = ev.data;
+      if (!d || typeof d !== 'object' || typeof d.type !== 'string') return;
+      if (d.type === 'iterra:open' && typeof d.url === 'string') goUrl(d.url);
+      if (d.type === 'iterra:hotkey' && typeof d.key === 'string') {
+        const k = d.key;
+        /* a place owning the chord yields nothing to the terrain — the
+           hub forwards keys only for unclaimed bindings */
+        if (k === 'k') { setSearchOpen((o) => !o); return; }
+        if (k === '0' || k === '`') { goHome(); return; }
+        const n = Number(k);
+        if (n >= 1 && n <= PLACES.length) enter(PLACES[n - 1].id);
+      }
+    };
+    window.addEventListener('message', onMsg);
+    return () => window.removeEventListener('message', onMsg);
+  }, [goUrl, enter, goHome]);
+
+  /* intake landing: a drained send resolves with the target's deep link
+     (e.g. a bound autostart timer, the new note). The framed world let
+     the hub location.assign that url inside the frame — here it's a hash
+     nav to the place, so a delivery is visible, not silent. */
+  useEffect(() => {
+    const it = (window as any).iterra;
+    if (!it?.events?.on) return;
+    const off = it.events.on('send.delivered', (rec: StoreEventT) => {
+      const url = rec?.payload?.url;
+      if (typeof url === 'string' && placeHashFromAppUrl(url)) goUrl(url);
+    });
+    return typeof off === 'function' ? off : undefined;
+  }, [goUrl]);
+
+  /* anchors to /apps/<place>/… rendered inside places (SharedNoteLink et
+     al.) — intercept before the browser navigates to a url that doesn't
+     exist in the integrated terrain. */
+  useEffect(() => {
+    const onClick = (ev: MouseEvent) => {
+      if (ev.defaultPrevented || ev.button !== 0 || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+      const a = (ev.target as HTMLElement | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!a) return;
+      const href = a.getAttribute('href') || '';
+      if (!placeHashFromAppUrl(href)) return;
+      ev.preventDefault();
+      goUrl(href);
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, [goUrl]);
+
   /* ⌘1..8 jumps straight to a place (PLACES order), ⌘0/⌘` back to the
-     terrain — iframe keystrokes never reach the shell, so these can't
-     collide with an app's own shortcuts */
+     terrain */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
@@ -286,68 +293,14 @@ export default function App() {
       }
       const n = Number(e.key);
       if (n >= 1 && n <= PLACES.length) {
+        if (owns(String(n))) return;
         e.preventDefault();
         enter(PLACES[n - 1].id);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [enter, goHome]);
-
-  /* wake pulse — the sync dot shown while a warm frame re-reads the store */
-  const [woke, setWoke] = useState<string | null>(null);
-
-  /* a frame is 'booting' from the moment its src lands until that app's
-     next iterra:hello postdates THIS src — cold first mounts and forced
-     remounts both count, so the blank-panel window is always covered */
-  useEffect(() => {
-    const now = Date.now();
-    const next: Record<string, number> = {};
-    for (const [id, src] of Object.entries(frames)) {
-      if (srcSeenRef.current[id] !== src) mountAtRef.current[id] = now;
-      srcSeenRef.current[id] = src;
-      if ((helloRef.current[id] || 0) < (mountAtRef.current[id] || 0)) next[id] = mountAtRef.current[id];
-    }
-    setBooting(next);
-  }, [frames]);
-
-  /* watchdog: a mounted frame should say iterra:hello within a few seconds;
-     if it never does (dead dev server, 404, crashed app) surface a slim
-     notice instead of showing a silent dead frame forever. The hello must
-     postdate THIS mount — an older hello can't vouch for a fresh reload.
-     An app that has answered before gets a longer grace: a mid-session
-     remount (bound link, file-back) can keep the frame's main thread busy
-     past the quick window without being dead — a false-positive banner on a
-     live frame is worse than a slower warning on a truly dead one. */
-  useEffect(() => {
-    setUnanswered(null);
-    if (!active || !frames[active]) return;
-    const mountedAt = Date.now();
-    const everAnswered = !!helloRef.current[active];
-    const t = window.setTimeout(() => {
-      if ((helloRef.current[active] || 0) < mountedAt) setUnanswered(active);
-    }, everAnswered ? 20000 : 7000);
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, frames[active || '']]);
-
-  /* auto-retry: the banner doesn't wait for a click the first time —
-     it reloads the frame itself once per mount, then leaves the manual
-     retry for a second failure. Tracked per frame-url so each fresh
-     mount earns one auto-retry. */
-  const autoRetried = useRef<Record<string, string>>({});
-  useEffect(() => {
-    if (!unanswered || unanswered !== active) return;
-    const mountSig = frames[unanswered] || '';
-    if (autoRetried.current[unanswered] === mountSig) return;
-    const t = window.setTimeout(() => {
-      autoRetried.current[unanswered] = mountSig;
-      setFrames((f) => ({ ...f, [unanswered]: `${appUrl(unanswered)}?_inav=${Date.now()}` }));
-      setUnanswered(null);
-    }, 2600);
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unanswered, active]);
+  }, [enter, goHome, owns]);
 
   const activePlace = active ? PLACE_MAP[active] : null;
   const timerEntry = presences['timer'];
@@ -356,10 +309,6 @@ export default function App() {
 
   const chrome = useMemo(() => {
     if (!activePlace) return null;
-    /* relative z-30 lifts the whole topbar subtree above the keep-alive
-       frames — without it the switcher dropdown (z-40 inside a fading
-       ancestor) paints under the app iframe and its invisible backdrop
-       swallows every page click */
     return (
       <div className="anim-fade relative z-30 flex h-12 shrink-0 items-center gap-3 border-b border-atlas-300 bg-atlas-50 px-3 sm:px-4">
         <button
@@ -443,13 +392,13 @@ export default function App() {
                       >
                         {intakes[p.id].count} waiting
                       </span>
-                    ) : frames[p.id] ? (
-                      <span className="live-dot h-1.5 w-1.5 shrink-0 rounded-full bg-moss-500" title="warm — frame mounted" />
+                    ) : mounted[p.id] !== undefined ? (
+                      <span className="live-dot h-1.5 w-1.5 shrink-0 rounded-full bg-moss-500" title="warm — mounted" />
                     ) : null}
                   </button>
                 ))}
                 {/* linked — entities other apps hold on this place's
-                    courses/topics (index.<app> matching on course/topic) */}
+                    courses/topics */}
                 {(() => {
                   if (!active) return null;
                   const keys = new Set<string>();
@@ -549,73 +498,62 @@ export default function App() {
               {timerRunning.label}
             </button>
           )}
-          <a
-            href={frames[active] || appUrl(active)}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={() => setRestarts((r) => ({ ...r, [active]: (r[active] || 0) + 1 }))}
             className="rounded-md px-2 py-1 text-[12px] text-field-faint hover:bg-moss-100 hover:text-moss-700"
-            title="Open this place on its own"
+            title="Restart this place fresh"
           >
-            open solo ↗
-          </a>
+            restart ⟳
+          </button>
         </div>
       </div>
     );
-  }, [active, activePlace, frames, switcherOpen, timerRunning, enter, goHome, goUrl, indexes]);
+  }, [active, activePlace, mounted, switcherOpen, timerRunning, enter, goHome, goUrl, indexes, woke, intakes]);
 
   return (
     <div className="flex h-full flex-col">
       {activePlace ? chrome : null}
-      {/* frames stay mounted even on the terrain home — a running timer or
+      {/* places stay mounted even on the terrain home — a running timer or
           half-written note must survive a trip back to the map */}
       <div
-        className="relative flex-1 bg-atlas-200"
+        className="relative flex-1 bg-paper"
         style={{ display: activePlace ? 'block' : 'none' }}
       >
-        {Object.entries(frames).map(([id, src]) => (
-          <iframe
-            key={id}
-            ref={(el) => {
-              iframeRefs.current[id] = el;
-            }}
-            src={src}
-            title={PLACE_MAP[id]?.app || id}
-            className="frame-fade absolute inset-0 h-full w-full border-0"
-            style={{ display: id === active ? 'block' : 'none' }}
-            allow={id === 'margin' ? 'clipboard-read; clipboard-write; microphone' : 'clipboard-read; clipboard-write'}
-          />
-        ))}
-        {/* still waking — the frame is loading its bundle and hasn't said
-            hello yet; once the watchdog fires, its banner takes over */}
-        {active && booting[active] && unanswered !== active && (
-          <div className="anim-rise pointer-events-none absolute left-1/2 top-3 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-atlas-400 bg-atlas-50/90 px-3.5 py-1 text-[11px] text-field-faint shadow-sm">
-            <span className="live-dot h-1.5 w-1.5 rounded-full bg-moss-500" />
-            waking {PLACE_MAP[active]?.place?.toLowerCase() || active}…
-          </div>
-        )}
-        {unanswered && unanswered === active && (
-          <div className="anim-rise absolute left-1/2 top-3 z-20 flex -translate-x-1/2 items-center gap-3 rounded-full border border-atlas-400 bg-atlas-50/95 px-4 py-1.5 text-[12px] text-field-faint shadow-md">
-            <span>
-              <span className="font-medium text-field-ink">{PLACE_MAP[unanswered]?.place}</span> isn't answering
-            </span>
-            <button
-              onClick={() =>
-                setFrames((f) => ({ ...f, [unanswered]: `${appUrl(unanswered)}?_inav=${Date.now()}` }))
-              }
-              className="font-medium text-moss-700 hover:underline"
+        {PLACES.map((p) => {
+          if (mounted[p.id] === undefined) return null;
+          const Comp = PLACE_COMPONENTS[p.id];
+          if (!Comp) {
+            return (
+              <div key={p.id} className="absolute inset-0" style={{ display: p.id === active ? 'block' : 'none' }}>
+                <div className="flex h-full items-center justify-center">
+                  <div className="it-empty max-w-sm">this place hasn't been rebuilt into the terrain yet</div>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div
+              key={`${p.id}:${restarts[p.id] || 0}`}
+              className="frame-fade absolute inset-0"
+              style={{ display: p.id === active ? 'block' : 'none' }}
             >
-              retry
-            </button>
-            <a
-              href={frames[unanswered] || appUrl(unanswered)}
-              target="_blank"
-              rel="noreferrer"
-              className="text-field-faint hover:text-moss-700 hover:underline"
-            >
-              open solo ↗
-            </a>
-          </div>
-        )}
+              <PlaceBoundary name={p.app} onReset={() => setRestarts((r) => ({ ...r, [p.id]: (r[p.id] || 0) + 1 }))}>
+                <Suspense
+                  fallback={
+                    <div className="flex h-full items-center justify-center">
+                      <div className="anim-rise flex items-center gap-2 rounded-full border border-atlas-400 bg-atlas-50/90 px-3.5 py-1 text-[11px] text-field-faint shadow-sm">
+                        <span className="live-dot h-1.5 w-1.5 rounded-full bg-moss-500" />
+                        waking {p.place.toLowerCase()}…
+                      </div>
+                    </div>
+                  }
+                >
+                  <Comp query={mounted[p.id]} wakeTick={wakeTick} />
+                </Suspense>
+              </PlaceBoundary>
+            </div>
+          );
+        })}
       </div>
       {!activePlace ? (
         <div className="flex-1 overflow-auto">
@@ -631,7 +569,7 @@ export default function App() {
               onHome={goHome}
             />
           ) : (
-            <Terrain presences={presences} mounted={Object.keys(frames)} shared={shared} indexes={indexes} entities={entities} feed={feed} intakes={intakes} onEnter={enter} onGo={goUrl} />
+            <Terrain presences={presences} mounted={Object.keys(mounted)} shared={shared} indexes={indexes} entities={entities} feed={feed} intakes={intakes} onEnter={enter} onGo={goUrl} />
           )}
         </div>
       ) : null}
@@ -642,12 +580,9 @@ export default function App() {
         onClose={() => setSearchOpen(false)}
         onGo={goUrl}
       />
-      {/* the ambient rail — live environment state (running session,
-          what's due, what's next, warm frames) floats over every
-          surface, frames included */}
       <Ambient
         entities={entities}
-        mounted={Object.keys(frames)}
+        mounted={Object.keys(mounted)}
         activePlace={active}
         onEnter={enter}
         onGo={goUrl}

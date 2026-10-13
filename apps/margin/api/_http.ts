@@ -12,7 +12,10 @@ export const readJsonBody = (req: any): any => {
     if (b == null) return {};
     if (typeof b === 'string') {
         try {
-            return JSON.parse(b);
+            /* A body that parses to null/undefined ('null') still isn't an
+               object — callers index it unconditionally, so collapse it to {}
+               like every other unusable body. */
+            return JSON.parse(b) ?? {};
         } catch {
             return {};
         }

@@ -15,6 +15,7 @@ import SharedNoteLink from '../components/SharedNoteLink';
 import TerrainChips from '../components/TerrainChips';
 import { runAction } from '../services/aiService';
 import { exportNoteMarkdown, exportNoteHtml } from '../services/exportService';
+import { fetchNoteMedia } from '../services/storageService';
 import { sanitizeHtml } from '../services/sanitize';
 
 interface EditorViewProps {
@@ -59,6 +60,16 @@ const stripTags = (html: string): string => {
 const escapeHtmlText = (s: string): string =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+/* Source modal's honest-empty state — a marker note whose media isn't in the
+   cloud (unsigned, or it only ever lived on another device) gets this instead
+   of a dead media element pointing at an empty data: URL. */
+const SourceUnavailable: React.FC = () => (
+    <div className="flex flex-col items-center gap-2 text-ink-3 px-6 text-center">
+        <Icon name="cloud_off" size={28} />
+        <p className="font-sans text-sm">The source media isn't synced to this device.</p>
+    </div>
+);
+
 const EditorView: React.FC<EditorViewProps> = ({
     note, notes, onBack, onUpdate, onToggleBookmark, onOpenNote, contextualAttachments, setContextualAttachments, settings,
 }) => {
@@ -69,6 +80,10 @@ const EditorView: React.FC<EditorViewProps> = ({
     const [saveState, setSaveState] = useState<'saved' | 'saving'>('saved');
     const [showSource, setShowSource] = useState(false);
     const [blobUrl, setBlobUrl] = useState<string | null>(null);
+    /* Resolved source media for the Source modal — cloud notes can carry a
+       marker ({mimeType, data: ''}) whose bytes must be lazy-fetched. */
+    const [mediaData, setMediaData] = useState<string | null>(null);
+    const [mediaFailed, setMediaFailed] = useState(false);
     const [assistantWidth, setAssistantWidth] = useState(34);
     const [isDragging, setIsDragging] = useState(false);
     const [showMobileAssistant, setShowMobileAssistant] = useState(false);
@@ -446,25 +461,65 @@ const EditorView: React.FC<EditorViewProps> = ({
 
     /* ---------------- source modal blob ---------------- */
 
+    /* Normalize sourceData to primitives: cloud rows can carry a marker
+       ({mimeType: null, data: ''}) or a legacy shape with no usable
+       mimeType — `note.sourceData?.mimeType.startsWith` used to TypeError
+       on the null and take the app to the error boundary. Primitive deps
+       also keep this effect from re-running on a re-created sourceData
+       object of equal content. */
+    const hasSource = !!note.sourceData;
+    const sourceMime = typeof note.sourceData?.mimeType === 'string' ? note.sourceData.mimeType : '';
+    const sourceData = typeof note.sourceData?.data === 'string' ? note.sourceData.data : '';
+
+    /* Any marker (empty data) lazy-fetches its media — not just PDFs. Audio
+       and image markers used to render dead media elements pointing at an
+       empty data: URL. `mediaData` is the resolved base64 the modal renders
+       (for every type); `blobUrl` is the PDF-specific object URL, created
+       only for that type and revoked from the same closure that made it —
+       reading state in cleanup would revoke the PREVIOUS url and leak the
+       one the async build just created. */
     useEffect(() => {
-        if (showSource && note.sourceData?.mimeType === 'application/pdf') {
-            try {
-                const bin = atob(note.sourceData.data);
-                const bytes = new Uint8Array(bin.length);
-                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-                setBlobUrl(URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' })));
-            } catch (e) {
-                console.error('Failed to create blob URL for PDF', e);
-            }
-        }
-        return () => {
-            if (blobUrl) {
-                URL.revokeObjectURL(blobUrl);
-                setBlobUrl(null);
+        if (!showSource || !hasSource) return;
+        let cancelled = false;
+        let objectUrl: string | null = null;
+        const build = (data: string) => {
+            if (cancelled || !data) return;
+            setMediaData(data);
+            if (sourceMime === 'application/pdf') {
+                try {
+                    const bin = atob(data);
+                    const bytes = new Uint8Array(bin.length);
+                    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                    objectUrl = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+                    setBlobUrl(objectUrl);
+                } catch (e) {
+                    console.error('Failed to create blob URL for PDF', e);
+                    setMediaFailed(true);
+                }
             }
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showSource, note.sourceData]);
+        if (sourceData) build(sourceData);
+        else void fetchNoteMedia(note.id).then((m) => {
+            if (cancelled) return;
+            if (m?.data) build(m.data);
+            else setMediaFailed(true);
+        });
+        return () => {
+            cancelled = true;
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+            setBlobUrl(null);
+            setMediaData(null);
+            setMediaFailed(false);
+        };
+    }, [showSource, note.id, hasSource, sourceMime, sourceData]);
+
+    /* While the fetch is in flight show skeletons; a resolved-null fetch
+       (unsigned, or the row never stored media) reports honestly instead of
+       rendering an empty data: URL. resolvedMedia falls back to the inline
+       data so a note with media already on it doesn't flash the unavailable
+       state for the first frame before the effect's setMediaData lands. */
+    const sourcePending = hasSource && !sourceData && !mediaData && !mediaFailed;
+    const resolvedMedia = mediaData || sourceData || null;
 
     /* ---------------- assistant rail resizer ---------------- */
 
@@ -782,8 +837,8 @@ const EditorView: React.FC<EditorViewProps> = ({
                     <div className="flex items-center gap-2 min-w-0">
                         <Icon
                             name={
-                                note.sourceData?.mimeType.startsWith('audio/') ? 'audio_file' :
-                                note.sourceData?.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'image'
+                                sourceMime.startsWith('audio/') ? 'audio_file' :
+                                sourceMime === 'application/pdf' ? 'picture_as_pdf' : 'image'
                             }
                             size={18}
                             className="text-[var(--mark)]"
@@ -791,13 +846,18 @@ const EditorView: React.FC<EditorViewProps> = ({
                         <span className="font-sans text-sm font-medium text-ink truncate">Source file</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        {note.sourceData?.mimeType === 'application/pdf' && (
+                        {sourceMime === 'application/pdf' && (
                             <Btn
                                 size="sm"
                                 icon="download"
+                                disabled={!blobUrl}
                                 onClick={() => {
+                                    /* blobUrl is built from the RESOLVED media —
+                                       a marker note's own data would be an
+                                       empty download. */
+                                    if (!blobUrl) return;
                                     const a = document.createElement('a');
-                                    a.href = `data:application/pdf;base64,${note.sourceData!.data}`;
+                                    a.href = blobUrl;
                                     a.download = `${title || 'note'}.pdf`;
                                     a.click();
                                 }}
@@ -809,7 +869,7 @@ const EditorView: React.FC<EditorViewProps> = ({
                     </div>
                 </div>
                 <div className="h-[70vh] overflow-auto custom-scrollbar bg-card-2 flex items-center justify-center p-4">
-                    {note.sourceData?.mimeType === 'application/pdf' ? (
+                    {sourceMime === 'application/pdf' ? (
                         blobUrl ? (
                             <object data={blobUrl} type="application/pdf" className="w-full h-full rounded-[var(--r)] border border-line bg-card">
                                 <div className="flex flex-col items-center justify-center h-full gap-3 text-ink-3">
@@ -817,26 +877,46 @@ const EditorView: React.FC<EditorViewProps> = ({
                                     <p className="font-sans text-sm">PDF preview is blocked by your browser.</p>
                                 </div>
                             </object>
-                        ) : (
+                        ) : sourcePending ? (
                             <div className="w-full max-w-sm flex flex-col gap-2.5">
                                 <Skeleton width="40%" />
                                 <Skeleton width="80%" />
                             </div>
+                        ) : (
+                            <SourceUnavailable />
                         )
-                    ) : note.sourceData?.mimeType.startsWith('image/') ? (
-                        <img
-                            src={`data:${note.sourceData.mimeType};base64,${note.sourceData.data}`}
-                            alt="Source"
-                            className="max-w-full max-h-full object-contain rounded-[var(--r)] border border-line bg-card"
-                        />
-                    ) : note.sourceData?.mimeType.startsWith('audio/') ? (
-                        <div className="w-full max-w-md bg-card border border-line rounded-[var(--r-lg)] shadow-card p-6 flex flex-col items-center gap-4">
-                            <div className="w-14 h-14 rounded-full bg-[var(--mark-soft)] border border-[var(--line)] flex items-center justify-center">
-                                <Icon name="graphic_eq" size={26} className="text-[var(--mark)]" />
+                    ) : sourceMime.startsWith('image/') ? (
+                        resolvedMedia ? (
+                            <img
+                                src={`data:${sourceMime};base64,${resolvedMedia}`}
+                                alt="Source"
+                                className="max-w-full max-h-full object-contain rounded-[var(--r)] border border-line bg-card"
+                            />
+                        ) : sourcePending ? (
+                            <div className="w-full max-w-sm flex flex-col gap-2.5">
+                                <Skeleton width="40%" />
+                                <Skeleton width="80%" />
                             </div>
-                            <div className="font-serif text-lg text-ink text-center">{title || 'Untitled'}</div>
-                            <audio controls src={`data:${note.sourceData.mimeType};base64,${note.sourceData.data}`} className="w-full" />
-                        </div>
+                        ) : (
+                            <SourceUnavailable />
+                        )
+                    ) : sourceMime.startsWith('audio/') ? (
+                        resolvedMedia ? (
+                            <div className="w-full max-w-md bg-card border border-line rounded-[var(--r-lg)] shadow-card p-6 flex flex-col items-center gap-4">
+                                <div className="w-14 h-14 rounded-full bg-[var(--mark-soft)] border border-[var(--line)] flex items-center justify-center">
+                                    <Icon name="graphic_eq" size={26} className="text-[var(--mark)]" />
+                                </div>
+                                <div className="font-serif text-lg text-ink text-center">{title || 'Untitled'}</div>
+                                <audio controls src={`data:${sourceMime};base64,${resolvedMedia}`} className="w-full" />
+                            </div>
+                        ) : sourcePending ? (
+                            <div className="w-full max-w-sm flex flex-col gap-2.5">
+                                <Skeleton width="40%" />
+                                <Skeleton width="80%" />
+                            </div>
+                        ) : (
+                            <SourceUnavailable />
+                        )
                     ) : (
                         <div className="text-ink-3 font-sans text-sm">No preview available for this file type.</div>
                     )}

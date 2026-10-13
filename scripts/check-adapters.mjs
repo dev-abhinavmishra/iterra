@@ -27,7 +27,9 @@ for (const a of APPS) {
     continue;
   }
   const src = readFileSync(p, 'utf8');
-  if (!/\.adapter\s*\(\s*\{/.test(src) && !src.includes('iterra.adapter')) {
+  /* accept both `it.adapter({...})` and a destructured `adapter({...})` —
+     the filename + per-app name check below still gate what counts */
+  if (!/\badapter\s*\(\s*\{/.test(src) && !src.includes('iterra.adapter')) {
     console.error(`[check-adapters] ${a.file} never calls iterra.adapter({...})`);
     fail++;
     continue;

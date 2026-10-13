@@ -7,6 +7,9 @@ cd "$(dirname "$0")/.."
 # every app must carry its one adapter file — docs/ADAPTER.md
 node scripts/check-adapters.mjs
 
+# margin's vite dev server serves a copy of api/ — the copy must never drift
+node scripts/check-api-parity.mjs
+
 rm -rf dist
 mkdir -p dist/apps
 

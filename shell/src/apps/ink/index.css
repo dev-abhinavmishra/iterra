@@ -1,0 +1,574 @@
+/* Ink · design system: the writing desk, repaletted to atlas + moss.
+ * Paper sheets on a warm field ground, field ink, moss accents.
+ * Serif (terrain stack) · sans (terrain) · IBM Plex Mono (data)
+ */
+
+/* tailwind v4 theme tokens — ink's custom utility names resolve globally,
+   the values are terrain palette tones so the desk reads as one atlas. */
+@theme {
+  --color-desk: #e9e4d4;
+  --color-desk-deep: #ded7c2;
+  --color-paper: #faf7ef;
+  --color-paper-dim: #f1ecdd;
+  --color-paper-edge: #e2dac2;
+  --color-ink: #22302a;
+  --color-ink-soft: #3d4a42;
+  --color-ink-faint: #5d6b62;
+  --color-ink-ghost: #8b968e;
+  --color-line: #ddd2b8;
+  --color-line-strong: #c9bb9c;
+  --color-pencil: #4a8a6a;
+  --color-pencil-deep: #2f5d46;
+  --color-pencil-wash: #e4ede4;
+  --color-manila: #8f6f3a;
+  --color-manila-wash: #eee5cf;
+  --color-fountain: #2f5d46;
+  --color-fountain-wash: #e4ede4;
+  --color-walnut: #6d5230;
+  --color-walnut-deep: #54401f;
+  --color-walnut-wash: #ede3d0;
+  --shadow-sheet: 0 1px 0 rgba(34,48,42,0.04), 0 12px 40px -16px rgba(34,48,42,0.22);
+  --shadow-lift: 0 2px 8px -2px rgba(34,48,42,0.12), 0 12px 32px -16px rgba(34,48,42,0.16);
+  --shadow-pop: 0 4px 16px -4px rgba(34,48,42,0.18), 0 16px 48px -16px rgba(34,48,42,0.24);
+  --text-2xs: 10px;
+  --text-2xs--line-height: 1.4;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+.it-place-ink {
+  --pen: var(--color-ink);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.45, 0, 0.15, 1);
+  overflow-x: clip;
+  background: var(--color-desk);
+  color: var(--color-ink);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.it-place-ink ::selection {
+  background: var(--color-pencil-wash);
+  color: var(--color-ink);
+}
+
+.it-place-ink :focus-visible {
+  outline: 2px solid var(--color-fountain);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.it-place-ink input,
+.it-place-ink textarea,
+.it-place-ink select {
+  font-family: inherit;
+}
+
+@layer components {
+  /* Hairline-scroll areas */
+  .it-place-ink .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+  .it-place-ink .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .it-place-ink .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-ink-ghost);
+    border-radius: 10px;
+    opacity: 0.5;
+  }
+  .it-place-ink .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-ink-faint); }
+  .it-place-ink .scrollbar-none::-webkit-scrollbar { display: none; }
+  .it-place-ink .scrollbar-none { scrollbar-width: none; }
+
+  /* The sheet of paper */
+  .it-place-ink .sheet {
+    background: var(--color-paper);
+    box-shadow: var(--shadow-sheet);
+    border: 1px solid var(--color-paper-dim);
+    outline: 1px solid rgba(27, 30, 33, 0.07);
+    outline-offset: -1px;
+  }
+
+  /* Keyboard hint */
+  .it-place-ink .kbd {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 10px; line-height: 1.4;
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: var(--color-paper-dim);
+    color: var(--color-ink-faint);
+    border: 1px solid var(--color-line);
+    border-bottom-width: 2px;
+    line-height: 1.5;
+  }
+
+  /* ── The manuscript — ProseMirror ─────────────────────────── */
+
+  .it-place-ink .ProseMirror {
+    outline: none;
+    min-height: 200px;
+    font-family: var(--font-place, 'Iowan Old Style', Palatino, Georgia, serif);
+    color: var(--color-ink);
+    caret-color: var(--color-pencil);
+  }
+
+  .it-place-ink .ProseMirror p {
+    margin-bottom: 0.9em;
+    font-size: 1.0625rem;
+    line-height: 1.78;
+    color: var(--color-ink-soft);
+  }
+
+  .ProseMirror h1,
+  .ProseMirror h2,
+  .it-place-ink .ProseMirror h3 {
+    font-family: var(--font-place, 'Iowan Old Style', Palatino, Georgia, serif);
+    color: var(--color-ink);
+    font-style: normal;
+  }
+
+  .it-place-ink .ProseMirror h1 {
+    font-size: 1.85em;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1.18;
+    margin: 1.35em 0 0.55em;
+  }
+
+  .it-place-ink .ProseMirror h2 {
+    font-size: 1.4em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    margin: 1.4em 0 0.5em;
+  }
+
+  .it-place-ink .ProseMirror h3 {
+    font-size: 1.08em;
+    font-weight: 600;
+    margin: 1.3em 0 0.4em;
+    color: var(--color-ink-soft);
+  }
+
+  .ProseMirror ul,
+  .it-place-ink .ProseMirror ol {
+    padding-left: 1.4em;
+    margin-bottom: 0.9em;
+    color: var(--color-ink-soft);
+  }
+
+  .it-place-ink .ProseMirror ul { list-style: none; }
+  .it-place-ink .ProseMirror ul > li { position: relative; }
+  .it-place-ink .ProseMirror ul > li::before {
+    content: '';
+    position: absolute;
+    left: -1.15em;
+    top: 0.72em;
+    width: 4px;
+    height: 4px;
+    background: var(--color-ink-ghost);
+    transform: rotate(45deg);
+  }
+  .it-place-ink .ProseMirror ol { list-style: decimal; }
+  .it-place-ink .ProseMirror ol > li::marker {
+    font-family: var(--font-mono, ui-monospace, 'SF Mono', 'Cascadia Mono', monospace);
+    font-size: 0.8em;
+    color: var(--color-ink-faint);
+  }
+
+  .it-place-ink .ProseMirror li {
+    margin-bottom: 0.3em;
+    line-height: 1.72;
+  }
+  .it-place-ink .ProseMirror li p { margin-bottom: 0; }
+
+  .it-place-ink .ProseMirror blockquote {
+    border-left: 2px solid var(--color-pencil);
+    padding: 0.1em 0 0.1em 1.1em;
+    margin: 1.4em 0;
+    color: var(--color-ink-faint);
+    font-style: italic;
+    font-size: 1.05em;
+  }
+
+  .it-place-ink .ProseMirror code {
+    font-family: var(--font-mono, ui-monospace, 'SF Mono', 'Cascadia Mono', monospace);
+    font-size: 0.82em;
+    background: var(--color-paper-dim);
+    border: 1px solid var(--color-line);
+    border-radius: 3px;
+    padding: 0.1em 0.4em;
+    color: var(--color-pencil-deep);
+  }
+
+  .it-place-ink .ProseMirror pre {
+    font-family: var(--font-mono, ui-monospace, 'SF Mono', 'Cascadia Mono', monospace);
+    font-size: 0.85rem;
+    line-height: 1.65;
+    background: var(--color-ink);
+    color: #E8EAE6;
+    border-radius: 4px;
+    padding: 1.1em 1.3em;
+    overflow-x: auto;
+    margin: 1.3em 0;
+  }
+  .it-place-ink .ProseMirror pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  .it-place-ink .ProseMirror strong { font-weight: 600; color: var(--color-ink); }
+  .it-place-ink .ProseMirror em { font-style: italic; }
+  .it-place-ink .ProseMirror s { text-decoration: line-through; text-decoration-color: var(--color-pencil); opacity: 0.65; }
+
+  /* The editor's pencil — a soft red wash swept under the words */
+  .it-place-ink .ProseMirror mark {
+    background: linear-gradient(100deg, transparent 0%, var(--color-pencil-wash) 4%, var(--color-pencil-wash) 96%, transparent 100%);
+    color: var(--color-pencil-deep);
+    padding: 0 0.18em;
+    border-radius: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  /* Underline drawn like a ruled line — not the browser's flat one */
+  .it-place-ink .ProseMirror u {
+    text-decoration: underline;
+    text-decoration-color: var(--color-ink-faint);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3.5px;
+    text-decoration-skip-ink: auto;
+  }
+
+  /* [[wiki links]] — fountain-pen blue, underlined by hand */
+  .it-place-ink .ProseMirror .wikilink {
+    color: var(--color-fountain);
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: color-mix(in srgb, var(--color-fountain) 45%, transparent);
+    cursor: pointer;
+    transition: background-color 0.15s var(--ease-out);
+  }
+  .it-place-ink .ProseMirror .wikilink:hover {
+    background: color-mix(in srgb, var(--color-fountain) 8%, transparent);
+    text-decoration-color: var(--color-fountain);
+  }
+
+  /* Wet ink — fresh keystrokes land glossy and diluted, then dry into the page */
+  .it-place-ink .ProseMirror .ink-wet {
+    animation: ink-dry 1s var(--ease-out) both;
+  }
+  @keyframes ink-dry {
+    0% {
+      opacity: 0.08;
+      filter: blur(1.8px);
+      /* wet ink is bluer — it darkens toward iron-gall as it dries */
+      color: color-mix(in srgb, var(--color-fountain) 55%, var(--color-ink-ghost));
+      text-shadow: 0 0 10px color-mix(in srgb, var(--color-fountain) 35%, transparent);
+    }
+    55% {
+      opacity: 0.82;
+      text-shadow: 0 0 4px color-mix(in srgb, var(--color-ink) 12%, transparent);
+    }
+    100% {
+      opacity: 1;
+      filter: blur(0);
+      text-shadow: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .it-place-ink .ProseMirror .ink-wet { animation: none; }
+  }
+
+  .it-place-ink .ProseMirror hr {
+    border: none;
+    margin: 2.2em auto;
+    text-align: center;
+  }
+  .it-place-ink .ProseMirror hr::after {
+    content: '\2042';
+    color: var(--color-ink-ghost);
+    font-size: 15px;
+    letter-spacing: 0.35em;
+    padding-left: 0.35em;
+  }
+
+  .it-place-ink .ProseMirror .is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: var(--color-ink-ghost);
+    pointer-events: none;
+    height: 0;
+  }
+
+  /* Typewriter mode — dim everything but the working paragraph */
+  .it-place-ink .typewriter .ProseMirror > * {
+    opacity: 0.28;
+    transition: opacity 0.25s var(--ease-out);
+  }
+  .typewriter .ProseMirror > .is-current,
+  .it-place-ink .typewriter .ProseMirror > *:hover {
+    opacity: 1;
+  }
+
+  /* Editor text-size preferences (S / M / L) */
+  .it-place-ink .pref-text-sm .ProseMirror p { font-size: 0.95rem; }
+  .it-place-ink .pref-text-lg .ProseMirror p { font-size: 1.2rem; }
+
+  .it-place-ink .focus-prose .ProseMirror p {
+    font-size: 1.15rem;
+    line-height: 1.85;
+  }
+
+  /* ── The ink, made visible ────────────────────────────────── */
+
+  /* Paper grain — a faint tooth so sheets aren't flat polygons */
+  .it-place-ink .paper-grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .it-place-ink .paper-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.17 0 0 0 0 0.18 0 0 0 0.045 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Ink bleed — on hover, ink soaks outward through the paper's fibers */
+  .it-place-ink .ink-bleed {
+    position: relative;
+    isolation: isolate;
+  }
+  .it-place-ink .ink-bleed::before {
+    content: '';
+    position: absolute;
+    inset: 1px -2px;
+    z-index: -1;
+    border-radius: 42% 58% 55% 45% / 52% 46% 58% 42%;
+    background: color-mix(in srgb, var(--color-ink) 5.5%, transparent);
+    transform: scale(0.55);
+    filter: blur(7px);
+    opacity: 0;
+    transition: transform 0.32s var(--ease-out), opacity 0.22s ease-out, filter 0.32s ease-out;
+  }
+  .it-place-ink .ink-bleed:hover::before {
+    transform: scale(1.04);
+    filter: blur(3px);
+    opacity: 1;
+  }
+
+  /* A blot dropping into place — the wordmark period, on load */
+  .it-place-ink .blot-in {
+    animation: blot-in 0.6s var(--ease-out) 0.3s both;
+    transform-origin: center;
+  }
+  @keyframes blot-in {
+    0%   { transform: translateY(-9px) scale(0.4, 0.8); opacity: 0; }
+    55%  { transform: translateY(0) scale(1.2, 0.82); opacity: 1; }
+    78%  { transform: scale(0.94, 1.06); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* A hand-drawn stroke that draws itself once (SVG path, pathLength=1) */
+  .it-place-ink .ink-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: ink-draw 0.55s var(--ease-out) 0.05s forwards;
+  }
+  @keyframes ink-draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* A drop of ink falls onto a fresh page, splats, and soaks away */
+  .it-place-ink .ink-drop-wrap {
+    position: absolute;
+    pointer-events: none;
+  }
+  .it-place-ink .ink-drop-land {
+    transform-origin: center;
+    animation: drop-land 1.5s var(--ease-out) both;
+  }
+  @keyframes drop-land {
+    0%   { transform: translateY(-30px) scale(0.35, 0.62); opacity: 0; }
+    22%  { opacity: 0.9; }
+    36%  { transform: translateY(0) scale(0.6, 1.4); opacity: 0.9; }
+    50%  { transform: scale(1.45, 0.72); }
+    62%  { transform: scale(0.92, 1.06); opacity: 0.8; }
+    72%  { transform: scale(1); opacity: 0.78; }
+    100% { transform: scale(1.9); opacity: 0; filter: blur(3px); }
+  }
+
+  /* Dog-ear — the corner of the working page, turned down */
+  .it-place-ink .dog-ear::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-style: solid;
+    border-width: 0 13px 13px 0;
+    border-color: var(--color-desk) var(--color-paper-dim) transparent transparent;
+    filter: drop-shadow(-1px 1px 1px rgba(27, 30, 33, 0.12));
+    pointer-events: none;
+  }
+
+  /* Marginalia — the small pencil marks a proofreader leaves */
+  .it-place-ink .margin-mark {
+    position: absolute;
+    left: -2px;
+    top: 50%;
+    width: 3px;
+    height: 16px;
+    transform: translateY(-50%) rotate(-4deg);
+    background: var(--color-pencil);
+    border-radius: 2px 0 0 2px;
+  }
+
+  /* The ink line — a thin trace that soaks down the sheet's right edge
+   * as you read, so long pages show how far the ink has run. */
+  .it-place-ink .ink-depth {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 3px;
+    z-index: 5;
+    pointer-events: none;
+    background: color-mix(in srgb, var(--color-line) 60%, transparent);
+  }
+  .it-place-ink .ink-depth > span {
+    display: block;
+    width: 100%;
+    background: linear-gradient(to bottom, var(--color-ink-soft), var(--color-ink) 70%, var(--color-pencil));
+    border-radius: 0 0 2px 2px;
+    transition: height 0.18s var(--ease-out);
+  }
+
+  /* ── The desk in motion ────────────────────────────────────── */
+
+  /* A drop falls from the pen into the well and the surface bobs */
+  .it-place-ink .well-drop {
+    animation: well-drop 0.55s var(--ease-in-out) both;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes well-drop {
+    0%   { transform: translateY(-30px); opacity: 0; }
+    25%  { opacity: 0.9; }
+    80%  { transform: translateY(0); opacity: 0.85; }
+    100% { transform: translateY(0) scale(1.7); opacity: 0; }
+  }
+  .it-place-ink .well-bob {
+    animation: well-bob 0.85s var(--ease-out);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes well-bob {
+    0%, 100% { transform: translateY(0); }
+    30%      { transform: translateY(1.8px); }
+    62%      { transform: translateY(-1px); }
+  }
+
+  /* Crumple — the sheet is wadded up and dropped in the basket */
+  .it-place-ink .crumpling {
+    transform-origin: 30% 75%;
+    transition:
+      transform 0.46s cubic-bezier(0.55, -0.05, 0.68, 0.19),
+      opacity 0.4s ease 0.06s,
+      filter 0.46s ease;
+    transform: translate(-32vw, 42vh) rotate(-11deg) skew(5deg, 3deg) scale(0.09);
+    filter: contrast(1.06) brightness(0.96);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* The press — the blotter stamps the restored words back down.
+   * (Transient ink physics exempt from the no-gradients rule — this is
+   * a bloom of ink, not chrome decoration; DESIGN.md §Rules.) */
+  .it-place-ink .ink-press {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    background: radial-gradient(ellipse 55% 40% at 50% 34%, var(--color-ink), transparent 72%);
+    animation: press 0.55s var(--ease-out) both;
+  }
+  @keyframes press {
+    0%   { opacity: 0; transform: scale(0.92); }
+    18%  { opacity: 0.15; }
+    100% { opacity: 0; transform: scale(1.02); }
+  }
+
+  /* A wet blot breathes faintly until the page dries */
+  .it-place-ink .wet-blot { animation: wet-blot 2.4s var(--ease-in-out) infinite; }
+  @keyframes wet-blot {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.12); }
+  }
+
+  /* Small ink entrances — popovers and the [[ shelf rise into focus */
+  .it-place-ink .ink-in {
+    animation: ink-in 0.16s var(--ease-out) both;
+  }
+  /* No `transform` in the `to` frame — the animation settles on the
+   * element's own transform (the [[ shelf's upward flip, the inkbar's
+   * -translate-x-1/2), which `both` fill would otherwise override. */
+  @keyframes ink-in {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); filter: blur(1px); }
+    to   { opacity: 1; filter: none; }
+  }
+
+  /* The inkbar rises into place as the sheet is picked up */
+  .it-place-ink .inkbar {
+    animation: rise-in 0.19s var(--ease-out) both;
+  }
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(7px); }
+    to   { opacity: 1; transform: translateX(-50%); }
+  }
+}
+
+/* ── Print — lift the sheet off the desk ───────────────────────
+ * A hidden portal beside the app renders the manuscript plainly;
+ * on paper only it exists — the desk stays behind. */
+.print-page { display: none; }
+@media print {
+  body { background: white; }
+  body > *:not(.print-page) { display: none !important; }
+  .print-page {
+    display: block !important;
+    font-family: var(--font-place, 'Iowan Old Style', Palatino, Georgia, serif);
+    color: var(--color-ink);
+  }
+  .print-page h1 { font-size: 2rem; font-weight: 600; margin-bottom: 0.35em; }
+  .print-page h2 { font-size: 1.4rem; font-weight: 600; margin: 1.2em 0 0.4em; }
+  .print-page h3 { font-size: 1.1rem; font-weight: 600; margin: 1.1em 0 0.3em; }
+  .print-page p { font-size: 1.02rem; line-height: 1.75; margin-bottom: 0.85em; }
+  .print-page ul { list-style: disc; padding-left: 1.5em; }
+  .print-page ol { list-style: decimal; padding-left: 1.5em; }
+  .print-page li { margin-bottom: 0.3em; }
+  .print-page blockquote { border-left: 2px solid #999; padding-left: 1em; font-style: italic; margin: 1.2em 0; }
+  /* print-color-adjust: backgrounds are opt-in on paper — force the few we keep */
+  .print-page pre { font-family: var(--font-mono, ui-monospace, 'SF Mono', 'Cascadia Mono', monospace); font-size: 0.85rem; background: #f2f2f0; color: var(--color-ink); padding: 1em; white-space: pre-wrap; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-page code { font-family: var(--font-mono, ui-monospace, 'SF Mono', 'Cascadia Mono', monospace); font-size: 0.85em; }
+  .print-page mark { background: var(--color-pencil-wash); color: var(--color-pencil-deep); padding: 0 0.15em; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-page .print-asterism { text-align: center; letter-spacing: 0.35em; margin: 1.6em 0; color: #777; }
+  .print-page .print-colophon { font-family: var(--font-mono, ui-monospace, 'SF Mono', 'Cascadia Mono', monospace); font-size: 0.72rem; color: #888; margin-top: 3em; }
+  @page { margin: 2.2cm 2cm; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .it-place-ink *,
+  .it-place-ink *::before,
+  .it-place-ink *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
