@@ -14,6 +14,10 @@ import { parseSyllabusLink, syllabusReturnUrl } from '../lib/deeplink';
 import { boundCourseCode, inTerrain, openTerrain, recentCourses, queuedTimerControls, dequeueTimerControl, type RecentCourse } from '../lib/iterra-adapter';
 
 const QUICK = [5, 10, 15, 25, 30, 45, 60, 90];
+/* app-local mirror of the live session — the publish effect writes it,
+   mount restores it, completion/reset clears it. shared.focus is the
+   cross-app read; this key is the reload-survival restore point. */
+const LIVE_SESSION_KEY = 'timer.session.live.v1';
 
 function fmt(totalSec: number) {
   const m = Math.floor(totalSec / 60);
@@ -96,15 +100,21 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       totalMin: Math.round(cd.totalMs / 60000),
       break: isBreak || undefined,
     };
-    const beat = () => doc.setField('focus', {
-      v: running
+    const beat = () => {
+      const v = running
         ? { ...base, running: true, endsAt: Date.now() + cd.remainingMs }
         : paused
           ? { ...base, paused: true, remainingSec }
-          : null,
-      by: 'timer',
-      at: Date.now(),
-    });
+          : null;
+      doc.setField('focus', { v, by: 'timer', at: Date.now() });
+      /* mirror the same doc app-locally so a reload/remount can re-arm the
+         session — shared.focus is the cross-app read; this is the
+         restore source of truth */
+      try {
+        if (v) localStorage.setItem(LIVE_SESSION_KEY, JSON.stringify({ ...v, intent, syllabus, thenBreak }));
+        else localStorage.removeItem(LIVE_SESSION_KEY);
+      } catch { /* storage full/blocked — restore just won't happen */ }
+    };
     beat();
     /* a paused session never ticks — remainingMs is frozen, so without a
        heartbeat `at` ages out of the rail's 15-min freshness window and a
@@ -144,6 +154,12 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
      double-invoke re-applies the link rather than stomping it back to the
      preset — never clear pendingLink; this instance stays a link session. */
   const pendingLink = useRef(parseSyllabusLink(window.location.search));
+  /* captured at render time — the publish effect's first beat clears the
+     live key on an idle mount, so the restore must read it before any
+     effect runs (same reason pendingLink is a ref) */
+  const pendingLive = useRef<any>((() => {
+    try { return JSON.parse(localStorage.getItem(LIVE_SESSION_KEY) || 'null'); } catch { return null; }
+  })());
   useEffect(() => {
     const link = pendingLink.current;
     if (link) {
@@ -168,6 +184,42 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       cd.reset(ms);
       if (link.autostart) cd.start(ms, completeFocusLive);
       return;
+    }
+    /* reload survival — the publish effect mirrors the live session into
+       timer.session.live.v1; re-arm it here so a mid-session reload (or a
+       keep-alive remount) doesn't evaporate a running clock. A session
+       whose endsAt already passed while dead is dropped — it wasn't
+       observed, and stamping the full minutes would be fake. */
+    {
+      /* kept (not consumed) — StrictMode re-runs mount effects in dev, and
+         re-applying an identical restore is harmless; the ref is fresh per
+         mount anyway */
+      const live = pendingLive.current;
+      const resumeMs = live?.running ? (live.endsAt || 0) - Date.now()
+        : live?.paused ? (live.remainingSec || 0) * 1000 : -1;
+      if (live && resumeMs > 0) {
+        setSetMinutes(Math.round((live.totalMin || 25)));
+        setLabel(live.label ?? presetName);
+        setIntent(live.intent || '');
+        setIsBreak(!!live.break);
+        setThenBreak(live.thenBreak || 0);
+        setSyllabus(live.syllabus ?? null);
+        const totalMs = (live.totalMin || 25) * 60000;
+        if (live.running) {
+          /* start() re-arms at ms as the total — restore the ORIGINAL total
+             after so progress, paused-derivation and the completion log all
+             stay honest about the session's real size */
+          cd.start(resumeMs, live.break ? completeBreakLive : completeFocusLive);
+          cd.setTotalMs(totalMs);
+        } else {
+          /* paused restores to the paused board: arm at the original total,
+             then bank the saved remainder so paused === true */
+          cd.reset(totalMs);
+          cd.setRemainingMs(resumeMs);
+        }
+        return;
+      }
+      if (live) { try { localStorage.removeItem(LIVE_SESSION_KEY); } catch { /* ignore */ } }
     }
     setSetMinutes(presetMinutes);
     setLabel(presetName);

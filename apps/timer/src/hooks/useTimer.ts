@@ -46,7 +46,7 @@ export function useCountdown() {
 
   const progress = totalMs > 0 ? 1 - remainingMs / totalMs : 0;
   const secondsLeft = Math.ceil(remainingMs / 1000);
-  return { totalMs, remainingMs, secondsLeft, running, progress, start, pause, resume, stop, reset, setRemainingMs };
+  return { totalMs, remainingMs, secondsLeft, running, progress, start, pause, resume, stop, reset, setRemainingMs, setTotalMs };
 }
 
 /* rAF-driven stopwatch — millisecond smooth, anchored to timestamps. */
