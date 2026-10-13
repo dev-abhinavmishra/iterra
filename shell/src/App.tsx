@@ -290,7 +290,7 @@ export default function App() {
   useEffect(() => {
     const place = active ? PLACE_MAP[active] : null;
     document.title = place
-      ? `${place.label} (${place.app}) · Iterra`
+      ? `${place.label} (${place.place}) · Iterra`
       : course
         ? `${course} · Iterra`
         : section === 'courses'
