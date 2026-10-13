@@ -3,7 +3,7 @@ import type { Commitment, Course, WorkBlock } from '../lib/types';
 import { courseColorVar, courseColorRgb } from '../lib/colors';
 import { fmtMinutes, fmtTime12, stampDate, dueDateISO, cn } from '../lib/utils';
 import { Stamp } from './Stamp';
-import { Play, Check, CalendarClock, Pin, ChevronRight, Undo2, Sigma } from 'lucide-react';
+import { Play, Check, CalendarClock, Pin, ChevronRight, Undo2, Sigma, Layers } from 'lucide-react';
 import { useSharedFocus } from '../lib/iterra';
 
 interface BlockSlipProps {
@@ -15,6 +15,7 @@ interface BlockSlipProps {
   onSelect?: () => void;
   onStart?: () => void;
   onProof?: () => void;
+  onMaterial?: () => void;
   onDone?: () => void;
   onDefer?: () => void;
   onInspect?: () => void;
@@ -34,6 +35,7 @@ export function BlockSlip({
   onSelect,
   onStart,
   onProof,
+  onMaterial,
   onDone,
   onDefer,
   onInspect,
@@ -113,6 +115,20 @@ export function BlockSlip({
           {commitment?.title ?? 'Untitled'}
         </button>
 
+        {block.materialUrl && block.materialTitle && (
+          <button
+            type="button"
+            className="mono mt-0.5 inline-flex max-w-full items-center gap-1 text-[10px] tracking-[0.06em] text-[color:var(--color-ink-soft)] hover:text-[color:var(--color-ink)] hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMaterial?.();
+            }}
+            title={`Open attached material: ${block.materialTitle}`}
+          >
+            <Layers size={10} className="shrink-0" />
+            <span className="truncate">material · {block.materialTitle} →</span>
+          </button>
+        )}
         {block.reasons.length > 0 && (
           <p className={cn('text-[11.5px] mt-0.5', late || missed ? 'text-[color:var(--color-late)]' : 'text-[color:var(--color-ink-soft)]')}>
             {block.reasons[0]}

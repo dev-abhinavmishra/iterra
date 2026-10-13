@@ -294,6 +294,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
                       onSelect={() => setSelIdx(i)}
                       onStart={b.state !== 'done' ? () => startInTimer(b) : undefined}
                       onProof={b.state !== 'done' ? () => openInProof(b) : undefined}
+                      onMaterial={b.materialUrl ? () => openDeep(b.materialUrl!) : undefined}
                       onDone={b.state !== 'done' ? () => s.completeBlock(b.id) : undefined}
                       onDefer={b.state !== 'done' ? () => setDeferFor(b) : undefined}
                       onInspect={() => onInspect(b.commitmentId)}

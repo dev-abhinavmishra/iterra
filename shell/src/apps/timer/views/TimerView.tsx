@@ -3,6 +3,7 @@ import { Play, Pause, RotateCcw, Volume2, VolumeX, Focus, Minus, Plus, X } from 
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, vibrate } from '../lib/utils';
 import { saveSession } from '../lib/stats';
+import { execCommand } from '../../../integration/commands';
 import { useCountdown, useWakeLock } from '../hooks/useTimer';
 import { useViewport } from '../hooks/useViewport';
 import { useSettings, updateSettings } from '../lib/settings';
@@ -51,7 +52,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const [customMin, setCustomMin] = useState(25);
   const [done, setDone] = useState<null | 'focus' | 'break'>(null);
   const [keyFlash, setKeyFlash] = useState<string | null>(null);
-  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string; courseId?: string; commitmentId?: string } | null>(null);
+  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string; courseId?: string; commitmentId?: string; material?: string } | null>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -176,7 +177,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       /* a returnUrl the file-back gate would reject stays out of state —
          otherwise it renders a dead 'file back' button */
       const returnUrl = link.returnUrl && syllabusReturnUrl(link, 1) ? link.returnUrl : undefined;
-      setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId });
+      setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId, material: link.material });
       /* strip the link params from the hash — a reload mid-session must
          hit the live-restore path, not re-arm the original link */
       const h = window.location.hash.replace(/\?[^#]*$/, '');
@@ -229,6 +230,33 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     cd.reset(presetMinutes * 60000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presetMinutes, presetName]);
+
+  /* keep-alive relink — pendingLink is consumed at mount, but a warm
+     Timer ignores later deep links (a second block started in Planning
+     while this place stayed mounted). Re-arm the same way when the
+     hash query actually changes; the strip inside prevents re-fires. */
+  const lastLinkQuery = useRef(linkQuery);
+  useEffect(() => {
+    if (linkQuery === lastLinkQuery.current) return;
+    lastLinkQuery.current = linkQuery;
+    const link = parseSyllabusLink(linkQuery);
+    if (!link) return;
+    pendingLink.current = link;
+    setSetMinutes(link.minutes ?? presetMinutes);
+    setLabel(link.course ?? presetName);
+    setIsBreak(false);
+    setDone(null);
+    if (link.intent) setIntent(link.intent);
+    setThenBreak(link.thenBreak ?? 0);
+    const returnUrl = link.returnUrl && syllabusReturnUrl(link, 1) ? link.returnUrl : undefined;
+    setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId, material: link.material });
+    const h = window.location.hash.replace(/\?[^#]*$/, '');
+    window.history.replaceState({}, '', window.location.pathname + window.location.search + h);
+    const ms = (link.minutes ?? presetMinutes) * 60000;
+    cd.reset(ms);
+    if (link.autostart) cd.start(ms, completeFocusLive);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linkQuery]);
 
   /* the focus session's elapsed minutes, captured at completion — after a
      chained recess, cd holds the BREAK countdown and would misreport the
@@ -352,7 +380,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     vibrate([120, 80, 120, 80, 300]);
     stationChime();
     const recess = isBreak || /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000));
-    saveSession({
+    const sess = saveSession({
       duration: cd.totalMs / 1000,
       type: recess ? 'break' : 'focus',
       label: intent || undefined,
@@ -362,6 +390,25 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       commitmentId: syllabus?.commitmentId,
     });
     if (!recess) filedActual.current = Math.round((cd.totalMs - cd.remainingMs) / 60000);
+    /* Record the outcome through the command layer — distinguishes a full
+       completion from partial/canceled, marks the bound block practicedIn,
+       and dedupes on the session id so file-back retries can't double-log. */
+    if (sess) {
+      void execCommand('recordSessionOutcome', {
+        sessionId: sess.id,
+        outcome: 'completed',
+        elapsedSeconds: Math.round((cd.totalMs - cd.remainingMs) / 1000),
+        plannedMinutes: Math.round(cd.totalMs / 60000),
+        blockId: syllabus?.block ?? null,
+        commitmentId: syllabus?.commitmentId ?? null,
+        materialRef: syllabus?.material ?? null,
+        course: syllabus?.course ?? null,
+        courseId: syllabus?.courseId ?? null,
+        label: intent || label || undefined,
+        confirmedByUser: true,
+        idempotencyKey: `timer:${sess.id}`,
+      });
+    }
     /* standalone complete → 'completed Nm' stir; a session bound for
        file-back emits only its 'filed Xm' (the file-back IS its stir) */
     const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
@@ -446,17 +493,33 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
      would stamp the full preset duration and lie about the session */
   const finishEarly = () => {
     const elapsedSec = Math.round((cd.totalMs - cd.remainingMs) / 1000);
-    if (elapsedSec >= 60) {
-      saveSession({
-        duration: elapsedSec,
-        type: isBreak ? 'break' : 'focus',
-        label: intent || undefined,
-        preset: label,
-        course: syllabus?.course,
-        courseId: syllabus?.courseId,
-        commitmentId: syllabus?.commitmentId,
-      });
-    }
+    const sess = elapsedSec >= 60
+      ? saveSession({
+          duration: elapsedSec,
+          type: isBreak ? 'break' : 'focus',
+          label: intent || undefined,
+          preset: label,
+          course: syllabus?.course,
+          courseId: syllabus?.courseId,
+          commitmentId: syllabus?.commitmentId,
+        })
+      : null;
+    /* partial when real minutes banked, canceled when the run was scrubbed
+       before a minute — the command reconciles the bound block either way. */
+    void execCommand('recordSessionOutcome', {
+      sessionId: sess?.id,
+      outcome: sess ? 'partial' : 'canceled',
+      elapsedSeconds: elapsedSec,
+      plannedMinutes: Math.round(cd.totalMs / 60000),
+      blockId: syllabus?.block ?? null,
+      commitmentId: syllabus?.commitmentId ?? null,
+      materialRef: syllabus?.material ?? null,
+      course: syllabus?.course ?? null,
+      courseId: syllabus?.courseId ?? null,
+      label: intent || label || undefined,
+      confirmedByUser: true,
+      idempotencyKey: sess ? `timer:${sess.id}` : `timer:${Date.now()}-scrub`,
+    });
     resetTimer();
   };
 

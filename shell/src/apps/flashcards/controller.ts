@@ -879,12 +879,36 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     host.innerHTML =
       (d.course ? `<button class="bridge-chip" data-bact="dossier" title="Open the ${esc(d.course)} dossier">dossier →</button>` : '') +
       `<button class="bridge-chip" data-bact="session" title="Start a 25-minute session on this deck">session →</button>` +
+      (it.commands && it.commands.exec ? `<button class="bridge-chip" data-bact="plan" title="Schedule a review block for this deck in Planning">plan a review →</button>` : '') +
       (_bridgeLogged
         ? `<span class="bridge-chip logged">logged to the register ✓</span>`
         : `<button class="bridge-chip" data-bact="log" title="Stamp a review on the rhythm register">log a review →</button>`);
     host.querySelectorAll('[data-bact]').forEach(btn => btn.addEventListener('click', () => {
       const act = btn.dataset.bact;
       if (act === 'dossier') { try { it.open(`#/c/${encodeURIComponent(d.course)}`); } catch {} return; }
+      /* typed command path — scheduleReviewBlock attaches this exact deck
+         to the new block (scheduledFor), so starting the block in Planning
+         comes back here instead of landing on a bare timer. */
+      if (act === 'plan') {
+        btn.disabled = true;
+        it.commands.exec('scheduleReviewBlock', {
+          materialRef: 'flashcards:deck:' + d.id,
+          title: 'Review ' + d.title,
+          course: d.course || null,
+          courseId: d.courseId || null,
+          plannedMinutes: 25,
+        }).then(res => {
+          if (res && res.ok) {
+            toast('Review block planned');
+            const url = res && res.data && res.data.blockRef ? '#/p/syllabus' : '#/c/' + encodeURIComponent(d.course || 'unfiled');
+            try { it.open ? it.open(url) : window.location.hash = url; } catch {}
+          } else {
+            btn.disabled = false;
+            toast(res && res.error ? res.error : 'Couldn\'t plan a block');
+          }
+        }).catch(() => { btn.disabled = false; toast('Couldn\'t plan a block'); });
+        return;
+      }
       if (!it.send) return;
       btn.disabled = true;
       const req = act === 'session'

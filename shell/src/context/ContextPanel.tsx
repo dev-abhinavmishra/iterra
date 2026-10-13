@@ -16,6 +16,7 @@ import {
 import { PLACE_MAP, formatEntityType } from '../places';
 import type { Entity, SharedField, StoreEntity } from '../hub';
 import { sendTo } from '../hub';
+import { execCommand } from '../integration/commands';
 import { isPinned, togglePin } from '../shelf';
 import { Badge, Button, IconButton } from '../ui/primitives';
 import {
@@ -809,23 +810,27 @@ export function ContextPanel({
                 </button>
               )}
 
-              {/* Create Follow-up Study Block in Syllabus */}
+              {/* Create Follow-up Study Block in Syllabus — attaches this
+                  object as the block's material via scheduleReviewBlock,
+                  so starting the block opens the real deck/note/problem. */}
               {object.app !== 'syllabus' && (
                 <button
                   type="button"
-                  onClick={() =>
-                    void triggerAction({
-                      to: 'syllabus',
-                      action: 'block.plan',
-                      payload: {
-                        title: `Follow up: ${object.title}`,
-                        course: object.course,
-                        courseId: object.courseId,
-                        minutes: 25,
-                      },
-                      successLabel: 'Scheduled study block in Planning',
-                    })
-                  }
+                  onClick={async () => {
+                    const r = await execCommand('scheduleReviewBlock', {
+                      materialRef: object.key,
+                      title: `Follow up: ${object.title}`,
+                      course: object.course,
+                      courseId: object.courseId,
+                      topic: object.topic,
+                      plannedMinutes: 25,
+                    });
+                    if (r.ok) {
+                      showMsg('Scheduled study block in Planning');
+                    } else {
+                      showMsg(`Action failed: ${r.error || 'unavailable'}`);
+                    }
+                  }}
                   className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
                 >
                   <Calendar className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />

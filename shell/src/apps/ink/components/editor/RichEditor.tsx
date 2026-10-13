@@ -22,6 +22,7 @@ import { useStore } from '../../store';
 import { sanitizeDoc } from '../../lib/notes';
 import { InkBlot, PenNib } from '../../lib/ink';
 import { penOf, type PenId } from '../../lib/pens';
+import { CreateDeckModal } from '../../../../integration/components';
 
 const WIKILINK_RE = /\[\[([^\][\n]+)\]\]/g;
 
@@ -265,6 +266,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({
   const [suggest, setSuggest] = useState<SuggestUI | null>(null);
   const suggestRef = useRef<SuggestUI | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
+  const [deckDraft, setDeckDraft] = useState<{ text: string; noteId: string; title: string; fullText: string; rev: number } | null>(null);
   // Editor callbacks are bound once at creation — read live values from a ref.
   const latest = useRef({ typewriter, headingAnchors, editable, onUpdate });
   useEffect(() => {
@@ -461,7 +463,28 @@ export const RichEditor: React.FC<RichEditorProps> = ({
                     ] as const).map(t => (
                       <button
                         key={t.to}
-                        onClick={() => { setSendOpen(false); sendSelection(editor, t.to); }}
+                        onClick={() => {
+                          setSendOpen(false);
+                          /* Deck creation gets a review modal (preview/edit
+                             cards, pick course/topic) instead of a blind
+                             send — provenance lands as derivedFrom links. */
+                          if (t.to === 'flashcards') {
+                            const { from, to: selTo } = editor.state.selection;
+                            const sel = editor.state.doc.textBetween(from, selTo, ' ').trim();
+                            if (!sel) return;
+                            const st = useStore.getState();
+                            const page = st.notes.find(n => n.id === st.activeNoteId);
+                            setDeckDraft({
+                              text: sel,
+                              noteId: page?.id ?? 'page',
+                              title: page?.title || 'untitled',
+                              fullText: editor.getText(),
+                              rev: page?.lastModified ?? 0,
+                            });
+                          } else {
+                            sendSelection(editor, t.to);
+                          }
+                        }}
                         className="w-full text-left px-3 py-1.5 font-serif text-[13px] text-paper/70 hover:text-paper hover:bg-paper/10 transition-colors"
                       >
                         {t.label}
@@ -517,6 +540,25 @@ export const RichEditor: React.FC<RichEditorProps> = ({
           </div>
           <p className="px-3.5 py-1.5 border-t border-line font-mono text-2xs text-ink-ghost">↵ links · esc keeps writing</p>
         </div>
+      )}
+
+      {deckDraft && (
+        <CreateDeckModal
+          open
+          onClose={() => setDeckDraft(null)}
+          sourceRef={{ app: 'ink', type: 'note', id: deckDraft.noteId }}
+          sourceTitle={deckDraft.title}
+          selectedText={deckDraft.text}
+          sourceFullText={deckDraft.fullText}
+          sourceRevision={deckDraft.rev || undefined}
+          onCreated={(res) => {
+            setDeckDraft(null);
+            const it = (window as unknown as { iterra?: IterraSendSurface }).iterra;
+            if (res?.url) {
+              if (it?.open) it.open(res.url); else window.open(res.url, '_blank');
+            }
+          }}
+        />
       )}
     </div>
   );

@@ -98,6 +98,13 @@ export interface WorkBlock {
   createdAt: ISODateTime;
   completedAt?: ISODateTime;
   timerSessionUrl?: string; // the deep link that launched it
+  /* attached study material — written by scheduleReviewBlock: the
+     canonical '<app>:<type>:<id>' ref, a deep link, and a display title.
+     Start carries the ref to Timer (?mat=) so the session binds it. */
+  materialRef?: string;
+  materialUrl?: string;
+  materialTitle?: string;
+  topic?: string;
 }
 
 export type LinkedApp = 'timer' | 'ink' | 'modular' | 'flashcards' | 'gradestack' | 'other';

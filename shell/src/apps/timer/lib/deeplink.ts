@@ -17,6 +17,9 @@ export interface SyllabusLink {
       record so completion publishes propagate them (timer.start intake) */
   courseId?: string;
   commitmentId?: string;
+  /** canonical '<app>:<type>:<id>' of the material this block reviews —
+      bound onto the session so the outcome records practicedIn. */
+  material?: string;
   /** recess minutes to chain after the focus session (pomodoro bound
       sessions — the 'Then break' chips' contract carried by the link) */
   thenBreak?: number;
@@ -40,6 +43,7 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
     from,
     courseId: q.get('courseId') || undefined,
     commitmentId: q.get('commitment') || undefined,
+    material: /^[a-z]{2,16}:[a-z]{2,16}:[^&\s]{1,140}$/.test(q.get('mat') || '') ? q.get('mat')! : undefined,
     thenBreak: Number.isFinite(thenBreak) && thenBreak >= 1 && thenBreak <= 60 ? Math.round(thenBreak) : undefined,
     autostart: q.get('autostart') === '1',
   };

@@ -29,6 +29,7 @@ import {
   type WorkspaceObject,
   toWorkspaceObject,
 } from '../ui/ObjectRow';
+import { WorkspaceChainView } from '../integration/components';
 
 export type CourseTab = 'overview' | 'materials' | 'practice' | 'schedule' | 'results';
 
@@ -753,7 +754,9 @@ export function CourseWorkspace({
 
         {/* ── TAB 1: OVERVIEW ── */}
         {activeTab === 'overview' && (
-          <div className="grid gap-6 lg:grid-cols-12">
+          <>
+            <WorkspaceChainView courseKey={course} onGo={onGo} />
+            <div className="grid gap-6 lg:grid-cols-12">
             <div className="space-y-6 lg:col-span-7">
               {/* Schedule & Next Work */}
               <section>
@@ -1003,7 +1006,8 @@ export function CourseWorkspace({
                 </section>
               )}
             </div>
-          </div>
+            </div>
+          </>
         )}
 
         {/* ── TAB 2: MATERIALS ── */}
