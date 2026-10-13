@@ -10,12 +10,17 @@
      claims the record and lands on its result.url. */
 const { chromium } = require('playwright-core');
 
+/* Run against ITERRA_BASE (default :8090). Prefer a spare port serving the
+   same dist — a different origin gets a fresh IDB/localStorage, so matrix
+   entities never pollute the store you actually browse. */
+const BASE = process.env.ITERRA_BASE || 'http://localhost:8090';
+
 (async () => {
-  const browser = await chromium.connectOverCDP('http://localhost:29229');
+  const browser = await chromium.connectOverCDP(process.env.ITERRA_CDP || 'http://localhost:29229');
   const page = await browser.contexts()[0].newPage();
   const errs = [];
   page.on('pageerror', (e) => errs.push('page: ' + e.message));
-  await page.goto('http://localhost:8090/#/', { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/#/`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(1500);
 
   const send = (opts) => page.evaluate(async (o) => {
@@ -43,6 +48,24 @@ const { chromium } = require('playwright-core');
     await page.waitForTimeout(waitMs);
     return frameOf(app);
   };
+
+  /* seed a term+course into the folio on a virgin origin so course-bound
+     sends (block.plan) can resolve — skipped whenever real data exists.
+     Must land before the syllabus frame first mounts (it hydrates at
+     module load, and every earlier leg targets other apps). */
+  await page.evaluate(() => {
+    try {
+      const raw = localStorage.getItem('syllabus.folio.v1');
+      const doc = raw ? JSON.parse(raw) : {};
+      const st = doc.state || (doc.state = {});
+      if (Object.keys(st.courses || {}).length) return;
+      const at = new Date().toISOString();
+      st.terms = { ...(st.terms || {}), t_matrix: { id: 't_matrix', name: 'Matrix Term', startDate: '2025-01-01', endDate: '2026-12-31', timezone: 'UTC', createdAt: at } };
+      st.activeTermId = 't_matrix';
+      st.courses = { ...(st.courses || {}), c_matrix: { id: 'c_matrix', termId: 't_matrix', name: 'Matrix Math', code: 'MTH', color: 'teal', archived: false, createdAt: at } };
+      localStorage.setItem('syllabus.folio.v1', JSON.stringify(doc));
+    } catch {}
+  });
 
   const RUN = 'mx' + Date.now().toString(36);
   const results = [];
