@@ -7,7 +7,7 @@ import { getAllDecks, getAllQuizzes } from './services/storageService';
 declare global {
     interface Window {
         iterra?: {
-            register(app: string, opts: { title?: string; summary?: () => unknown }): void;
+            register(app: string, opts: { title?: string; summary?: () => unknown; ownKeys?: string[] }): void;
             isFramed(): boolean;
             doc?: (ns: string) => {
                 get: () => unknown;
@@ -42,6 +42,8 @@ export function wireMargin() {
     if (!iterra) return;
     iterra.register('margin', {
         title: 'Margin',
+        // the margin's own ⌘K palette stays its own — terrain yields it
+        ownKeys: ['k'],
         summary: () => {
             if (!source) return null;
             const { notes } = source();
