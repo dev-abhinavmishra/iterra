@@ -75,11 +75,12 @@ contract every app and the shell follows.
 - `/iterra-hub.js` is root-absolute → build MUST copy hub to `dist/` root
   or the mesh 404s in prod (was silently broken until cfda7c6).
 - Solo (unframed) writers can't overwrite a fresh framed presence (35s TTL).
-- `shared.focus` freshness is 15min in the rail — running sessions
-  re-stamp every tick; PAUSED sessions now heartbeat every 60s (a paused
-  countdown never ticks, its stamp would otherwise age out live). It
-  carries `course` (the bound link's ?course=) + `blockId` — dossiers
-  join on either.
+- `shared.focus` freshness is 3min everywhere (terrain now-strip, commons,
+  dossier live-focus, rail) — running sessions re-stamp every tick; PAUSED
+  sessions heartbeat every 60s (a paused countdown never ticks, its stamp
+  would otherwise age out live). It carries `course` (the bound link's
+  ?course=) + `blockId` — dossiers join on either. `shared.session` (proof)
+  heartbeats every 2min; rail gates it at 5min.
 - Dedupe JSONs MUST serialize every linkage field (course+topic) — a
   linkage-only change otherwise never republishes (fixed in proof, was
   already right in cardfile; full-entity stringifiers are fine).
@@ -224,3 +225,11 @@ contract every app and the shell follows.
   (a2a04be); mesh contract vitest (b2f9d36, 13/13); syllabus persist
   merge backfills dependencies/reasons — old blobs booted to a white
   screen (583479b, child-verified).
+- Coordination wave (c9ac3fe era): shell send-menus keyed by stable
+  identity (stir at:app, dossier row app|url|id|title) — index-keyed
+  menus silently re-target when lists reorder on refresh; commons sort
+  freshest-first; topbar needs `relative z-30` — its anim-fade layer let
+  keep-alive iframes outpaint the z-40 switcher dropdown while the
+  invisible backdrop swallowed clicks; frame ⌘K forwarding yields via
+  register opts `ownKeys` (defaultPrevented can't work — the hub's
+  document listener precedes window-level app handlers).
