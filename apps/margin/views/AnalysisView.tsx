@@ -404,6 +404,12 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ notes, contextualAttachment
                         <div
                             key={s.id}
                             onClick={() => handleLoadSession(s.id)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={e => {
+                                if (e.target !== e.currentTarget) return;
+                                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleLoadSession(s.id); }
+                            }}
                             className={`group px-3 py-2.5 rounded-[var(--r)] cursor-pointer border transition-colors duration-150 ${currentSessionId === s.id
                                 ? 'bg-[var(--mark-soft)] border-[var(--mark)]/30'
                                 : 'border-transparent hover:bg-[var(--card-2)]'}`}
@@ -415,7 +421,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ notes, contextualAttachment
                                 </div>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setSessionToDelete(s.id); }}
-                                    className="opacity-0 group-hover:opacity-100 text-ink-3 hover:text-bad transition-opacity shrink-0"
+                                    className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 text-ink-3 hover:text-bad transition-opacity shrink-0"
                                     title="Delete session"
                                 >
                                     <Icon name="delete" size={15} />

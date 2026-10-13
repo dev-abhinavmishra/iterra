@@ -107,7 +107,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ note }) => {
                 role="slider"
                 aria-label="Seek"
                 aria-valuenow={Math.round(current)}
+                aria-valuemin={0}
                 aria-valuemax={Math.round(duration)}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.target !== e.currentTarget || !duration) return;
+                    const step = Math.max(5, duration / 100);
+                    if (e.key === 'ArrowLeft') { e.preventDefault(); seekTo(Math.max(0, current - step)); }
+                    else if (e.key === 'ArrowRight') { e.preventDefault(); seekTo(Math.min(duration, current + step)); }
+                    else if (e.key === 'Home') { e.preventDefault(); seekTo(0); }
+                    else if (e.key === 'End') { e.preventDefault(); seekTo(duration); }
+                }}
             >
                 <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[5px] rounded-full bg-card-2 border border-line overflow-hidden">
                     <div className="h-full bg-[var(--mark)]" style={{ width: `${progress}%` }} />

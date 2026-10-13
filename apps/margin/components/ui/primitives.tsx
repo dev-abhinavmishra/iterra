@@ -67,10 +67,21 @@ export const IconBtn: React.FC<{
 );
 
 /* ---- Surfaces ---- */
+/* An interactive card is one activation target for keyboard users too —
+   Enter/Space fire the click only when the card itself holds focus, so a
+   nested button's own key activation can't double-trigger it. */
 export const Card: React.FC<{ children: React.ReactNode; className?: string; interactive?: boolean; onClick?: () => void }> =
     ({ children, className = '', interactive, onClick }) => (
         <div
             onClick={onClick}
+            {...(interactive && onClick ? {
+                role: 'button',
+                tabIndex: 0,
+                onKeyDown: (e: React.KeyboardEvent) => {
+                    if (e.target !== e.currentTarget) return;
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }
+                },
+            } : {})}
             className={`bg-[var(--card)] border border-[var(--line)] rounded-[var(--r-lg)] shadow-card ${interactive ? 'paper-card cursor-pointer' : ''} ${className}`}
         >{children}</div>
     );
@@ -213,6 +224,8 @@ export const Modal: React.FC<{
                     exit={{ opacity: 0, y: 4, scale: 0.99 }}
                     transition={{ duration: 0.16, ease: 'easeOut' }}
                     className={`bg-[var(--card)] border border-[var(--line-2)] rounded-[var(--r-lg)] shadow-pop w-full ${width}`}
+                    role="dialog"
+                    aria-modal="true"
                     onClick={e => e.stopPropagation()}
                 >
                     {children}

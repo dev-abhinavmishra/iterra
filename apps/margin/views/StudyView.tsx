@@ -237,6 +237,12 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                                     <div
                                         key={quiz.id}
                                         onClick={() => setScreen({ kind: 'quiz', quiz })}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={e => {
+                                            if (e.target !== e.currentTarget) return;
+                                            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setScreen({ kind: 'quiz', quiz }); }
+                                        }}
                                         className="group flex items-center gap-4 px-4 py-3.5 cursor-pointer hover:bg-[var(--card-2)] transition-colors first:rounded-t-[var(--r-lg)] last:rounded-b-[var(--r-lg)]"
                                     >
                                         <div className="min-w-0 flex-1">
@@ -252,7 +258,7 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                                             danger
                                             title="Delete quiz"
                                             onClick={e => { e.stopPropagation(); removeQuiz(quiz); }}
-                                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                                            className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
                                         />
                                         <Icon name="chevron_right" size={18} className="text-ink-3 shrink-0" />
                                     </div>

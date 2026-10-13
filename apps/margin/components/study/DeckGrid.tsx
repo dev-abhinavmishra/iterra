@@ -25,7 +25,7 @@ const DeckGrid: React.FC<DeckGridProps> = ({ decks, onOpen, onEdit, onNew }) => 
                             size={16}
                             title="Edit deck"
                             onClick={e => { e.stopPropagation(); onEdit(deck); }}
-                            className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 -mt-1 -mr-1"
+                            className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 -mt-1 -mr-1"
                         />
                     </div>
                     <div className="mt-3 pt-2.5 border-t border-line flex items-baseline">
