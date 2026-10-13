@@ -62,7 +62,15 @@ export default function App() {
       it.store.list({}).then((list: StoreEntity[]) => setEntities(list || [])).catch(() => {});
     };
     pull();
-    return subscribeStore(pull);
+    /* subscribe fires per put — a wake-time re-mirror writes hundreds of
+       entities in a burst; trailing-debounce so the terrain re-reads once */
+    let t = 0;
+    const debounced = () => {
+      if (t) window.clearTimeout(t);
+      t = window.setTimeout(pull, 150);
+    };
+    const off = subscribeStore(debounced);
+    return () => { if (t) window.clearTimeout(t); off(); };
   }, []);
 
   /* ⌘K / ctrl+K or `/` opens the palette — shell chrome has no text inputs
