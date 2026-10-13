@@ -266,7 +266,7 @@ function ProblemRow({
             )}
           </div>
           <div className="film rounded p-3">
-            <div className="kicker mb-1.5">answer — {specSummary(p.answerSpec, p.answerSpec.kind === 'rubric' ? undefined : undefined)}</div>
+            <div className="kicker mb-1.5">answer — {specSummary(p.answerSpec, rubricTitle ? { title: rubricTitle } : undefined)}</div>
             <div className="text-[12px] text-[var(--color-ink-soft)]">
               {p.answerSpec.kind === 'rubric' && <span>rubric: {rubricTitle ?? 'missing'}</span>}
               {p.hints.length > 0 && <div className="mt-1">{p.hints.filter(Boolean).length} hint level(s) loaded</div>}

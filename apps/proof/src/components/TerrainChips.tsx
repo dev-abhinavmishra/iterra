@@ -21,26 +21,35 @@ export function RetestChip({ attemptId }: { attemptId: string }) {
     setState(null);
     const it = iterra();
     if (!it?.links?.for || !it?.store?.get) return;
-    it.links
-      .for(`proof:attempt:${attemptId}`)
-      .then(async (res: any) => {
+    /* the retest link is written by flashcards' adapter a beat after the
+       error files (send → deck → links.add through a drain) — a single
+       read mounts too early every time, so poll for a few seconds */
+    let tries = 0;
+    const read = async () => {
+      if (!live) return;
+      try {
+        const res = await it.links.for(`proof:attempt:${attemptId}`);
         const outs = ((res?.out ?? []) as Array<{ to?: string }>).filter((l) =>
           String(l?.to ?? '').startsWith('flashcards:card:'),
         );
-        if (!live || !outs.length) return;
-        let due = false;
-        let url = '/apps/flashcards/';
-        for (const l of outs) {
-          const ent = await it.store.get(l.to).catch(() => null);
-          if (!live) return;
-          if (ent?.url) url = ent.url;
-          const dueAt = ent?.data?.dueAt;
-          if (dueAt != null && dueAt <= Date.now()) due = true;
-          if (due) break;
+        if (outs.length) {
+          let due = false;
+          let url = '/apps/flashcards/';
+          for (const l of outs) {
+            const ent = await it.store.get(l.to).catch(() => null);
+            if (!live) return;
+            if (ent?.url) url = ent.url;
+            const dueAt = ent?.data?.dueAt;
+            if (dueAt != null && dueAt <= Date.now()) due = true;
+            if (due) break;
+          }
+          if (live) setState({ due, url });
+          return;
         }
-        if (live) setState({ due, url });
-      })
-      .catch(() => {});
+      } catch { /* links read is best-effort */ }
+      if (live && ++tries < 16) setTimeout(read, 800);
+    };
+    void read();
     return () => {
       live = false;
     };

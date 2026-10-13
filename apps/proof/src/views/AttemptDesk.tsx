@@ -54,11 +54,17 @@ export function AttemptDesk({
     return () => clearInterval(t);
   }, [attempt, submitted]);
 
+  /* self-heal an attempt with zero steps — old backups / malformed imports
+     could persist work:[] and the desk then crashes on step.text */
+  useEffect(() => {
+    if (attempt && !submitted && !(attempt.work?.length)) addStep(attempt.id);
+  }, [attempt, submitted, addStep]);
+
   // keyboard: h = hint, digits = confidence
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
-      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable || e.metaKey || e.ctrlKey) return;
+      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === 'h' && !submitted) {
         e.preventDefault();
         revealHint(attemptId);
@@ -144,14 +150,17 @@ export function AttemptDesk({
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1">
-          {/* ── proof rail ── */}
-          <div className="w-14 shrink-0 border-r border-[var(--color-rule)] pt-3">
-            <ProofRail attempt={attempt} activeStep={activeStep} onStepClick={setActiveStep} />
-          </div>
+        {/* under ~640px the fixed 72rem aside leaves ~50px of work surface —
+            stack it below; desktop keeps the signature rail | work | verdict */}
+        <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
+          <div className="flex min-w-0 flex-1">
+            {/* ── proof rail ── */}
+            <div className="w-14 shrink-0 border-r border-[var(--color-rule)] pt-3">
+              <ProofRail attempt={attempt} activeStep={activeStep} onStepClick={setActiveStep} />
+            </div>
 
-          {/* ── work surface ── */}
-          <div className="min-w-0 flex-1">
+            {/* ── work surface ── */}
+            <div className="min-w-0 flex-1">
             {/* prompt */}
             <div className="border-b border-[var(--color-rule)] px-6 py-4">
               <div className="kicker mb-2"><span className="turnstile">⊢</span> the claim — to prove</div>
@@ -198,10 +207,11 @@ export function AttemptDesk({
                   <button
                     className="xbtn"
                     onClick={() => {
+                      if (!step) return;
                       removeStep(attempt.id, step.id);
                       setActiveStep(Math.max(0, activeStep - 1));
                     }}
-                    disabled={submitted || attempt.work.length <= 1}
+                    disabled={submitted || !step || attempt.work.length <= 1}
                     aria-label="Remove assertion"
                     title="Remove assertion"
                   >
@@ -209,16 +219,23 @@ export function AttemptDesk({
                   </button>
                 </div>
               </div>
-              <StepEditor
-                step={step}
-                readOnly={submitted}
-                onChange={(patch) => updateStep(attempt.id, step.id, patch)}
-              />
+              {step ? (
+                <StepEditor
+                  step={step}
+                  readOnly={submitted}
+                  onChange={(patch) => updateStep(attempt.id, step.id, patch)}
+                />
+              ) : (
+                <div className="text-[12.5px] italic text-[var(--color-ink-faint)]">
+                  no assertions on this attempt{!submitted && ' — add one to begin'}
+                </div>
+              )}
+            </div>
             </div>
           </div>
 
           {/* ── right column: answer + hints + submit ── */}
-          <aside className="flex w-72 shrink-0 flex-col border-l border-[var(--color-rule)]">
+          <aside className="flex w-full shrink-0 flex-col border-t border-[var(--color-rule)] sm:w-72 sm:border-l sm:border-t-0">
             <div className="border-b border-[var(--color-rule)] px-4 py-3">
               <div className="kicker mb-2"><span className="turnstile">∴</span> conclusion</div>
               {kind === 'text' && (

@@ -41,8 +41,10 @@ export function TopTabs({
   onHelp: () => void;
 }) {
   return (
-    <header className="no-print flex items-end justify-between px-5 pt-3" role="banner">
-      <div className="flex items-center gap-5">
+    /* flex-wrap: at phone widths the nav row (~640px) can't shrink — wrap
+       the tab strip under the mark instead of pushing the page sideways */
+    <header className="no-print flex flex-wrap items-end justify-between gap-x-5 gap-y-1 px-5 pt-3" role="banner">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-5">
         <div className="flex items-center gap-2.5 pb-1">
           <span className="flex h-7 w-7 items-center justify-center rounded bg-[var(--color-paper)] text-[var(--color-blueprint-deep)]">
             <Turnstile />
@@ -54,7 +56,7 @@ export function TopTabs({
             calculation workbench
           </span>
         </div>
-        <nav className="flex items-end gap-0.5" aria-label="Views">
+        <nav className="flex flex-wrap items-end gap-0.5" aria-label="Views">
           {TABS.map((t) => (
             <button
               key={t.key}

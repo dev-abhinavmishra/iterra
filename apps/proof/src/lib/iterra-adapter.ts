@@ -21,6 +21,7 @@ type Hub = {
   events?: { emit(t: string, p: Record<string, unknown>): unknown };
   send?(o: Record<string, unknown>): Promise<unknown>;
   adapter?(o: Record<string, unknown>): void;
+  intakes?: { drain?(app: string, done?: () => void): void };
 };
 const hub = (): Hub | undefined => (typeof window !== 'undefined' ? (window as { iterra?: Hub }).iterra : undefined);
 
@@ -249,7 +250,10 @@ function whenBooted(timeoutMs = 9000): Promise<void> {
 }
 
 /* step.append: fold the sent entity into the current open attempt as a
-   reference step; no open attempt → null (nothing honest to append to) */
+   reference step. No open attempt is NOT a failure — the durable contract
+   says pending means pending: {retry:true} keeps the record queued (the hub
+   re-drains a few times on its own; listen() below pokes a fresh drain the
+   moment an attempt actually opens) instead of silently losing the step. */
 async function onStepAppend(rec: { entity?: { key?: string; title?: string } }) {
   await whenBooted();
   const s = useWorkbench.getState();
@@ -259,7 +263,7 @@ async function onStepAppend(rec: { entity?: { key?: string; title?: string } }) 
   const open = Object.values(s.attempts || {})
     .filter((a) => !a.submittedAt)
     .sort((x, y) => String(y.startedAt).localeCompare(String(x.startedAt)))[0];
-  if (!open) return null;
+  if (!open) return { retry: true };
   const text = stepRefText(ent);
   /* the hub may hand one intake record to several racing drains — the ref
      text is deterministic, so a duplicate run finds the step already
@@ -284,10 +288,22 @@ async function prime() {
 }
 
 let listening = false;
+let hadOpenAttempt = false;
 function listen() {
   if (listening) return;
   listening = true;
-  useWorkbench.subscribe(() => { void mirror(); });
+  useWorkbench.subscribe(() => {
+    void mirror();
+    /* step.append can sit pending while no attempt is open (the hub's own
+       re-drain budget is finite). When the first open attempt appears,
+       poke one drain so a queued reference step lands instead of waiting
+       for the next send to wake the queue. */
+    const open = Object.values(useWorkbench.getState().attempts || {}).some((a) => !a.submittedAt);
+    if (open && !hadOpenAttempt) {
+      try { hub()?.intakes?.drain?.('proof', () => {}); } catch { /* best effort */ }
+    }
+    hadOpenAttempt = open;
+  });
 }
 
 export function registerAdapter() {
@@ -312,7 +328,10 @@ export function registerAdapter() {
         if (!s.booted) return null;
         const p = rec?.payload ?? {};
         const prompt = String(p.prompt || p.title || rec?.entity?.title || '').trim();
-        if (!prompt) return { ok: false };
+        /* a prompt-less create can never succeed on retry — deliver it with
+           a toast so the rail surfaces *why* nothing appeared instead of a
+           silent {ok:false} that reads as success-with-no-url */
+        if (!prompt) return { toast: 'problem.create needs a prompt — nothing filed' };
         const bound = await boundCourse(p.course, p.courseId);
         const diff = Number(p.difficulty);
         /* deterministic id from the intake record — the hub can invoke one

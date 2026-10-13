@@ -143,12 +143,20 @@ describe('adapter wiring', () => {
     expect(res.url).toBe('/apps/proof/?attempt=a1');
   });
 
-  it('step.append returns null when no attempt is open', async () => {
+  it('step.append stays pending (retry) when no attempt is open — the step is never dropped', async () => {
     const store = await seed();
     store.setState((s: any) => ({ attempts: { a1: { ...s.attempts.a1, submittedAt: 't9' } } }));
     await import('./iterra-adapter');
     const res = await adapterOpts.intakes['step.append']({ entity: { key: 'k' } });
-    expect(res).toBeNull();
+    /* durable-intake contract: 'not deliverable yet' is not 'delivered'.
+       {retry:true} releases the claim so the record stays queued — the old
+       null return resolved it and silently lost the step. */
+    expect(res).toEqual({ retry: true });
+    /* …and when an attempt opens again, the next drain delivers it */
+    const a2 = store.getState().startAttempt('p1');
+    const res2 = await adapterOpts.intakes['step.append']({ entity: { key: 'k' } });
+    expect(res2.url).toBe(`/apps/proof/?attempt=${a2.id}`);
+    expect(store.getState().attempts[a2.id].work.at(-1)?.text).toBe('ref · k (k)');
   });
 
   it('a filed error emits attempt.diverged and sends the retest card', async () => {

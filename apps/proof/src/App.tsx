@@ -11,7 +11,6 @@ import { ImportView } from './views/ImportView';
 import { SettingsView } from './views/SettingsView';
 import { Onboarding } from './views/Onboarding';
 import { HelpOverlay } from './components/HelpOverlay';
-import { dueCount } from './lib/schedule';
 import type { InboundLink } from './lib/links';
 
 export interface RouteState {
@@ -25,7 +24,9 @@ export interface RouteState {
 export function App() {
   const settings = useWorkbench((s) => s.settings);
   const problemCount = useWorkbench((s) => Object.keys(s.problems).length);
-  const due = useWorkbench((s) => dueCount(s.reviews));
+  /* due badge counts only reviews whose problem still exists and isn't
+     archived — same rule the adapter's presence summary reports */
+  const due = useWorkbench((s) => s.dueReviews().length);
   const booted = useWorkbench((s) => s.booted);
   const consumeInbound = useWorkbench((s) => s.consumeInbound);
 
@@ -48,7 +49,12 @@ export function App() {
       // a second consumeInbound() would always see null
       setRoute({ view: 'session', inbound });
     } else if ((inbound?.kind === 'problem' || inbound?.kind === 'attempt') && inbound.attemptId) {
-      setRoute({ view: 'attempt', attemptId: inbound.attemptId });
+      /* ?attempt=<id> naming a submitted attempt lands on compare — the
+         work is read-only on the desk anyway; the verdict, the worked
+         proof and the retry affordance all live on the compare pane */
+      const a = useWorkbench.getState().attempts[inbound.attemptId];
+      if (a?.submittedAt) setRoute({ view: 'compare', compareAttemptId: a.id });
+      else setRoute({ view: 'attempt', attemptId: inbound.attemptId });
     }
   }, [booted, consumeInbound]);
 
@@ -83,6 +89,9 @@ export function App() {
         setHelpOpen(false);
         return;
       }
+      /* the help overlay and modals (problem editor has role="dialog") own
+         the keyboard — a bare 'l' must not navigate behind them */
+      if (helpOpen || document.querySelector('[role="dialog"]')) return;
       if (views[e.key.toLowerCase()]) {
         e.preventDefault();
         goView(views[e.key.toLowerCase()]);
