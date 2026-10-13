@@ -6,7 +6,7 @@ import { useStore, type Note } from '../store';
 declare global {
   interface Window {
     iterra?: {
-    register(app: string, opts: { title?: string; summary?: () => unknown }): void;
+    register(app: string, opts: { title?: string; summary?: () => unknown; ownKeys?: string[] }): void;
     doc?: (ns: string) => {
       get: () => unknown;
       set: (v: unknown) => void;
@@ -29,10 +29,16 @@ function applyInboundLink() {
 }
 
 export function wireIterra() {
+  /* Deep links are ours, not the hub's — honor ?note= even when the terrain
+     script failed to load (ad block, stale deploy), or the param just sits
+     in the bar forever pointing at nothing. */
+  applyInboundLink();
   const iterra = window.iterra;
   if (!iterra) return;
   iterra.register('ink', {
     title: 'Ink',
+    // the desk ships its own ⌘K palette — the terrain yields the chord
+    ownKeys: ['k'],
     summary: () => {
       const { notes, activeNoteId } = useStore.getState();
       const live = notes.filter((n) => !n.trashedAt);
@@ -48,7 +54,6 @@ export function wireIterra() {
       };
     },
   });
-  applyInboundLink();
 }
 
 /* ambient layer — commons noteActive, note index, feed on new notes (§7) */
