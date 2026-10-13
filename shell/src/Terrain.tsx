@@ -556,7 +556,18 @@ export function Terrain({
                   stirrings
                 </div>
                 <ul className="mt-2 space-y-1.5">
-                  {feed.filter((it) => !it.at || Date.now() - it.at < 12 * 60 * 60 * 1000).slice(0, 8).map((it, i) => {
+                  {(() => {
+                    /* collapse runs of identical app+text — five 'plan
+                       generated' rows say the same thing once with ×5 */
+                    const fresh = feed.filter((it) => !it.at || Date.now() - it.at < 12 * 60 * 60 * 1000);
+                    const collapsed: { it: FeedItem; n: number }[] = [];
+                    for (const it of fresh) {
+                      const last = collapsed[collapsed.length - 1];
+                      if (last && last.it.app === it.app && last.it.text === it.text && last.it.url === it.url) last.n++;
+                      else collapsed.push({ it, n: 1 });
+                    }
+                    return collapsed.slice(0, 8);
+                  })().map(({ it, n }, i) => {
                     const ago = Math.max(0, Date.now() - it.at);
                     const mins = Math.floor(ago / 60000);
                     const when = mins < 1 ? 'now' : mins < 60 ? `${mins}m` : `${Math.floor(mins / 60)}h`;
@@ -572,6 +583,7 @@ export function Terrain({
                               {PLACE_MAP[it.app]?.app || it.app}
                             </span>
                             <span className="min-w-0 flex-1 truncate">{it.text}</span>
+                            {n > 1 && <span className="shrink-0 text-[10px] font-medium text-moss-700">×{n}</span>}
                             <span className="shrink-0 text-[10px] text-atlas-500">{when}</span>
                           </button>
                           <button
