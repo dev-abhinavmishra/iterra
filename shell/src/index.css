@@ -119,3 +119,11 @@ body {
 /* thin scrollbars on the today rail */
 .today-rail::-webkit-scrollbar { width: 6px; }
 .today-rail::-webkit-scrollbar-thumb { background: var(--color-moss-200); border-radius: 3px; }
+
+/* focus signal — call sites drop the default outline for mouse clicks;
+   :focus-visible restores a moss ring for keyboard users only */
+:focus-visible {
+  outline: 2px solid var(--color-moss-500);
+  outline-offset: 1px;
+  border-radius: 3px;
+}

@@ -278,7 +278,9 @@ export function Search({
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Escape') onClose();
+              /* Escape peels the innermost layer: an open send menu closes
+                 first, the palette itself on the next press */
+              if (e.key === 'Escape') { if (sendForKey) { setSendForKey(null); } else onClose(); }
               if (e.key === 'ArrowDown') { e.preventDefault(); setSel((s) => Math.min(s + 1, hits.length - 1)); }
               if (e.key === 'ArrowUp') { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
               if (e.key === 'Enter' && hits[sel]) { onGo(hits[sel].url); onClose(); }
