@@ -96,6 +96,10 @@ beforeEach(() => {
 });
 
 describe('gradestack canonical-store mirror', () => {
+  /* First test in the worker pays the cold dynamic-import of ../store
+     (zustand persist + the whole firebase SDK graph) inside the timed body —
+     flaky past the 5s default under load, so it gets a generous budget.
+     Nothing here asserts timing; later tests share the warm module cache. */
   it('mirrors assessments + scored sheets in the documented shape', async () => {
     await seedAndWire({
       tests: [mkTest('t1', 'Quiz 1')],
@@ -119,7 +123,7 @@ describe('gradestack canonical-store mirror', () => {
     expect(entities.get('gradestack:grade:s2').data.needsReview).toBe(true);
 
     expect(events).toEqual([]); // baseline stays quiet
-  });
+  }, 30000);
 
   it('resolves courseId lazily through courses.byCode', async () => {
     byCode = (code: string) =>

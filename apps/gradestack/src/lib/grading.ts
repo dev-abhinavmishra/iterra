@@ -11,10 +11,17 @@ export interface GradingScale {
 export const DEFAULT_SCALE: GradingScale = { A: 90, B: 80, C: 70, D: 60 };
 
 export function letterFor(pct: number, scale: GradingScale = DEFAULT_SCALE): string {
-  if (pct >= scale.A) return 'A';
-  if (pct >= scale.B) return 'B';
-  if (pct >= scale.C) return 'C';
-  if (pct >= scale.D) return 'D';
+  /* The scale round-trips through persisted storage — a corrupt or stale
+     payload (null, missing bands) must fall back, not crash the render. */
+  const s =
+    scale && typeof scale.A === 'number' && typeof scale.B === 'number' &&
+    typeof scale.C === 'number' && typeof scale.D === 'number'
+      ? scale
+      : DEFAULT_SCALE;
+  if (pct >= s.A) return 'A';
+  if (pct >= s.B) return 'B';
+  if (pct >= s.C) return 'C';
+  if (pct >= s.D) return 'D';
   return 'F';
 }
 

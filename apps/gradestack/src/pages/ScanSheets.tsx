@@ -38,6 +38,8 @@ export function ScanSheets() {
   const pdfInputRef = useRef<HTMLInputElement>(null);
 
   const [selectedScansForDelete, setSelectedScansForDelete] = useState<Set<string>>(new Set());
+  const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
+  const [confirmSheetDelete, setConfirmSheetDelete] = useState(false);
 
   // Once tests load (or the deep-linked one resolves), pick the first by default
   useEffect(() => {
@@ -75,6 +77,7 @@ export function ScanSheets() {
     if (selectedScansForDelete.size === 0) return;
     await deleteScans(Array.from(selectedScansForDelete));
     setSelectedScansForDelete(new Set());
+    setConfirmBatchDelete(false);
   };
 
   const selectedTest = tests.find(t => t.id === selectedTestId);
@@ -100,6 +103,7 @@ export function ScanSheets() {
       setEditResponses(scanToReview.responses ? { ...scanToReview.responses } : {});
       setEditingScore(null);
       setEditingQ(null);
+      setConfirmSheetDelete(false);
     }
   }, [scanToReview?.id]);
 
@@ -331,6 +335,14 @@ export function ScanSheets() {
     fileInputRef.current?.click();
   };
 
+  // Escape dismisses the crop/review overlay like every other sheet.
+  useEffect(() => {
+    if (!isReviewingImage) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsReviewingImage(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isReviewingImage]);
+
   // ── Digitally-filled PDFs — graded locally, no AI ──────────
   const gradePDFs = async (files: File[]) => {
     if (!selectedTest) return;
@@ -451,9 +463,11 @@ export function ScanSheets() {
       needsReview: false,
     };
 
-    if (editingScore !== null && editingScore !== '') {
-      // Manual override wins over computed score
-      const capped = Math.min(scanToReview.maxScore, Math.max(0, parseFloat(editingScore) || 0));
+    const scoreInput = editingScore !== null && editingScore !== '' ? parseFloat(editingScore) : NaN;
+    if (Number.isFinite(scoreInput)) {
+      // Manual override wins over computed score — but only a real number;
+      // 'abc' must not silently stamp 0 onto the register.
+      const capped = Math.min(scanToReview.maxScore, Math.max(0, scoreInput));
       updates.rawScore = capped;
       updates.percentage = scanToReview.maxScore > 0 ? Math.round((capped / scanToReview.maxScore) * 100) : 0;
       updates.grade = letterFor(updates.percentage, gradingScale);
@@ -685,7 +699,7 @@ export function ScanSheets() {
           </div>
           {selectedScansForDelete.size > 0 && (
             <button
-              onClick={handleDeleteSelected}
+              onClick={() => setConfirmBatchDelete(true)}
               className="text-xs font-semibold text-red hover:bg-red-mist px-2.5 py-1.5 rounded-md transition-colors flex items-center gap-1"
             >
               <Icon name="delete" size={14} />
@@ -798,7 +812,8 @@ export function ScanSheets() {
                     <span className="ledger-label">Grade</span>
                     <span className="font-display text-2xl font-bold text-mark-deep">
                       {(() => {
-                        const s = editingScore !== null && editingScore !== '' ? (parseFloat(editingScore) || 0) : scanToReview.rawScore;
+                        const typed = editingScore !== null && editingScore !== '' ? parseFloat(editingScore) : NaN;
+                        const s = Number.isFinite(typed) ? typed : scanToReview.rawScore;
                         const p = scanToReview.maxScore > 0 ? Math.round((s / scanToReview.maxScore) * 100) : 0;
                         return `${letterFor(p, gradingScale)} · ${p}%`;
                       })()}
@@ -892,22 +907,64 @@ export function ScanSheets() {
                   )}
                 </div>
 
-                <Button
-                  variant="ghost"
-                  icon="delete"
-                  className="text-red hover:bg-red-mist self-start"
-                  onClick={async () => {
-                    await deleteScans([scanToReview.id]);
-                    setReviewScanId(null);
-                  }}
-                >
-                  Delete this sheet
-                </Button>
+                {confirmSheetDelete ? (
+                  <div className="flex items-center gap-2 self-start">
+                    <Button
+                      variant="danger"
+                      icon="delete"
+                      className="h-9 text-xs"
+                      onClick={async () => {
+                        await deleteScans([scanToReview.id]);
+                        setConfirmSheetDelete(false);
+                        setReviewScanId(null);
+                      }}
+                    >
+                      Delete it — can’t be undone
+                    </Button>
+                    <Button variant="ghost" className="h-9 text-xs" onClick={() => setConfirmSheetDelete(false)} autoFocus>
+                      Keep
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    icon="delete"
+                    className="text-red hover:bg-red-mist self-start"
+                    onClick={() => setConfirmSheetDelete(true)}
+                  >
+                    Delete this sheet
+                  </Button>
+                )}
               </div>
             </div>
           </Modal>
         )}
       </AnimatePresence>
+
+      {/* ── Batch delete confirmation ─────────────────────── */}
+      {confirmBatchDelete && (
+        <Modal
+          onClose={() => setConfirmBatchDelete(false)}
+          title={`Delete ${selectedScansForDelete.size} sheet${selectedScansForDelete.size === 1 ? '' : 's'}?`}
+          subtitle={selectedTest?.name}
+          footer={
+            <>
+              <Button variant="ghost" onClick={() => setConfirmBatchDelete(false)} autoFocus>Cancel</Button>
+              <Button variant="danger" icon="delete" onClick={() => void handleDeleteSelected()} className="px-6 h-10">
+                Delete {selectedScansForDelete.size === 1 ? 'it' : `all ${selectedScansForDelete.size}`}
+              </Button>
+            </>
+          }
+        >
+          <div className="px-6 py-5">
+            <p className="text-sm text-ink leading-relaxed">
+              The selected graded sheets are struck from the register — scores,
+              responses, and any captured images are gone for good. The
+              assessment itself is untouched.
+            </p>
+          </div>
+        </Modal>
+      )}
 
       {/* ── Answer key modal ────────────────────────────────── */}
       {isEditingKey && selectedTest && (
@@ -987,7 +1044,7 @@ export function ScanSheets() {
       {/* ── Crop / review before grading ────────────────────── */}
       <AnimatePresence>
         {isReviewingImage && capturedImage && (
-          <div className="fixed inset-0 bg-black/90 z-[70] flex flex-col items-center justify-center p-4 md:p-8">
+          <div className="fixed inset-0 bg-black/90 z-[70] flex flex-col items-center justify-center p-4 md:p-8" role="dialog" aria-modal="true" aria-label="Frame the sheet">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
