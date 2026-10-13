@@ -129,6 +129,12 @@ export function Terrain({
      refresh and an index-keyed menu would silently re-target another stir */
   const [stirSend, setStirSend] = useState<string | null>(null);
   const [stirSent, setStirSent] = useState<string | null>(null);
+  useEffect(() => {
+    if (!stirSend) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setStirSend(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [stirSend]);
   const sendStir = async (it: FeedItem, t: (typeof STIR_SENDS)[number]) => {
     setStirSend(null);
     const r = await sendTo({

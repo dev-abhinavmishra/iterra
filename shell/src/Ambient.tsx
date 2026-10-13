@@ -142,6 +142,12 @@ export function Ambient({
 
   /* ── quick-start menu ── */
   const [qsOpen, setQsOpen] = useState(false);
+  useEffect(() => {
+    if (!qsOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setQsOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [qsOpen]);
   const topCourses = useMemo(() => {
     const m = new Map<string, number>();
     for (const e of entities) {

@@ -81,6 +81,10 @@ export default function App() {
         setCheatOpen((v) => !v);
       } else if (e.key === 'Escape') {
         setCheatOpen(false);
+        setSwitcherOpen(false);
+        /* the palette manages its own Escape (Search.tsx) — closing it here
+           too would double-toggle nothing but is harmless; skip to keep the
+           input's stopPropagation contract intact */
       }
     };
     window.addEventListener('keydown', onKey);

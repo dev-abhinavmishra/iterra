@@ -230,6 +230,12 @@ export function Dossier({
       setRowSendRect({ top, right: window.innerWidth - r.right });
     }
   };
+  useEffect(() => {
+    if (!rowSend) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') openRowSend(null); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [rowSend]);
   const sendRow = async (app: string, e: Entity, t: { to: string; action: string; label: string }) => {
     setRowSend(null);
     setRowSendRect(null);
