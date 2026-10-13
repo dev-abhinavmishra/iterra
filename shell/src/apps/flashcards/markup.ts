@@ -2,7 +2,7 @@
    vanilla cardfile renders into this tree; mountFlashcards() wires it. */
 export const FLASHCARDS_MARKUP = `<div class="app">
 
-  <!-- ======= top bar ======= -->
+  <!-- ======= top bar (standalone mode; suppressed in .it-workspace-mode) ======= -->
   <header class="topbar">
     <a class="wordmark" href="#/p/flashcards">
       <span class="card-mark" aria-hidden="true"></span>
@@ -10,7 +10,7 @@ export const FLASHCARDS_MARKUP = `<div class="app">
       <span class="tag">index cards, filed</span>
     </a>
     <div class="spacer"></div>
-    <span class="sysline" id="sysline">saved in this browser · decks travel by link</span>
+    <span class="sysline" id="sysline">saved in workspace · snapshot link sharing</span>
     <button class="icon-btn" id="shortcuts-btn" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
     </button>
@@ -25,20 +25,20 @@ export const FLASHCARDS_MARKUP = `<div class="app">
   <!-- ======= library sidebar ======= -->
   <aside class="sidebar">
     <div class="sidebar-head">
-      <h2>Library</h2>
+      <h2>Decks</h2>
       <span class="section-label" id="library-count"></span>
       <button class="icon-btn head-clear" id="clear-lib-btn" title="Clear all decks" aria-label="Clear all decks">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m3 0l-.8 12a2 2 0 01-2 1.9H8.8a2 2 0 01-2-1.9L6 7m4 4v6m4-6v6"/></svg>
       </button>
     </div>
-    <input class="search-input library-search" id="library-search" placeholder="filter decks…" aria-label="Filter decks">
+    <input class="search-input library-search" id="library-search" placeholder="Filter decks or courses…" aria-label="Filter decks">
     <nav class="deck-list" id="deck-list" aria-label="Your decks"></nav>
     <div class="menu row-menu" id="row-menu" hidden></div>
     <div class="sidebar-foot">
       <button class="btn primary block" id="new-deck-btn">New deck</button>
       <div class="foot-row">
         <button class="btn ghost block" id="import-btn">Import…</button>
-        <button class="btn ghost block" id="backup-btn">Backup…</button>
+        <button class="btn ghost block" id="backup-btn">Export / Backup</button>
       </div>
     </div>
   </aside>
@@ -48,13 +48,60 @@ export const FLASHCARDS_MARKUP = `<div class="app">
 
     <!-- empty state (no deck) -->
     <section class="stage" id="empty-stage" hidden>
-      <div class="empty-state">
+      <!-- Contextual Workspace Creation Screen (shown when running inside Iterra) -->
+      <div class="ws-create-panel" id="ws-create-stage" hidden>
+        <div class="ws-create-head">
+          <div>
+            <span class="ws-kicker">Flashcards · Workspace Creation</span>
+            <h1 class="ws-title">Create a Deck or Build from Study Material</h1>
+            <p class="ws-sub">Decks are saved automatically in your workspace and linked to your courses, notes, and focus sessions.</p>
+          </div>
+          <span class="ws-course-pill" id="ws-active-course-pill" hidden></span>
+        </div>
+
+        <div class="ws-create-body">
+          <div class="ws-field-grid">
+            <div>
+              <label class="field-label" for="ws-deck-title">Deck title</label>
+              <input class="field-input" id="ws-deck-title" placeholder="e.g. Week 4 — Cell Signaling" maxlength="140">
+            </div>
+            <div>
+              <label class="field-label" for="ws-deck-course">Course / Topic</label>
+              <input class="field-input" id="ws-deck-course" list="ws-course-list" placeholder="e.g. BIO101, MTH" maxlength="60">
+              <datalist id="ws-course-list"></datalist>
+            </div>
+          </div>
+
+          <div class="ws-source-box" id="ws-source-wrap">
+            <label class="field-label" for="ws-source-select">Use linked material as input (optional)</label>
+            <select class="field-input" id="ws-source-select">
+              <option value="">Write or paste cards manually…</option>
+            </select>
+            <p class="field-hint">Select a note from Notes (Ink), Study Materials (Margin), or a problem from Calculations (Proof) to pre-fill cards and record provenance links.</p>
+          </div>
+
+          <div>
+            <label class="field-label" for="ws-deck-cards">Cards (one per line — <code>term : answer</code> or <code>term | note</code>)</label>
+            <textarea class="field-textarea" id="ws-deck-cards" rows="7" placeholder="mitochondria : powerhouse of the cell&#10;ATP synthase : enzyme that synthesizes ATP | inner membrane&#10;glycolysis : breakdown of glucose to pyruvate"></textarea>
+            <div class="parse-preview" id="ws-parse-preview">Type or paste cards above to preview count</div>
+          </div>
+
+          <div class="ws-create-actions">
+            <button type="button" class="btn primary" id="ws-create-btn">Create Deck in Workspace</button>
+            <button type="button" class="btn ghost" id="ws-import-file-btn">Import File (.json / .csv / .txt)…</button>
+            <button type="button" class="btn ghost" id="ws-backup-btn">Restore Library Backup…</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Standalone introduction (shown only when running outside Iterra) -->
+      <div class="empty-state" id="standalone-empty-stage">
         <p class="big">A card file that fits in a link.</p>
-        <p class="sub">Type terms and answers, study them four ways, and share the whole deck as a single URL — no accounts, no server. Everything is kept in this browser.</p>
+        <p class="sub">Type terms and answers, study them four ways, and share a snapshot of the deck as a single URL — no accounts, no server. Everything is kept in this browser.</p>
         <ol class="welcome-steps">
           <li><b>01</b><span>Type or paste cards — <code>term : answer</code>, one per line. Tabs, commas and semicolons work too.</span></li>
           <li><b>02</b><span>Study them four ways — flip through them in <b class="em">Review</b>, grade yourself in <b class="em">Learn</b>, take a <b class="em">Quiz</b>, or <b class="em">Write</b> the answers.</span></li>
-          <li><b>03</b><span>Share any deck as a link, or back the whole library up as a .json from the sidebar.</span></li>
+          <li><b>03</b><span>Share any deck as a snapshot link, or back the whole library up as a .json from the sidebar.</span></li>
         </ol>
         <div class="empty-grid">
           <button class="empty-card" id="empty-new">
@@ -83,19 +130,20 @@ export const FLASHCARDS_MARKUP = `<div class="app">
         </div>
         <div class="deck-actions">
           <button class="pill" id="starred-filter" title="Study starred cards only (*)"><i class="dot"></i>Starred only</button>
-          <button class="btn small" id="share-btn">Share link</button>
+          <button class="btn small ghost" id="share-btn" title="Copy a static snapshot URL of this deck">Snapshot link</button>
           <div class="menu-wrap">
-            <button class="btn small ghost" id="deck-menu-btn" aria-haspopup="true" aria-expanded="false">Deck ▾</button>
+            <button class="btn small ghost" id="deck-menu-btn" aria-haspopup="true" aria-expanded="false">Deck &amp; Export ▾</button>
             <div class="menu" id="deck-menu" hidden>
-              <button id="menu-rename">Rename…</button>
+              <button id="menu-rename">Rename deck…</button>
+              <button id="menu-course">Set course / topic…</button>
               <button id="menu-reverse">Flip all card sides</button>
               <button id="menu-duplicate">Duplicate deck</button>
               <hr>
-              <button id="menu-drill">Drill in timer…</button>
-              <button id="menu-share-text">Copy as text</button>
-              <button id="menu-export-json">Export .json</button>
-              <button id="menu-export-csv">Export .csv</button>
-              <button id="menu-print">Print sheet</button>
+              <button id="menu-drill">Start 25m focus session…</button>
+              <button id="menu-share-text">Copy cards as text</button>
+              <button id="menu-export-json">Export file (.json)</button>
+              <button id="menu-export-csv">Export file (.csv)</button>
+              <button id="menu-print">Print study sheet</button>
               <hr>
               <button class="danger" id="menu-delete">Delete deck…</button>
             </div>

@@ -1,68 +1,117 @@
 @import "tailwindcss";
 
 @theme {
-  /* iterra — one theme color: deep terrain moss on atlas parchment */
-  --color-moss-950: #16241d;
-  --color-moss-900: #1d332a;
-  --color-moss-800: #244434;
-  --color-moss-700: #2f5d46;
-  --color-moss-600: #3a7357;
-  --color-moss-500: #4a8a6a;
-  --color-moss-400: #77a98e;
-  --color-moss-300: #a5c7b4;
-  --color-moss-200: #cfe1d7;
-  --color-moss-100: #e6efe9;
-  --color-moss-50:  #f2f7f3;
+  /* iterra — refined atlas paper + deep moss & graphite/silver workstation tokens */
+  --color-moss-950: #14211b;
+  --color-moss-900: #1b2e25;
+  --color-moss-800: #223d30;
+  --color-moss-700: #2b5440;
+  --color-moss-600: #366a50;
+  --color-moss-500: #468264;
+  --color-moss-400: #6fa086;
+  --color-moss-300: #9ec2ae;
+  --color-moss-200: #c8ded2;
+  --color-moss-100: #e3ede7;
+  --color-moss-50:  #f1f6f3;
 
-  --color-atlas-50:  #faf7ef;
-  --color-atlas-100: #f4f0e4;
-  --color-atlas-200: #ece5d3;
-  --color-atlas-300: #ddd2b8;
-  --color-atlas-400: #c5b48f;
-  --color-atlas-500: #a89468;
+  --color-atlas-50:  #fbf9f4;
+  --color-atlas-100: #f4f1e8;
+  --color-atlas-200: #ebe5d6;
+  --color-atlas-300: #d8d0bc;
+  --color-atlas-400: #b8ad93;
+  --color-atlas-500: #766c56;
 
-  --color-field-ink: #22302a;
-  --color-field-faint: #5d6b62;
+  --color-field-ink: #1c2621;
+  --color-field-faint: #4c5951;
 
-  /* ── semantic tokens — the single design language every place speaks ──
-     Places never name raw palette colors; they use these. One theme,
-     one set of surfaces, one ink, one accent — moss on atlas parchment. */
-  --color-paper:    #f4f0e4;  /* page ground — atlas-100 */
-  --color-sheet:    #faf7ef;  /* raised surface — atlas-50 */
-  --color-sheet-2:  #ece5d3;  /* recessed surface — atlas-200 */
-  --color-line:     #ddd2b8;  /* hairline borders — atlas-300 */
-  --color-line-2:   #c5b48f;  /* stronger borders — atlas-400 */
-  --color-ink:      #22302a;  /* primary text — field-ink */
-  --color-mute:     #5d6b62;  /* secondary text — field-faint */
-  --color-faint:    #a89468;  /* captions, timestamps — atlas-500 */
-  --color-accent:   #2f5d46;  /* interactive — moss-700 */
-  --color-accent-2: #244434;  /* accent hover — moss-800 */
-  --color-accent-soft: #e6efe9; /* accent tint surface — moss-100 */
-  --color-warn:     #9a5b2e;  /* amber-brown for due/attention */
-  --color-bad:      #9c3d33;  /* destructive red-brown */
+  /* ── semantic tokens — shared workstation design language ── */
+  --color-paper:       #f4f1e8;  /* page ground */
+  --color-sheet:       #fbf9f4;  /* raised surface */
+  --color-sheet-2:     #ebe5d6;  /* recessed / subtle surface */
+  --color-sheet-hover: #efeae0;  /* interactive row hover */
+  --color-line:        #d8d0bc;  /* hairline border */
+  --color-line-2:      #b8ad93;  /* emphasized border */
+  --color-ink:         #1c2621;  /* primary text */
+  --color-mute:        #4c5951;  /* secondary text (AA contrast) */
+  --color-faint:       #6e6552;  /* metadata & captions (improved contrast over #a89468) */
+  --color-accent:      #2b5440;  /* interactive primary */
+  --color-accent-2:    #223d30;  /* interactive hover */
+  --color-accent-fg:   #fbf9f4;  /* text on accent */
+  --color-accent-soft: #e3ede7;  /* subtle active tint */
+  --color-warn:        #8f5122;  /* amber-ochre for due/attention */
+  --color-warn-soft:   #f6eadb;
+  --color-bad:         #96342a;  /* destructive crimson-brown */
+  --color-bad-soft:    #f8e6e4;
 
-  --font-place: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-place: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  --radius-it: 10px;
+  --radius-it: 6px;
 }
 
-/* ── shared primitives (.it-*) — one card, one button, one input ─────── */
+/* ── Graphite / Silver Workstation Theme ────────────────────────────────── */
+html[data-theme="graphite"] {
+  color-scheme: dark;
+
+  --color-atlas-50:  #1c2026;
+  --color-atlas-100: #14171c;
+  --color-atlas-200: #232830;
+  --color-atlas-300: #2e3540;
+  --color-atlas-400: #434c5b;
+  --color-atlas-500: #8c96a6;
+
+  --color-field-ink: #e8ecf2;
+  --color-field-faint: #9da6b5;
+
+  --color-moss-950: #e8ecf2;
+  --color-moss-900: #d5dce6;
+  --color-moss-800: #b8c4d4;
+  --color-moss-700: #68b08b;
+  --color-moss-600: #559b78;
+  --color-moss-500: #488868;
+  --color-moss-400: #3c6e55;
+  --color-moss-300: #2d5040;
+  --color-moss-200: #243b31;
+  --color-moss-100: #1e3028;
+  --color-moss-50:  #182520;
+
+  --color-paper:       #14171c;
+  --color-sheet:       #1c2026;
+  --color-sheet-2:     #232830;
+  --color-sheet-hover: #262c35;
+  --color-line:        #2e3540;
+  --color-line-2:      #434c5b;
+  --color-ink:         #e8ecf2;
+  --color-mute:        #9da6b5;
+  --color-faint:       #7b8494;
+  --color-accent:      #58a07c;
+  --color-accent-2:    #6bb38f;
+  --color-accent-fg:   #101418;
+  --color-accent-soft: #1e2f28;
+  --color-warn:        #e09f5a;
+  --color-warn-soft:   #2d2419;
+  --color-bad:         #e06c60;
+  --color-bad-soft:    #301c1b;
+}
+
+/* ── Shared Primitives (.it-*) ──────────────────────────────────────────── */
 
 .it-page {
   height: 100%;
   overflow-y: auto;
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
 }
 
-.it-wrap { max-width: 960px; margin: 0 auto; padding: 24px 20px 64px; }
+.it-wrap { max-width: 1120px; margin: 0 auto; padding: 24px 20px 64px; }
 
 .it-title {
   font-family: var(--font-place);
   font-size: 22px;
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   color: var(--color-ink);
 }
 .it-heading {
@@ -72,10 +121,11 @@
   color: var(--color-ink);
 }
 .it-label {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: var(--color-faint);
 }
 .it-muted { color: var(--color-mute); }
@@ -86,173 +136,226 @@
   border: 1px solid var(--color-line);
   border-radius: var(--radius-it);
 }
-.it-card-in { background: var(--color-sheet); border: 1px solid var(--color-line); border-radius: var(--radius-it); padding: 14px 16px; }
+.it-card-in {
+  background: var(--color-sheet);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-it);
+  padding: 14px 16px;
+}
 
 .it-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 7px 14px;
-  font-size: 13px; font-weight: 500;
-  color: var(--color-sheet);
+  padding: 6px 12px;
+  font-size: 12.5px; font-weight: 500;
+  color: var(--color-accent-fg);
   background: var(--color-accent);
   border: 1px solid var(--color-accent-2);
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
   transition: background 120ms ease, transform 80ms ease;
 }
 .it-btn:hover { background: var(--color-accent-2); }
 .it-btn:active { transform: translateY(1px); }
-.it-btn:disabled { opacity: 0.55; cursor: default; transform: none; }
+.it-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
 
 .it-btn-ghost {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 7px 12px;
-  font-size: 13px; font-weight: 500;
-  color: var(--color-accent);
-  background: transparent;
+  padding: 6px 11px;
+  font-size: 12.5px; font-weight: 500;
+  color: var(--color-ink);
+  background: var(--color-sheet);
   border: 1px solid var(--color-line);
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease;
 }
 .it-btn-ghost:hover { background: var(--color-accent-soft); border-color: var(--color-line-2); }
-.it-btn-ghost:disabled { opacity: 0.55; cursor: default; }
+.it-btn-ghost:disabled { opacity: 0.5; cursor: default; }
 
 .it-input {
   width: 100%;
-  padding: 8px 11px;
-  font-size: 13.5px;
+  padding: 7px 10px;
+  font-size: 13px;
   color: var(--color-ink);
   background: var(--color-sheet);
   border: 1px solid var(--color-line);
-  border-radius: 8px;
+  border-radius: 5px;
 }
 .it-input::placeholder { color: var(--color-faint); }
-.it-input:focus { outline: 2px solid var(--color-moss-500); outline-offset: 0; border-color: var(--color-moss-500); }
+.it-input:focus { outline: 2px solid var(--color-accent); outline-offset: 0; border-color: var(--color-accent); }
 
 .it-chip {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 9px;
-  font-size: 11.5px; font-weight: 500;
+  padding: 2px 8px;
+  font-size: 11px; font-weight: 500;
   color: var(--color-mute);
   background: var(--color-sheet-2);
   border: 1px solid var(--color-line);
-  border-radius: 999px;
+  border-radius: 4px;
 }
 
 .it-row {
   display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
+  padding: 9px 12px;
   background: var(--color-sheet);
   border: 1px solid var(--color-line);
   border-radius: var(--radius-it);
 }
 
 .it-empty {
-  padding: 40px 20px;
+  padding: 32px 20px;
   text-align: center;
-  color: var(--color-faint);
+  color: var(--color-mute);
   font-size: 13px;
-  border: 1px dashed var(--color-line);
+  border: 1px dashed var(--color-line-2);
   border-radius: var(--radius-it);
+  background: color-mix(in srgb, var(--color-sheet) 60%, transparent);
 }
 
 html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  background: var(--color-atlas-100);
-  color: var(--color-field-ink);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* faint topographic contour + graticule for the terrain home */
+/* Restrained atlas grid surface for shell workspaces (no busy textures behind dense content) */
 .terrain-map {
-  background-color: var(--color-atlas-100);
+  background-color: var(--color-paper);
   background-image:
-    radial-gradient(ellipse 90% 60% at 18% 12%, rgba(47, 93, 70, 0.055), transparent 60%),
-    radial-gradient(ellipse 70% 55% at 85% 85%, rgba(47, 93, 70, 0.06), transparent 62%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg fill='none' stroke='%232f5d46' stroke-opacity='0.10'%3E%3Cpath d='M-20 70q45-38 90 0t90 0'/%3E%3Cpath d='M-20 40q45-38 90 0t90 0'/%3E%3Cpath d='M-20 100q45-38 90 0t90 0'/%3E%3Cpath d='M-20 130q45-38 90 0t90 0'/%3E%3C/g%3E%3C/svg%3E"),
-    linear-gradient(to right, rgba(47,93,70,0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(47,93,70,0.045) 1px, transparent 1px);
-  background-size: auto, auto, 140px 140px, 56px 56px, 56px 56px;
+    linear-gradient(to right, color-mix(in srgb, var(--color-line) 35%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-line) 35%, transparent) 1px, transparent 1px);
+  background-size: 64px 64px;
 }
+
+/* ── Embedded Module Workspace Mode (.it-workspace-mode) ──────────────────
+   When modules are mounted inside Iterra's unified workspace shell, suppress
+   redundant standalone mastheads/wordmarks while keeping their functional
+   view tabs, toolbars, and distinctive working surfaces intact.
+   Standalone builds (without .it-workspace-mode) keep their full chrome.  */
+
+/* Flashcards: hide duplicate topbar wordmark bar; the shell header + deck header provide context */
+.it-workspace-mode .it-place-flashcards .app {
+  grid-template-rows: 1fr;
+  grid-template-areas: "sidebar main";
+  min-height: 100%;
+  height: 100%;
+}
+.it-workspace-mode .it-place-flashcards .topbar {
+  display: none !important;
+}
+
+/* Timer: hide redundant top wordmark banner ("TIMER · TIME INSTRUMENTS · EST. YOUR WORKDAY")
+   and lift the instrument dock slightly so it never collides with shell edges */
+.it-workspace-mode .it-place-timer > header {
+  display: none !important;
+}
+.it-workspace-mode .it-place-timer > main {
+  padding-top: 12px;
+}
+
+/* Rhythm: hide the duplicate unit wordmark + duplicate LCD date row, keeping the selector bank tabs */
+.it-workspace-mode .it-place-rhythm > div > header > div:first-child {
+  display: none !important;
+}
+.it-workspace-mode .it-place-rhythm > div > header {
+  padding-top: 6px !important;
+}
+.it-workspace-mode .it-place-rhythm > div > header > nav {
+  margin-top: 0 !important;
+}
+
+/* Proof: hide the duplicate Turnstile + "Proof calculation workbench" brand block, keep view tabs */
+.it-workspace-mode .it-place-proof header[role="banner"] > div:first-child > div:first-child {
+  display: none !important;
+}
+.it-workspace-mode .it-place-proof header[role="banner"] {
+  padding-top: 6px !important;
+  border-bottom: 1px solid rgb(245 242 230 / 0.12);
+}
+
+/* Ink: compact the sidebar by hiding the oversized standalone wordmark and fake "Writer" user footer */
+.it-workspace-mode .it-place-ink aside > div:first-child {
+  display: none !important;
+}
+.it-workspace-mode .it-place-ink aside > div:nth-child(2) {
+  padding-top: 12px !important;
+}
+.it-workspace-mode .it-place-ink aside > div:last-of-type > div:last-child {
+  display: none !important;
+}
+
+/* Margin: hide duplicate "Margin" handwritten masthead in sidebar; keep search & navigation */
+.it-workspace-mode .it-place-margin > aside > div:first-child {
+  display: none !important;
+}
+
+/* GradeStack: hide duplicate "GradeStack Bubble sheet grading" masthead block, keep collapse & nav */
+.it-workspace-mode .it-place-gradestack > nav > div:first-child a {
+  display: none !important;
+}
+.it-workspace-mode .it-place-gradestack > nav > div:first-child {
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+/* ── Motion & Accessibility ─────────────────────────────────────────────── */
 
 .place-card {
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-}
-.place-card:hover {
-  transform: translateY(-3px);
-}
-.place-card:active {
-  transform: translateY(-1px) scale(0.995);
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .place-card, .place-card:hover, .place-card:active { transition: none; transform: none; }
-}
-
-/* live-session pulse */
 @keyframes iterra-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
 .live-dot { animation: iterra-pulse 1.6s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
 
-/* ── terrain motion — quiet entrances only: short fades, small rises ── */
 @keyframes iterra-fade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 @keyframes iterra-rise {
-  from { opacity: 0; transform: translateY(7px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes iterra-stir {
-  from { opacity: 0; transform: translateY(-5px); }
+  from { opacity: 0; transform: translateY(-3px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-.anim-fade { animation: iterra-fade 200ms ease-out both; }
-/* panels — palette, switcher, banners */
-.anim-rise { animation: iterra-rise 190ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-/* list entries — stirrings rows, palette hits (stagger via inline delay) */
-.anim-stir { animation: iterra-stir 170ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-/* place cards — one-time entrance on the terrain home */
-.anim-card { animation: iterra-rise 260ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-/* keep-alive frames: display:none→block replays this on every activation */
-.frame-fade { animation: iterra-fade 240ms ease-out both; }
-
-/* spring — popover menus (send-to, quick-start): overshoots, not slides */
 @keyframes iterra-pop {
-  from { opacity: 0; transform: scale(0.94) translateY(3px); }
-  70% { opacity: 1; transform: scale(1.018) translateY(-0.5px); }
+  from { opacity: 0; transform: scale(0.97) translateY(2px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-.anim-pop { animation: iterra-pop 220ms cubic-bezier(0.22, 1, 0.36, 1) both; transform-origin: top center; }
-
-/* tick — the instruments' split-flap in miniature: each second the digits
-   settle down into place like a flap card dropping. Applied to a span
-   keyed by the displayed value so every tick re-runs it. */
 @keyframes iterra-tick {
-  from { opacity: 0.25; transform: translateY(-42%); }
+  from { opacity: 0.3; transform: translateY(-35%); }
   to { opacity: 1; transform: translateY(0); }
 }
-.anim-tick { display: inline-block; animation: iterra-tick 160ms cubic-bezier(0.3, 0.7, 0.4, 1) both; }
+
+.anim-fade { animation: iterra-fade 160ms ease-out both; }
+.anim-rise { animation: iterra-rise 160ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-stir { animation: iterra-stir 150ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.anim-card { animation: iterra-rise 200ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.frame-fade { animation: iterra-fade 180ms ease-out both; }
+.anim-pop { animation: iterra-pop 160ms cubic-bezier(0.22, 1, 0.36, 1) both; transform-origin: top center; }
+.anim-tick { display: inline-block; animation: iterra-tick 150ms cubic-bezier(0.3, 0.7, 0.4, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
-  .anim-fade, .anim-rise, .anim-stir, .anim-card, .anim-pop, .anim-tick, .frame-fade { animation: none; }
+  .place-card, .live-dot, .anim-fade, .anim-rise, .anim-stir, .anim-card, .anim-pop, .anim-tick, .frame-fade {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
-/* thin scrollbars on the today rail */
-.today-rail::-webkit-scrollbar { width: 6px; }
-.today-rail::-webkit-scrollbar-thumb { background: var(--color-moss-200); border-radius: 3px; }
+.today-rail::-webkit-scrollbar { width: 6px; height: 6px; }
+.today-rail::-webkit-scrollbar-thumb { background: var(--color-line-2); border-radius: 3px; }
 
-/* focus signal — call sites drop the default outline for mouse clicks;
-   :focus-visible restores a moss ring for keyboard users only */
 :focus-visible {
-  outline: 2px solid var(--color-moss-500);
+  outline: 2px solid var(--color-accent);
   outline-offset: 1px;
   border-radius: 3px;
 }

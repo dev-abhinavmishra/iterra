@@ -1,29 +1,66 @@
 import { PLACE_MAP } from './places';
 
-/* hash routing: '' → terrain, 'p/<place>[?query]' → place view,
-   'c/<key>' → course dossier. The query rides inside the hash so deep
-   links stay same-document navigations — '#/p/timer?minutes=25' parses
-   to { place:'timer', query:'minutes=25' }. */
-export function parseHash(hash: string): { place: string; course: string; query: string } {
+export type WorkspaceSection = 'today' | 'courses' | 'library' | 'place';
+
+export interface ParsedRoute {
+  place: string;
+  course: string;
+  query: string;
+  section: WorkspaceSection;
+}
+
+function attachMeta(
+  base: { place: string; course: string },
+  query: string,
+  section: WorkspaceSection,
+): ParsedRoute {
+  Object.defineProperty(base, 'query', { value: query, enumerable: false, configurable: true });
+  Object.defineProperty(base, 'section', { value: section, enumerable: false, configurable: true });
+  return base as ParsedRoute;
+}
+
+/* hash routing:
+   '' or '#/'       → Today workspace (section: 'today')
+   '#/courses'      → Courses directory (section: 'courses')
+   '#/c/<key>'      → Course workspace (section: 'courses', course: '<key>')
+   '#/library'      → Unified library browser (section: 'library')
+   '#/p/<place>[?q]'→ Embedded tool view (section: 'place', place: '<place>')
+*/
+export function parseHash(hash: string): ParsedRoute {
   const h = hash.replace(/^#\/?/, '');
-  const c = h.match(/^c\/([^?#]+)/);
-  if (c) return { place: '', course: decodeURIComponent(c[1]), query: '' };
+  if (h === 'courses' || h.startsWith('courses?')) {
+    const q = h.includes('?') ? h.slice(h.indexOf('?') + 1) : '';
+    return attachMeta({ place: '', course: '' }, q, 'courses');
+  }
+  if (h === 'library' || h.startsWith('library?')) {
+    const q = h.includes('?') ? h.slice(h.indexOf('?') + 1) : '';
+    return attachMeta({ place: '', course: '' }, q, 'library');
+  }
+  const c = h.match(/^c\/([^?#]+)(?:\?([^#]*))?/);
+  if (c) {
+    return attachMeta(
+      { place: '', course: decodeURIComponent(c[1]) },
+      c[2] || '',
+      'courses',
+    );
+  }
   const m = h.match(/^p\/([a-z]+)(\?([^#]*))?/);
-  return {
-    place: m && PLACE_MAP[m[1]] ? m[1] : '',
-    course: '',
-    query: m?.[3] || '',
-  };
+  if (m && PLACE_MAP[m[1]]) {
+    return attachMeta(
+      { place: m[1], course: '' },
+      m[3] || '',
+      'place',
+    );
+  }
+  return attachMeta({ place: '', course: '' }, '', 'today');
 }
 
 export function appUrl(place: string, path = '/'): string {
   return `/apps/${place}${path}`;
 }
 
-/* Places used to be framed pages at /apps/<place>/<path>?<query>. Now a
-   place is a mounted component addressed by hash — translate an old-style
-   app URL into the hash form it navigates by. Returns null for urls that
-   don't name a place (external links — caller decides what to do). */
+/* Translate an old-style /apps/<place>/<path>?<query> URL into the hash
+   route form. Returns null for URLs that don't name a place. */
 export function placeHashFromAppUrl(url: string): { place: string; query: string } | null {
   const m = url.match(/^\/apps\/([a-z]+)(?:\/[^?#]*)?(?:\?([^#]*))?/);
   if (!m || !PLACE_MAP[m[1]]) return null;

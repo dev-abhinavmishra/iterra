@@ -591,7 +591,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   function renderLibrary() {
     const q = norm(state.libSearch);
     const ids = Object.keys(state.decks)
-      .filter(id => !q || norm(state.decks[id].title).includes(q))
+      .filter(id => !q || norm(state.decks[id].title).includes(q) || norm(state.decks[id].course || '').includes(q))
       .sort((a, b) =>
         (state.decks[b].lastStudiedAt || state.decks[b].createdAt) - (state.decks[a].lastStudiedAt || state.decks[a].createdAt));
     els.libraryCount.textContent = ids.length ? `${ids.length} deck${ids.length === 1 ? '' : 's'}` : '';
@@ -609,7 +609,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       return `
         <div class="deck-row ${fresh ? 'dr-in ' : ''}${id === state.currentId ? 'active' : ''}" data-deck="${id}"${fresh ? ` style="animation-delay:${Math.min(ids.indexOf(id), 11) * 22}ms"` : ''}>
           <button class="dr-main">
-            <span class="dr-title">${esc(d.title)}</span>
+            <span class="dr-title">${d.course ? `<span class="dr-course">${esc(d.course)}</span>` : ''}${esc(d.title)}</span>
             <span class="dr-meta"><span>${s.total} card${s.total === 1 ? '' : 's'}${s.starred ? ` · ${s.starred}★` : ''}</span><span>${s.due ? `<span class="dr-due" data-due="${id}" title="Review the due cards now">${s.due} due →</span>` : ''}<span>${relTime(d.lastStudiedAt)}</span></span></span>
             <span class="dr-bar"><i style="width:${s.total ? (s.mastered / s.total * 100) : 0}%"></i></span>
           </button>
@@ -625,7 +625,8 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       chip.addEventListener('click', e => {
         e.stopPropagation();
         selectDeck(chip.dataset.due);
-        setMode('review');
+        state.mode = 'review';
+        renderAll();
       }));
   }
   
@@ -637,6 +638,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     rowMenuFor = id;
     menu.innerHTML = `
       <button data-act="rename">Rename…</button>
+      <button data-act="course">Set course / topic…</button>
       <button data-act="dup">Duplicate</button>
       <button data-act="export">Export .json</button>
       <hr>
@@ -648,6 +650,42 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     menu.querySelectorAll('button[data-act]').forEach(b =>
       b.addEventListener('click', () => { menu.hidden = true; rowMenuAction(id, b.dataset.act); }));
   }
+
+  function promptCourseModal(d) {
+    if (!d) return;
+    const activeCode = (() => {
+      try { return sharedDoc()?.get()?.activeCourse?.v?.code || ''; } catch { return ''; }
+    })();
+    openModal(`
+      <h3>Assign course or topic</h3>
+      <p class="modal-sub">Filing a deck under a course code (e.g. <code>MTH</code>, <code>BIO101</code>) connects it to that Course Workspace and related study materials.</p>
+      <label class="field-label" for="pm-course">Course code or topic (leave blank to clear)</label>
+      <input class="field-input" id="pm-course" value="${esc(d.course || activeCode || '')}" placeholder="e.g. MTH" maxlength="60">
+      <div class="modal-actions">
+        <button class="btn ghost" data-close>Cancel</button>
+        <button class="btn primary" id="pm-course-ok">Save course</button>
+      </div>`);
+    const inp = $('pm-course');
+    const save = async () => {
+      const val = inp.value.trim();
+      d.course = val || undefined;
+      if (val && window.iterra?.courses?.resolve) {
+        try {
+          const c = await window.iterra.courses.resolve(val);
+          d.courseId = c?.key || undefined;
+        } catch {}
+      } else {
+        d.courseId = undefined;
+      }
+      closeModal();
+      saveStore();
+      renderAll();
+      toast(val ? `Assigned to ${val}` : 'Course cleared');
+    };
+    $('pm-course-ok').addEventListener('click', () => { void save(); });
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') void save(); });
+    inp.select();
+  }
   
   function rowMenuAction(id, act) {
     const d = state.decks[id]; if (!d) return;
@@ -657,14 +695,18 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         d.title = v; saveStore();
         if (id === state.currentId) renderAll(); else renderLibrary();
       });
+    } else if (act === 'course') {
+      promptCourseModal(d);
     } else if (act === 'dup') {
-      createDeck(`${d.title} (copy)`, d.cards.map(c => newCard(c.q, c.a, c.ex)));
+      const copy = createDeck(`${d.title} (copy)`, d.cards.map(c => newCard(c.q, c.a, c.ex)));
+      if (d.course) copy.course = d.course;
+      if (d.courseId) copy.courseId = d.courseId;
       saveStore(); renderLibrary();
       toast('Deck duplicated');
     } else if (act === 'export') {
       exportJson(d);
     } else if (act === 'del') {
-      confirmModal('Delete this deck?', `“${esc(d.title)}” and its ${d.cards.length} cards will be removed from this browser. Anyone with the share link keeps their copy.`, 'Delete deck', () => {
+      confirmModal('Delete this deck?', `“${esc(d.title)}” and its ${d.cards.length} cards will be removed from this browser. Anyone with a snapshot link keeps their copy.`, 'Delete deck', () => {
         delete state.decks[id];
         saveStore();
         if (id === state.currentId) {
