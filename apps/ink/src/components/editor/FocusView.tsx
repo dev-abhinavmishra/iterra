@@ -232,8 +232,8 @@ export const FocusView: React.FC = () => {
             </div>
           </aside>
 
-          {/* Ink bar */}
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-ink rounded-md shadow-pop px-1.5 py-1.5 flex items-center gap-0.5 z-50 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none">
+          {/* Ink bar — floats above the mobile tab rail, hugs the desk edge on md+ */}
+          <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 bg-ink rounded-md shadow-pop px-1.5 py-1.5 flex items-center gap-0.5 z-50 max-w-[calc(100vw-2rem)] overflow-x-auto scrollbar-none">
             <FocusToolBtn title="Bold" editor={editor} onClick={() => editor?.chain().focus().toggleBold().run()} icon={Bold} />
             <FocusToolBtn title="Italic" editor={editor} onClick={() => editor?.chain().focus().toggleItalic().run()} icon={Italic} />
             <FocusToolBtn title="List" editor={editor} onClick={() => editor?.chain().focus().toggleBulletList().run()} icon={List} />
