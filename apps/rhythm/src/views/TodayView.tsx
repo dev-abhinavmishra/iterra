@@ -60,8 +60,23 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
     return { scheduled, open, paused };
   }, [routines, today, focusedRoutineName]);
 
+  /* Unhit clears every entry the day carries for that channel — the step
+     returns to un-programmed. The triggering event stays in the ledger, so
+     nothing about the evidence is lost. */
+  const unhitToday = (routineId: string) => {
+    for (const e of Object.values(entries)) {
+      if (e.routineId === routineId && e.date === today) removeEntry(e.id);
+    }
+  };
+
   const stamp = (r: Routine, isMinimum = false) => {
     if (r.measure === 'check') {
+      // A lit pad toggles — pressing a hit step clears the mark again.
+      const st = dayState(r, today, entries, exceptions, today);
+      if (!isMinimum && (st === 'full' || st === 'minimum')) {
+        unhitToday(r.id);
+        return;
+      }
       const e = checkIn(r.id, { isMinimum });
       if (e) {
         setJustStamped(r.id);
@@ -74,8 +89,9 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
   };
 
   const confirmAmount = (r: Routine, isMinimum = false) => {
-    const v = Math.max(0, Number(amount));
-    if (!Number.isFinite(v)) return;
+    const v = Number(amount);
+    // A step only sounds on a positive amount — a zero isn't a hit.
+    if (!Number.isFinite(v) || v <= 0) return;
     checkIn(r.id, { value: v, isMinimum });
     setAmountFor(null);
     setJustStamped(r.id);
@@ -141,12 +157,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
                   setFrictionNote('');
                 }}
                 onOpen={() => openRoutine(r.id)}
-                onUndo={() => {
-                  const e = Object.values(entries).find(
-                    (en) => en.routineId === r.id && en.date === today && en.source === 'manual',
-                  );
-                  if (e) removeEntry(e.id);
-                }}
+                onUndo={() => unhitToday(r.id)}
               />
             ))}
           </div>
@@ -186,12 +197,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
                   setFrictionNote('');
                 }}
                 onOpen={() => openRoutine(r.id)}
-                onUndo={() => {
-                  const e = Object.values(entries).find(
-                    (en) => en.routineId === r.id && en.date === today && en.source === 'manual',
-                  );
-                  if (e) removeEntry(e.id);
-                }}
+                onUndo={() => unhitToday(r.id)}
               />
             ))}
           </div>
@@ -390,6 +396,8 @@ function RoutineRow({
   const wk = routineWeek(r, weekStart, entries, exceptions, today, settings.weekStartsOn);
   const done = state === 'full' || state === 'minimum' || state === 'partial';
   const unitLabel = r.measure === 'duration' ? 'min' : r.unit || r.measure;
+  // the second action only fires on a real amount — 0 or NaN stays silent
+  const amountOk = Number.isFinite(Number(amount)) && Number(amount) > 0;
 
   const progress =
     r.measure === 'check'
@@ -399,10 +407,17 @@ function RoutineRow({
   return (
     <div className="chan px-2 py-2.5">
       <div className="flex items-center gap-3">
-        {/* the hit pad — one press records the day */}
+        {/* the hit pad — one press records the day; for check routines a lit
+            pad toggles back off, for measured ones it logs another session */}
         <button
           onClick={onStamp}
-          aria-label={done ? `${r.name} already hit ${state}` : `Hit ${r.name}`}
+          aria-label={
+            done
+              ? r.measure === 'check'
+                ? `Unhit ${r.name} — today is marked ${state}`
+                : `Log another ${r.name} — today is ${state}`
+              : `Hit ${r.name}`
+          }
           aria-pressed={done}
           className="padbtn"
           style={{ ['--pad-rgb' as never]: `var(--acc-${r.accent}-rgb)` }}
@@ -500,11 +515,11 @@ function RoutineRow({
             <Plus size={12} />
           </button>
           <span className="mono text-[11px] text-ink-soft">{unitLabel}</span>
-          <button type="submit" className="btn btn--primary !px-3 !py-1.5">
+          <button type="submit" className="btn btn--primary !px-3 !py-1.5" disabled={!amountOk}>
             Hit
           </button>
           {r.minimum && (
-            <button type="button" className="btn btn--quiet !px-2 !py-1.5" onClick={onAmountMinimum}>
+            <button type="button" className="btn btn--quiet !px-2 !py-1.5" onClick={onAmountMinimum} disabled={!amountOk}>
               as minimum
             </button>
           )}
@@ -556,7 +571,7 @@ function IconBtn({ label, onClick, children }: { label: string; onClick: () => v
       onClick={onClick}
       title={label}
       aria-label={label}
-      className="rounded p-1.5 text-ink-faint hover:bg-white/5 hover:text-ink"
+      className="rounded p-1.5 text-ink-faint hover:bg-white/5 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--color-indigo)]"
     >
       {children}
     </button>
