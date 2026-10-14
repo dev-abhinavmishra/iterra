@@ -1153,6 +1153,7 @@ export function TodayWorkspace({
                   key={p.id}
                   type="button"
                   onClick={() => onEnter(p.id)}
+                  title={`${p.app} — ${p.tagline}`}
                   className="place-card group flex flex-col justify-between rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] p-3 text-left hover:border-[var(--color-accent)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
                 >
                   <div>
@@ -1181,7 +1182,7 @@ export function TodayWorkspace({
                       </div>
                     </div>
                     <div className="mt-0.5 font-mono text-[10px] text-[var(--color-faint)]">
-                      {p.app} · {p.place}
+                      {p.place}
                     </div>
                     <p className="mt-1.5 text-[11.5px] leading-snug text-[var(--color-mute)]">
                       {liveLines.length > 0 ? liveLines[0].text : p.shortDesc}

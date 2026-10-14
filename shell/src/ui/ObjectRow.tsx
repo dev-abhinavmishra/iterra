@@ -110,11 +110,11 @@ export function formatRelativeTime(ts?: number): string {
 export const QUICK_SEND_TARGETS = [
   { to: 'timer', action: 'timer.start', label: 'Start 25m focus session' },
   { to: 'flashcards', action: 'cards.create', label: 'Create flashcards' },
-  { to: 'margin', action: 'note.create', label: 'Create study material (Margin)' },
-  { to: 'ink', action: 'note.create', label: 'Create note page (Ink)' },
-  { to: 'proof', action: 'problem.create', label: 'Send to Calculations (Proof)' },
-  { to: 'rhythm', action: 'routine.plan', label: 'Schedule in Attendance (Rhythm)' },
-  { to: 'syllabus', action: 'block.plan', label: 'Plan block in Planning (Syllabus)' },
+  { to: 'margin', action: 'note.create', label: 'Save to Study Materials' },
+  { to: 'ink', action: 'note.create', label: 'Create note page' },
+  { to: 'proof', action: 'problem.create', label: 'Send to Calculations' },
+  { to: 'rhythm', action: 'routine.plan', label: 'Schedule in Attendance' },
+  { to: 'syllabus', action: 'block.plan', label: 'Plan a study block' },
 ] as const;
 
 export function ObjectRow({

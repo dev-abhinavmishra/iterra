@@ -11,6 +11,7 @@ import {
   BookOpen,
   ArrowLeft,
   Plus,
+  ChevronDown,
 } from 'lucide-react';
 import { PLACE_MAP } from '../places';
 import type { Entity, FeedItem, SharedField, StoreEntity } from '../hub';
@@ -19,6 +20,7 @@ import { subscribeShelf, togglePin, type ShelfPin } from '../shelf';
 import {
   Badge,
   Button,
+  DropdownMenu,
   EmptyState,
   RelationshipChip,
   SectionHeader,
@@ -626,7 +628,9 @@ export function CourseWorkspace({
             )}
           </div>
 
-          {/* Primary Course Actions Bar */}
+          {/* Primary Course Actions Bar — the session/review/next-step CTAs
+              stay inline; create-in-other-tool actions fold into one menu so
+              the bar doesn't compete with the content for attention */}
           {!unfiled && (
             <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--color-line)] pt-3.5">
               <Button
@@ -657,40 +661,90 @@ export function CourseWorkspace({
                   Next: {nextCommit.title}
                 </Button>
               )}
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<FileText className="h-3.5 w-3.5" />}
-                onClick={() => void createCourseNote('ink')}
+              <DropdownMenu
+                align="left"
+                trigger={(open, toggle) => (
+                  <button
+                    type="button"
+                    onClick={toggle}
+                    aria-expanded={open}
+                    className="inline-flex items-center gap-1.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-line-2)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                  >
+                    <Plus className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                    <span>New / schedule</span>
+                    <ChevronDown className="h-3 w-3 text-[var(--color-faint)]" />
+                  </button>
+                )}
               >
-                New Note
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<Sigma className="h-3.5 w-3.5" />}
-                onClick={() => void createCourseProblem()}
-              >
-                Add Problem
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                icon={<CheckSquare className="h-3.5 w-3.5" />}
-                onClick={() => void planRegister()}
-              >
-                Add to Attendance
-              </Button>
-              {pendingCommits.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => void planWeek()}
-                  title={`Track ${pendingCommits.length} open commitments on the weekly register`}
-                >
-                  Plan Week ({pendingCommits.length}) →
-                </Button>
-              )}
+                {(close) => (
+                  <div className="w-60 p-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        close();
+                        void createCourseNote('ink');
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                    >
+                      <FileText className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                      <span className="flex-1">New note</span>
+                      <span className="font-mono text-[10px] text-[var(--color-faint)]">Notes</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        close();
+                        void createCourseNote('margin');
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                    >
+                      <FileText className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                      <span className="flex-1">New study sheet</span>
+                      <span className="font-mono text-[10px] text-[var(--color-faint)]">Study Materials</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        close();
+                        void createCourseProblem();
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                    >
+                      <Sigma className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                      <span className="flex-1">Add problem</span>
+                      <span className="font-mono text-[10px] text-[var(--color-faint)]">Calculations</span>
+                    </button>
+                    <div className="my-1 border-t border-[var(--color-line)]" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        close();
+                        void planRegister();
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                    >
+                      <CheckSquare className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                      <span className="flex-1">Add to attendance</span>
+                      <span className="font-mono text-[10px] text-[var(--color-faint)]">Attendance</span>
+                    </button>
+                    {pendingCommits.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          close();
+                          void planWeek();
+                        }}
+                        title={`Track ${pendingCommits.length} open commitments on the weekly register`}
+                        className="flex w-full items-center gap-2.5 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                      >
+                        <Calendar className="h-3.5 w-3.5 text-[var(--color-accent)]" />
+                        <span className="flex-1">Plan week ({pendingCommits.length})</span>
+                        <span className="font-mono text-[10px] text-[var(--color-faint)]">Attendance</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </DropdownMenu>
             </div>
           )}
 
@@ -1020,7 +1074,7 @@ export function CourseWorkspace({
                   icon={<Plus className="h-3.5 w-3.5" />}
                   onClick={() => void createCourseNote('ink')}
                 >
-                  New Note (Ink)
+                  New Note
                 </Button>
                 <Button
                   variant="secondary"
@@ -1028,7 +1082,7 @@ export function CourseWorkspace({
                   icon={<Plus className="h-3.5 w-3.5" />}
                   onClick={() => void createCourseNote('margin')}
                 >
-                  New Study Sheet (Margin)
+                  New Study Sheet
                 </Button>
               </div>
             </div>

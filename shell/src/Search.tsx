@@ -21,12 +21,12 @@ interface Hit {
 }
 
 const SEND_TARGETS: { to: string; action: string; label: string }[] = [
-  { to: 'flashcards', action: 'cards.create', label: 'Flashcards (create card)' },
-  { to: 'margin', action: 'note.create', label: 'Study Materials (Margin note)' },
-  { to: 'ink', action: 'note.create', label: 'Notes (Ink page)' },
-  { to: 'proof', action: 'step.append', label: 'Calculations (Proof step)' },
-  { to: 'rhythm', action: 'log.activity', label: 'Attendance (log activity)' },
-  { to: 'timer', action: 'timer.start', label: 'Timer (25m focus session)' },
+  { to: 'flashcards', action: 'cards.create', label: 'Flashcards — new card' },
+  { to: 'margin', action: 'note.create', label: 'Study Materials — new document' },
+  { to: 'ink', action: 'note.create', label: 'Notes — new page' },
+  { to: 'proof', action: 'step.append', label: 'Calculations — append step' },
+  { to: 'rhythm', action: 'log.activity', label: 'Attendance — log activity' },
+  { to: 'timer', action: 'timer.start', label: 'Timer — 25m focus session' },
 ];
 
 export function Search({
@@ -102,7 +102,7 @@ export function Search({
       {
         app: 'ink',
         kind: 'command',
-        label: 'Create new note in Notes (Ink)',
+        label: 'Create new note in Notes',
         sub: 'Command · Notes',
         url: '#/p/ink',
       },
@@ -157,7 +157,7 @@ export function Search({
       app: p.id,
       kind: 'place',
       label: p.label,
-      sub: `${p.app} · ${p.place} — ${p.shortDesc}`,
+      sub: `${p.place} — ${p.shortDesc}`,
       url: `#/p/${p.id}`,
     }));
 

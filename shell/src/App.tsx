@@ -616,6 +616,7 @@ export default function App() {
                   type="button"
                   onClick={toggle}
                   aria-expanded={open}
+                  title={activePlace ? `${activePlace.app} · ${activePlace.place}` : 'Workspace tools'}
                   className={`inline-flex items-center gap-1.5 rounded-[5px] px-2.5 py-1.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
                     activePlace
                       ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold'
@@ -628,9 +629,6 @@ export default function App() {
                         {activePlace.glyph}
                       </span>
                       <span>{activePlace.label}</span>
-                      <span className="hidden lg:inline font-mono text-[10px] font-normal text-[var(--color-faint)]">
-                        ({activePlace.app})
-                      </span>
                       {woke === activePlace.id && (
                         <span
                           className="live-dot h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]"
@@ -651,7 +649,7 @@ export default function App() {
               {(close) => (
                 <div className="w-72 p-1">
                   <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
-                    Specialized Working Surfaces (⌘1–8)
+                    Tools (⌘1–8)
                   </div>
                   {PLACES.map((p, idx) => {
                     const isCurrent = p.id === active;
@@ -665,6 +663,7 @@ export default function App() {
                           close();
                           enter(p.id);
                         }}
+                        title={`${p.app} — ${p.tagline}`}
                         className={`flex w-full items-center gap-2.5 rounded-[5px] px-2.5 py-2 text-left transition-colors cursor-pointer ${
                           isCurrent
                             ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]'
@@ -678,7 +677,7 @@ export default function App() {
                           <span className="flex items-baseline gap-1.5">
                             <span className="text-[13px] font-semibold">{p.label}</span>
                             <span className="font-mono text-[10px] text-[var(--color-faint)]">
-                              {p.app} · {p.place}
+                              {p.place}
                             </span>
                           </span>
                           <span className="block truncate text-[11px] text-[var(--color-mute)]">
@@ -692,7 +691,7 @@ export default function App() {
                         ) : isWarm ? (
                           <span
                             className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-accent)]"
-                            title="Mounted in memory"
+                            title="Open — resumes where you left it"
                           />
                         ) : (
                           <kbd className="font-mono text-[10px] text-[var(--color-faint)]">
@@ -943,7 +942,7 @@ export default function App() {
                       }}
                       className="flex w-full items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-[11.5px] text-[var(--color-mute)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
                     >
-                      <span>Open Timer Instruments</span>
+                      <span>Open Timer</span>
                       <span>→</span>
                     </button>
                   </div>
