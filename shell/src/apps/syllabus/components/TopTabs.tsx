@@ -1,11 +1,15 @@
+import { isIntegrated } from '../../theme';
+
 export type ViewKey = 'today' | 'semester' | 'calendar' | 'review' | 'settings' | 'course';
 
+/* settings live in the terrain's central surface when integrated — the
+   Registry tab still deep-links via #/p/syllabus?settings */
 const TABS: { key: ViewKey; label: string; hint: string }[] = [
   { key: 'today', label: 'Today', hint: 'T' },
   { key: 'semester', label: 'Semester', hint: 'E' },
   { key: 'calendar', label: 'Calendar', hint: 'C' },
   { key: 'review', label: 'Weekly', hint: 'W' },
-  { key: 'settings', label: 'Registry', hint: ',' },
+  ...(isIntegrated() ? [] : [{ key: 'settings' as const, label: 'Registry', hint: ',' }]),
 ];
 
 export function TopTabs({ view, onNav }: { view: ViewKey; onNav: (v: ViewKey) => void }) {

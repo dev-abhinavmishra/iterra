@@ -120,8 +120,30 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                 flash('error', false);
                 return;
             }
-            await createDeck('From selection', cards);
-            flash('saved', true);
+            /* Integrated: the deck belongs to the Flashcards place — margin
+               only generates the cards. Standalone keeps its own store. */
+            if ((window as any).__iterraIntegrated) {
+                const it = (window as unknown as { iterra?: any }).iterra;
+                const out = await it?.send?.({
+                    to: 'flashcards',
+                    action: 'cards.create',
+                    entity: {
+                        app: 'margin',
+                        type: 'note',
+                        id: note?.id ?? `sel-${Date.now()}`,
+                        title: note?.title || 'untitled',
+                    },
+                    payload: {
+                        cards: cards.map(c => ({ q: c.front, a: c.back })),
+                        deckTitle: note?.title ? `Cards — ${note.title}` : 'From selection',
+                    },
+                });
+                setSentUrl(out?.url ?? null);
+                flash('sent', true);
+            } else {
+                await createDeck('From selection', cards);
+                flash('saved', true);
+            }
             window.getSelection()?.removeAllRanges();
         } catch {
             flash('error', false);

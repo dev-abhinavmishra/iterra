@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { vibrate, cn } from '../lib/utils';
 import { clearSessions } from '../lib/stats';
 import { ACCENTS, useSettings, updateSettings } from '../lib/settings';
+import { isIntegrated, terrainIsDark, toggleTerrainTheme } from '../../theme';
 import { stationChime, flapTick } from '../lib/sound';
 import { KeyButton } from '../components/KeyButton';
 
@@ -93,13 +94,21 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
               on: settings.motion === 'full',
               toggle: () => updateSettings({ motion: settings.motion === 'full' ? 'reduced' : 'full' }),
             },
-            {
+            /* integrated: the board theme IS the terrain theme — the row
+               flips the one switch instead of a timer-local pref */
+            ...(isIntegrated() ? [{
+              icon: <MoonStar size={17} />,
+              title: 'Night board',
+              desc: 'Graphite wall and dim ink — one terrain switch, every tool follows.',
+              on: terrainIsDark(),
+              toggle: () => { toggleTerrainTheme(); },
+            }] : [{
               icon: <MoonStar size={17} />,
               title: 'Night board',
               desc: 'Graphite wall and dim ink for low light. Off keeps the plaster room.',
               on: settings.theme === 'night',
               toggle: () => updateSettings({ theme: settings.theme === 'night' ? 'day' : 'night' }),
-            },
+            }]),
           ].map(row => (
             <div key={row.title} className="flex items-center justify-between p-5 gap-4">
               <div className="flex items-center gap-4">

@@ -16,6 +16,7 @@ import { ExperimentsView } from './views/ExperimentsView';
 import { ConnectionsView } from './views/ConnectionsView';
 import { SettingsView } from './views/SettingsView';
 import { Onboarding } from './views/Onboarding';
+import { isIntegrated } from '../theme';
 import './lib/iterra';
 import './index.css';
 
@@ -66,6 +67,21 @@ function Rhythm({ query = '' }: { query?: string }) {
   useEffect(() => {
     if (focusedExperimentId) setView('experiments');
   }, [focusedExperimentId]);
+
+  /* ?settings — the terrain's central settings surface deep-links here;
+     consumed params strip so the same link fires again later */
+  useEffect(() => {
+    if (!new URLSearchParams(query).has('settings')) return;
+    const h = window.location.hash;
+    const qi = h.indexOf('?');
+    if (qi !== -1) {
+      const q = new URLSearchParams(h.slice(qi + 1));
+      q.delete('settings');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    setView('settings');
+  }, [query]);
 
   if (!booted) {
     return (
@@ -164,7 +180,7 @@ function ChassisShell({
         {!bare && (
           <nav className="mx-auto mt-3 max-w-4xl" role="tablist" aria-label="deck sections">
             <div className="flex gap-1.5 overflow-x-auto pb-1">
-              {TABS.map((t) => (
+              {TABS.filter(t => !isIntegrated() || t.key !== 'settings').map((t) => (
                 <button
                   key={t.key}
                   role="tab"

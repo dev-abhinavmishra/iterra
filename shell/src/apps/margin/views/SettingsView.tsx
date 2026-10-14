@@ -3,6 +3,7 @@ import { AppSettings } from '../types';
 import { Btn, Icon, Kbd, Modal, ProgressBar, Segmented, Select, Toggle } from '../components/ui/primitives';
 import { storageEstimate } from '../services/storageService';
 import { exportBackup, importBackup } from '../services/exportService';
+import { isIntegrated, setTerrainTheme, terrainIsDark } from '../../theme';
 
 interface SettingsViewProps {
   settings: AppSettings;
@@ -78,10 +79,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings,
       <div className="max-w-2xl mx-auto w-full px-4 md:px-6 py-8 space-y-6">
 
         <Section title="Appearance">
-          <Row title="Theme" hint="Light for the desk, dark for the night desk.">
+          {/* integrated: theme is the terrain's single switch — this row
+              flips it for every tool instead of a margin-local pref */}
+          <Row title="Theme" hint={isIntegrated() ? 'One terrain switch — every tool follows.' : 'Light for the desk, dark for the night desk.'}>
             <Segmented
-                value={settings.darkMode ? 'dark' : 'light'}
-                onChange={v => update({ darkMode: v === 'dark' })}
+                value={(isIntegrated() ? terrainIsDark() : settings.darkMode) ? 'dark' : 'light'}
+                onChange={v => isIntegrated()
+                    ? setTerrainTheme(v === 'dark' ? 'graphite' : 'paper')
+                    : update({ darkMode: v === 'dark' })}
                 options={[
                     { value: 'light', label: 'Light', icon: 'light_mode' },
                     { value: 'dark', label: 'Dark', icon: 'dark_mode' },

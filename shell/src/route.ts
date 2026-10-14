@@ -1,6 +1,6 @@
 import { PLACE_MAP } from './places';
 
-export type WorkspaceSection = 'today' | 'courses' | 'library' | 'place';
+export type WorkspaceSection = 'today' | 'courses' | 'library' | 'place' | 'settings';
 
 export interface ParsedRoute {
   place: string;
@@ -24,10 +24,15 @@ function attachMeta(
    '#/courses'      → Courses directory (section: 'courses')
    '#/c/<key>'      → Course workspace (section: 'courses', course: '<key>')
    '#/library'      → Unified library browser (section: 'library')
+   '#/settings'     → Central settings surface (section: 'settings')
    '#/p/<place>[?q]'→ Embedded tool view (section: 'place', place: '<place>')
 */
 export function parseHash(hash: string): ParsedRoute {
   const h = hash.replace(/^#\/?/, '');
+  if (h === 'settings' || h.startsWith('settings?')) {
+    const q = h.includes('?') ? h.slice(h.indexOf('?') + 1) : '';
+    return attachMeta({ place: '', course: '' }, q, 'settings');
+  }
   if (h === 'courses' || h.startsWith('courses?')) {
     const q = h.includes('?') ? h.slice(h.indexOf('?') + 1) : '';
     return attachMeta({ place: '', course: '' }, q, 'courses');

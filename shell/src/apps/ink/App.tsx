@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import type { InitialEntry } from 'react-router-dom';
 import { MotionConfig } from 'motion/react';
 import { MainLayout } from './components/layout/MainLayout';
@@ -22,6 +22,27 @@ let wired = false;
    the right view. */
 const INK_ROUTES = new Set(['favorites', 'recent', 'tags', 'focus', 'insights', 'web', 'trash']);
 
+/* Re-navigates on ?p=<route> while the desk stays mounted — same contract
+   as initialEntries, for keep-alive re-delivery. The param is consumed so
+   the same link can fire again later. */
+function QueryBridge({ query }: { query: string }) {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const p = new URLSearchParams(query).get('p');
+    if (!p || !INK_ROUTES.has(p)) return;
+    const h = window.location.hash;
+    const qi = h.indexOf('?');
+    if (qi !== -1) {
+      const q = new URLSearchParams(h.slice(qi + 1));
+      q.delete('p');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    navigate(`/${p}`);
+  }, [query, navigate]);
+  return null;
+}
+
 function App({ query = '' }: { query?: string }) {
   const [initialEntry] = useState<InitialEntry>(() => {
     const p = new URLSearchParams(query).get('p');
@@ -34,10 +55,29 @@ function App({ query = '' }: { query?: string }) {
 
   useEffect(() => { applyInboundLink(query); }, [query]);
 
+  /* ?settings — the terrain's central settings surface deep-links into the
+     desk's own settings sheet (opened by SideNavBar's listener). The param
+     strips so the same link fires again later. */
+  useEffect(() => {
+    if (!new URLSearchParams(query).has('settings')) return;
+    const h = window.location.hash;
+    const qi = h.indexOf('?');
+    if (qi !== -1) {
+      const q = new URLSearchParams(h.slice(qi + 1));
+      q.delete('settings');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    window.dispatchEvent(new CustomEvent('ink:open-settings'));
+  }, [query]);
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="it-place-ink h-full w-full">
         <MemoryRouter initialEntries={[initialEntry]}>
+          {/* p= links arriving while mounted (the place stays alive) still
+              navigate — initialEntries only seeds the first mount */}
+          <QueryBridge query={query} />
           <Routes>
             <Route element={<MainLayout />}>
               <Route path="/" element={

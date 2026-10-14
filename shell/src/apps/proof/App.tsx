@@ -33,12 +33,12 @@ export default function App({ query = '' }: { query?: string }) {
   useEffect(() => { useWorkbench.getState().boot(query); }, [query]);
   return (
     <div className="it-place-proof h-full w-full" data-motion={motion}>
-      <ProofWorkbench />
+      <ProofWorkbench query={query} />
     </div>
   );
 }
 
-function ProofWorkbench() {
+function ProofWorkbench({ query = '' }: { query?: string }) {
   const problemCount = useWorkbench((s) => Object.keys(s.problems).length);
   /* due badge counts only reviews whose problem still exists and isn't
      archived — same rule the adapter's presence summary reports */
@@ -55,6 +55,22 @@ function ProofWorkbench() {
   const startAttempt = (attemptId: string, sessionId?: string) =>
     setRoute({ view: 'attempt', attemptId, sessionId });
   const openCompare = (attemptId: string) => setRoute({ view: 'compare', compareAttemptId: attemptId });
+
+  /* ?settings — the terrain's central settings surface deep-links here;
+     consumed params strip so the same link fires again later */
+  useEffect(() => {
+    if (!new URLSearchParams(query).has('settings')) return;
+    const h = window.location.hash;
+    const qi = h.indexOf('?');
+    if (qi !== -1) {
+      const q = new URLSearchParams(h.slice(qi + 1));
+      q.delete('settings');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    goView('settings');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   // inbound deep links (Syllabus session requests, ?problem=<id>) — once, after boot
   useEffect(() => {

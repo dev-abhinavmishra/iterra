@@ -59,7 +59,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, notes, o
         { kind: 'action', id: 'record', icon: 'mic', label: 'Record', run: () => onNavigate(View.RECORDER) },
         { kind: 'action', id: 'notes', icon: 'note_stack', label: 'Go to Notes', run: () => onNavigate(View.LIBRARY) },
         { kind: 'action', id: 'ask', icon: 'forum', label: 'Go to Ask', run: () => onNavigate(View.ANALYSIS) },
-        { kind: 'action', id: 'study', icon: 'style', label: 'Go to Study', run: () => onNavigate(View.STUDY) },
+        /* decks+quizzes live in the Flashcards place when integrated — the
+           Study view itself stays reachable via ?deck=/?quiz= deep links */
+        ...((window as any).__iterraIntegrated
+            ? []
+            : [{ kind: 'action', id: 'study', icon: 'style', label: 'Go to Study', run: () => onNavigate(View.STUDY) } as ActionItem]),
         { kind: 'action', id: 'pinned', icon: 'keep', label: 'Go to Pinned', run: () => onNavigate(View.BOOKMARKS) },
         { kind: 'action', id: 'recent', icon: 'history', label: 'Go to Recently viewed', run: () => onNavigate(View.HISTORY) },
         { kind: 'action', id: 'settings', icon: 'settings', label: 'Go to Settings', run: () => onNavigate(View.SETTINGS) },

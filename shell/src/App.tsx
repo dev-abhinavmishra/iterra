@@ -25,8 +25,10 @@ import {
   Library,
   Wrench,
   EllipsisVertical,
+  Settings2,
 } from 'lucide-react';
 import { PLACES, PLACE_MAP } from './places';
+import { SettingsSurface } from './settings/SettingsSurface';
 import {
   subscribePresences,
   subscribeShared,
@@ -811,7 +813,7 @@ export default function App() {
                     }}
                     className="flex w-full items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-mute)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
                   >
-                    <span>Unfiled items</span>
+                    <span>Getting Started</span>
                     <span>→</span>
                   </button>
                 </div>
@@ -1008,6 +1010,17 @@ export default function App() {
                   type="button"
                   onClick={() => {
                     close();
+                    goUrl('#/settings');
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                >
+                  <Settings2 className="h-3.5 w-3.5 text-[var(--color-mute)]" />
+                  <span>Settings</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
                     setCheatOpen(true);
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
@@ -1110,6 +1123,8 @@ export default function App() {
                   onGo={goUrl}
                   onEnter={enter}
                 />
+              ) : section === 'settings' ? (
+                <SettingsSurface onGo={goUrl} />
               ) : section === 'library' ? (
                 <LibraryView
                   entities={entities}

@@ -54,6 +54,20 @@ export default function App({ query = '' }: { query?: string }) {
     if (h.includes('?')) window.location.hash = h.slice(0, h.indexOf('?'));
   }, [query]);
 
+  /* ?settings — the terrain's central settings surface deep-links here;
+     consumed params strip so the same link fires again later */
+  useEffect(() => {
+    if (!new URLSearchParams(query).has('settings')) return;
+    setRoute({ view: 'settings' });
+    const h = window.location.hash;
+    if (h.includes('?')) {
+      const q = new URLSearchParams(h.slice(h.indexOf('?') + 1));
+      q.delete('settings');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, h.indexOf('?')) + (rest ? '?' + rest : '');
+    }
+  }, [query]);
+
   const nav = (patch: Partial<RouteState>) => setRoute((r) => ({ ...r, ...patch }));
   const goView = (view: ViewKey) => setRoute({ view });
   const openCourse = (courseId: string) => setRoute({ view: 'course', courseId });

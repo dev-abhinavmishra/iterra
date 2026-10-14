@@ -32,7 +32,28 @@ const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
         if (saved || saving || questions.length === 0) return;
         setSaving(true);
         try {
-            await createQuiz(data.title || 'Quiz from Ask', questions);
+            /* Integrated: quizzes save as a Flashcards deck — each question
+               becomes a card (front: question + options, back: the answer). */
+            if ((window as any).__iterraIntegrated) {
+                const it = (window as unknown as { iterra?: any }).iterra;
+                const cards = questions.map(q => {
+                    const ci = correctOptionIndex(q.options, q.answer);
+                    const opts = (q.options || []).map((o, i) =>
+                        `${String.fromCharCode(65 + i)}. ${o}`).join('\n');
+                    return {
+                        q: `${q.question}${opts ? `\n\n${opts}` : ''}`,
+                        a: `${String.fromCharCode(65 + ci)}. ${q.options?.[ci] ?? q.answer}`,
+                    };
+                });
+                await it?.send?.({
+                    to: 'flashcards',
+                    action: 'cards.create',
+                    entity: { app: 'margin', type: 'note', id: `quiz-${Date.now()}`, title: data.title || 'Quiz from Ask' },
+                    payload: { cards, deckTitle: data.title || 'Quiz from Ask' },
+                });
+            } else {
+                await createQuiz(data.title || 'Quiz from Ask', questions);
+            }
             setSaved(true);
         } catch (e) {
             console.error('Save quiz failed', e);
@@ -40,6 +61,8 @@ const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
             setSaving(false);
         }
     };
+
+    const integrated = (window as any).__iterraIntegrated;
 
     return (
         <div className="bg-card border border-line rounded-[var(--r-lg)] shadow-card max-w-2xl mx-auto overflow-hidden">
@@ -114,7 +137,7 @@ const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
                         disabled={saved || saving || questions.length === 0}
                         icon={saved ? 'check' : 'bookmark_add'}
                     >
-                        {saved ? 'Saved to Study' : saving ? 'Saving…' : 'Save to Study'}
+                        {saved ? (integrated ? 'Saved to Flashcards' : 'Saved to Study') : saving ? 'Saving…' : (integrated ? 'Save to Flashcards' : 'Save to Study')}
                     </Btn>
                 </div>
             </div>

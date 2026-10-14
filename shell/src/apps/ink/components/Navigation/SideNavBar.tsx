@@ -6,6 +6,7 @@ import {
   Folder, FolderPlus, Trash2, Settings, Spline,
 } from 'lucide-react';
 import { useStore } from '../../store';
+import { isIntegrated } from '../../../theme';
 import { SettingsPopover } from '../SettingsPopover';
 import { todayKey } from '../../lib/notes';
 import { useNow } from '../../lib/useNow';
@@ -45,6 +46,14 @@ export const SideNavBar: React.FC = () => {
   // an imported page with a future date would freeze it forever — so the
   // store keeps a monotonic write counter instead.
   const lastWrite = useStore(s => s.writeSeq);
+
+  /* #/p/ink?settings deep-links from the terrain's central settings
+     surface open the desk's own sheet */
+  React.useEffect(() => {
+    const open = () => setSettingsOpen(true);
+    window.addEventListener('ink:open-settings', open);
+    return () => window.removeEventListener('ink:open-settings', open);
+  }, []);
 
   const submitFolder = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -175,13 +184,17 @@ export const SideNavBar: React.FC = () => {
           )}
         </NavLink>
         <div className="relative">
-          <button
-            onClick={() => setSettingsOpen(open => !open)}
-            className="ink-bleed w-full flex items-center gap-2.5 pl-4 pr-3 py-[7px] rounded text-[13px] text-ink-faint hover:text-ink transition-colors"
-          >
-            <Settings className="w-4 h-4 flex-shrink-0" strokeWidth={1.75} />
-            <span className="flex-1 text-left truncate">Settings</span>
-          </button>
+          {/* settings live in the terrain's central surface when integrated —
+              the popover stays mounted for the ?settings deep link below */}
+          {!isIntegrated() && (
+            <button
+              onClick={() => setSettingsOpen(open => !open)}
+              className="ink-bleed w-full flex items-center gap-2.5 pl-4 pr-3 py-[7px] rounded text-[13px] text-ink-faint hover:text-ink transition-colors"
+            >
+              <Settings className="w-4 h-4 flex-shrink-0" strokeWidth={1.75} />
+              <span className="flex-1 text-left truncate">Settings</span>
+            </button>
+          )}
           <SettingsPopover open={settingsOpen} onClose={() => setSettingsOpen(false)} />
         </div>
 

@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { PLACE_MAP } from '../places';
+import { GETTING_STARTED } from '../gettingStarted';
 import type { Entity, FeedItem, SharedField, StoreEntity } from '../hub';
 import { sendTo } from '../hub';
 import { subscribeShelf, togglePin, type ShelfPin } from '../shelf';
@@ -540,7 +541,7 @@ export function CourseWorkspace({
               </button>
               <span className="text-[var(--color-line-2)]">/</span>
               <span className="font-mono font-semibold uppercase text-[var(--color-accent)]">
-                {unfiled ? 'Unfiled' : display}
+                {unfiled ? 'Getting Started' : display}
               </span>
             </div>
 
@@ -570,7 +571,7 @@ export function CourseWorkspace({
             <div>
               <div className="flex items-baseline gap-2.5">
                 <h1 className="font-place text-[26px] font-semibold tracking-tight text-[var(--color-ink)]">
-                  {unfiled ? 'Unfiled Workspace Items' : display}
+                  {unfiled ? 'Getting Started' : display}
                 </h1>
                 {courseTitle && (
                   <span className="text-[16px] text-[var(--color-mute)] font-medium">
@@ -581,7 +582,7 @@ export function CourseWorkspace({
               <p className="mt-1 text-[12.5px] text-[var(--color-mute)]">
                 {courseObjects.length === 0
                   ? unfiled
-                    ? 'Every item in the workspace is currently filed under a course or topic.'
+                    ? 'Guides for every tool live here — items without a course land here too.'
                     : 'No objects filed under this course yet. Start a focus session, note, deck, or study block below.'
                   : [
                       `${courseObjects.length} item${courseObjects.length === 1 ? '' : 's'}`,
@@ -745,6 +746,54 @@ export function CourseWorkspace({
                   </div>
                 )}
               </DropdownMenu>
+            </div>
+          )}
+
+          {/* Guides — the unfiled workspace is the Getting Started folder:
+              one card per place with the first three moves, then any
+              not-yet-filed items below. */}
+          {unfiled && (
+            <div className="mt-4 border-t border-[var(--color-line)] pt-3.5">
+              <SectionHeader title="Guides for every tool" />
+              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                {GETTING_STARTED.map((g) => {
+                  const p = PLACE_MAP[g.place];
+                  if (!p) return null;
+                  return (
+                    <button
+                      key={g.place}
+                      type="button"
+                      onClick={() => onEnter(g.place)}
+                      className="group rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] p-3 text-left hover:border-[var(--color-accent)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="h-4 w-4 shrink-0 text-[var(--color-accent)] [&>svg]:h-full [&>svg]:w-full">
+                          {p.glyph}
+                        </span>
+                        <span className="text-[13px] font-semibold text-[var(--color-ink)]">
+                          {p.label}
+                        </span>
+                        <span className="font-mono text-[10px] text-[var(--color-faint)]">
+                          {p.place}
+                        </span>
+                        <span className="ml-auto text-[11px] font-medium text-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity">
+                          Open →
+                        </span>
+                      </div>
+                      <ol className="mt-2 space-y-1 text-[12px] leading-snug text-[var(--color-mute)] list-none">
+                        {g.steps.map((s, i) => (
+                          <li key={i} className="flex gap-2">
+                            <span className="font-mono text-[10px] text-[var(--color-faint)] mt-px shrink-0">
+                              {i + 1}.
+                            </span>
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 

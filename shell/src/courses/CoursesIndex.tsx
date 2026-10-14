@@ -204,9 +204,9 @@ export function CoursesIndex({
           />
         )}
 
-        {/* Unfiled Workspace Card */}
+        {/* Getting Started workspace — guides + anything not yet filed */}
         <section className="pt-2">
-          <SectionHeader title="Unfiled Items" />
+          <SectionHeader title="Getting Started" />
           <button
             type="button"
             onClick={() => onGo('#/c/unfiled')}
@@ -218,17 +218,17 @@ export function CoursesIndex({
               </div>
               <div>
                 <div className="text-[13.5px] font-semibold text-[var(--color-ink)]">
-                  Unfiled Notes, Decks &amp; Items
+                  Getting Started
                 </div>
                 <div className="text-[12px] text-[var(--color-mute)]">
                   {unfiledCount > 0
-                    ? `${unfiledCount} item${unfiledCount === 1 ? '' : 's'} not yet assigned to a specific course`
-                    : 'All current items carry a course or topic key'}
+                    ? `Guides for every tool, plus ${unfiledCount} item${unfiledCount === 1 ? '' : 's'} not yet assigned to a course`
+                    : 'Guides for every tool — everything current is filed under a course'}
                 </div>
               </div>
             </div>
             <span className="text-[12px] font-medium text-[var(--color-accent)]">
-              Open Unfiled →
+              Open →
             </span>
           </button>
         </section>

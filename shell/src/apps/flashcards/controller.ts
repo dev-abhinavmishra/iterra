@@ -10,14 +10,24 @@ import { wireFlashcardsAdapter } from './iterra-adapter';
 
 let mounted = false;
 let lastQuery = undefined;
+/* bumped on every mount — global listeners from an older mount (bound to
+   a detached root) check it and no-op instead of mutating orphaned state */
+let mountGen = 0;
 
 let parseUrlDeckRef: ((q: string) => boolean) | undefined;
 
 export function mountFlashcards(rootEl: HTMLElement, query: string) {
   if (mounted) {
-    if (query !== lastQuery) { lastQuery = query; parseUrlDeckRef?.(query); }
-    return;
+    if (rootEl.dataset.fcWired === '1') {
+      if (query !== lastQuery) { lastQuery = query; parseUrlDeckRef?.(query); }
+      return;
+    }
+    /* React swapped the place node (boundary reset / suspense re-commit)
+       while the module stayed alive — fall through and rebind everything
+       against the new root. Deck state restores from localStorage. */
+    console.warn('[flashcards] place root remounted — rebinding controller');
   }
+  const gen = ++mountGen;
   const stripPlaceQuery = () => {
     const h = window.location.hash;
     const qi = h.indexOf('?');
@@ -165,11 +175,18 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     if (motionPref === 'off') return true;
     return osReduceMQ.matches;
   }
+  // The shell keeps places alive but React can still remount this node
+  // (boundary reset / suspense re-commit) — always stamp the live root.
+  function livePlaceRoot() {
+    if (rootEl.isConnected) return rootEl;
+    return (document.querySelector('.it-place-flashcards') as HTMLElement | null) || rootEl;
+  }
   function applyMotionPref(pref) {
     motionPref = pref;
     try { localStorage.setItem(MOTION_KEY, pref); } catch {}
-    if (pref === 'auto') rootEl.removeAttribute('data-motion');
-    else rootEl.setAttribute('data-motion', pref);
+    const el = livePlaceRoot();
+    if (pref === 'auto') el.removeAttribute('data-motion');
+    else el.setAttribute('data-motion', pref);
     const btn = $('motion-btn');
     if (btn) {
       btn.dataset.state = pref;
@@ -567,6 +584,14 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         }
       } catch { toast('Bad card data in link.'); }
       stripPlaceQuery();
+      return true;
+    }
+    /* ?settings — the terrain's central settings surface deep-links here;
+       the cardfile's own knobs are the keyboard map + the header's
+       theme/motion buttons (which flip the terrain switch when integrated) */
+    if (p.has('settings')) {
+      stripPlaceQuery();
+      openShortcuts();
       return true;
     }
     return false;
@@ -1976,8 +2001,9 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   /* ---------------- theme / fullscreen / menu ---------------- */
 
   function applyTheme(dark) {
-    if (dark) rootEl.setAttribute('data-theme', 'dark');
-    else rootEl.removeAttribute('data-theme');
+    const el = livePlaceRoot();
+    if (dark) el.setAttribute('data-theme', 'dark');
+    else el.removeAttribute('data-theme');
     try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch {}
   }
 
@@ -2005,13 +2031,14 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       btn.setAttribute('aria-expanded', String(open));
     });
     document.addEventListener('click', e => {
-      if (!placeActive('flashcards')) return;
+      if (gen !== mountGen || !placeActive('flashcards')) return;
       if (!menu.hidden && !menu.contains(e.target) && e.target !== btn) menu.hidden = true;
       const rm = $('row-menu');
       if (rm && !rm.hidden && !rm.contains(e.target) && !e.target.closest('.dr-kebab')) { rm.hidden = true; rowMenuFor = null; }
     });
     // row-menu is position:fixed — scrolling would detach it from its row, so close instead
     window.addEventListener('scroll', () => {
+      if (gen !== mountGen) return;
       const rm = $('row-menu');
       if (rm && !rm.hidden) { rm.hidden = true; rowMenuFor = null; }
     }, true);
@@ -2224,12 +2251,12 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       saveStore(); resetSessions(); renderEditor(); renderLibrary(); renderMeta();
     });
   
-    window.addEventListener('resize', positionTabInk);
+    window.addEventListener('resize', () => { if (gen === mountGen) positionTabInk(); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(positionTabInk);
   
     // global keys
     document.addEventListener('keydown', e => {
-      if (!placeActive('flashcards')) return;
+      if (gen !== mountGen || !placeActive('flashcards')) return;
       if (!els.veil.hidden) {
         if (e.key === 'Escape') closeModal();
         return;
@@ -2286,14 +2313,14 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     // theme — integrated places follow the terrain's single switch
     if (isIntegrated()) {
       applyTheme(terrainIsDark());
-      onTerrainTheme(t => applyTheme(t === 'graphite'));
+      onTerrainTheme(t => { if (gen === mountGen) applyTheme(t === 'graphite'); });
     } else {
       const stored = (() => { try { return localStorage.getItem(THEME_KEY) || localStorage.getItem('theme'); } catch { return null; } })();
       const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
       applyTheme(stored ? stored === 'dark' : prefersDark);
     }
     applyMotionPref(motionPref);
-    if (osReduceMQ.addEventListener) osReduceMQ.addEventListener('change', () => applyMotionPref(motionPref));
+    if (osReduceMQ.addEventListener) osReduceMQ.addEventListener('change', () => { if (gen === mountGen) applyMotionPref(motionPref); });
   
     // migrate: old single-file app stored decks as 'flashcard_deck_*'.
     // Each key is migrated once — deleting the imported deck must not resurrect it.
@@ -2377,6 +2404,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
 
   mounted = true;
   lastQuery = query;
+  rootEl.dataset.fcWired = '1';
   /* the adapter reaches these through window.__fcApp — assign before it wires */
   (window as any).__fcApp = { state, createDeck, newCard, diacritics, saveStore, selectDeck };
   boot(query);

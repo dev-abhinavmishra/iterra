@@ -1,6 +1,7 @@
 import { cn } from '../lib/utils';
 import type { RouteState } from '../App';
 import { HelpCircle } from 'lucide-react';
+import { isIntegrated } from '../../theme';
 
 /** Turnstile ⊢ — the app mark: a proof asserting its conclusion. */
 function Turnstile() {
@@ -75,9 +76,13 @@ export function TopTabs({
         </nav>
       </div>
       <div className="flex items-center gap-1 pb-1">
-        <button className="dtab" onClick={() => goView('settings')} aria-current={route.view === 'settings' ? 'page' : undefined}>
-          Settings
-        </button>
+        {/* settings live in the terrain's central surface when integrated —
+            still reachable via #/p/proof?settings */}
+        {!isIntegrated() && (
+          <button className="dtab" onClick={() => goView('settings')} aria-current={route.view === 'settings' ? 'page' : undefined}>
+            Settings
+          </button>
+        )}
         <button className="xbtn text-[rgb(244_242_234/0.6)] hover:text-[var(--color-paper)]" onClick={onHelp} aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">
           <HelpCircle size={16} />
         </button>

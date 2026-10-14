@@ -1,9 +1,10 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '../store';
 import { Icon, Button, Input, Toggle, PageHeader, Bubble } from '../components/ui';
 import { GradingScale, downloadFile, DEFAULT_SCALE } from '../lib/grading';
 import { firebaseEnabled, signInWithGoogle, logOut, describeAuthError } from '../lib/firebase';
 import { feed } from '../lib/iterra';
+import { isIntegrated, onTerrainTheme, setTerrainTheme, terrainIsDark } from '../../theme';
 
 const SCALE_ROWS: Array<{ letter: keyof GradingScale; hint: string }> = [
   { letter: 'A', hint: 'excellent' },
@@ -91,11 +92,24 @@ export function Settings() {
     flash('Everything cleared.');
   };
 
-  const themes: Array<{ id: 'light' | 'dark' | 'system'; label: string; icon: string }> = [
-    { id: 'light', label: 'Paper', icon: 'light_mode' },
-    { id: 'dark', label: 'Ink', icon: 'dark_mode' },
-    { id: 'system', label: 'System', icon: 'contrast' },
-  ];
+  /* integrated: appearance is the terrain's single switch — the bubbles
+     flip it for every tool instead of a gradestack-local pref */
+  const integrated = isIntegrated();
+  const [terrainDark, setTerrainDark] = useState(terrainIsDark());
+  useEffect(() => onTerrainTheme(t => setTerrainDark(t === 'graphite')), []);
+  const themes: Array<{ id: 'light' | 'dark' | 'system'; label: string; icon: string }> = integrated
+    ? [
+      { id: 'light', label: 'Paper', icon: 'light_mode' },
+      { id: 'dark', label: 'Ink', icon: 'dark_mode' },
+    ]
+    : [
+      { id: 'light', label: 'Paper', icon: 'light_mode' },
+      { id: 'dark', label: 'Ink', icon: 'dark_mode' },
+      { id: 'system', label: 'System', icon: 'contrast' },
+    ];
+  const themeOn = (id: string) => integrated ? ((id === 'dark') === terrainDark) : theme === id;
+  const themePick = (id: 'light' | 'dark' | 'system') =>
+    integrated ? setTerrainTheme(id === 'dark' ? 'graphite' : 'paper') : setTheme(id);
 
   return (
     <div className="p-6 lg:p-10 max-w-3xl mx-auto w-full flex-1">
@@ -111,14 +125,16 @@ export function Settings() {
       {/* Appearance — pick a bubble, like marking a sheet */}
       <section className="doc p-6 mb-6">
         <h2 className="font-display text-lg font-semibold mb-1">Appearance</h2>
-        <p className="text-sm text-pencil mb-5">Fill one bubble.</p>
+        <p className="text-sm text-pencil mb-5">
+          {integrated ? 'One terrain switch — every tool follows. Fill one bubble.' : 'Fill one bubble.'}
+        </p>
         <div className="flex gap-6">
           {themes.map(t => (
             <div key={t.id} className="flex flex-col items-center gap-2">
-              <Bubble filled={theme === t.id} size={30} onClick={() => setTheme(t.id)} title={t.label} />
+              <Bubble filled={themeOn(t.id)} size={30} onClick={() => themePick(t.id)} title={t.label} />
               <button
-                onClick={() => setTheme(t.id)}
-                className={`text-xs font-semibold flex items-center gap-1 transition-colors ${theme === t.id ? 'text-ink' : 'text-faint hover:text-pencil'}`}
+                onClick={() => themePick(t.id)}
+                className={`text-xs font-semibold flex items-center gap-1 transition-colors ${themeOn(t.id) ? 'text-ink' : 'text-faint hover:text-pencil'}`}
               >
                 <Icon name={t.icon} size={14} />
                 {t.label}

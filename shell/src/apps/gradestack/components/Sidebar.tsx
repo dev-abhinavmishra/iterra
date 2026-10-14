@@ -5,14 +5,17 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Icon, BubbleMark } from './ui';
 import { useActiveCourse } from '../lib/iterra';
+import { isIntegrated } from '../../theme';
 
+/* settings live in the terrain's central surface when integrated — the
+   /settings route still deep-links via #/p/gradestack?p=settings */
 const navItems = [
   { path: '/', icon: 'home', label: 'Dashboard' },
   { path: '/builder', icon: 'edit_note', label: 'Sheet Builder' },
   { path: '/scan', icon: 'document_scanner', label: 'Scan Sheets' },
   { path: '/history', icon: 'library_books', label: 'Test History' },
   { path: '/analytics', icon: 'monitoring', label: 'Score Analytics' },
-  { path: '/settings', icon: 'tune', label: 'Settings' },
+  ...(isIntegrated() ? [] : [{ path: '/settings', icon: 'tune', label: 'Settings' }]),
 ];
 
 export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {

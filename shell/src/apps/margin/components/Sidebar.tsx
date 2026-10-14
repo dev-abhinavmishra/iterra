@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from '../types';
 import { useUsage } from '../services/usageService';
 import { Icon, Kbd, ProgressBar } from './ui/primitives';
+import { isIntegrated } from '../../theme';
 
 interface SidebarProps {
     currentView: View;
@@ -20,12 +21,18 @@ const CardMark: React.FC = () => (
     </svg>
 );
 
-const NAV: { view: View; icon: string; label: string }[] = [
+const ALL_NAV: { view: View; icon: string; label: string }[] = [
     { view: View.LIBRARY, icon: 'note_stack', label: 'Notes' },
     { view: View.RECORDER, icon: 'mic', label: 'Record' },
     { view: View.ANALYSIS, icon: 'forum', label: 'Ask' },
     { view: View.STUDY, icon: 'style', label: 'Study' },
 ];
+
+/* Integrated: decks+quizzes belong to the Flashcards place — margin's own
+   Study view stays reachable via ?deck=/?quiz= deep links but leaves nav. */
+const NAV = (window as any).__iterraIntegrated
+    ? ALL_NAV.filter(n => n.view !== View.STUDY)
+    : ALL_NAV;
 
 /* Library filters and the note editor all live under "Notes". */
 const isActive = (nav: View, current: View): boolean =>
@@ -112,11 +119,30 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, onUpgrade,
                 </button>
 
                 {NAV.map(navButton)}
+
+                {/* Integrated: review lives in the Flashcards place — the
+                    sidebar hands off instead of duplicating decks here. */}
+                {isIntegrated() && (
+                    <button
+                        onClick={() => {
+                            try { (window as any).iterra?.open?.('#/p/flashcards'); }
+                            catch { window.location.hash = '#/p/flashcards'; }
+                        }}
+                        title="Flashcards — decks and review live in the Cardfile"
+                        className="w-full flex items-center justify-center lg:justify-start gap-2.5 h-9 px-0 lg:px-2.5 rounded-[var(--r)] border border-transparent text-sm font-sans font-medium text-ink-2 hover:bg-[var(--card-2)] hover:text-ink transition-colors duration-150"
+                    >
+                        <Icon name="style" size={19} />
+                        <span className="hidden lg:block">Flashcards</span>
+                        <Icon name="arrow_outward" size={14} className="hidden lg:block ml-auto opacity-50" />
+                    </button>
+                )}
             </nav>
 
             <div className="border-t border-line p-2 lg:p-3">
                 <UsageMeter onUpgrade={onUpgrade} />
-                {navButton({ view: View.SETTINGS, icon: 'settings', label: 'Settings' })}
+                {/* settings live in the terrain's central surface when
+                    integrated — still reachable via #/p/margin?settings */}
+                {!isIntegrated() && navButton({ view: View.SETTINGS, icon: 'settings', label: 'Settings' })}
             </div>
         </aside>
     );

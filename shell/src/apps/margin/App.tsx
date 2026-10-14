@@ -24,7 +24,7 @@ const WELCOME_NOTE = (): Note => ({
     id: 'welcome',
     title: 'Getting started',
     date: new Date().toLocaleDateString(),
-    content: `<h1>Getting started</h1><p>This is your notebook. Everything you record or import lands here as a card — edit it, pin it, or turn it into study material.</p><h2>The pieces</h2><ul><li><b>Record</b> captures a lecture or voice memo, transcribes it, and structures it into a guide.</li><li><b>Notes</b> is the card index — every source lives here, searchable and sorted.</li><li><b>Ask</b> chats with your whole library at once and can draft quizzes and flashcards.</li><li><b>Study</b> holds your decks and quizzes — review cards on a spaced schedule.</li></ul><h2>Useful moves</h2><ul><li>Press <b>⌘K</b> to jump anywhere, search, or start something new.</li><li>Select any text to ask about it, summarize it, or make flashcards from it.</li><li>Drop a PDF, Word doc, image, or audio file onto <b>Notes</b> to import it.</li></ul>`,
+    content: `<h1>Getting started</h1><p>This is your notebook. Everything you record or import lands here as a card — edit it, pin it, or turn it into study material.</p><h2>The pieces</h2><ul><li><b>Record</b> captures a lecture or voice memo, transcribes it, and structures it into a guide.</li><li><b>Notes</b> is the card index — every source lives here, searchable and sorted.</li><li><b>Ask</b> chats with your whole library at once and can draft quizzes and flashcards.</li><li><b>Flashcards</b> — decks live in the Cardfile app. Anything you send from here opens there for spaced review.</li></ul><h2>Useful moves</h2><ul><li>Press <b>⌘K</b> to jump anywhere, search, or start something new.</li><li>Select any text to ask about it, summarize it, or make flashcards from it.</li><li>Drop a PDF, Word doc, image, or audio file onto <b>Notes</b> to import it.</li></ul>`,
     transcript: '',
     type: 'TEXT',
     tags: ['Guide'],
@@ -139,6 +139,10 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
             strip();
             setStudyRequest({ kind: deck ? 'deck' : 'quiz', id: (deck || quiz)! });
             setCurrentView(View.STUDY);
+        } else if (params.has('settings')) {
+            /* the terrain's central settings surface deep-links here */
+            strip();
+            setCurrentView(View.SETTINGS);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded, query]);

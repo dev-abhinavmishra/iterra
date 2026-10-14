@@ -34,7 +34,22 @@ const FlashcardWidget: React.FC<FlashcardWidgetProps> = ({ data }) => {
         if (saved || saving) return;
         setSaving(true);
         try {
-            await createDeck(data?.title || 'Cards from Ask', cards);
+            /* Integrated: save into the Flashcards place — margin's own Study
+               store is only for standalone. */
+            if ((window as any).__iterraIntegrated) {
+                const it = (window as unknown as { iterra?: any }).iterra;
+                await it?.send?.({
+                    to: 'flashcards',
+                    action: 'cards.create',
+                    entity: { app: 'margin', type: 'note', id: `ask-${Date.now()}`, title: data?.title || 'Cards from Ask' },
+                    payload: {
+                        cards: cards.map(c => ({ q: c.front, a: c.back })),
+                        deckTitle: data?.title || 'Cards from Ask',
+                    },
+                });
+            } else {
+                await createDeck(data?.title || 'Cards from Ask', cards);
+            }
             setSaved(true);
         } catch (e) {
             console.error('Save deck failed', e);
@@ -42,6 +57,8 @@ const FlashcardWidget: React.FC<FlashcardWidgetProps> = ({ data }) => {
             setSaving(false);
         }
     };
+
+    const integrated = (window as any).__iterraIntegrated;
 
     return (
         <div className="max-w-md mx-auto">
@@ -101,7 +118,7 @@ const FlashcardWidget: React.FC<FlashcardWidgetProps> = ({ data }) => {
                     disabled={saved || saving}
                     icon={saved ? 'check' : 'bookmark_add'}
                 >
-                    {saved ? 'Saved to Study' : saving ? 'Saving…' : 'Save to Study'}
+                    {saved ? (integrated ? 'Saved to Flashcards' : 'Saved to Study') : saving ? 'Saving…' : (integrated ? 'Save to Flashcards' : 'Save to Study')}
                 </Btn>
             </div>
         </div>

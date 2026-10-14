@@ -4,7 +4,7 @@ import { Timer, Watch, Clock, Repeat2, LayoutGrid, BarChart3, Settings } from 'l
 import { cn, vibrate } from './lib/utils';
 import { unlockAudio, flapTick } from './lib/sound';
 import { applySettings, useSettings } from './lib/settings';
-import { onTerrainTheme } from '../theme';
+import { isIntegrated, onTerrainTheme } from '../theme';
 import TimerView from './views/TimerView';
 import StopwatchView from './views/StopwatchView';
 import ClockView from './views/ClockView';
@@ -76,6 +76,23 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
     setMounted(m => (m.has(id) ? m : new Set(m).add(id)));
     setView(id);
   };
+
+  /* ?settings deep link — the terrain's central settings surface lands
+     here; the tab itself hides when integrated so settings live in one
+     doorway. Consumed params strip so the same link fires again later. */
+  useEffect(() => {
+    if (!new URLSearchParams(query).has('settings')) return;
+    const h = window.location.hash;
+    const qi = h.indexOf('?');
+    if (qi !== -1) {
+      const q = new URLSearchParams(h.slice(qi + 1));
+      q.delete('settings');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    requestView('settings');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   useEffect(() => {
     applySettings();
@@ -195,7 +212,7 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
             className="fixed bottom-5 left-0 right-0 z-[100] flex justify-center px-4"
           >
             <div className="board board-screws !rounded-2xl px-2 py-2 flex items-center gap-0.5">
-              {NAV.map((item) => {
+              {NAV.filter(item => !isIntegrated() || item.id !== 'settings').map((item) => {
                 const active = view === item.id;
                 return (
                   <button

@@ -13,11 +13,11 @@ import {
   Clock,
   Sparkles,
 } from 'lucide-react';
-import { PLACE_MAP, formatEntityType } from '../places';
+import { PLACES, PLACE_MAP, formatEntityType } from '../places';
 import type { Entity, SharedField, StoreEntity } from '../hub';
 import { sendTo } from '../hub';
 import { execCommand } from '../integration/commands';
-import { isPinned, togglePin } from '../shelf';
+import { isPinned, subscribeShelf, togglePin, type ShelfPin } from '../shelf';
 import { Badge, Button, Disclosure, IconButton } from '../ui/primitives';
 import {
   type WorkspaceObject,
@@ -243,6 +243,10 @@ export function ContextPanel({
   const [edges, setEdges] = useState<LinkedEdge[]>([]);
   const [feedback, setFeedback] = useState<{ text: string; url?: string } | null>(null);
   const [attachCommitmentId, setAttachCommitmentId] = useState<string>('');
+  /* the pinned working set crosses every tool — show it beside the object
+     so the shelf is never more than one disclosure away */
+  const [pins, setPins] = useState<ShelfPin[]>([]);
+  useEffect(() => subscribeShelf(setPins), []);
 
   // Query canonical links (both inbound source & outbound connected work)
   useEffect(() => {
@@ -473,14 +477,7 @@ export function ContextPanel({
       </div>
 
       {!object ? (
-        <div className="flex-1 p-4">
-          <div className="rounded-[6px] border border-dashed border-[var(--color-line-2)] p-4 text-[12.5px] text-[var(--color-mute)]">
-            <p className="font-medium text-[var(--color-ink)]">No item selected</p>
-            <p className="mt-1 leading-relaxed">
-              Select any note, deck, problem, work block, or assessment to inspect its course, provenance, connected work, and available actions.
-            </p>
-          </div>
-        </div>
+        <ContextHome entities={entities} onGo={onGo} onSelectObject={onSelectObject} />
       ) : (
         <div className="today-rail flex-1 overflow-y-auto divide-y divide-[var(--color-line)]">
           {/* Selected Object Summary */}
@@ -535,6 +532,32 @@ export function ContextPanel({
             </div>
           </section>
 
+          {/* Pinned working set — the shelf crosses every tool */}
+          {pins.length > 0 && (
+            <section className="px-3.5 py-2.5">
+              <Disclosure label={`Pinned — ${pins.length} across the terrain`}>
+                <div className="mt-1.5 space-y-0.5">
+                  {pins.slice(0, 6).map((pin) => (
+                    <button
+                      key={pin.url}
+                      type="button"
+                      onClick={() => onGo(pin.url)}
+                      className="flex w-full items-center gap-2 rounded-[5px] px-1.5 py-1.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                      title={pin.title}
+                    >
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-faint)] w-16 shrink-0 truncate">
+                        {PLACE_MAP[pin.app]?.label || pin.app}
+                      </span>
+                      <span className="truncate text-[12px] text-[var(--color-ink)]">
+                        {pin.title}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </Disclosure>
+            </section>
+          )}
+
           {/* 1. Course & Topic — one quiet line, not two boxed cells */}
           <section className="px-3.5 py-2.5">
             <div className="flex items-center gap-1.5 text-[12.5px] min-w-0">
@@ -554,7 +577,7 @@ export function ContextPanel({
                   onClick={() => onGo('#/c/unfiled')}
                   className="text-[var(--color-mute)] hover:text-[var(--color-accent)] cursor-pointer"
                 >
-                  Unfiled
+                  Getting Started
                 </button>
               )}
               {object.topic && (
@@ -981,5 +1004,138 @@ export function ContextPanel({
         </aside>
       </div>
     </>
+  );
+}
+
+/* No-selection home — the panel earns its place even before anything is
+   selected: every tool one click away, the pinned working set, and what
+   moved most recently across the whole terrain. */
+function ContextHome({
+  entities,
+  onGo,
+  onSelectObject,
+}: {
+  entities: StoreEntity[];
+  onGo: (url: string) => void;
+  onSelectObject: (obj: WorkspaceObject) => void;
+}) {
+  const [pins, setPins] = useState<ShelfPin[]>([]);
+  useEffect(() => subscribeShelf(setPins), []);
+
+  const latest = useMemo(
+    () =>
+      entities
+        .filter((e) => e.type !== 'course' && e.title)
+        .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+        .slice(0, 6),
+    [entities],
+  );
+
+  return (
+    <div className="today-rail flex-1 overflow-y-auto divide-y divide-[var(--color-line)]">
+      {/* Every tool, one click away */}
+      <section className="p-3.5">
+        <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
+          Tools
+        </div>
+        <div className="grid grid-cols-2 gap-1">
+          {PLACES.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => onGo(`#/p/${p.id}`)}
+              title={`${p.app} — ${p.tagline}`}
+              className="flex items-center gap-2 rounded-[5px] px-2 py-1.5 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+            >
+              <span className="h-3.5 w-3.5 shrink-0 text-[var(--color-accent)] [&>svg]:h-full [&>svg]:w-full">
+                {p.glyph}
+              </span>
+              <span className="truncate">{p.label}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Pinned working set — crosses every tool */}
+      <section className="p-3.5">
+        <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
+          Pinned
+        </div>
+        {pins.length === 0 ? (
+          <p className="text-[12px] text-[var(--color-mute)]">
+            Pin an item's shelf mark to keep it here across tools.
+          </p>
+        ) : (
+          <div className="space-y-0.5">
+            {pins.slice(0, 8).map((pin) => (
+              <div
+                key={pin.url}
+                className="group flex items-center gap-2 rounded-[5px] px-1.5 py-1.5 hover:bg-[var(--color-sheet-hover)]"
+              >
+                <button
+                  type="button"
+                  onClick={() => onGo(pin.url)}
+                  className="flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
+                  title={pin.title}
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--color-faint)] w-16 shrink-0 truncate">
+                    {PLACE_MAP[pin.app]?.label || pin.app}
+                  </span>
+                  <span className="truncate text-[12.5px] text-[var(--color-ink)]">
+                    {pin.title}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => togglePin(pin)}
+                  title="Unpin"
+                  className="shrink-0 rounded p-0.5 text-[var(--color-faint)] opacity-0 group-hover:opacity-100 hover:text-[var(--color-ink)] cursor-pointer"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Latest across the terrain — select to inspect and act on */}
+      <section className="p-3.5">
+        <div className="mb-2 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
+          Latest across the terrain
+        </div>
+        {latest.length === 0 ? (
+          <p className="text-[12px] text-[var(--color-mute)]">
+            Nothing yet — work in any tool lands here.
+          </p>
+        ) : (
+          <div className="space-y-0.5">
+            {latest.map((e) => (
+              <button
+                key={e.key}
+                type="button"
+                onClick={() => onSelectObject(toWorkspaceObject(e))}
+                className="flex w-full items-center gap-2 rounded-[5px] px-1.5 py-1.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                title={`${formatEntityType(e.type)} — inspect`}
+              >
+                <span className="h-3.5 w-3.5 shrink-0 text-[var(--color-mute)] [&>svg]:h-full [&>svg]:w-full">
+                  {iconForObjectType(e.type, e.app)}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[12.5px] text-[var(--color-ink)]">
+                  {e.title}
+                </span>
+                <span className="shrink-0 font-mono text-[10px] text-[var(--color-faint)]">
+                  {PLACE_MAP[e.app]?.label || e.app}
+                  {e.updatedAt ? ` · ${formatRelativeTime(e.updatedAt)}` : ''}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+        <p className="mt-2.5 text-[11px] leading-relaxed text-[var(--color-faint)]">
+          Select any item to inspect its course, provenance, connected work, and actions.
+        </p>
+      </section>
+    </div>
   );
 }

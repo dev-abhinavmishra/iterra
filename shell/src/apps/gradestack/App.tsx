@@ -61,6 +61,25 @@ function AppLayout({ query }: { query: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, navigate]);
 
+  /* ?p=<route> re-navigation — initialEntries only seeds the FIRST mount,
+     but places stay alive; a p= link arriving later (terrain settings
+     surface, open()-shim) must still navigate. ?settings is the terrain's
+     central-surface deep link — same landing, minus the p. */
+  useEffect(() => {
+    const q = new URLSearchParams(query);
+    const p = q.get('p');
+    if (p && GRADESTACK_ROUTES.has(p)) {
+      stripPlaceQuery('p');
+      q.delete('p');
+      const rest = q.toString();
+      navigate(`/${p}${rest ? `?${rest}` : ''}`);
+    } else if (q.has('settings')) {
+      stripPlaceQuery('settings');
+      navigate('/settings');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, navigate]);
+
   useEffect(() => {
     // Integrated: the terrain owns light/dark — follow its single toggle.
     if ((window as any).__iterraIntegrated) {
