@@ -330,3 +330,13 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Terrain scoping — @theme emits these tokens to :root where sibling
+   places and the shell collide. Re-declared on the place root so every var
+   stays local to this app; [data-terrain] overrides win by specificity. */
+.it-place-margin {
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+  --font-hand: "Caveat", "Segoe Script", cursive;
+}

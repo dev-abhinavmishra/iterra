@@ -547,7 +547,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgb(245 242 230 / 0.55);
+  color: rgb(var(--bench-ink-rgb, 245 242 230) / 0.55);
   padding: 9px 16px 8px;
   border: 1px solid transparent;
   border-bottom: none;
@@ -558,8 +558,8 @@
   transition: color 0.12s, background 0.12s;
 }
 .it-place-proof .dtab:hover {
-  color: rgb(245 242 230 / 0.85);
-  background: rgb(245 242 230 / 0.08);
+  color: rgb(var(--bench-ink-rgb, 245 242 230) / 0.85);
+  background: rgb(var(--bench-ink-rgb, 245 242 230) / 0.08);
 }
 .it-place-proof .dtab--on {
   color: var(--color-ink);
@@ -799,4 +799,29 @@
   .it-place-proof .pad::before { display: none; }
   .it-place-proof main { overflow: visible !important; }
   .it-place-proof .solution-pane { transform: none !important; }
+}
+
+/* ── Terrain theme — paper lightens the bench around the worksheets. ── */
+[data-terrain='paper'] .it-place-proof {
+  --bench-ink-rgb: 34 48 42;
+  --color-bench: #c4bfae;
+  --color-bench-deep: #b0ab97;
+  --color-bench-edge: #9b967f;
+  --bench-rgb: 196 191 174;
+  --shadow-sheet: 0 1px 0 rgb(255 255 255 / 0.4) inset, 0 12px 30px rgb(0 0 0 / 0.22), 0 2px 6px rgb(0 0 0 / 0.14);
+  --shadow-slip: 0 1px 2px rgb(0 0 0 / 0.14), 0 6px 14px rgb(0 0 0 / 0.12);
+  --shadow-tab: 2px 2px 5px rgb(0 0 0 / 0.2);
+}
+
+/* Terrain scoping — @theme emits these tokens to :root where sibling
+   places and the shell collide. Re-declared on the place root so every var
+   stays local to this app; [data-terrain] overrides win by specificity. */
+.it-place-proof {
+  --font-ui: var(--font-sans, system-ui, sans-serif);
+  --color-bench: #22302a;
+  --color-form: #faf7ee;
+  --color-blueprint: #2f5d46;
+  --color-correct-deep: #553d88;
+  --color-hint-deep: #7d6234;
+  --ink-rgb: 34 48 42;
 }

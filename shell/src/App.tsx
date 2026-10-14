@@ -1062,6 +1062,7 @@ export default function App() {
                 <div
                   key={`${p.id}:${restarts[p.id] || 0}`}
                   className="frame-fade absolute inset-0 overflow-hidden"
+                  data-terrain={theme}
                   style={{ display: p.id === active ? 'block' : 'none' }}
                 >
                   <PlaceBoundary

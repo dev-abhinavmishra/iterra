@@ -3,6 +3,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { setSoundEnabled } from './sound';
+import { isIntegrated, terrainIsDark } from '../../theme';
 
 export interface AccentTheme {
   name: string;
@@ -75,7 +76,8 @@ export function applySettings(s: AppSettings = current) {
   r.setProperty('--color-signal-deep', t.deep);
   r.setProperty('--signal-rgb', hexToRgbTriplet(t.signal));
   el.dataset.motion = s.motion;
-  el.dataset.theme = s.theme;
+  /* integrated: the terrain owns day/night; s.theme stays the standalone pref */
+  el.dataset.theme = isIntegrated() ? (terrainIsDark() ? 'night' : 'day') : s.theme;
   setSoundEnabled(s.sound);
 }
 

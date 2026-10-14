@@ -569,3 +569,12 @@
     break-inside: avoid;
   }
 }
+
+/* ── Terrain theme — paper swaps the dark blotter for a light one;
+   stock, slips, and ink already read light-theme. ── */
+[data-terrain='paper'] .it-place-syllabus {
+  --color-desk: #b3ab93;
+  --color-desk-deep: #a29a81;
+  --color-desk-edge: #8e8670;
+  --desk-rgb: 179 171 147;
+}

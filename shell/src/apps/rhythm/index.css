@@ -670,3 +670,45 @@
   .it-place-rhythm .silk { text-shadow: none; }
   .it-place-rhythm .no-print { display: none !important; }
 }
+
+/* ── Terrain theme — paper turns the unit into a cream-paneled
+   instrument. Recessed LCD wells stay dark (as real screens would);
+   signal colors deepen to keep their contrast on the light faceplate. ── */
+[data-terrain='paper'] .it-place-rhythm {
+  --color-chassis: #d3cdb6;
+  --color-chassis-deep: #c2bba0;
+  --color-deck: #dfdac2;
+  --color-panel: #e9e3cb;
+  --color-recess: #b7b095;
+  --color-ink: #33362b;
+  --color-ink-soft: #5e6350;
+  --color-ink-faint: #878b75;
+  --color-rule: #b1a98c;
+  --color-rule-dark: #9a9278;
+  --color-indigo: #d97f14;
+  --color-indigo-deep: #b5680e;
+  --color-amber: #b58a14;
+  --color-ok: #4d8a38;
+  --color-bad: #c2452f;
+  --ink-rgb: 51 54 43;
+  --stock-rgb: 223 218 194;
+  --indigo-rgb: 217 127 20;
+  --amber-rgb: 181 138 20;
+  --ok-rgb: 77 138 56;
+  --bad-rgb: 194 69 47;
+  --cover-rgb: 194 187 160;
+  color-scheme: light;
+}
+
+/* Terrain scoping — @theme emits these tokens to :root where sibling
+   places and the shell collide. Re-declared on the place root so every var
+   stays local to this app; [data-terrain] overrides win by specificity. */
+.it-place-rhythm {
+  --font-display: var(--font-sans, system-ui, sans-serif);
+  --color-chassis-deep: #0f1a14;
+  --color-indigo-deep: #c67e20;
+  --color-ok: #8fce6a;
+  --ink-rgb: 237 232 214;
+  --color-acc-indigo: #6ea0ff;
+  --animate-pad-hit: pad-hit 0.4s cubic-bezier(0.25, 1.4, 0.4, 1) both;
+}

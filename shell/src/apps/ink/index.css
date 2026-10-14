@@ -572,3 +572,77 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Terrain theme — graphite turns the desk lamplight-dark. The shell
+   stamps data-terrain on the place wrapper; standalone keeps the desk. ── */
+[data-terrain='graphite'] .it-place-ink {
+  --color-desk: #191d1b;
+  --color-desk-deep: #111514;
+  --color-paper: #252a27;
+  --color-paper-dim: #1e2320;
+  --color-paper-edge: #313834;
+  --color-ink: #e4dec9;
+  --color-ink-soft: #b8b29d;
+  --color-ink-faint: #8d8f7e;
+  --color-ink-ghost: #60675d;
+  --color-line: #3c423b;
+  --color-line-strong: #4e554b;
+  --color-pencil: #82bda2;
+  --color-pencil-deep: #a8d6c0;
+  --color-pencil-wash: #27362d;
+  --color-manila: #d3ab60;
+  --color-manila-wash: #3a301c;
+  --color-fountain: #82bda2;
+  --color-fountain-wash: #27362d;
+  --color-walnut: #cfa26c;
+  --color-walnut-deep: #e3bf88;
+  --color-walnut-wash: #3c301d;
+  --shadow-sheet: 0 1px 0 rgb(0 0 0 / 0.3), 0 12px 40px -16px rgb(0 0 0 / 0.65);
+  --shadow-lift: 0 2px 8px -2px rgb(0 0 0 / 0.45), 0 12px 32px -16px rgb(0 0 0 / 0.55);
+  --shadow-pop: 0 4px 16px -4px rgb(0 0 0 / 0.55), 0 16px 48px -16px rgb(0 0 0 / 0.65);
+  color-scheme: dark;
+}
+
+/* Terrain scoping — @theme emits these tokens to :root where sibling
+   places and the shell collide. Re-declared on the place root so every var
+   stays local to this app; [data-terrain] overrides win by specificity. */
+.it-place-ink {
+  --text-2xs: 10px;
+  --text-2xs--line-height: 1.4;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+/* Terrain scoping — @theme emits these tokens to :root where sibling
+   places and the shell collide. Re-declared on the place root so every var
+   stays local to this app; [data-terrain] overrides win by specificity. */
+.it-place-ink {
+  --color-desk: #e9e4d4;
+  --color-desk-deep: #ded7c2;
+  --color-paper: #faf7ef;
+  --color-paper-dim: #f1ecdd;
+  --color-paper-edge: #e2dac2;
+  --color-ink: #22302a;
+  --color-ink-soft: #3d4a42;
+  --color-ink-faint: #5d6b62;
+  --color-ink-ghost: #8b968e;
+  --color-line: #ddd2b8;
+  --color-line-strong: #c9bb9c;
+  --color-pencil: #4a8a6a;
+  --color-pencil-deep: #2f5d46;
+  --color-pencil-wash: #e4ede4;
+  --color-manila: #8f6f3a;
+  --color-manila-wash: #eee5cf;
+  --color-fountain: #2f5d46;
+  --color-fountain-wash: #e4ede4;
+  --color-walnut: #6d5230;
+  --color-walnut-deep: #54401f;
+  --color-walnut-wash: #ede3d0;
+  --shadow-sheet: 0 1px 0 rgba(34,48,42,0.04), 0 12px 40px -16px rgba(34,48,42,0.22);
+  --shadow-lift: 0 2px 8px -2px rgba(34,48,42,0.12), 0 12px 32px -16px rgba(34,48,42,0.16);
+  --shadow-pop: 0 4px 16px -4px rgba(34,48,42,0.18), 0 16px 48px -16px rgba(34,48,42,0.24);
+  --text-2xs: 10px;
+  --text-2xs--line-height: 1.4;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.45, 0, 0.15, 1);
+}

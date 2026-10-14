@@ -13,6 +13,7 @@ import BootSplash from './components/BootSplash';
 import CommandPalette from './components/CommandPalette';
 import SelectionPopover from './components/SelectionPopover';
 import { View, Note, AppSettings } from './types';
+import { onTerrainTheme } from '../theme';
 import { initDB, getAllNotes, saveNote, deleteNote, getSettings, saveSettings, migrateFromLocalStorage, deleteNotesBefore, clearAllNotes, saveNoteVersion } from './services/storageService';
 import { refreshUsage, initAuth } from './services/usageService';
 import { wireMargin, setMarginSource } from './iterra';
@@ -165,6 +166,12 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
     };
 
     useEffect(() => {
+        // Integrated: the terrain owns light/dark — follow its single toggle.
+        if ((window as any).__iterraIntegrated) {
+            return onTerrainTheme(t =>
+                rootRef.current?.classList.toggle('dark', t === 'graphite'),
+            );
+        }
         // dark mode scopes to the place root — the terrain and sibling
         // places keep their own theme.
         rootRef.current?.classList.toggle('dark', settings.darkMode);

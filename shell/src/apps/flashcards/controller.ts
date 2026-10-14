@@ -5,6 +5,7 @@
    the mount query, and share links hash-route through the terrain. */
 import LZString from 'lz-string';
 import { placeActive } from '../active';
+import { isIntegrated, onTerrainTheme, terrainIsDark, toggleTerrainTheme } from '../theme';
 import { wireFlashcardsAdapter } from './iterra-adapter';
 
 let mounted = false;
@@ -1973,11 +1974,18 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   }
   
   /* ---------------- theme / fullscreen / menu ---------------- */
-  
+
   function applyTheme(dark) {
     if (dark) rootEl.setAttribute('data-theme', 'dark');
     else rootEl.removeAttribute('data-theme');
     try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch {}
+  }
+
+  /* Integrated: theme is the terrain's single switch — 't' flips every
+     place at once; standalone keeps the cardfile-local pref. */
+  function flipTheme() {
+    if (isIntegrated()) { toggleTerrainTheme(); return; }
+    applyTheme(rootEl.dataset.theme !== 'dark');
   }
   
   function toggleFullscreen() {
@@ -2078,9 +2086,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   
   function wireEvents() {
     // top bar
-    $('theme-btn').addEventListener('click', () => {
-      applyTheme(rootEl.dataset.theme !== 'dark');
-    });
+    $('theme-btn').addEventListener('click', () => flipTheme());
     $('shortcuts-btn').addEventListener('click', openShortcuts);
     $('motion-btn').addEventListener('click', () => {
       applyMotionPref(motionPref === 'auto' ? 'on' : motionPref === 'on' ? 'off' : 'auto');
@@ -2240,7 +2246,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         return;
       }
       if (k === '?') { openShortcuts(); return; }
-      if (k === 't' || k === 'T') { applyTheme(rootEl.dataset.theme !== 'dark'); return; }
+      if (k === 't' || k === 'T') { flipTheme(); return; }
       if (k === '*') { $('starred-filter').click(); return; }
       if (!deck() || els.deckView.hidden) return;
   
@@ -2277,10 +2283,15 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   function boot(query: string) {
     loadStore();
   
-    // theme
-    const stored = (() => { try { return localStorage.getItem(THEME_KEY) || localStorage.getItem('theme'); } catch { return null; } })();
-    const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
-    applyTheme(stored ? stored === 'dark' : prefersDark);
+    // theme — integrated places follow the terrain's single switch
+    if (isIntegrated()) {
+      applyTheme(terrainIsDark());
+      onTerrainTheme(t => applyTheme(t === 'graphite'));
+    } else {
+      const stored = (() => { try { return localStorage.getItem(THEME_KEY) || localStorage.getItem('theme'); } catch { return null; } })();
+      const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(stored ? stored === 'dark' : prefersDark);
+    }
     applyMotionPref(motionPref);
     if (osReduceMQ.addEventListener) osReduceMQ.addEventListener('change', () => applyMotionPref(motionPref));
   

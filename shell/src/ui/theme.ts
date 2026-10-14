@@ -19,25 +19,11 @@ export function applyWorkspaceTheme(theme: WorkspaceTheme) {
     localStorage.setItem(THEME_KEY, theme);
   } catch { /* ignore */ }
 
-  // Propagate to mounted module roots so embedded tools harmonize with the shell theme
-  const isDark = theme === 'graphite';
-  const fcRoot = document.querySelector('.it-place-flashcards') as HTMLElement | null;
-  if (fcRoot) {
-    if (isDark) fcRoot.setAttribute('data-theme', 'dark');
-    else fcRoot.removeAttribute('data-theme');
-  }
-  const timerRoot = document.querySelector('.it-place-timer') as HTMLElement | null;
-  if (timerRoot) {
-    timerRoot.setAttribute('data-theme', isDark ? 'night' : 'day');
-  }
-  const gsRoot = document.querySelector('.it-place-gradestack') as HTMLElement | null;
-  if (gsRoot) {
-    gsRoot.classList.toggle('dark', isDark);
-  }
-  const marginRoot = document.querySelector('.it-place-margin') as HTMLElement | null;
-  if (marginRoot) {
-    marginRoot.classList.toggle('dark', isDark);
-  }
+  // Every mounted place subscribes via apps/theme.ts#onTerrainTheme and
+  // restamps its own root marker — including places mounted after this call.
+  try {
+    window.dispatchEvent(new CustomEvent('iterra:theme', { detail: theme }));
+  } catch { /* ignore */ }
 }
 
 export function useWorkspaceTheme(): [WorkspaceTheme, (next?: WorkspaceTheme) => void] {
@@ -48,15 +34,22 @@ export function useWorkspaceTheme(): [WorkspaceTheme, (next?: WorkspaceTheme) =>
   }, [theme]);
 
   useEffect(() => {
-    const onStorage = (ev: StorageEvent) => {
-      if (ev.key === THEME_KEY) {
-        const next = readTheme();
-        setThemeState(next);
-        applyWorkspaceTheme(next);
-      }
+    const sync = () => {
+      const next = readTheme();
+      setThemeState(next);
+      applyWorkspaceTheme(next);
     };
+    const onStorage = (ev: StorageEvent) => {
+      if (ev.key === THEME_KEY) sync();
+    };
+    // places may flip the terrain switch themselves (apps/theme.ts)
+    const onTerrain = () => setThemeState(readTheme());
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    window.addEventListener('iterra:theme', onTerrain);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('iterra:theme', onTerrain);
+    };
   }, []);
 
   const toggleOrSet = useCallback((next?: WorkspaceTheme) => {

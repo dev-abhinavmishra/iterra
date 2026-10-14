@@ -4,6 +4,7 @@ import { Timer, Watch, Clock, Repeat2, LayoutGrid, BarChart3, Settings } from 'l
 import { cn, vibrate } from './lib/utils';
 import { unlockAudio, flapTick } from './lib/sound';
 import { applySettings, useSettings } from './lib/settings';
+import { onTerrainTheme } from '../theme';
 import TimerView from './views/TimerView';
 import StopwatchView from './views/StopwatchView';
 import ClockView from './views/ClockView';
@@ -78,10 +79,15 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
 
   useEffect(() => {
     applySettings();
+    // Integrated: terrain theme flips restamp data-theme via applySettings.
+    const offTheme = (window as any).__iterraIntegrated
+      ? onTerrainTheme(() => applySettings())
+      : undefined;
     const unlock = () => unlockAudio();
     window.addEventListener('pointerdown', unlock, { once: false });
     window.addEventListener('keydown', unlock, { once: false });
     return () => {
+      offTheme?.();
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
     };

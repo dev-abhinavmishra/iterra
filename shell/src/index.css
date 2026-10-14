@@ -359,3 +359,92 @@ body {
   outline-offset: 1px;
   border-radius: 3px;
 }
+
+/* Terrain scoping — @theme emits these tokens to :root where sibling
+   places and the shell collide. Re-declaring them on the place root keeps
+   every var local to this app (descendant var() resolves to the nearest
+   ancestor definition); [data-terrain] overrides still win by specificity. */
+body {
+  --color-moss-950: #14211b;
+  --color-moss-900: #1b2e25;
+  --color-moss-800: #223d30;
+  --color-moss-700: #2b5440;
+  --color-moss-600: #366a50;
+  --color-moss-500: #468264;
+  --color-moss-400: #6fa086;
+  --color-moss-300: #9ec2ae;
+  --color-moss-200: #c8ded2;
+  --color-moss-100: #e3ede7;
+  --color-moss-50:  #f1f6f3;
+  --color-atlas-50:  #fbf9f4;
+  --color-atlas-100: #f4f1e8;
+  --color-atlas-200: #ebe5d6;
+  --color-atlas-300: #d8d0bc;
+  --color-atlas-400: #b8ad93;
+  --color-atlas-500: #766c56;
+  --color-field-ink: #1c2621;
+  --color-field-faint: #4c5951;
+  --color-paper:       #f4f1e8;  /* page ground */
+  --color-sheet:       #fbf9f4;  /* raised surface */
+  --color-sheet-2:     #ebe5d6;  /* recessed / subtle surface */
+  --color-sheet-hover: #efeae0;  /* interactive row hover */
+  --color-line:        #d8d0bc;  /* hairline border */
+  --color-line-2:      #b8ad93;  /* emphasized border */
+  --color-ink:         #1c2621;  /* primary text */
+  --color-mute:        #4c5951;  /* secondary text (AA contrast) */
+  --color-faint:       #6e6552;  /* metadata & captions (improved contrast over #a89468) */
+  --color-accent:      #2b5440;  /* interactive primary */
+  --color-accent-2:    #223d30;  /* interactive hover */
+  --color-accent-fg:   #fbf9f4;  /* text on accent */
+  --color-accent-soft: #e3ede7;  /* subtle active tint */
+  --color-warn:        #8f5122;  /* amber-ochre for due/attention */
+  --color-warn-soft:   #f6eadb;
+  --color-bad:         #96342a;  /* destructive crimson-brown */
+  --color-bad-soft:    #f8e6e4;
+  --font-place: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-sans: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --radius-it: 6px;
+}
+
+/* Companion to the body-scoped base tokens above: in graphite mode the
+   same vars must land on <body> (nearer ancestor than <html>) so app-level
+   :root vars can't win inside shell chrome. */
+html[data-theme='graphite'] body {
+  --color-atlas-50:  #1c2026;
+  --color-atlas-100: #14171c;
+  --color-atlas-200: #232830;
+  --color-atlas-300: #2e3540;
+  --color-atlas-400: #434c5b;
+  --color-atlas-500: #8c96a6;
+  --color-field-ink: #e8ecf2;
+  --color-field-faint: #9da6b5;
+  --color-moss-950: #e8ecf2;
+  --color-moss-900: #d5dce6;
+  --color-moss-800: #b8c4d4;
+  --color-moss-700: #68b08b;
+  --color-moss-600: #559b78;
+  --color-moss-500: #488868;
+  --color-moss-400: #3c6e55;
+  --color-moss-300: #2d5040;
+  --color-moss-200: #243b31;
+  --color-moss-100: #1e3028;
+  --color-moss-50:  #182520;
+  --color-paper:       #14171c;
+  --color-sheet:       #1c2026;
+  --color-sheet-2:     #232830;
+  --color-sheet-hover: #262c35;
+  --color-line:        #2e3540;
+  --color-line-2:      #434c5b;
+  --color-ink:         #e8ecf2;
+  --color-mute:        #9da6b5;
+  --color-faint:       #7b8494;
+  --color-accent:      #58a07c;
+  --color-accent-2:    #6bb38f;
+  --color-accent-fg:   #101418;
+  --color-accent-soft: #1e2f28;
+  --color-warn:        #e09f5a;
+  --color-warn-soft:   #2d2419;
+  --color-bad:         #e06c60;
+  --color-bad-soft:    #301c1b;
+}

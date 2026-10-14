@@ -11,6 +11,7 @@ import { TestHistory } from './pages/TestHistory';
 import { Settings } from './pages/Settings';
 import { FirebaseProvider } from './components/FirebaseProvider';
 import { useStore } from './store';
+import { onTerrainTheme } from '../theme';
 import './lib/iterra';
 import './index.css';
 
@@ -61,6 +62,12 @@ function AppLayout({ query }: { query: string }) {
   }, [query, navigate]);
 
   useEffect(() => {
+    // Integrated: the terrain owns light/dark — follow its single toggle.
+    if ((window as any).__iterraIntegrated) {
+      return onTerrainTheme((t) =>
+        rootRef.current?.classList.toggle('dark', t === 'graphite'),
+      );
+    }
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const apply = () => {
       const isDark = theme === 'dark' || (theme === 'system' && media.matches);
