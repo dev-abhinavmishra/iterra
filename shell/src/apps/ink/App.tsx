@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MemoryRouter, Routes, Route, Navigate } from 'react-router-dom';
+import type { InitialEntry } from 'react-router-dom';
 import { MotionConfig } from 'motion/react';
 import { MainLayout } from './components/layout/MainLayout';
 import { NoteList } from './components/dashboard/NoteList';
@@ -14,10 +15,19 @@ import './index.css';
 
 let wired = false;
 
-/* The desk keeps its own route table — the terrain owns the address bar, so
-   it lives in memory. ?note= deep links arrive via the place query and are
-   honored the same as before. */
+/* The desk keeps its own route table — the terrain owns the address bar,
+   so it lives in memory. ?note= deep links arrive via the place query and
+   are honored the same as before. A p= param (from /apps/ink/<sub> links,
+   legacy or open()-shimmed) seeds the initial entry so path links land on
+   the right view. */
+const INK_ROUTES = new Set(['favorites', 'recent', 'tags', 'focus', 'insights', 'web', 'trash']);
+
 function App({ query = '' }: { query?: string }) {
+  const [initialEntry] = useState<InitialEntry>(() => {
+    const p = new URLSearchParams(query).get('p');
+    return p && INK_ROUTES.has(p) ? `/${p}` : '/';
+  });
+
   useEffect(() => {
     if (!wired) { wired = true; wireIterra(); }
   }, []);
@@ -27,7 +37,7 @@ function App({ query = '' }: { query?: string }) {
   return (
     <MotionConfig reducedMotion="user">
       <div className="it-place-ink h-full w-full">
-        <MemoryRouter>
+        <MemoryRouter initialEntries={[initialEntry]}>
           <Routes>
             <Route element={<MainLayout />}>
               <Route path="/" element={

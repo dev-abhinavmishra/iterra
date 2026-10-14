@@ -1253,6 +1253,10 @@ function readRecordedOutcomes(): Record<string, any> {
 
 function writeRecordedOutcomes(map: Record<string, any>): void {
   try {
+    /* bound the ledger — entries exist only to catch immediate retries, so
+       keeping the most recent few hundred (insertion order) is plenty */
+    const keys = Object.keys(map);
+    for (const k of keys.slice(0, Math.max(0, keys.length - 500))) delete map[k];
     localStorage.setItem(SESSION_OUTCOMES_KEY, JSON.stringify(map));
   } catch {
     /* ignore */
@@ -1289,10 +1293,13 @@ export async function handleRecordSessionOutcome(
   const active = wfCtx.activeSession;
   const sessionId = input.sessionId || active?.sessionId || uid('sess_');
 
-  // Duplicate recording protection by sessionId (§4.D)
+  // Duplicate recording protection — by sessionId, and by the caller's
+  // idempotencyKey when given (file-back retries must not double-log)
   const outcomesLedger = readRecordedOutcomes();
-  if (outcomesLedger[sessionId]) {
-    const prior = outcomesLedger[sessionId];
+  const prior =
+    outcomesLedger[sessionId] ??
+    (input.idempotencyKey ? outcomesLedger[`idem:${input.idempotencyKey}`] : undefined);
+  if (prior) {
     return {
       ...prior,
       deduplicated: true,
@@ -1329,7 +1336,7 @@ export async function handleRecordSessionOutcome(
         : input.outcome === 'completed'
           ? plannedMinutes * 60
           : 0;
-  const elapsedSeconds = input.outcome === 'canceled' ? rawElapsedSec : Math.max(0, rawElapsedSec);
+  const elapsedSeconds = rawElapsedSec;
   const elapsedMinutes =
     input.outcome === 'canceled'
       ? 0
@@ -1350,14 +1357,18 @@ export async function handleRecordSessionOutcome(
   const label = (input.label || active?.label || 'Focus Session').trim();
   const now = Date.now();
 
-  // 1. Save session to Timer's authoritative store (`timer.sessions.v1`)
+  // 1. Save session to Timer's authoritative store (`timer.sessions.v1`).
+  //    Canceled runs are reconciled (block revert + canceled event + this
+  //    ledger entry) but never land in the session log — the stats and CSV
+  //    machinery can't distinguish outcome, so a scrubbed timer would
+  //    otherwise count as banked focus time.
   let sessions: any[] = [];
   try {
     sessions = JSON.parse(localStorage.getItem('timer.sessions.v1') || '[]') || [];
   } catch {
     sessions = [];
   }
-  if (!sessions.some((s) => s && s.id === sessionId)) {
+  if (input.outcome !== 'canceled' && !sessions.some((s) => s && s.id === sessionId)) {
     const newSession = {
       id: sessionId,
       duration: elapsedSeconds,
@@ -1381,9 +1392,12 @@ export async function handleRecordSessionOutcome(
   }
   notifyStoreChange('timer');
 
-  // 2. Mirror session entity to canonical store (`iterra.store`)
+  // 2. Mirror session entity to canonical store (`iterra.store`) — skipped
+  //    for canceled runs: a scrubbed session isn't a workspace object, so it
+  //    shouldn't surface in Recent Work or gather practicedIn edges. The
+  //    canceled event + outcome ledger still carry the audit signal.
   const sessionKey = `timer:session:${sessionId}`;
-  const sessionEnt = await putHubEntity({
+  const sessionEnt = input.outcome === 'canceled' ? undefined : await putHubEntity({
     app: 'timer',
     type: 'session',
     id: sessionId,
@@ -1503,7 +1517,8 @@ export async function handleRecordSessionOutcome(
     }
   }
 
-  // 4. Record `practicedIn` relationships (session -> block, session -> material)
+  // 4. Record `practicedIn` relationships (session -> block, session ->
+  //    material) — a canceled run practiced nothing, so it leaves no edges.
   const relationships: RelationshipRecord[] = [];
   const outcomeMeta = {
     outcome: input.outcome,
@@ -1513,7 +1528,7 @@ export async function handleRecordSessionOutcome(
     confirmedByUser,
   };
 
-  if (blockKey) {
+  if (input.outcome !== 'canceled' && blockKey) {
     const bObj = await resolveObject(blockKey);
     const relBlock = await addRelationship({
       from: {
@@ -1554,7 +1569,7 @@ export async function handleRecordSessionOutcome(
     if (relBlock.relationship) relationships.push(relBlock.relationship);
   }
 
-  if (resolvedMaterialKey) {
+  if (input.outcome !== 'canceled' && resolvedMaterialKey) {
     const mObj = await resolveObject(resolvedMaterialKey);
     const relMat = await addRelationship({
       from: {
@@ -1671,6 +1686,7 @@ export async function handleRecordSessionOutcome(
   };
 
   outcomesLedger[sessionId] = finalResult;
+  if (input.idempotencyKey) outcomesLedger[`idem:${input.idempotencyKey}`] = finalResult;
   writeRecordedOutcomes(outcomesLedger);
   return finalResult;
 }

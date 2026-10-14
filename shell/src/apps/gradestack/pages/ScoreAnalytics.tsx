@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { Icon, Button, Chip, EmptyState, PageHeader } from '../components/ui';
@@ -6,6 +6,7 @@ import { normalizeAnswer, optionsFor, formatsForTest, csvEscape, downloadFile } 
 import { feed } from '../lib/iterra';
 import { useCourseLoggedMinutes, fmtLoggedMinutes, folioUrlFor } from '../lib/iterra-adapter';
 import { openTerrain } from '../components/terrain';
+import { placeActive } from '../../active';
 import { execCommand } from '../../../integration/commands';
 
 export function ScoreAnalytics() {
@@ -24,6 +25,18 @@ export function ScoreAnalytics() {
   const [reviewKind, setReviewKind] = useState<'syllabus-block' | 'flashcards-deck' | 'both'>('both');
   const [reviewBusy, setReviewBusy] = useState(false);
   const [reviewMsg, setReviewMsg] = useState<string | null>(null);
+
+  // Escape dismisses the dialog like the app's other sheets — gated on the
+  // place being in front so a hidden gradestack can't eat another view's Esc
+  useEffect(() => {
+    if (!reviewOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!placeActive('gradestack')) return;
+      if (e.key === 'Escape' && !reviewBusy) setReviewOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [reviewOpen, reviewBusy]);
 
   const test = tests.find(t => t.id === testId) || tests[0];
   const loggedMinutes = useCourseLoggedMinutes(test?.courseName);

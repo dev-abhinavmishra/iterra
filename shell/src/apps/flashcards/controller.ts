@@ -898,19 +898,23 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
          schedule-review modal lets the student pick day, time, and topic
          before the block is committed. */
       if (act === 'plan') {
-        btn.disabled = true;
+        /* the host resolves the request with 'iterra:modal:done' whether the
+           student schedules or closes — matching kind only, so an unrelated
+           modal finishing can't strand the listener (or this chip). The chip
+           stays enabled: dispatching is fire-and-forget, a re-click just
+           re-opens the dialog. */
         const onDone = (e) => {
+          if (!e.detail || e.detail.kind !== 'schedule-review') return;
           window.removeEventListener('iterra:modal:done', onDone);
-          if (e.detail && e.detail.kind === 'schedule-review') {
-            toast('Review block planned');
-            try { it.open ? it.open('#/p/syllabus') : window.location.hash = '#/p/syllabus'; } catch {}
-          }
+          if (e.detail.canceled) return;
+          toast('Review block planned');
+          try { it.open ? it.open('#/p/syllabus') : window.location.hash = '#/p/syllabus'; } catch {}
         };
         window.addEventListener('iterra:modal:done', onDone);
         window.dispatchEvent(new CustomEvent('iterra:modal', {
           detail: {
             kind: 'schedule-review',
-            materialRef: 'flashcards:deck:' + d.id,
+            materialRef: { app: 'flashcards', type: 'deck', id: d.id },
             materialTitle: d.title,
             inheritedCourse: d.course || undefined,
             inheritedCourseId: d.courseId || undefined,

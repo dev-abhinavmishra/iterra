@@ -18,12 +18,17 @@ import { runIntegrationMigrations, installCrossTabSync } from './integration/mig
   const m = window.location.pathname.match(/^\/apps\/([a-z]+)((?:\/[^?#]*)?)/);
   if (m) {
     const q = window.location.search.replace(/^\?/, '');
-    const sub = m[2] && m[2] !== '/' ? `p=${encodeURIComponent(m[2].slice(1))}` : '';
-    const merged = [q, sub].filter(Boolean).join('&');
+    /* the sub-route rides along as p= — the same param the open() shims
+       write, which path-routed places (ink, gradestack) read as their
+       initial entry. A legacy inner-hash route (#/note/x) folds in too
+       instead of silently truncating. */
+    const innerHash = window.location.hash.replace(/^#\/?/, '');
+    const sub = m[2] && m[2] !== '/' ? m[2].slice(1) : innerHash;
+    const merged = [q, sub ? `p=${encodeURIComponent(sub)}` : ''].filter(Boolean).join('&');
     window.history.replaceState(
       {},
       '',
-      `/#/p/${m[1]}${merged ? `?${merged}` : ''}${window.location.hash || ''}`,
+      `/#/p/${m[1]}${merged ? `?${merged}` : ''}`,
     );
   }
 }

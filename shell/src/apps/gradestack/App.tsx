@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { MemoryRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import type { InitialEntry } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { MobileHeader } from './components/MobileHeader';
 import { Dashboard } from './pages/Dashboard';
@@ -106,9 +107,24 @@ function AppLayout({ query }: { query: string }) {
   );
 }
 
+/* Routes the place's own router owns — a legacy/entity link like
+   /apps/gradestack/scan?testId=x arrives as ?p=scan&testId=x on the place
+   query; p seeds the MemoryRouter's initial entry so it lands on the
+   right page instead of the dashboard. Remaining params carry into the
+   entry's search so in-page effects (?scanId review open) still fire. */
+const GRADESTACK_ROUTES = new Set(['builder', 'scan', 'analytics', 'history', 'settings']);
+
 export default function App({ query = '' }: { query?: string }) {
+  const [initialEntry] = useState<InitialEntry>(() => {
+    const q = new URLSearchParams(query);
+    const p = q.get('p');
+    if (!p || !GRADESTACK_ROUTES.has(p)) return '/';
+    q.delete('p');
+    const rest = q.toString();
+    return { pathname: `/${p}`, search: rest ? `?${rest}` : '' };
+  });
   return (
-    <Router>
+    <Router initialEntries={[initialEntry]}>
       <FirebaseProvider>
         <AppLayout query={query} />
       </FirebaseProvider>

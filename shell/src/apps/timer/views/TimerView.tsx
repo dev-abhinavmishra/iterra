@@ -393,8 +393,10 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     if (!recess) filedActual.current = Math.round((cd.totalMs - cd.remainingMs) / 60000);
     /* Record the outcome through the command layer — distinguishes a full
        completion from partial/canceled, marks the bound block practicedIn,
-       and dedupes on the session id so file-back retries can't double-log. */
-    if (sess) {
+       and dedupes on the session id so file-back retries can't double-log.
+       Recess completions stay out of it: a break is not bound study work,
+       so it mustn't stamp the block with break minutes. */
+    if (sess && !recess) {
       void execCommand('recordSessionOutcome', {
         sessionId: sess.id,
         outcome: 'completed',
@@ -506,8 +508,9 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
         })
       : null;
     /* partial when real minutes banked, canceled when the run was scrubbed
-       before a minute — the command reconciles the bound block either way. */
-    void execCommand('recordSessionOutcome', {
+       before a minute — the command reconciles the bound block either way.
+       Breaks never fire it: recess minutes aren't block work. */
+    if (!isBreak) void execCommand('recordSessionOutcome', {
       sessionId: sess?.id,
       outcome: sess ? 'partial' : 'canceled',
       elapsedSeconds: elapsedSec,

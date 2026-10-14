@@ -430,6 +430,7 @@ export interface AttachToInkModalProps {
   sourceRevision?: number | string;
   initialCourse?: string;
   initialTopic?: string;
+  onSaved?: (res: { url: string }) => void;
 }
 
 export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
@@ -441,6 +442,7 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
   sourceRevision,
   initialCourse,
   initialTopic,
+  onSaved,
 }) => {
   const [title, setTitle] = useState(sourceTitle || 'Margin Note');
   const [content, setContent] = useState(initialText || '');
@@ -490,7 +492,9 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
         setSaving(false);
         return;
       }
-      setSavedUrl(res.url || '/apps/ink/');
+      const url = res.url || '/apps/ink/';
+      setSavedUrl(url);
+      onSaved?.({ url });
     } catch (err) {
       setError(String(err));
     } finally {
