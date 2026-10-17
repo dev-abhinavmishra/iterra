@@ -57,7 +57,11 @@
       window.__iterraIntegrated = true;
       try {
         var t = localStorage.getItem('iterra.v1.theme');
-        document.documentElement.dataset.theme = t === 'graphite' ? 'graphite' : 'paper';
+        /* an explicit choice wins; with none stored, follow the OS —
+           a night-time first run shouldn't flash paper */
+        var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme =
+          t === 'graphite' ? 'graphite' : t === 'paper' ? 'paper' : dark ? 'graphite' : 'paper';
       } catch (e) { /* private mode — default theme */ }
     </script>
     <script src="/iterra-hub.js"></script>

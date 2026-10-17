@@ -123,7 +123,7 @@ describe('gradestack canonical-store mirror', () => {
     expect(entities.get('gradestack:grade:s2').data.needsReview).toBe(true);
 
     expect(events).toEqual([]); // baseline stays quiet
-  }, 30000);
+  }, 90000);
 
   it('resolves courseId lazily through courses.byCode', async () => {
     byCode = (code: string) =>

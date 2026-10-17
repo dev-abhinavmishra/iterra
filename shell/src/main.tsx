@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App';
+import App, { ShellBoundary } from './App';
 import { placeHashFromAppUrl } from './route';
 import { registerIntegrationCommands } from './integration/commands';
 import { runIntegrationMigrations, installCrossTabSync } from './integration/migration';
@@ -109,6 +109,8 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ShellBoundary>
+      <App />
+    </ShellBoundary>
   </StrictMode>,
 );

@@ -7,10 +7,12 @@ import type { Deck, Note, Quiz } from './types';
 type A = typeof import('./iterra-adapter');
 let adapter: A;
 
+/* cold dynamic import of the adapter graph pays real seconds on a loaded
+   disk — the 10s hook default has timed out under load */
 beforeAll(async () => {
   vi.stubGlobal('window', {});
   adapter = await import('./iterra-adapter');
-});
+}, 60000);
 
 const note = (over: Partial<Note> = {}): Note => ({
   id: 'n1',

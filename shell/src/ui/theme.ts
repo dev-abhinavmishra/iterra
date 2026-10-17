@@ -9,6 +9,11 @@ export function readTheme(): WorkspaceTheme {
     const v = localStorage.getItem(THEME_KEY);
     if (v === 'graphite' || v === 'paper') return v;
   } catch { /* ignore */ }
+  /* no stored choice — follow the OS once; the first apply persists it as
+     the user's effective choice from then on */
+  try {
+    if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'graphite';
+  } catch { /* ignore */ }
   return 'paper';
 }
 

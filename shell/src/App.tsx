@@ -107,6 +107,16 @@ class PlaceBoundary extends Component<
   }
 }
 
+/* The same boundary around the whole shell — a crash in chrome, routing,
+   or a workspace surface otherwise whitescreens with no recovery path. */
+export function ShellBoundary({ children }: { children: ReactNode }) {
+  return (
+    <PlaceBoundary name="iterra" onReset={() => window.location.reload()}>
+      {children}
+    </PlaceBoundary>
+  );
+}
+
 export default function App() {
   const [routeState, setRouteState] = useState(() => readHash());
   const active = routeState.place;

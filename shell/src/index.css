@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* light is the default scheme — native controls + scrollbars follow it
+   without waiting on the graphite override below */
+:root { color-scheme: light; }
+
 @theme {
   /* iterra — refined atlas paper + deep moss & graphite/silver workstation tokens */
   --color-moss-950: #14211b;

@@ -133,7 +133,7 @@ describe('syllabus canonical-store mirror', () => {
     expect(block.data).toMatchObject({ commitmentId: 'k1', plannedDate: '2026-10-12', state: 'planned', phase: 'review' });
 
     expect(events).toEqual([]); // the baseline pass stays quiet
-  });
+  }, 30000 /* cold module import pays seconds on a loaded disk */);
 
   it('puts only the changed entity on later passes', async () => {
     const { useFolio } = await seedAndWire({
