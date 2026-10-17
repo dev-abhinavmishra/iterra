@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Focus, Minus, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, vibrate } from '../lib/utils';
-import { saveSession } from '../lib/stats';
+import { getSessions, saveSession } from '../lib/stats';
 import { execCommand } from '../../../integration/commands';
 import { useCountdown, useWakeLock } from '../hooks/useTimer';
 import { useViewport } from '../hooks/useViewport';
@@ -135,8 +135,13 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
          session — shared.focus is the cross-app read; this is the
          restore source of truth */
       try {
-        if (v) localStorage.setItem(LIVE_SESSION_KEY, JSON.stringify({ ...v, intent, syllabus, thenBreak }));
-        else localStorage.removeItem(LIVE_SESSION_KEY);
+        if (v) {
+          if (!sessionIdRef.current) sessionIdRef.current = `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
+          localStorage.setItem(LIVE_SESSION_KEY, JSON.stringify({ ...v, intent, syllabus, thenBreak, sessionId: sessionIdRef.current }));
+        } else {
+          sessionIdRef.current = null;
+          localStorage.removeItem(LIVE_SESSION_KEY);
+        }
       } catch { /* storage full/blocked — restore just won't happen */ }
     };
     beat();
@@ -184,6 +189,11 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const pendingLive = useRef<any>((() => {
     try { return JSON.parse(localStorage.getItem(LIVE_SESSION_KEY) || 'null'); } catch { return null; }
   })());
+  /* stable id for the live session, minted on the first publish beat and
+     carried inside the restore blob — a second tab that re-arms the same
+     session shares the id, so completion can dedupe instead of logging
+     the session once per tab */
+  const sessionIdRef = useRef<string | null>(null);
   useEffect(() => {
     const link = pendingLink.current;
     if (link) {
@@ -221,6 +231,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       const resumeMs = live?.running ? (live.endsAt || 0) - Date.now()
         : live?.paused ? (live.remainingSec || 0) * 1000 : -1;
       if (live && resumeMs > 0) {
+        sessionIdRef.current = live.sessionId || null;
         setSetMinutes(Math.round((live.totalMin || 25)));
         setLabel(live.label ?? presetName);
         setIntent(live.intent || '');
@@ -407,7 +418,12 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     vibrate([120, 80, 120, 80, 300]);
     stationChime();
     const recess = isBreak || /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000));
-    const sess = saveSession({
+    /* a second tab that re-armed this same live session reaches completion
+       with the same sessionId — the first tab to log wins; the loser skips
+       the ledger row, command, and stir but still shows its done state */
+    const alreadyLogged = !!sessionIdRef.current && getSessions().some((s) => s.id === sessionIdRef.current);
+    const sess = alreadyLogged ? undefined : saveSession({
+      id: sessionIdRef.current ?? undefined,
       duration: cd.totalMs / 1000,
       type: recess ? 'break' : 'focus',
       label: intent || undefined,
@@ -458,7 +474,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const completeBreak = () => {
     vibrate([80, 60, 80]);
     stationChime();
-    saveSession({ duration: thenBreak * 60, type: 'break', label: 'Recess' });
+    saveSession({ id: sessionIdRef.current ?? undefined, duration: thenBreak * 60, type: 'break', label: 'Recess' });
     setDone('break');
   };
 

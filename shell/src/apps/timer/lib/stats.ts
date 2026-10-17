@@ -13,12 +13,17 @@ export interface Session {
 const STORAGE_KEY = 'timer.sessions.v1';
 const LEGACY_KEYS = ['platform.sessions.v1', 'obsidian_pulse_sessions'];
 
-export function saveSession(session: Omit<Session, 'id' | 'timestamp'>) {
+export function saveSession(session: Omit<Session, 'id' | 'timestamp'> & { id?: string }) {
   if (typeof window === 'undefined') return;
   const sessions = getSessions();
+  /* a live session carries its id in the restore blob — a second tab that
+     re-armed the same session completes with the same id, and the ledger
+     must not stamp the session twice */
+  const existing = session.id ? sessions.find((s) => s.id === session.id) : undefined;
+  if (existing) return existing;
   const newSession: Session = {
     ...session,
-    id: Math.random().toString(36).substring(2, 9),
+    id: session.id || Math.random().toString(36).substring(2, 9),
     timestamp: Date.now(),
   };
   sessions.push(newSession);
