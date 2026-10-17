@@ -15,7 +15,10 @@ node scripts/check-adapters.mjs
 node scripts/check-api-parity.mjs
 
 echo "── building shell"
-(cd shell && npm ci --no-audit --no-fund --silent && npm run build)
+# npm ci is the hermetic path; on Windows a running dev server (or antivirus)
+# can hold a .node/.exe handle and wedge ci mid-delete, leaving a broken
+# node_modules. Fall back to npm install — same lockfile, heals in place.
+(cd shell && { npm ci --no-audit --no-fund --silent || npm install --no-audit --no-fund; } && npm run build)
 cp -r shell/dist/. dist/
 
 # the hub must exist at the root — index.html loads '/iterra-hub.js'
