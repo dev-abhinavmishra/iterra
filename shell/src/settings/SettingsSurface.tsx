@@ -1,7 +1,16 @@
-import { Moon, Settings2, Sun, ChevronRight } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Moon, Settings2, Sun, ChevronRight, Download, Upload } from 'lucide-react';
 import { PLACES } from '../places';
-import { SectionHeader } from '../ui/primitives';
+import { Button, Dialog, SectionHeader } from '../ui/primitives';
 import { useWorkspaceTheme } from '../ui/theme';
+import {
+  collectBackup,
+  downloadBackup,
+  parseBackup,
+  restoreBackup,
+  summarizeBackup,
+  type IterraBackup,
+} from '../integration/backup';
 
 /* Central settings — the one doorway for terrain preferences and every
    tool's settings. Per-app settings chrome is hidden while integrated;
@@ -88,6 +97,9 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
         </button>
       </section>
 
+      {/* Backup */}
+      <BackupSection />
+
       {/* Tools */}
       <section className="pt-6">
         <SectionHeader title="Tool settings" />
@@ -136,5 +148,129 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
         </button>
       </section>
     </div>
+  );
+}
+
+/* The terrain is local-first — everything lives in this browser, which makes
+   a file backup the user's only real safety net (and the way to move between
+   machines). Restore replaces the whole terrain, so it confirms first and
+   reloads after: every store rehydrates from the restored storage on boot. */
+function BackupSection() {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<IterraBackup | null>(null);
+  const [restoring, setRestoring] = useState(false);
+
+  const onDownload = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      downloadBackup(await collectBackup());
+    } catch {
+      setError('Backup failed — storage may be unavailable in this browser.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onPick = async (file: File | undefined) => {
+    if (!file) return;
+    setError(null);
+    try {
+      setPending(parseBackup(await file.text()));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not read that file.');
+    }
+  };
+
+  const onRestore = async () => {
+    if (!pending) return;
+    setRestoring(true);
+    try {
+      await restoreBackup(pending);
+      window.location.reload();
+    } catch {
+      setRestoring(false);
+      setPending(null);
+      setError('Restore failed partway — download a backup of what is here now before retrying.');
+    }
+  };
+
+  const summary = pending ? summarizeBackup(pending) : null;
+
+  return (
+    <section className="pt-6">
+      <SectionHeader title="Backup" />
+      <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
+        <button
+          type="button"
+          onClick={onDownload}
+          disabled={busy}
+          className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer disabled:opacity-50"
+        >
+          <Download className="h-4 w-4 shrink-0 text-[var(--color-accent)]" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+              {busy ? 'Gathering data…' : 'Download backup'}
+            </span>
+            <span className="block truncate text-[12px] text-[var(--color-mute)]">
+              One JSON file with every tool's data — notes, cards, sessions, courses.
+            </span>
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="flex w-full items-center gap-3 border-t border-[var(--color-line)] px-4 py-2.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+        >
+          <Upload className="h-4 w-4 shrink-0 text-[var(--color-accent)]" />
+          <span className="min-w-0 flex-1">
+            <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+              Restore from file
+            </span>
+            <span className="block truncate text-[12px] text-[var(--color-mute)]">
+              Replaces everything currently stored in this browser.
+            </span>
+          </span>
+        </button>
+      </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={(e) => {
+          void onPick(e.target.files?.[0]);
+          e.target.value = '';
+        }}
+      />
+      {error && <p className="mt-2 text-[12px] text-[var(--color-bad)]">{error}</p>}
+
+      <Dialog
+        open={!!pending}
+        onClose={() => !restoring && setPending(null)}
+        title="Restore this backup?"
+        subtitle={
+          summary
+            ? `${new Date(summary.at).toLocaleString()} — ${summary.records} records across ${summary.dbs} databases, ${summary.lsKeys} settings keys`
+            : undefined
+        }
+      >
+        <p className="text-[12.5px] leading-relaxed text-[var(--color-mute)]">
+          Everything currently stored in this browser will be replaced by the
+          backup's contents. This can't be undone — download a fresh backup
+          first if there's anything recent you want to keep.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button onClick={() => setPending(null)} disabled={restoring}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={onRestore} disabled={restoring}>
+            {restoring ? 'Restoring…' : 'Replace everything'}
+          </Button>
+        </div>
+      </Dialog>
+    </section>
   );
 }
