@@ -1304,11 +1304,16 @@ export default function App() {
           {(
             [
               ['⌘K / Ctrl+K / /', 'Open global search & command palette'],
+              ['⌘P / Ctrl+P (in palette)', 'Pin the highlighted result to the shelf'],
+              ['Tab / → (in palette)', 'Send the highlighted result to another tool'],
               ['⌘0 / Ctrl+0', 'Return to Today workspace'],
               ['⌘1 – ⌘8', 'Switch directly to tool 1–8'],
               ['?', 'Show keyboard shortcuts'],
               ['Esc', 'Close active dialog or menu'],
               ['Space (in Timer)', 'Start or pause active countdown'],
+              ['R (in Timer)', 'Reset the current timer'],
+              ['F (in Timer)', 'Enter focus mode while running'],
+              ['L (in Stopwatch)', 'Mark a lap'],
             ] as [string, string][]
           ).map(([k, d]) => (
             <div key={k} className="flex items-baseline justify-between gap-3 py-1 border-b border-[var(--color-line)] last:border-b-0">
