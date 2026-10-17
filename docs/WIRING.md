@@ -137,6 +137,14 @@ only when there is a real block to file back to):
 - **gradestack** test-row timer icon (`study <test>`, carries `courseName`)
 - **shell dossier** "drill \<course\>" header button (`from=terrain`)
 
+Full bound-session params: `commitment=<local id>`, `block=<local id>` +
+`return=<origin>` (file-back), `courseId=<canonical key>`, `mat=<canonical
+material key>` — `material=` is accepted as an alias (the command layer's
+`startFocusSession` emits that spelling). `timer.start` intakes map a sent
+entity automatically: `commitment` → `commitment`, `block` → `block` +
+`return=/apps/syllabus`, anything else with `entity.key` → `mat`. The
+binding lives on `timer.session.live.v1` so a mid-session reload keeps it.
+
 ## 7. Shared context — the commons
 
 `iterra.doc(ns)` is a per-namespace JSON store backed by the deployment's
@@ -314,7 +322,13 @@ journals a `stir` event; emit with a `text` payload mirrors into the feed
 doc so existing readers keep working.
 
 **Links** — `iterra.links.add(fromKey, toKey, kind)`; backlinks via
-`iterra.links.for(key)` → `{out,inn}`.
+`iterra.links.for(key)` → `{out,inn}`. Provenance convention: the created
+object links *to* its source with `derivedFrom` (ink/margin `note.create`,
+proof `problem.create`, rhythm `routine.plan`, flashcards deck/card
+intakes all emit it when the intake record carries `entity.key`); timed
+practice links session → material/block with `practicedIn` via
+`recordSessionOutcome`. All link writes are best-effort — a missing
+`links` API must never fail the local write that triggered it.
 
 **Send-to** — `iterra.send({to,action,entity,payload})` resolves
 `{ok,delivered:'direct'|'queued',url}`: direct postMessage when the target

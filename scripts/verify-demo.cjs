@@ -68,11 +68,16 @@ const ok = (msg) => console.log('  ok:', msg);
     const req = indexedDB.open('ModularAINotesDB');
     req.onsuccess = () => {
       const db = req.result;
+      /* diagnose rather than assume — a renamed/absent store used to read
+         as 'NO STORE' with no hint of what the db actually holds */
+      const names = Array.from(db.objectStoreNames);
+      const store = names.includes('notes') ? 'notes' : names[0];
+      if (!store) { db.close(); res(['NO STORES: ' + names.join(',')]); return; }
       try {
-        const r = db.transaction('notes', 'readonly').objectStore('notes').getAllKeys();
+        const r = db.transaction(store, 'readonly').objectStore(store).getAllKeys();
         r.onsuccess = () => { db.close(); res(r.result); };
         r.onerror = () => { db.close(); res(['ERR']); };
-      } catch { db.close(); res(['NO STORE']); }
+      } catch (e) { db.close(); res(['NO STORE ' + store + ' (' + names.join(',') + ')']); }
     };
     req.onerror = () => res(['ERR open']);
   }));
@@ -91,6 +96,30 @@ const ok = (msg) => console.log('  ok:', msg);
   if (!proofProblems.some((k) => String(k).startsWith('p_in-demo-'))) {
     fail('proof missing intake problem: ' + JSON.stringify(proofProblems));
   } else ok('proof drained the demo intake → ' + proofProblems.filter((k) => k.includes('demo')).join(','));
+
+  /* ── provenance — each delivered object links derivedFrom its seeded
+       source commitment (resolvable, clickable in the dossier). Poll:
+       proof's drain is the slowest and races a fixed sleep. ── */
+  const readLinks = () => page.evaluate(() => new Promise((res) => {
+    const req = indexedDB.open('iterra');
+    req.onsuccess = () => {
+      const db = req.result;
+      try {
+        const r = db.transaction('links', 'readonly').objectStore('links').getAll();
+        r.onsuccess = () => { db.close(); res((r.result || []).map((l) => l.key)); };
+        r.onerror = () => { db.close(); res([]); };
+      } catch { db.close(); res([]); }
+    };
+    req.onerror = () => res([]);
+  }));
+  let demoLinks = [];
+  for (let i = 0; i < 30; i++) {
+    demoLinks = (await readLinks()).filter((k) => String(k).includes('demo'));
+    if (demoLinks.length >= 4) break;
+    await page.waitForTimeout(700);
+  }
+  if (demoLinks.length < 4) fail('expected ≥4 derivedFrom demo links, got ' + JSON.stringify(demoLinks));
+  else ok('provenance edges landed → ' + demoLinks.length + ' derivedFrom links to demo commitments');
 
   /* ── settings shows remove with a row count ── */
   await page.goto(`${BASE}/#/settings`, { waitUntil: 'load' });
@@ -165,6 +194,21 @@ const ok = (msg) => console.log('  ok:', msg);
   }));
   if (intakesLeft.some((k) => String(k).includes('demo'))) fail('demo intakes still queued: ' + JSON.stringify(intakesLeft));
   else ok('intake queue clean');
+
+  const linksLeft = await page.evaluate(() => new Promise((res) => {
+    const req = indexedDB.open('iterra');
+    req.onsuccess = () => {
+      const db = req.result;
+      try {
+        const r = db.transaction('links', 'readonly').objectStore('links').getAllKeys();
+        r.onsuccess = () => { db.close(); res(r.result); };
+        r.onerror = () => { db.close(); res([]); };
+      } catch { db.close(); res([]); }
+    };
+    req.onerror = () => res([]);
+  }));
+  if (linksLeft.some((k) => String(k).includes('demo'))) fail('demo links still present: ' + JSON.stringify(linksLeft.filter((k) => String(k).includes('demo'))));
+  else ok('link graph clean');
 
   const flag = await page.evaluate(() => localStorage.getItem('iterra.v1.demo'));
   if (flag) fail('demo flag still set after removal');

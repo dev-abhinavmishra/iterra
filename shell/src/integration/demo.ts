@@ -29,7 +29,7 @@
    operations are followed by a full reload by the caller, because
    mounted places hold their stores in memory and only a reload
    rehydrates them from the new envelopes. */
-import { openDatabase, storeAllKeys, listDatabases } from './backup';
+import { openDatabase, storeAllKeys, storeAllRecords, listDatabases } from './backup';
 
 export const DEMO_FLAG_KEY = 'iterra.v1.demo';
 export const DEMO_PREFIX = 'demo-';
@@ -43,6 +43,7 @@ const CARD_LAST_KEY = 'cardfile.lastDeck';
 const SESSIONS_KEY = 'timer.sessions.v1';
 const LS_INTAKES_KEY = 'iterra.v1.store.intakes';
 const LS_ENTITIES_KEY = 'iterra.v1.store.entities';
+const LS_LINKS_KEY = 'iterra.v1.store.links';
 const INK_KEY = 'ink-notes-storage';
 const PROOF_KEY = 'proof.workbench.v1';
 
@@ -57,6 +58,35 @@ const isDemoId = (id: unknown): boolean => {
 };
 /* canonical store key is 'app:type:id' — the demo mark lives in the id slot */
 const isDemoKey = (key: unknown): boolean => isDemoId(String(key ?? '').split(':').slice(2).join(':'));
+
+/* mounted zustand stores hold their state in memory — a set() after a
+   seed/remove LS write would re-persist the stale memory over the fresh
+   blob (the publish mirrors' entity notifies are enough to trigger it).
+   Push the current blob into the live stores so memory, LS, and mirrors
+   all agree before the caller reloads. */
+function syncMountedStores() {
+  try {
+    const folioNow = lsGet<{ state: Record<string, any> }>(FOLIO_KEY);
+    if (folioNow?.state) {
+      const s = folioNow.state;
+      (window as any).__syllabusFolioStore?.setState?.({
+        terms: s.terms, courses: s.courses, commitments: s.commitments,
+        blocks: s.blocks, links: s.links, reviews: s.reviews,
+        dismissed: s.dismissed, activeTermId: s.activeTermId,
+      });
+    }
+    const inkNow = lsGet<{ state?: { notes?: any[]; activeNoteId?: string | null } }>(INK_KEY);
+    if (inkNow?.state) {
+      (window as any).__inkStore?.setState?.({
+        notes: inkNow.state.notes, activeNoteId: inkNow.state.activeNoteId ?? null,
+      });
+    }
+    const proofNow = lsGet<{ state?: { problems?: Record<string, any> } }>(PROOF_KEY);
+    if (proofNow?.state) {
+      (window as any).__proofWorkbenchStore?.setState?.({ problems: proofNow.state.problems });
+    }
+  } catch { /* unmounted or a foreign shape — the LS writes already landed */ }
+}
 
 /* ── small storage helpers ─────────────────────────────────────────── */
 
@@ -330,34 +360,44 @@ async function seedHub(sessions: Array<Record<string, any>>) {
      ink opens a page, margin files a note, proof benches a problem.
      Deterministic demo ids mean the objects they create (intake-in-demo-*,
      p_in-demo-*) are demo-prefixed for removal too. */
+  /* intake entities are REAL seeded commitments (with their canonical keys)
+     — the delivered object's derivedFrom edge resolves to a clickable source
+     in the dossier instead of dangling at a pseudo-entity */
+  const cent = (id: string, title: string, courseId: string, course: string) => ({
+    app: 'syllabus', type: 'commitment', id, key: `syllabus:commitment:${id}`,
+    title, courseId, course, url: `/apps/syllabus/?commitment=${encodeURIComponent(id)}`,
+  });
   const intakes: Array<Record<string, unknown>> = [
     {
       id: `${DEMO_INTAKE_PREFIX}ink1`, to: 'ink', action: 'note.create',
-      entity: { app: 'syllabus', type: 'note', id: `${DEMO_PREFIX}enote-ink1`, title: 'Lecture notes — enzyme kinetics', courseId: ckey(`${DEMO_PREFIX}bio201`), course: 'BIO 201' },
+      entity: cent(`${DEMO_PREFIX}lab-bio`, 'Lab report — enzyme kinetics', ckey(`${DEMO_PREFIX}bio201`), 'BIO 201'),
       payload: { text: 'Michaelis-Menten: reaction rate vs. substrate concentration. Km = substrate at half Vmax. Competitive inhibitors raise apparent Km; non-competitive lower Vmax.\n\nFor the lab report: plot rate curves for the enzyme trials, estimate Vmax/Km, and discuss the inhibitor result.' },
       from: 'syllabus', at: now, delivered: null,
     },
     {
       id: `${DEMO_INTAKE_PREFIX}ink2`, to: 'ink', action: 'note.create',
-      entity: { app: 'syllabus', type: 'note', id: `${DEMO_PREFIX}enote-ink2`, title: 'Essay 2 brainstorm — Gatsby', courseId: ckey(`${DEMO_PREFIX}engl210`), course: 'ENGL 210' },
+      entity: cent(`${DEMO_PREFIX}essay-engl`, 'Essay 2 draft — Gatsby and the American Dream', ckey(`${DEMO_PREFIX}engl210`), 'ENGL 210'),
       payload: { text: 'Thesis directions: the green light as a motif for the unreachable American Dream; Nick as an unreliable narrator; the valley of ashes vs. West Egg.\n\nOutline due before the draft — pull quotes from ch. 7–9 reading.' },
       from: 'syllabus', at: now, delivered: null,
     },
     {
       id: `${DEMO_INTAKE_PREFIX}margin1`, to: 'margin', action: 'note.create',
-      entity: { app: 'syllabus', type: 'note', id: `${DEMO_PREFIX}enote-margin1`, title: 'BIO 201 study sheet — respiration', courseId: ckey(`${DEMO_PREFIX}bio201`), course: 'BIO 201' },
+      entity: cent(`${DEMO_PREFIX}quiz-bio`, 'Chapter 7 quiz — cellular respiration', ckey(`${DEMO_PREFIX}bio201`), 'BIO 201'),
       payload: { text: 'Glycolysis (cytoplasm): glucose → 2 pyruvate, net 2 ATP + 2 NADH.\nKrebs cycle (matrix): 2 acetyl-CoA → 4 CO2, 6 NADH, 2 FADH2, 2 ATP.\nETC (inner membrane): ~26–28 ATP via chemiosmosis; O2 is the final acceptor.' },
       from: 'syllabus', at: now, delivered: null,
     },
     {
       id: `${DEMO_INTAKE_PREFIX}proof1`, to: 'proof', action: 'problem.create',
-      entity: { app: 'syllabus', type: 'problem', id: `${DEMO_PREFIX}eprob-1`, title: 'Two-sample t-test practice', courseId: ckey(`${DEMO_PREFIX}stat220`), course: 'STAT 220' },
+      entity: cent(`${DEMO_PREFIX}mid-stat`, 'Midterm — inference and regression', ckey(`${DEMO_PREFIX}stat220`), 'STAT 220'),
       payload: { prompt: 'Two independent samples: n1 = 24, x̄1 = 82, s1 = 6; n2 = 21, x̄2 = 78, s2 = 8. Test whether the means differ at α = 0.05 (two-tailed). State hypotheses, the test statistic, and your conclusion.', topic: 'hypothesis testing', courseId: ckey(`${DEMO_PREFIX}stat220`), course: 'STAT 220', difficulty: 3, tags: ['midterm', 'inference'], source: 'demo' },
       from: 'syllabus', at: now, delivered: null,
     },
   ];
   await writeIntakes(intakes);
   seedFeed(now);
+  /* a mounted folio still holds pre-seed memory — without this its next
+     persist/mirror pass re-stamps the empty state over the seed */
+  syncMountedStores();
 }
 
 async function writeIntakes(rows: Array<Record<string, unknown>>) {
@@ -559,6 +599,11 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
       lsSet(LS_ENTITIES_KEY, ents);
     }
 
+    /* push the cleaned buckets into mounted stores before the IDB deletes —
+       a live publish mirror would otherwise re-stamp the demo rows it's
+       still holding in memory */
+    syncMountedStores();
+
     /* IDB hub store — entities + queued/delivered intake rows */
     const dbNames = (await listDatabases()).map((d) => d.name);
     if (dbNames.includes(HUB_DB)) {
@@ -570,6 +615,25 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
         const ikeys = await storeAllKeys(HUB_DB, 'intakes');
         await idbDelete(HUB_DB, 'intakes', ikeys.filter((k) => String(k).startsWith(DEMO_INTAKE_PREFIX)));
       } catch { /* best-effort */ }
+      try {
+        /* derivedFrom edges the demo deliveries wrote — a link is demo-side
+           when either endpoint key carries a demo id */
+        const links = await storeAllRecords<{ key?: string; from?: string; to?: string }>(HUB_DB, 'links');
+        await idbDelete(
+          HUB_DB,
+          'links',
+          links.filter((l) => isDemoKey(l?.key) || isDemoKey(l?.from) || isDemoKey(l?.to)).map((l) => l.key as IDBValidKey),
+        );
+      } catch { /* best-effort */ }
+    }
+    /* LS links bucket — same sweep for deployments without IDB */
+    const lsLinks = lsGet<Record<string, { from?: string; to?: string }>>(LS_LINKS_KEY);
+    if (lsLinks) {
+      let touched = false;
+      for (const [k, l] of Object.entries(lsLinks)) {
+        if (isDemoKey(k) || isDemoKey(l?.from) || isDemoKey(l?.to)) { delete lsLinks[k]; touched = true; }
+      }
+      if (touched) lsSet(LS_LINKS_KEY, lsLinks);
     }
     /* margin notes — 'intake-in-demo-*' */
     if (dbNames.includes(MARGIN_DB)) {
@@ -578,6 +642,10 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
         await idbDelete(MARGIN_DB, 'notes', nkeys.filter(isDemoId));
       } catch { /* best-effort */ }
     }
+
+    /* second pass — anything a mounted store re-stamped while the IDB
+       deletes ran gets flattened again before the flag drops */
+    syncMountedStores();
 
     try { localStorage.removeItem(DEMO_FLAG_KEY); } catch { /* ok */ }
     return { ok: true };

@@ -130,9 +130,17 @@ contract every app and the shell follows.
   tag inference, intake-created notes inherit the sender's course.
 - rhythm upstream closed — sibling session exited; its sequencer rehaul
   (c0145cc) is the vendored base; nothing newer to sync.
-- In flight on rhythm child: ink `initialNotes` demo-library strip →
-  margin-style welcome note + no seeded folders (standing no-fake-data
-  rule — was indexing 3 fabricated notes into #/c/unfiled).
+- Shipped: ink `initialNotes` demo-library strip → single margin-style
+  welcome note + no seeded folders (standing no-fake-data rule — was
+  indexing 3 fabricated notes into #/c/unfiled).
+- Provenance wave (2cfd7f0→6a0b71b): every intake-created object links
+  `derivedFrom` to its source entity — ink/margin note.create, proof
+  problem.create, rhythm routine.plan; timer.start binds sent entities as
+  `mat` (blocks bind block+return, commitments → commitment) and
+  recordSessionOutcome lands the practicedIn edge. Fixed en route:
+  startFocusSession emitted `material=` where the parser read `mat=`, and
+  live-session restore stored `materialRef` where state reads `material` —
+  both silently dropped the edge.
 - Durable-intake wave (07b732b→b980f20): send-to is now exactly-once —
   per-app serialized drains + atomic IndexedDB claims (`claimedBy/
   claimedAt`, stale-claim reclaim) end duplicate deliveries (one

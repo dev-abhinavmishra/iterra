@@ -246,6 +246,27 @@ describe('removeDemoData', () => {
     expect(Object.keys(ents)).toEqual(['ink:note:user-note']);
   });
 
+  it('sweeps derivedFrom links on either endpoint — a user link to a demo source goes too', async () => {
+    const demo = await load();
+    localStorageStub.setItem('iterra.v1.store.links', JSON.stringify({
+      'ink:note:intake-in-demo-ink1→syllabus:commitment:demo-lab-bio·derivedFrom': {
+        key: 'ink:note:intake-in-demo-ink1→syllabus:commitment:demo-lab-bio·derivedFrom',
+        from: 'ink:note:intake-in-demo-ink1', to: 'syllabus:commitment:demo-lab-bio', kind: 'derivedFrom',
+      },
+      'ink:note:user-note→syllabus:commitment:demo-lab-bio·derivedFrom': {
+        key: 'ink:note:user-note→syllabus:commitment:demo-lab-bio·derivedFrom',
+        from: 'ink:note:user-note', to: 'syllabus:commitment:demo-lab-bio', kind: 'derivedFrom',
+      },
+      'ink:note:user-note→syllabus:course:c1·derivedFrom': {
+        key: 'ink:note:user-note→syllabus:course:c1·derivedFrom',
+        from: 'ink:note:user-note', to: 'syllabus:course:c1', kind: 'derivedFrom',
+      },
+    }));
+    await demo.removeDemoData();
+    const links = JSON.parse(store.get('iterra.v1.store.links') ?? '{}');
+    expect(Object.keys(links)).toEqual(['ink:note:user-note→syllabus:course:c1·derivedFrom']);
+  });
+
   it('on an empty terrain removes cleanly and stays ok', async () => {
     const demo = await load();
     const res = await demo.removeDemoData();

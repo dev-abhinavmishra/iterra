@@ -68,6 +68,16 @@ export const storeAllKeys = (dbName: string, storeName: string): Promise<IDBVali
     });
   });
 
+export const storeAllRecords = <T = unknown>(dbName: string, storeName: string): Promise<T[]> =>
+  openExistingDatabase(dbName).then((db) => {
+    if (!db || !db.objectStoreNames.contains(storeName)) { db?.close(); return []; }
+    return new Promise<T[]>((res) => {
+      const r = db.transaction(storeName, 'readonly').objectStore(storeName).getAll();
+      r.onsuccess = () => { db.close(); res((r.result as T[]) || []); };
+      r.onerror = () => { db.close(); res([]); };
+    });
+  });
+
 /* A versionless indexedDB.open() CREATES an empty database when the name
    doesn't exist — probing "is this db there" would leave phantom empty
    databases (margin's ModularAINotesDB most visibly). onupgradeneeded
