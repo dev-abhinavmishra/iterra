@@ -76,6 +76,24 @@ export function SheetBuilder() {
   const [instructorName, setInstructorName] = useState('');
   const [includeStudentId, setIncludeStudentId] = useState(true);
 
+  /* canonical course codes autocomplete the free-text field — a typo'd
+     code ("bio201" vs "BIO 201") would fragment the dossier rollup */
+  const [courseOpts, setCourseOpts] = useState<string[]>([]);
+  useEffect(() => {
+    let live = true;
+    (window as any).iterra?.courses?.list?.()
+      .then((rows: any[]) => {
+        if (!live) return;
+        setCourseOpts(
+          (rows || [])
+            .map((e) => String(e?.data?.code ?? e?.course ?? e?.title ?? '').trim())
+            .filter(Boolean),
+        );
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
+
   // Answer key — marked right on the sheet preview
   const [keyMode, setKeyMode] = useState(false);
   const [answerKey, setAnswerKey] = useState<Record<number, string>>({});
@@ -596,7 +614,13 @@ export function SheetBuilder() {
                 value={courseName}
                 placeholder="e.g. Advanced mathematics"
                 onChange={(e) => setCourseName(e.target.value)}
+                {...(courseOpts.length ? { list: 'gs-course-list' } : {})}
               />
+              {courseOpts.length > 0 && (
+                <datalist id="gs-course-list">
+                  {courseOpts.map((c) => <option key={c} value={c} />)}
+                </datalist>
+              )}
             </Field>
             <Field label="Instructor — optional">
               <Input
