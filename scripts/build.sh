@@ -10,6 +10,10 @@ cd "$(dirname "$0")/.."
 rm -rf dist 2>/dev/null || { mkdir -p dist && rm -rf dist/* dist/.[!.]* 2>/dev/null || true; }
 mkdir -p dist
 
+echo "── contract checks"
+node scripts/check-adapters.mjs
+node scripts/check-api-parity.mjs
+
 echo "── building shell"
 (cd shell && npm ci --no-audit --no-fund --silent && npm run build)
 cp -r shell/dist/. dist/

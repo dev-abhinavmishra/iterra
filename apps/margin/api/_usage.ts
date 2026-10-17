@@ -1,70 +1,59 @@
 // Usage limiting.
 //
-// Two layers, picked automatically per request:
+// Every AI endpoint passes through reserveLimit(), which ATOMICALLY reserves
+// one use and returns a refund ticket — a failed provider call hands the use
+// back so users aren't charged for work they never got.
 //
-//  1. AUTHENTICATED (preferred): the client signs in with Supabase anonymous auth
-//     and sends its JWT. We verify the JWT server-side, then enforce the limit via
-//     the project's `increment_usage` / `get_user_limits` RPCs (the `user_limits`
-//     table — monthly windows, plan tiers, durable in Postgres).
-//     Anonymous-auth JWTs (`user.is_anonymous`) are additionally charged against
-//     the daily IP pin: the uid is verified but freely re-mintable, so without
-//     the pin scripted account rotation could outrun the monthly cap.
+// Identity layers, picked automatically per request:
 //
-//  2. ANONYMOUS FALLBACK: no/invalid JWT (e.g. anonymous sign-ins not yet enabled).
-//     Falls back to a per-browser daily counter in `usage_counters`, or an
-//     in-memory map if Supabase is unreachable — so the app never breaks.
-//     Anonymous identity is DOUBLE-keyed: the browser's x-user-id AND the
-//     platform-observed client IP each get a counter, so rotating x-user-id
-//     alone can't mint a fresh bucket — the IP counter still pins the caller.
+//  1. AUTHENTICATED (preferred): the client signs in with Supabase auth and
+//     sends its JWT. Verified server-side; main quota lives in the monthly
+//     `user_limits` ledger via the project's increment_usage / get_user_limits
+//     RPCs.
 //
-//  Endpoints may also carry a named `bucket` (e.g. 'transcribe', 'title') with
-//  its own daily cap — bucketed calls never consume the main AI quota.
+//     Anonymous-auth JWTs (is_anonymous) use the same monthly uid ledger —
+//     but are ALSO pinned by client IP ('ip:<bucket>:<ip>' daily counter),
+//     because a throwaway anon account is one signInAnonymously() away and
+//     can't be the abuse boundary: the machine behind it is.
+//
+//  2. UNSIGNED FALLBACK: no/invalid JWT (e.g. anonymous sign-ins disabled).
+//     A daily usage_counters row keyed on the caller's x-user-id — trivially
+//     rotatable, so the same IP pin bounds the machine doing the rotating.
+//
+// Buckets: named endpoints (transcribe, title) keep their own daily quota so
+// recordings and title-generation can't drain the main AI pool — counter ids
+// are '<bucket>:<id>' for the uid side and 'ip:<bucket>:<ip>' for the pin
+// (the main bucket is 'ai').
+//
+// Storage tiers, tried in order:
+//   Postgres RPCs (consume_daily_usage / refund_daily_usage / increment_usage
+//     / decrement_usage) — atomic conditional consume; preferred.
+//   Table read+upsert on usage_counters — same limits, not atomic (legacy
+//     schema fallback; run the updated supabase_schema.sql to close the race).
+//   In-memory Map — dev / single-process only; same contract.
 
 import { createClient } from '@supabase/supabase-js';
 
-/* A malformed env var must not silently open the quota: parseInt gives NaN
-   and every `used >= limit` comparison downstream goes false. Fall back to
-   the default for anything that isn't a positive integer. */
+/** Parse a positive integer env var; anything missing/invalid/non-positive
+    falls back so a malformed env can't NaN the limit away. */
 export const envInt = (name: string, fallback: number): number => {
-    const n = parseInt(process.env[name] || '', 10);
-    return Number.isFinite(n) && n > 0 ? n : fallback;
+    const raw = process.env[name];
+    if (raw === undefined || raw === '') return fallback;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 };
 
 export const DAILY_LIMIT = envInt('DAILY_FREE_LIMIT', 15);
 
-/* The anonymous IP pin is a multiple of the per-user cap: one IP can serve
-   several distinct browsers (NAT, school networks) while still bounding total
-   spend. Tune with ANON_IP_LIMIT_MULT. */
-const ANON_IP_MULT = envInt('ANON_IP_LIMIT_MULT', 10);
+/* The IP pin's pool is bigger than a single id's: one machine may legitimately
+   mint several anon ids (reinstalls, cleared storage), so it's bounded at
+   limit × multiplier rather than the id limit. */
+const ANON_IP_LIMIT_MULT = envInt('ANON_IP_LIMIT_MULT', 10);
 
-const memory: Record<string, { day: string; count: number }> = {};
-
-/* The in-memory ledger only runs when Supabase is absent — but that is
-   precisely the deployment where nothing else bounds a rotating x-user-id:
-   each fresh header would mint a new map key forever. Cap the map: stale-day
-   entries are compacted first, then least-recently-touched (string keys
-   iterate in INSERTION order, and re-assignment alone doesn't reorder —
-   every counter write must go through memSet so a live key keeps its
-   recency. The counter that matters under rotation — the IP pin — is
-   re-touched on every request, so it rides out a flood of fresh id keys;
-   the flood itself is what gets evicted. */
+/* In-memory fallback ledger (dev / single-process). Bounded so an x-user-id
+   rotation flood can't grow it without limit. */
 const MEM_MAX_KEYS = 20000;
-const memCompact = (day: string) => {
-    const keys = Object.keys(memory);
-    if (keys.length < MEM_MAX_KEYS) return;
-    for (const k of keys) if (memory[k].day !== day) delete memory[k];
-    const rest = Object.keys(memory);
-    const excess = rest.length - MEM_MAX_KEYS + 1;
-    for (let i = 0; i < excess; i++) delete memory[rest[i]];
-};
-/* Write a counter record AND re-pin its recency: `delete` + re-insert moves
-   the key to the end of the iteration order — a plain `memory[key] = rec`
-   would leave it at its original insertion position, making a hot key
-   (the shared IP pin) the oldest entry and the first evicted under flood. */
-const memSet = (key: string, rec: { day: string; count: number }) => {
-    delete memory[key];
-    memory[key] = rec;
-};
+const memory = new Map<string, { day: string; count: number }>();
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -90,96 +79,202 @@ export interface UsageStatus {
 // Caller identity
 // ---------------------------------------------------------------------------
 
-const pickIp = (v: any): string | null => {
-    if (typeof v !== 'string') return null;
-    // The LAST x-forwarded-for hop is the one the platform appended — the
-    // client-supplied leading entries are trivially spoofable. Cap + charset
-    // the value since it becomes a counter key.
-    const s = v.split(',').map((x) => x.trim()).filter(Boolean).pop() || '';
-    return s.length > 0 && s.length <= 64 && /^[0-9a-fA-F:.%_\-]+$/.test(s) ? s : null;
+/**
+ * The caller's IP as observed by the platform — the only honest signal an
+ * unsigned caller can't rotate. On Vercel the edge owns x-forwarded-for (the
+ * platform appends the real client hop last); elsewhere the socket peer is
+ * all we have. Client-claimed proxy headers are never trusted off-platform.
+ */
+export const resolveNetIp = (req: any): string => {
+    if (process.env.VERCEL) {
+        const xff = (req.headers?.['x-vercel-forwarded-for'] || req.headers?.['x-forwarded-for'] || '')
+            .toString().split(',');
+        const last = xff[xff.length - 1]?.trim();
+        if (last) return last;
+    }
+    return req.socket?.remoteAddress || 'unknown';
 };
 
-/* Proxy headers are only trustworthy when the platform itself rewrites the
-   chain. On Vercel the edge appends the observed client IP last (and
-   VERCEL=1 is always set in functions), so the .pop() above keeps just that
-   hop. Off-Vercel EVERY one of these headers — x-vercel-forwarded-for
-   included, a caller could simply set it — is client-writable, and the TCP
-   peer is the only unspoofable source. A self-hosted deploy behind a known
-   proxy can opt back into header trust with TRUST_PROXY=1.
-   Checked per call, like getSupabase() — env is fixed at boot anyway, but a
-   module-scope read would freeze it before tests/config get a say. */
-const trustProxyHeaders = () => !!process.env.VERCEL || process.env.TRUST_PROXY === '1';
-
-/** The platform-observed client IP — not the caller's claim. */
-export const resolveNetIp = (req: any): string | null =>
-    (trustProxyHeaders()
-        ? pickIp(req.headers?.['x-vercel-forwarded-for']) ||
-          pickIp(req.headers?.['x-forwarded-for']) ||
-          pickIp(req.headers?.['x-real-ip'])
-        : null) ||
-    pickIp(req.socket?.remoteAddress) ||
-    null;
-
-/**
- * Resolve who is calling. If a valid Supabase JWT is present we return the
- * authenticated uuid (authed: true); otherwise we fall back to the anonymous
- * x-user-id header / IP. `ip` is the platform-observed address regardless of
- * auth state — anonymous callers are additionally keyed on it.
- */
-export const resolveUser = async (req: any): Promise<{ userId: string; authed: boolean; isAnon: boolean; ip: string | null }> => {
+const bearerToken = (req: any): string | null => {
     const authHeader = req.headers?.['authorization'] || req.headers?.['Authorization'];
-    const token = typeof authHeader === 'string' && authHeader.startsWith('Bearer ')
+    return typeof authHeader === 'string' && authHeader.startsWith('Bearer ')
         ? authHeader.slice(7)
         : null;
+};
 
+/**
+ * Resolve who is calling. A valid Supabase JWT returns the authenticated uuid
+ * (authed: true, with isAnon marking anonymous-auth accounts); otherwise the
+ * caller is unsigned — the x-user-id header if present, else the net IP.
+ */
+export const resolveUser = async (req: any): Promise<{ userId: string; authed: boolean; isAnon: boolean; ip: string }> => {
+    const ip = resolveNetIp(req);
+    const token = bearerToken(req);
     const sb = getSupabase();
     if (token && sb) {
         try {
             const { data, error } = await sb.auth.getUser(token);
             if (!error && data?.user?.id) {
-                /* is_anonymous marks Supabase anonymous-auth users: their JWT
-                   verifies, but the uid behind it is freely re-mintable, so it
-                   is NOT a stable identity for quota purposes. Older projects
-                   may not emit the flag — absent reads as non-anon (the prior
-                   behavior), and hCaptcha on the auth side still gates minting. */
-                return { userId: data.user.id, authed: true, isAnon: data.user.is_anonymous === true, ip: resolveNetIp(req) };
+                return { userId: data.user.id, authed: true, isAnon: data.user.is_anonymous === true, ip };
             }
         } catch {
-            /* fall through to anonymous */
+            /* fall through to unsigned */
         }
     }
 
-    // x-user-id is a label, never a credential — bound it.
     const header = req.headers?.['x-user-id'];
-    const ip = resolveNetIp(req);
-    if (header && typeof header === 'string' && header.trim()) {
-        return { userId: header.trim().slice(0, 128), authed: false, isAnon: true, ip };
-    }
-    return { userId: ip || 'anonymous', authed: false, isAnon: true, ip };
+    return { userId: (typeof header === 'string' && header) || ip, authed: false, isAnon: false, ip };
+};
+
+/** Backwards-compatible synchronous id resolver (unsigned id only). */
+export const getUserId = (req: any): string => {
+    const header = req.headers?.['x-user-id'];
+    if (header && typeof header === 'string' && header.length > 0) return header;
+    return resolveNetIp(req);
 };
 
 /**
- * Require a verified Supabase JWT — for endpoints that read or mutate a user's
- * stored data (notes, sessions). Replies 401 and returns null when absent.
+ * Gate for routes that persist user-owned rows: a verified Supabase JWT is
+ * REQUIRED — the forgeable x-user-id header is never enough. Sends 401 and
+ * returns null when there's no valid token; anonymous-auth JWTs count.
  */
-export const requireAuth = async (req: any, res: any): Promise<{ userId: string } | null> => {
-    const { userId, authed } = await resolveUser(req);
-    if (!authed) {
-        res.status(401).json({ error: 'AUTH_REQUIRED' });
-        return null;
+export const requireAuth = async (req: any, res: any): Promise<{ userId: string; isAnon: boolean } | null> => {
+    const token = bearerToken(req);
+    const sb = getSupabase();
+    if (token && sb) {
+        try {
+            const { data, error } = await sb.auth.getUser(token);
+            if (!error && data?.user?.id) {
+                return { userId: data.user.id, isAnon: data.user.is_anonymous === true };
+            }
+        } catch {
+            /* fall through to 401 */
+        }
     }
-    return { userId };
-};
-
-/** Backwards-compatible synchronous id resolver (anonymous only). */
-export const getUserId = (req: any): string => {
-    const header = req.headers?.['x-user-id'];
-    if (header && typeof header === 'string' && header.length > 0) return header.slice(0, 128);
-    return resolveNetIp(req) || 'anonymous';
+    res.status(401).json({ error: 'Authentication required' });
+    return null;
 };
 
 // ---------------------------------------------------------------------------
-// Authenticated path (Supabase user_limits RPCs)
+// Counter-key scheme (mirrors supabase_schema.sql)
+// ---------------------------------------------------------------------------
+
+/* Main-bucket pin name — 'ip:ai:<ip>' for unbucketed calls. */
+const MAIN_BUCKET = 'ai';
+
+const uidKey = (bucket: string | undefined, uid: string) => (bucket ? `${bucket}:${uid}` : uid);
+const pinKey = (bucket: string | undefined, ip: string) => `ip:${bucket || MAIN_BUCKET}:${ip}`;
+
+const counterStatus = (used: number, limit: number): UsageStatus => ({
+    used,
+    limit,
+    remaining: Math.max(0, limit - used),
+    reachedLimit: used >= limit,
+});
+
+// ---------------------------------------------------------------------------
+// In-memory tier
+// ---------------------------------------------------------------------------
+
+/* Evict stale-day rows first, then oldest-touched. Map order is insertion
+   order — a plain set() does NOT move a key, so the IP pin (written once,
+   then read-only under a uid-rotation flood) would sit at the oldest slot
+   and evict FIRST. memSet re-inserts touched keys to the recency end so the
+   pin survives the flood it exists to stop. */
+const memCompact = (day: string): void => {
+    for (const [k, v] of memory) {
+        if (memory.size <= MEM_MAX_KEYS) break;
+        if (v.day !== day) memory.delete(k);
+    }
+    for (const [k] of memory) {
+        if (memory.size <= MEM_MAX_KEYS) break;
+        memory.delete(k);
+    }
+};
+
+const memSet = (key: string, rec: { day: string; count: number }): void => {
+    memory.delete(key);
+    memory.set(key, rec);
+};
+
+const memGet = (key: string, day: string): { day: string; count: number } => {
+    if (memory.size > MEM_MAX_KEYS) memCompact(day);
+    const rec = memory.get(key);
+    return rec && rec.day === day ? rec : { day, count: 0 };
+};
+
+// ---------------------------------------------------------------------------
+// Daily-counter ledger (unsigned ids, buckets, IP pins)
+// ---------------------------------------------------------------------------
+
+/** Read a daily counter without consuming. */
+const dailyRead = async (key: string, day: string): Promise<number> => {
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { data } = await sb.from('usage_counters').select('count').eq('user_id', key).eq('day', day).maybeSingle();
+            return data?.count || 0;
+        } catch {
+            /* fall through to memory */
+        }
+    }
+    return memGet(key, day).count;
+};
+
+/**
+ * Atomically consume one unit of a daily counter. Returns the post-consume
+ * count and whether the consume landed under the limit.
+ */
+const dailyConsume = async (key: string, day: string, limit: number): Promise<{ allowed: boolean; count: number }> => {
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            /* Atomic conditional consume (supabase_schema.sql ≥ v2): one UPDATE
+               that increments only while under the limit — concurrent calls
+               can't all slip through. A negative return is -(count) at a deny. */
+            const { data, error } = await sb.rpc('consume_daily_usage', { p_user_id: key, p_day: day, p_limit: limit });
+            if (!error && typeof data === 'number') {
+                return data < 0 ? { allowed: false, count: -data } : { allowed: true, count: data };
+            }
+            /* Legacy schema (function not installed): non-atomic read+upsert.
+               Run the updated supabase_schema.sql to close the race. */
+            const { data: row } = await sb.from('usage_counters').select('count').eq('user_id', key).eq('day', day).maybeSingle();
+            const used = row?.count || 0;
+            if (used >= limit) return { allowed: false, count: used };
+            await sb.from('usage_counters').upsert({ user_id: key, day, count: used + 1 }, { onConflict: 'user_id,day' });
+            return { allowed: true, count: used + 1 };
+        } catch {
+            /* fall through to memory */
+        }
+    }
+    const rec = memGet(key, day);
+    if (rec.count >= limit) {
+        memSet(key, rec);
+        return { allowed: false, count: rec.count };
+    }
+    rec.count += 1;
+    memSet(key, rec);
+    return { allowed: true, count: rec.count };
+};
+
+/** Give back one reserved unit (a failed AI call must not cost quota). */
+const dailyRefund = async (key: string, day: string): Promise<void> => {
+    const sb = getSupabase();
+    if (sb) {
+        try {
+            const { error } = await sb.rpc('refund_daily_usage', { p_user_id: key, p_day: day });
+            if (!error) return;
+        } catch {
+            /* fall through to memory */
+        }
+    }
+    const rec = memGet(key, day);
+    rec.count = Math.max(0, rec.count - 1);
+    memSet(key, rec);
+};
+
+// ---------------------------------------------------------------------------
+// Authenticated monthly ledger (Supabase user_limits RPCs)
 // ---------------------------------------------------------------------------
 
 const firstNum = (...vals: any[]): number | undefined => {
@@ -237,156 +332,13 @@ const authedConsume = async (sb: any, userId: string, tokens: number): Promise<{
     }
 };
 
-// ---------------------------------------------------------------------------
-// Anonymous fallback path (daily counters in `usage_counters`)
-//
-// Counter keys:
-//   default bucket:  <userId>              (unchanged from v1 — rows carry over)
-//   named bucket:    <bucket>:<userId>
-//   IP pin:          ip:<bucket|ai>:<ip>
-// The IP pin is enforced at limit * ANON_IP_MULT so rotating x-user-id can't
-// outrun it, while shared networks still get several browsers' worth.
-// ---------------------------------------------------------------------------
-
-const anonStatus = (used: number, limit: number): UsageStatus => ({
-    used,
-    limit,
-    remaining: Math.max(0, limit - used),
-    reachedLimit: used >= limit,
-});
-
-const counterKey = (userId: string, bucket?: string) => (bucket ? `${bucket}:${userId}` : userId);
-const ipKey = (ip: string, bucket?: string) => `ip:${bucket || 'ai'}:${ip}`;
-
-const anonReadKey = async (key: string): Promise<number> => {
-    const day = today();
-    const sb = getSupabase();
-    if (sb) {
-        try {
-            const { data } = await sb.from('usage_counters').select('count').eq('user_id', key).eq('day', day).maybeSingle();
-            return data?.count || 0;
-        } catch {
-            /* fall through to memory */
-        }
-    }
-    const rec = memory[key];
-    return rec && rec.day === day ? rec.count : 0;
-};
-
-/** Atomically consume one use of a counter key. Returns the new used count. */
-const anonConsumeKey = async (key: string, limit: number): Promise<{ allowed: boolean; used: number }> => {
-    const day = today();
-    const sb = getSupabase();
-    if (sb) {
-        try {
-            /* Atomic conditional consume (supabase_schema.sql ≥ v2): one UPDATE
-               that increments only while under the limit — concurrent calls
-               can't all slip through. */
-            const { data, error } = await sb.rpc('consume_daily_usage', { p_user_id: key, p_day: day, p_limit: limit });
-            if (!error && typeof data === 'number') {
-                return data < 0 ? { allowed: false, used: -data } : { allowed: true, used: data };
-            }
-            /* Legacy schema (function not installed): non-atomic read+upsert.
-               Run the updated supabase_schema.sql to close the race. */
-            const { data: row } = await sb.from('usage_counters').select('count').eq('user_id', key).eq('day', day).maybeSingle();
-            const used = row?.count || 0;
-            if (used >= limit) return { allowed: false, used };
-            await sb.from('usage_counters').upsert({ user_id: key, day, count: used + 1 }, { onConflict: 'user_id,day' });
-            return { allowed: true, used: used + 1 };
-        } catch {
-            /* fall through to memory */
-        }
-    }
-    const rec = memory[key] && memory[key].day === day ? memory[key] : { day, count: 0 };
-    if (rec.count >= limit) {
-        memCompact(day);
-        memSet(key, rec);
-        return { allowed: false, used: rec.count };
-    }
-    rec.count += 1;
-    memCompact(day);
-    memSet(key, rec);
-    return { allowed: true, used: rec.count };
-};
-
-/** Give back one reserved use of a counter key. */
-const anonRefundKey = async (key: string): Promise<number | null> => {
-    const day = today();
-    const sb = getSupabase();
-    if (sb) {
-        try {
-            const { data, error } = await sb.rpc('refund_daily_usage', { p_user_id: key, p_day: day });
-            if (!error && typeof data === 'number') return data;
-            /* Legacy schema (refund RPC not installed): mirror the consume
-               fallback — a non-atomic decrement on the counter row. Without
-               this the RPC-less path charges Postgres but refunds only the
-               in-memory map, leaking quota on every failed AI call. */
-            const { data: row } = await sb.from('usage_counters').select('count').eq('user_id', key).eq('day', day).maybeSingle();
-            if (!row) return 0;
-            const count = Math.max(0, (row.count || 0) - 1);
-            await sb.from('usage_counters').update({ count }).eq('user_id', key).eq('day', day);
-            return count;
-        } catch {
-            /* fall through to memory */
-        }
-    }
-    const rec = memory[key] && memory[key].day === day ? memory[key] : { day, count: 0 };
-    rec.count = Math.max(0, rec.count - 1);
-    memCompact(day);
-    memSet(key, rec);
-    return rec.count;
-};
-
-interface AnonCharge {
-    idKey: string;
-    ipKey?: string;
-}
-
-/**
- * Consume one anonymous use: the caller's id bucket at `limit`, pinned by the
- * platform-IP bucket at `ipLimit`. Only the keys actually charged are returned
- * so a refund never credits a bucket that was never debited.
- */
-const anonConsume = async (
-    userId: string,
-    ip: string | null,
-    opts: { bucket?: string; limit: number; ipLimit: number },
-): Promise<{ allowed: boolean; status: UsageStatus; charge: AnonCharge | null }> => {
-    const idKey = counterKey(userId, opts.bucket);
-    const idRes = await anonConsumeKey(idKey, opts.limit);
-    if (!idRes.allowed) return { allowed: false, status: anonStatus(idRes.used, opts.limit), charge: null };
-
-    if (ip) {
-        const k = ipKey(ip, opts.bucket);
-        const ipRes = await anonConsumeKey(k, opts.ipLimit);
-        if (!ipRes.allowed) {
-            // Undo the id charge — the deny belongs to the IP pin, not the id.
-            // Report the PIN's status (matching the authed path): the caller
-            // is blocked by the ipLimit pool, and surfacing the refunded id
-            // counter as remaining>0 would lie about why the 429 fired.
-            await anonRefundKey(idKey);
-            return { allowed: false, status: anonStatus(ipRes.used, opts.ipLimit), charge: null };
-        }
-        return { allowed: true, status: anonStatus(idRes.used, opts.limit), charge: { idKey, ipKey: k } };
-    }
-    return { allowed: true, status: anonStatus(idRes.used, opts.limit), charge: { idKey } };
-};
-
-const anonGetUsage = async (userId: string, bucket?: string, limit?: number): Promise<UsageStatus> => {
-    const L = limit ?? DAILY_LIMIT;
-    return anonStatus(await anonReadKey(counterKey(userId, bucket)), L);
-};
-
-const authedRefund = async (sb: any, userId: string, tokens: number): Promise<UsageStatus | null> => {
+const authedRefund = async (sb: any, userId: string): Promise<void> => {
     try {
         /* decrement_usage must exist in the project DB alongside
-           increment_usage (see supabase_schema.sql note). Hand back the same
-           request+token estimate that was charged so failed calls don't drift
-           the token counter upward. */
-        await sb.rpc('decrement_usage', { p_user_id: userId, p_requests: 1, p_tokens: tokens });
-        return await authedGetUsage(sb, userId);
+           increment_usage (see supabase_schema.sql note). */
+        await sb.rpc('decrement_usage', { p_user_id: userId, p_requests: 1, p_tokens: 0 });
     } catch {
-        return null;
+        /* refund is best-effort; a miss over-charges by one */
     }
 };
 
@@ -402,141 +354,137 @@ const estimateTokens = (body: any): number => {
     }
 };
 
-/** Read current usage without consuming quota. When the caller is also
- *  IP-pinned (unauthed fallback, or anonymous-auth JWT), the badge should
- *  reflect the BINDING pool — reporting only the id counter would show
- *  remaining>0 while every call 429s on the pin. */
-export const getUsageFor = async (
-    userId: string,
-    authed: boolean,
-    opts: { bucket?: string; limit?: number; ipLimit?: number; ip?: string | null; isAnon?: boolean } = {},
-): Promise<UsageStatus> => {
-    const sb = getSupabase();
-    const limit = opts.limit ?? DAILY_LIMIT;
-    const ipLimit = opts.ipLimit ?? limit * ANON_IP_MULT;
-    if (authed && sb && !opts.bucket) {
-        const s = await authedGetUsage(sb, userId);
-        if (s) {
-            if (opts.isAnon && opts.ip) {
-                const pin = anonStatus(await anonReadKey(ipKey(opts.ip)), ipLimit);
-                if (pin.remaining < s.remaining) return pin;
-            }
-            return s;
-        }
-    }
-    const idStatus = await anonGetUsage(userId, opts.bucket, limit);
-    if (opts.ip) {
-        const pin = anonStatus(await anonReadKey(ipKey(opts.ip, opts.bucket)), ipLimit);
-        if (pin.remaining < idStatus.remaining) return pin;
-    }
-    return idStatus;
-};
-
-const sendUsageHeaders = (res: any, status: UsageStatus, bucket?: string) => {
+const sendUsageHeaders = (res: any, status: UsageStatus) => {
     res.setHeader('x-usage-used', String(status.used));
     res.setHeader('x-usage-limit', String(status.limit));
     res.setHeader('x-usage-remaining', String(status.remaining));
-    /* Scope marker: a named bucket's numbers describe THAT daily pool, not
-       the shared AI quota — the client's badge must ignore them. 'main' is
-       sent explicitly so a strict client needn't guess what absence means. */
-    res.setHeader('x-usage-bucket', bucket || 'main');
 };
 
 export interface UsageTicket {
     userId: string;
     authed: boolean;
-    /** Return the reserved use after a failed AI call. Refunds the same
-        ledger that was charged — never the other bucket. */
+    /** Return every reserved use after a failed AI call — refunds each ledger
+        that was charged (monthly uid AND the IP pin), never the wrong one. */
     refund: () => Promise<void>;
 }
 
 /**
- * Admission gate: ATOMICALLY reserves one use (check + consume in the same
- * step) so concurrent callers can't all squeeze past the limit. Replies 429
- * and returns null when over quota. A successful AI call needs nothing more;
- * a failed one returns the use via ticket.refund().
- *
- * opts.bucket gives an endpoint its own counter (e.g. 'transcribe') so it
- * stays bounded without eating the main AI quota; opts.limit overrides the
- * daily cap for that bucket. Bucketed endpoints always use the daily-counter
- * ledger — the monthly authed ledger covers the unbucketed AI calls.
+ * Read current usage without consuming quota. When the caller is IP-pinned
+ * (unsigned, or anonymous-auth with an ip), the BINDING pool is reported —
+ * the pin's pool when it's the tighter of the two — so the usage badge shows
+ * what's actually left rather than an id bucket the pin would veto anyway.
+ */
+export const getUsageFor = async (
+    userId: string,
+    authed: boolean,
+    opts: { ip?: string; isAnon?: boolean; bucket?: string; limit?: number; ipLimit?: number } = {},
+): Promise<UsageStatus> => {
+    const bucket = typeof opts.bucket === 'string' && opts.bucket ? opts.bucket : undefined;
+    const limit = opts.limit && opts.limit > 0 ? Math.floor(opts.limit) : DAILY_LIMIT;
+    const ipLimit = opts.ipLimit && opts.ipLimit > 0 ? Math.floor(opts.ipLimit) : limit * ANON_IP_LIMIT_MULT;
+    const day = today();
+    const sb = getSupabase();
+
+    /* The uid-side pool: monthly ledger for authed main-quota callers, the
+       daily counter otherwise. */
+    let status: UsageStatus | null = null;
+    if (authed && sb && !bucket) {
+        status = await authedGetUsage(sb, userId);
+    }
+    if (!status) {
+        status = counterStatus(await dailyRead(uidKey(bucket, userId), day), limit);
+    }
+
+    /* The pin's pool: tighter = fewer calls until a deny. */
+    if (opts.ip && (opts.isAnon || !authed)) {
+        const pin = counterStatus(await dailyRead(pinKey(bucket, opts.ip), day), ipLimit);
+        if (pin.remaining < status.remaining) return pin;
+    }
+    return status;
+};
+
+/**
+ * Admission gate: ATOMICALLY reserves one use in every ledger the caller is
+ * bound by — the IP pin FIRST (it's the abuse wall: a denied pin never lets
+ * a fresh uid ledger get charged), then the uid ledger (monthly user_limits
+ * for authed main-quota calls, the daily counter everywhere else). Replies
+ * 429 — reporting the pool that actually denied — and returns null when any
+ * ledger is full; earlier reservations are handed back. A successful AI call
+ * needs nothing more; a failed one returns the use via ticket.refund().
  */
 export const reserveLimit = async (
     req: any,
     res: any,
     opts: { bucket?: string; limit?: number; ipLimit?: number } = {},
 ): Promise<UsageTicket | null> => {
+    const bucket = typeof opts.bucket === 'string' && opts.bucket ? opts.bucket : undefined;
+    const limit = opts.limit && opts.limit > 0 ? Math.floor(opts.limit) : DAILY_LIMIT;
+    const ipLimit = opts.ipLimit && opts.ipLimit > 0 ? Math.floor(opts.ipLimit) : limit * ANON_IP_LIMIT_MULT;
+    res.setHeader('x-usage-bucket', bucket || 'main');
+
     const { userId, authed, isAnon, ip } = await resolveUser(req);
     const sb = getSupabase();
-    const limit = opts.limit ?? DAILY_LIMIT;
-    const ipLimit = opts.ipLimit ?? limit * ANON_IP_MULT;
+    const day = today();
 
-    let via: 'authed' | 'anon' = 'anon';
-    let charge: AnonCharge | null = null;
-    let authedTokens = 0;
-    let authedIpKey: string | null = null;
-    let result: { allowed: boolean; status: UsageStatus } | null = null;
+    /* Only unsigned callers and anonymous-auth accounts get the IP pin — a
+       verified non-anon account can't mint fresh uids, so pinning it by
+       network would just punish users on shared IPs. */
+    const pinned = !authed || isAnon;
 
-    if (authed && sb && !opts.bucket) {
-        authedTokens = estimateTokens(req.body);
-        result = await authedConsume(sb, userId, authedTokens);
-        if (result?.allowed && isAnon && ip) {
-            /* Anonymous-auth uids are freely re-mintable, so the uid-keyed
-               monthly ledger alone can't bound scripted rotation — enabling
-               anonymous sign-in without the IP pin would give each fresh uid
-               a full monthly allowance. Charge the daily IP pin alongside:
-               one IP can only mint ipLimit requests/day no matter how many
-               anonymous accounts it rotates through. (hCaptcha on the auth
-               side — see supabase_schema.sql — gates the minting itself.) */
-            const k = ipKey(ip);
-            const ipRes = await anonConsumeKey(k, ipLimit);
-            if (!ipRes.allowed) {
-                // Undo the monthly charge — the deny belongs to the IP pin.
-                await authedRefund(sb, userId, authedTokens);
-                result = { allowed: false, status: anonStatus(ipRes.used, ipLimit) };
-            } else {
-                authedIpKey = k;
-            }
+    const charged: Array<{ kind: 'daily'; key: string } | { kind: 'monthly'; uid: string }> = [];
+    const statuses: UsageStatus[] = [];
+    const deny = async (status: UsageStatus): Promise<null> => {
+        for (const c of charged) {
+            if (c.kind === 'daily') await dailyRefund(c.key, day);
+            else if (sb) await authedRefund(sb, c.uid);
         }
-        if (result?.allowed) via = 'authed';
-    }
-    if (!result) {
-        // Anonymous callers — and bucketed endpoints for EVERYONE — use the
-        // daily counters: the id bucket pinned by the platform-IP bucket so
-        // rotating x-user-id can't outrun it. The pin is unconditional on
-        // this path: a verified uid is not uniqueness proof (anonymous auth
-        // mints a fresh one per sign-in), and the monthly-ledger attempt
-        // above only counts when its RPCs actually answered — every caller
-        // that lands here is on a freely claimable id, so the IP pin is the
-        // only thing that can't be rotated.
-        const r = await anonConsume(userId, ip, { bucket: opts.bucket, limit, ipLimit });
-        result = r;
-        charge = r.charge;
-    }
-    sendUsageHeaders(res, result.status, opts.bucket);
-    if (!result.allowed) {
-        res.status(429).json({ error: 'LIMIT_REACHED', bucket: opts.bucket || 'main', usage: result.status });
+        sendUsageHeaders(res, status);
+        res.status(429).json({ error: 'LIMIT_REACHED', usage: status, bucket: bucket || 'main' });
         return null;
+    };
+
+    // 1. The IP pin.
+    if (pinned) {
+        const key = pinKey(bucket, ip);
+        const r = await dailyConsume(key, day, ipLimit);
+        if (!r.allowed) return deny(counterStatus(r.count, ipLimit));
+        charged.push({ kind: 'daily', key });
+        statuses.push(counterStatus(r.count, ipLimit));
     }
+
+    // 2. The uid ledger — monthly RPC for the authed main quota, daily
+    //    counter for unsigned callers and every named bucket.
+    let monthlyCharged = false;
+    if (authed && sb && !bucket) {
+        const r = await authedConsume(sb, userId, estimateTokens(req.body));
+        if (r) {
+            if (!r.allowed) return deny(r.status);
+            charged.push({ kind: 'monthly', uid: userId });
+            statuses.push(r.status);
+            monthlyCharged = true;
+        }
+        /* null → the project RPCs aren't deployed; degrade to the daily
+           counter rather than 500 the request. */
+    }
+    if (!monthlyCharged) {
+        const key = uidKey(bucket, userId);
+        const r = await dailyConsume(key, day, limit);
+        if (!r.allowed) return deny(counterStatus(r.count, limit));
+        charged.push({ kind: 'daily', key });
+        statuses.push(counterStatus(r.count, limit));
+    }
+
+    sendUsageHeaders(res, statuses.reduce((a, b) => (b.remaining < a.remaining ? b : a)));
 
     return {
         userId,
         authed,
         refund: async () => {
             try {
-                // Refund every ledger that was charged — the monthly ledger
-                // AND, for anonymous-authed callers, the daily IP pin.
-                if (via === 'authed') {
-                    if (!sb) return;
-                    const status = await authedRefund(sb, userId, authedTokens);
-                    if (authedIpKey) await anonRefundKey(authedIpKey);
-                    if (status) sendUsageHeaders(res, status, opts.bucket);
-                    return;
+                for (const c of charged) {
+                    if (c.kind === 'daily') await dailyRefund(c.key, day);
+                    else if (sb) await authedRefund(sb, c.uid);
                 }
-                if (!charge) return;
-                const used = await anonRefundKey(charge.idKey);
-                if (charge.ipKey) await anonRefundKey(charge.ipKey);
-                if (used !== null) sendUsageHeaders(res, anonStatus(used, limit), opts.bucket);
             } catch {
                 /* refund failures must not fail the request */
             }
