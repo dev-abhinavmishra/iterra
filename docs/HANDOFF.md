@@ -124,10 +124,10 @@ contract every app and the shell follows.
 
 ## Open threads
 
-- ink/margin have NO real course field in their models (Note = title, tags[],
-  folder / type) — they emit no linkage keys rather than synthesize.
-  Design note (unshipped): a structured course picker on the note is the
-  honest path to notes joining dossiers — needs Abhinav's call.
+- ink/margin notes carry a structured course binding now (shipped, Abhinav
+  approved): optional courseId/course on Note, a roster-fed picker in the
+  ink editor tag row + margin meta bar, publishing prefers the binding over
+  tag inference, intake-created notes inherit the sender's course.
 - rhythm upstream closed — sibling session exited; its sequencer rehaul
   (c0145cc) is the vendored base; nothing newer to sync.
 - In flight on rhythm child: ink `initialNotes` demo-library strip →

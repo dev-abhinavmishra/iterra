@@ -1,6 +1,6 @@
 // Contract pin — ink's canonical-store adapter shapes.
 // Pure helpers only: entity builder, intake doc seeding, first-line extraction.
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { firstLine, intakeDoc, noteEntity } from './iterra-adapter';
 import type { Note } from '../store';
 
@@ -28,6 +28,29 @@ describe('firstLine', () => {
     expect(firstLine('')).toBeUndefined();
     expect(firstLine(undefined)).toBeUndefined();
     expect(firstLine(doc(['x'.repeat(200)]))!.length).toBeLessThanOrEqual(81);
+  });
+});
+
+describe('course binding', () => {
+  beforeAll(() => {
+    /* addNote → zustand persist writes; stub storage so the store inits */
+    const mem = new Map<string, string>();
+    (globalThis as Record<string, unknown>).localStorage = {
+      getItem: (k: string) => mem.get(k) ?? null,
+      setItem: (k: string, v: string) => void mem.set(k, String(v)),
+      removeItem: (k: string) => void mem.delete(k),
+      clear: () => mem.clear(),
+      get length() { return mem.size; },
+      key: (i: number) => [...mem.keys()][i] ?? null,
+    };
+  });
+
+  it('addNote keeps a caller-supplied course binding', async () => {
+    const { useStore } = await import('../store');
+    const id = useStore.getState().addNote({ courseId: 'syllabus:course:c1', course: 'BIO 201' });
+    const n = useStore.getState().notes.find((x) => x.id === id);
+    expect(n?.courseId).toBe('syllabus:course:c1');
+    expect(n?.course).toBe('BIO 201');
   });
 });
 

@@ -350,6 +350,11 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, now, isActive, onSelect, onPi
               </button>
             </span>
           ))}
+          {note.course && (
+            <span className="font-mono text-2xs text-fountain/90" title={`Filed under ${note.course}`}>
+              {note.course}
+            </span>
+          )}
           {note.dailyKey && <span className="font-mono text-2xs text-manila">journal</span>}
         </div>
         <span className="font-mono text-2xs text-ink-ghost flex-shrink-0 tabular-nums flex items-center gap-1">

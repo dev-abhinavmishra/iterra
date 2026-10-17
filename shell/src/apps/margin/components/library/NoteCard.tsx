@@ -159,6 +159,14 @@ const NoteCard: React.FC<NoteCardProps> = ({
                         {snippet}
                     </p>
                 )}
+                {note.course && (
+                    <div className="mt-2" title={`Filed under ${note.course}`}>
+                        <span className="inline-flex items-center gap-1 font-mono text-[11px] text-ink-2 bg-[var(--card-2)] rounded-[var(--r-sm)] px-1.5 py-0.5">
+                            <Icon name="school" size={12} />
+                            {note.course}
+                        </span>
+                    </div>
+                )}
                 {!compact && (note.tags || []).length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2.5">
                         {note.tags.slice(0, 3).map(t => <Tag key={t}>{t}</Tag>)}
