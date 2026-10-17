@@ -30,7 +30,7 @@ export const GETTING_STARTED: GettingStartedGuide[] = [
     place: 'ink',
     steps: [
       'Press N or hit New page — start writing immediately.',
-      'Tag a note with a course code to file it under that course.',
+      'File the page under a course with the bookmark chip in the header.',
       'Select text and send it to Flashcards or Calculations to work on it.',
     ],
   },
@@ -38,8 +38,8 @@ export const GETTING_STARTED: GettingStartedGuide[] = [
     place: 'margin',
     steps: [
       'Drop a PDF, doc, image, or audio file onto Notes to import it.',
+      'File a note under a course from the meta row under its title.',
       'Open a document and select text — ask about it or send it onward.',
-      'Save generated cards to the Flashcards place from any selection.',
     ],
   },
   {
