@@ -1248,11 +1248,13 @@ export function TodayWorkspace({
             </section>
 
             {/* ── Recent Activity Stream (only when real activity exists) ── */}
-            {feed.length > 0 && (
+            {(() => {
+              const visible = feed.filter((f) => matchesCourseFilter(f.course));
+              return visible.length > 0 && (
               <section aria-label="Recent workspace activity">
                 <SectionHeader title="Recent Activity" />
                 <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                  {feed.slice(0, 5).map((f, idx) => (
+                  {visible.slice(0, 5).map((f, idx) => (
                     <button
                       key={`${f.at}:${f.app}:${idx}`}
                       type="button"
@@ -1271,7 +1273,8 @@ export function TodayWorkspace({
                   ))}
                 </div>
               </section>
-            )}
+              );
+            })()}
           </div>
         </div>
 

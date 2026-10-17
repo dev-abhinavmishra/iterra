@@ -15,7 +15,29 @@ export default function StatsView({ active = true }: { active?: boolean }) {
   const [logOpen, setLogOpen] = useState(false);
   const [logLabel, setLogLabel] = useState('');
   const [logMinutes, setLogMinutes] = useState('25');
+  const [logWhen, setLogWhen] = useState('');
+  const [logCourse, setLogCourse] = useState('');
+  const [courses, setCourses] = useState<Array<{ key: string; code: string }>>([]);
   const [logBusy, setLogBusy] = useState(false);
+  const [logErr, setLogErr] = useState<string | null>(null);
+
+  /* the course picker mirrors the canonical registry — open it lazily so a
+     standalone timer never touches the hub */
+  useEffect(() => {
+    if (!logOpen || !inTerrain()) return;
+    const it = (window as any).iterra;
+    if (!it?.courses?.list) return;
+    let live = true;
+    void it.courses.list().then((rows: any[]) => {
+      if (!live) return;
+      setCourses(
+        (rows || [])
+          .map((e) => ({ key: String(e?.key ?? ''), code: String(e?.data?.code ?? e?.course ?? e?.title ?? '') }))
+          .filter((c) => c.key && c.code),
+      );
+    }).catch(() => {});
+    return () => { live = false; };
+  }, [logOpen]);
 
   // keep-alive shell: re-read the ledger every time this view is shown —
   // sessions logged while it was hidden must appear on the next visit
@@ -98,6 +120,10 @@ export default function StatsView({ active = true }: { active?: boolean }) {
               e.preventDefault();
               const mins = Math.max(1, Math.min(600, Math.round(Number(logMinutes) || 0)));
               if (!mins || logBusy) return;
+              const when = logWhen ? new Date(logWhen).getTime() : Date.now();
+              if (!Number.isFinite(when)) { setLogErr('That date doesn’t parse — pick it from the calendar.'); return; }
+              if (when > Date.now() + 60 * 1000) { setLogErr('Backfill is for past sessions — pick a date that already happened.'); return; }
+              setLogErr(null);
               setLogBusy(true);
               try {
                 const res = await execCommand('recordSessionOutcome', {
@@ -105,13 +131,19 @@ export default function StatsView({ active = true }: { active?: boolean }) {
                   elapsedMinutes: mins,
                   plannedMinutes: mins,
                   label: logLabel.trim() || 'Focus session',
+                  courseId: logCourse || undefined,
                   confirmedByUser: true,
+                  at: when,
                   idempotencyKey: `manual:${Date.now()}`,
                 });
                 if (res?.ok !== false) {
                   setStats(getStats());
                   setLogLabel('');
+                  setLogWhen('');
+                  setLogCourse('');
                   setLogOpen(false);
+                } else {
+                  setLogErr(res?.error || 'The ledger refused that entry.');
                 }
               } finally {
                 setLogBusy(false);
@@ -137,10 +169,41 @@ export default function StatsView({ active = true }: { active?: boolean }) {
                   className="w-full bg-transparent border-b border-[var(--color-line,#333)] py-1 font-body text-sm text-ink focus:outline-none focus:border-[var(--color-signal)]"
                 />
               </label>
+              <label className="w-44">
+                <span className="label-wall text-[9px] block mb-1">When</span>
+                <input
+                  type="datetime-local"
+                  value={logWhen}
+                  max={(() => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); })()}
+                  onChange={(e) => setLogWhen(e.target.value)}
+                  className="w-full bg-transparent border-b border-[var(--color-line,#333)] py-1 font-body text-sm text-ink focus:outline-none focus:border-[var(--color-signal)]"
+                />
+              </label>
+              {courses.length > 0 && (
+                <label className="w-40">
+                  <span className="label-wall text-[9px] block mb-1">Course</span>
+                  <select
+                    value={logCourse}
+                    onChange={(e) => setLogCourse(e.target.value)}
+                    className="w-full bg-transparent border-b border-[var(--color-line,#333)] py-1 font-body text-sm text-ink focus:outline-none focus:border-[var(--color-signal)]"
+                  >
+                    <option value="">— none —</option>
+                    {courses.map((c) => (
+                      <option key={c.key} value={c.key}>{c.code}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
               <button type="submit" disabled={logBusy} className="chip px-4 py-2 text-[10px] disabled:opacity-50">
                 {logBusy ? 'Logging…' : 'Log session'}
               </button>
             </div>
+            {logErr && (
+              <p role="status" className="mt-3 font-body text-xs text-[var(--color-signal)]">{logErr}</p>
+            )}
+            {!logWhen && (
+              <p className="label-wall text-[9px] mt-3 opacity-70">No date picked — files under right now.</p>
+            )}
           </motion.form>
         )}
       </AnimatePresence>

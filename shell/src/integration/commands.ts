@@ -1253,6 +1253,9 @@ export interface RecordSessionOutcomeInput {
   course?: string | null;
   topic?: string | null;
   notes?: string;
+  /* when the session happened — manual/backfilled entries need a date the
+     stats can file under; defaults to now for live-timed runs */
+  at?: number;
   workflowId?: string;
   idempotencyKey?: string;
 }
@@ -1370,6 +1373,10 @@ export async function handleRecordSessionOutcome(
   const commitmentId = input.commitmentId ?? active?.commitmentId ?? undefined;
   const label = (input.label || active?.label || 'Focus Session').trim();
   const now = Date.now();
+  const at =
+    typeof input.at === 'number' && Number.isFinite(input.at) && input.at > 0
+      ? Math.round(input.at)
+      : now;
 
   // 1. Save session to Timer's authoritative store (`timer.sessions.v1`).
   //    Canceled runs are reconciled (block revert + canceled event + this
@@ -1387,7 +1394,7 @@ export async function handleRecordSessionOutcome(
       id: sessionId,
       duration: elapsedSeconds,
       type: 'focus',
-      timestamp: now,
+      timestamp: at,
       label,
       preset: label,
       course,
@@ -1433,8 +1440,8 @@ export async function handleRecordSessionOutcome(
       blockRef: blockKey || undefined,
       commitmentId,
       materialRef: resolvedMaterialKey || undefined,
-      startedAt: now - elapsedSeconds * 1000,
-      endedAt: now,
+      startedAt: at - elapsedSeconds * 1000,
+      endedAt: at,
       notes: input.notes,
     },
   });

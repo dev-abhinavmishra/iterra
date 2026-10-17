@@ -158,4 +158,33 @@ describe('recordSessionOutcome', () => {
     expect(sessions()).toHaveLength(1);
     expect(sessions()[0].id).toBe('sa');
   });
+
+  it('at backfills the session timestamp — stats file it under the past day', async () => {
+    const yesterday = Date.now() - 26 * 3600 * 1000;
+    const res = await handleRecordSessionOutcome({
+      sessionId: 's_back',
+      outcome: 'completed',
+      elapsedMinutes: 40,
+      plannedMinutes: 40,
+      at: yesterday,
+      confirmedByUser: true,
+    });
+    expect(res.ok).toBe(true);
+    expect(sessions()[0].timestamp).toBe(yesterday);
+    const ent = puts.find((e) => e.type === 'session' && e.id === 's_back');
+    expect(ent?.data?.endedAt).toBe(yesterday);
+    expect(ent?.data?.startedAt).toBe(yesterday - 40 * 60 * 1000);
+  });
+
+  it('courseId binds the session to a canonical course', async () => {
+    const res = await handleRecordSessionOutcome({
+      sessionId: 's_c',
+      outcome: 'completed',
+      elapsedMinutes: 25,
+      courseId: 'syllabus:course:bio201',
+      confirmedByUser: true,
+    });
+    expect(res.ok).toBe(true);
+    expect(sessions()[0].courseId).toBe('syllabus:course:bio201');
+  });
 });
