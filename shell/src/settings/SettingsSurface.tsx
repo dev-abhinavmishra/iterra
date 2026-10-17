@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive } from 'lucide-react';
+import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive, Inbox, AlertTriangle } from 'lucide-react';
 import { PLACES } from '../places';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
 import { useWorkspaceTheme } from '../ui/theme';
@@ -103,6 +103,9 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
 
       {/* Sample semester */}
       <DemoSection />
+
+      {/* Integration health */}
+      <DiagnosticsSection />
 
       {/* Tools */}
       <section className="pt-6">
@@ -276,6 +279,92 @@ function BackupSection() {
           </Button>
         </div>
       </Dialog>
+    </section>
+  );
+}
+
+/* Cross-tool traffic is invisible by design — a routine check goes through
+   the same queue as a big import, so a stuck lane reads as nothing at all.
+   This surfaces the two honest diagnostics: deliveries still waiting on
+   their tool, and writes the hub quarantined as malformed. */
+function DiagnosticsSection() {
+  const [diag, setDiag] = useState<{ pending: number; quarantined: number } | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    const read = async () => {
+      let pending = 0;
+      let quarantined = 0;
+      try {
+        const ls = JSON.parse(localStorage.getItem('iterra.v1.store.intakes') || '{}');
+        pending += Object.values(ls).filter((r: any) => !r?.delivered).length;
+      } catch { /* ignore */ }
+      try {
+        const q = JSON.parse(localStorage.getItem('iterra.v1.quarantine') || '[]');
+        quarantined += Array.isArray(q) ? q.length : 0;
+      } catch { /* ignore */ }
+      /* the hub's IDB lane — count undelivered intake rows without
+         creating the database (open() would make an empty one) */
+      try {
+        const names = (await indexedDB.databases?.())?.map((d) => d.name) ?? [];
+        if (names.includes('iterra')) {
+          const idbPending = await new Promise<number>((res) => {
+            const req = indexedDB.open('iterra');
+            req.onsuccess = () => {
+              const db = req.result;
+              if (!db.objectStoreNames.contains('intakes')) { db.close(); res(0); return; }
+              const r = db.transaction('intakes', 'readonly').objectStore('intakes').getAll();
+              r.onsuccess = () => {
+                db.close();
+                res((r.result as any[]).filter((x) => !x?.delivered).length);
+              };
+              r.onerror = () => { db.close(); res(0); };
+            };
+            req.onerror = () => res(0);
+          });
+          pending += idbPending;
+        }
+      } catch { /* IDB optional */ }
+      if (live) setDiag({ pending, quarantined });
+    };
+    void read();
+    const t = window.setInterval(read, 8000);
+    return () => { live = false; window.clearInterval(t); };
+  }, []);
+
+  if (!diag || (diag.pending === 0 && diag.quarantined === 0)) return null;
+
+  return (
+    <section className="pt-6">
+      <SectionHeader title="Diagnostics" />
+      <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
+        {diag.pending > 0 && (
+          <div className="flex items-center gap-3 px-4 py-2.5">
+            <Inbox className="h-4 w-4 shrink-0 text-[var(--color-warn)]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+                {diag.pending} deliver{diag.pending === 1 ? 'y' : 'ies'} waiting
+              </span>
+              <span className="block truncate text-[12px] text-[var(--color-mute)]">
+                Send-to deliveries queue until their tool next opens — they land automatically.
+              </span>
+            </span>
+          </div>
+        )}
+        {diag.quarantined > 0 && (
+          <div className={`flex items-center gap-3 px-4 py-2.5 ${diag.pending > 0 ? 'border-t border-[var(--color-line)]' : ''}`}>
+            <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--color-bad)]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+                {diag.quarantined} malformed write{diag.quarantined === 1 ? '' : 's'} quarantined
+              </span>
+              <span className="block truncate text-[12px] text-[var(--color-mute)]">
+                The hub rejected these instead of storing them — usually a publisher bug, worth a backup.
+              </span>
+            </span>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
