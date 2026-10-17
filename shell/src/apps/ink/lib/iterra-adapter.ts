@@ -50,7 +50,7 @@ interface IterraSurface {
 interface IntakeRecord {
   id?: string;
   from?: string;
-  entity?: { app?: string; type?: string; id?: string; title?: string };
+  entity?: { app?: string; type?: string; id?: string; title?: string; key?: string };
   payload?: { text?: string };
 }
 
@@ -243,6 +243,13 @@ export function registerAdapter() {
           content: intakeDoc(rec),
           wordCount: text ? text.split(/\s+/).length : 0,
         });
+        /* provenance: the new page was derived FROM the sent entity — the
+           relationship edge is what dossiers/search show, not just the
+           'From <app>' title. Mirrors cards.create's derived links. */
+        const srcKey = typeof rec?.entity?.key === 'string' ? rec.entity.key : null;
+        if (srcKey) {
+          try { await (window as any).iterra?.links?.add(`ink:note:${id}`, srcKey, 'derivedFrom'); } catch { /* best effort */ }
+        }
         return { url: `/apps/ink/?note=${id}` };
       },
     },

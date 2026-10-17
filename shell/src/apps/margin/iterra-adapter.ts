@@ -359,6 +359,12 @@ export function registerAdapter() {
       'note.create': async (rec: any) => {
         const note = intakeNote(rec);
         await saveNote(note);
+        /* provenance edge: the note was derived FROM the sent entity —
+           dossiers and search read links, not the title prefix */
+        const srcKey = typeof rec?.entity?.key === 'string' ? rec.entity.key : null;
+        if (srcKey) {
+          try { await (window as any).iterra?.links?.add(`margin:note:${note.id}`, srcKey, 'derivedFrom'); } catch { /* best effort */ }
+        }
         try {
           window.dispatchEvent(new CustomEvent('margin:intake-note', { detail: note }));
         } catch { /* the note is persisted; the view refresh is best-effort */ }
