@@ -25,9 +25,16 @@ const SEND_TARGETS: { to: string; action: string; label: string; payload?: Recor
   { to: 'margin', action: 'note.create', label: 'Study Materials — new document' },
   { to: 'ink', action: 'note.create', label: 'Notes — new page' },
   { to: 'proof', action: 'step.append', label: 'Calculations — append step' },
+  /* problem.create reads the sent entity's title as the prompt and its
+     course binding for filing — a 'file this as a problem' path */
+  { to: 'proof', action: 'problem.create', label: 'Calculations — file as problem' },
   /* the intake contract requires kind — without it the register used to
      fabricate a bare session.completed mark with no label at all */
   { to: 'rhythm', action: 'log.activity', label: 'Attendance — log activity', payload: { kind: 'session' } },
+  /* block.plan reads the sent entity itself: material types bind as the
+     slip's materialRef (the slip's Start opens the deck/note), and the
+     entity's course/courseId stand in when no payload course is sent */
+  { to: 'syllabus', action: 'block.plan', label: 'Planning — schedule a study block' },
   { to: 'timer', action: 'timer.start', label: 'Timer — 25m focus session' },
 ];
 

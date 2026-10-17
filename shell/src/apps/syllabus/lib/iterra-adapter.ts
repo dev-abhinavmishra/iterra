@@ -515,17 +515,21 @@ export function registerAdapter() {
         await whenBooted();
         const s = useFolio.getState();
         const p = rec?.payload ?? {};
-        const rawKey = String(p.courseId ?? '');
+        /* senders that only carry an entity (palette 'send to') still land
+           in the right course — the entity's own course fields stand in
+           when the payload doesn't spell one */
+        const rawKey = String(p.courseId ?? rec?.entity?.courseId ?? '');
+        const courseName = p.course ?? rec?.entity?.course;
         const localId = rawKey.startsWith(COURSE_KEY) ? rawKey.slice(COURSE_KEY.length) : rawKey;
         const course =
           s.courses[localId] ??
           Object.values(s.courses).find(
-            (c) => p.course && String(c.code).toLowerCase() === String(p.course).toLowerCase(),
+            (c) => courseName && String(c.code).toLowerCase() === String(courseName).toLowerCase(),
           );
         /* {url:null} alone reads as silent success-with-nothing — say why
            through the rail so a send to a missing course isn't a dead end */
         if (!course) {
-          const asked = p.course || localId;
+          const asked = courseName || localId;
           return {
             url: null,
             toast: asked ? `No course “${asked}” in Planning — add it first` : 'block.plan needs a course',
@@ -571,7 +575,11 @@ export function registerAdapter() {
           }
           const res = await execCommand('scheduleReviewBlock', {
             materialRef: matRef,
-            title: typeof p.title === 'string' && p.title.trim() ? p.title.trim() : (p.label || undefined),
+            title:
+              (typeof p.title === 'string' && p.title.trim()) ||
+              p.label ||
+              (typeof rec?.entity?.title === 'string' ? rec.entity.title : undefined) ||
+              undefined,
             plannedDate: date,
             plannedStart: start,
             plannedMinutes: minutes,

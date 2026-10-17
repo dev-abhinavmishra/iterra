@@ -308,6 +308,24 @@ describe('block.plan intake', () => {
     expect(r2.url).toBe(r1.url);
   });
 
+  it('a send carrying only the entity still files under its course', async () => {
+    const { useFolio } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+      commitments: { k1: mkCommitment('k1', 'c1') },
+    });
+    /* palette 'send to → Planning' ships the entity with no payload course —
+       the entity's own course/courseId must stand in or the send dead-ends */
+    const res = await adapterOpts.intakes['block.plan']({
+      id: 'bp-ent', action: 'block.plan',
+      entity: { key: 'ink:note:n9', app: 'ink', type: 'note', id: 'n9', title: 'Lecture 12 notes', courseId: 'syllabus:course:c1', course: 'MTH151' },
+      payload: { minutes: 30 },
+    });
+    const made = Object.values(useFolio.getState().blocks);
+    expect(made).toHaveLength(1);
+    expect(res.url).toBe(`/apps/syllabus/?block=${(made[0] as any).id}`);
+  });
+
   it('explains when the course is unknown', async () => {
     await seedAndWire({});
     const res = await adapterOpts.intakes['block.plan']({

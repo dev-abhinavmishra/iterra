@@ -605,7 +605,12 @@ export function registerAdapter() {
         if (!draft) {
           return { url: null, toast: 'log.activity needs a kind — nothing marked' };
         }
-        const cid = await projectCourse(rec?.payload ?? {}, rec?.id);
+        /* a palette 'send to → Attendance' carries course on the entity,
+           not the payload — the entity's binding stands in as fallback */
+        const cid = await projectCourse(
+          { courseId: rec?.entity?.courseId, course: rec?.entity?.course, ...(rec?.payload ?? {}) },
+          rec?.id,
+        );
         if (cid) draft.courseId = cid;
         ingest(draft);
         const hit = typeof draft.routineId === 'string'
