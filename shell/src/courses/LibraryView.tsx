@@ -85,10 +85,11 @@ export function LibraryView({
     return [...set].sort();
   }, [entities, allObjects]);
 
-  const filtered = useMemo(() => {
+  /* course+query context first — the category tabs count and the list both
+     filter inside it, so a badge never promises rows the list doesn't have */
+  const contextObjects = useMemo(() => {
     const q = query.trim().toLowerCase();
     const cFilter = coursePick.trim().toLowerCase();
-
     return allObjects.filter((o) => {
       if (cFilter) {
         if (cFilter === 'unfiled') {
@@ -100,11 +101,6 @@ export function LibraryView({
           return false;
         }
       }
-      if (filter === 'materials' && !['note', 'source'].includes(o.type)) return false;
-      if (filter === 'practice' && !['deck', 'quiz', 'problem', 'attempt'].includes(o.type)) return false;
-      if (filter === 'schedule' && !['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type)) return false;
-      if (filter === 'results' && !['assessment', 'grade', 'scan', 'session'].includes(o.type)) return false;
-
       if (q) {
         const hay = [o.title, o.sub, o.course, o.topic, o.type, o.app]
           .filter(Boolean)
@@ -114,7 +110,19 @@ export function LibraryView({
       }
       return true;
     });
-  }, [allObjects, query, coursePick, activeCourseFilter, filter]);
+  }, [allObjects, query, coursePick]);
+
+  const filtered = useMemo(
+    () =>
+      contextObjects.filter((o) => {
+        if (filter === 'materials' && !['note', 'source'].includes(o.type)) return false;
+        if (filter === 'practice' && !['deck', 'quiz', 'problem', 'attempt'].includes(o.type)) return false;
+        if (filter === 'schedule' && !['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type)) return false;
+        if (filter === 'results' && !['assessment', 'grade', 'scan', 'session'].includes(o.type)) return false;
+        return true;
+      }),
+    [contextObjects, filter],
+  );
 
   return (
     <div className="terrain-map min-h-full">
@@ -194,26 +202,26 @@ export function LibraryView({
               active={filter}
               onChange={setFilter}
               items={[
-                { key: 'all', label: 'All Objects', count: allObjects.length },
+                { key: 'all', label: 'All Objects', count: contextObjects.length },
                 {
                   key: 'materials',
                   label: 'Notes & Materials',
-                  count: allObjects.filter((o) => ['note', 'source'].includes(o.type)).length,
+                  count: contextObjects.filter((o) => ['note', 'source'].includes(o.type)).length,
                 },
                 {
                   key: 'practice',
                   label: 'Decks & Calculations',
-                  count: allObjects.filter((o) => ['deck', 'quiz', 'problem', 'attempt'].includes(o.type)).length,
+                  count: contextObjects.filter((o) => ['deck', 'quiz', 'problem', 'attempt'].includes(o.type)).length,
                 },
                 {
                   key: 'schedule',
                   label: 'Schedule & Routines',
-                  count: allObjects.filter((o) => ['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type)).length,
+                  count: contextObjects.filter((o) => ['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type)).length,
                 },
                 {
                   key: 'results',
                   label: 'Assessments & Logs',
-                  count: allObjects.filter((o) => ['assessment', 'grade', 'scan', 'session'].includes(o.type)).length,
+                  count: contextObjects.filter((o) => ['assessment', 'grade', 'scan', 'session'].includes(o.type)).length,
                 },
               ]}
             />
