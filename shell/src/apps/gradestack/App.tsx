@@ -40,9 +40,11 @@ function AppLayout({ query }: { query: string }) {
     const id = new URLSearchParams(query).get('assessment');
     if (!id) return;
     if (useStore.getState().tests.some((t) => t.id === id)) {
-      stripPlaceQuery('assessment');
       navigate(`/analytics?testId=${id}`);
     }
+    /* hit or miss the param is consumed — a dead id lingering in the hash
+       re-fires on every keep-alive remount */
+    stripPlaceQuery('assessment');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, navigate]);
 
@@ -54,8 +56,8 @@ function AppLayout({ query }: { query: string }) {
     const scanId = new URLSearchParams(query).get('scanId');
     if (!scanId) return;
     const scan = useStore.getState().scans.find((s) => s.id === scanId);
+    stripPlaceQuery('scanId');
     if (scan) {
-      stripPlaceQuery('scanId');
       navigate(`/scan?testId=${encodeURIComponent(scan.testId)}&scanId=${encodeURIComponent(scan.id)}`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
