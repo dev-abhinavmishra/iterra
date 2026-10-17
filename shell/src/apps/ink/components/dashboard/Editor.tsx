@@ -13,7 +13,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import {
   ArrowLeft, FolderOpen, Pin, Copy, FileDown, Link2, Trash2,
   MoreHorizontal, Plus, CornerLeftUp, Droplet, Printer, Stamp,
-  History, Undo2, Redo2, Highlighter, Underline,
+  History, Undo2, Redo2, Highlighter, Underline, BookMarked,
 } from 'lucide-react';
 import { InkBlot, InkDrop, PenNib, PenRest, Spatter, Squiggle, TornEdge } from '../../lib/ink';
 import { PENS, PEN_ORDER, penOf, type PenId } from '../../lib/pens';
@@ -37,6 +37,8 @@ export const Editor: React.FC = () => {
   const [linkPickerOpen, setLinkPickerOpen] = useState(false);
   const [tagInputOpen, setTagInputOpen] = useState(false);
   const [tagValue, setTagValue] = useState('');
+  const [courseMenuOpen, setCourseMenuOpen] = useState(false);
+  const [courseChoices, setCourseChoices] = useState<{ key: string; code: string; name: string }[] | null>(null);
   const [dropLanded, setDropLanded] = useState(false);
   const [draftsOpen, setDraftsOpen] = useState(false);
   const [draftPreview, setDraftPreview] = useState(0);
@@ -95,6 +97,25 @@ export const Editor: React.FC = () => {
   const stampDate = () => {
     editor?.chain().focus().insertContent(`${format(new Date(), 'EEEE, MMMM d, yyyy')} — `).run();
     setMenuOpen(false);
+  };
+
+  /* Course binding — the terrain's course roster feeds the picker; a bound
+     note publishes under that course instead of relying on tag inference. */
+  const openCourseMenu = async () => {
+    setCourseMenuOpen(true);
+    if (courseChoices !== null) return;
+    try {
+      const list = (await (window as any).iterra?.courses?.list?.()) ?? [];
+      setCourseChoices(
+        list.map((c: any) => ({
+          key: c.key,
+          code: c.course || c.data?.code || c.title || 'course',
+          name: c.title || '',
+        })).filter((c: { key?: string }) => c.key),
+      );
+    } catch {
+      setCourseChoices([]);
+    }
   };
 
   const submitTag = (e: React.FormEvent) => {
@@ -260,6 +281,70 @@ export const Editor: React.FC = () => {
                     <Plus className="w-3 h-3" strokeWidth={2} />
                   </button>
                 )}
+
+                {/* course binding — dossiers and course-scoped search read it */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={openCourseMenu}
+                    title={activeNote.course ? `Filed under ${activeNote.course} — click to change` : 'File this page under a course'}
+                    className={clsx(
+                      'flex items-center gap-1 font-mono text-2xs rounded-sm px-1 py-0.5 transition-colors',
+                      activeNote.course
+                        ? 'text-fountain hover:bg-paper-dim'
+                        : 'text-ink-ghost hover:text-ink hover:bg-paper-dim',
+                    )}
+                  >
+                    <BookMarked className="w-3 h-3" strokeWidth={2} />
+                    {activeNote.course ?? ''}
+                  </button>
+                  <AnimatePresence>
+                    {courseMenuOpen && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setCourseMenuOpen(false)} />
+                        <motion.div
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.12 }}
+                          className="absolute left-0 top-full mt-1 z-50 w-56 bg-paper border border-line rounded shadow-pop py-1"
+                        >
+                          {courseChoices === null ? (
+                            <div className="px-3 py-2 font-sans text-2xs text-ink-faint">loading…</div>
+                          ) : (
+                            <>
+                              {activeNote.courseId && (
+                                <button
+                                  type="button"
+                                  onClick={() => { updateNote(activeNote.id, { courseId: undefined, course: undefined }); setCourseMenuOpen(false); }}
+                                  className="w-full px-3 py-1.5 text-left font-sans text-2xs text-ink-faint hover:bg-paper-dim transition-colors"
+                                >
+                                  unfiled — no course
+                                </button>
+                              )}
+                              {courseChoices.length === 0 && !activeNote.courseId ? (
+                                <div className="px-3 py-2 font-sans text-2xs text-ink-faint">no courses yet — add them in Planning</div>
+                              ) : (
+                                courseChoices.map(c => (
+                                  <button
+                                    key={c.key}
+                                    type="button"
+                                    onClick={() => { updateNote(activeNote.id, { courseId: c.key, course: c.code }); setCourseMenuOpen(false); }}
+                                    className="w-full flex items-baseline gap-2 px-3 py-1.5 text-left hover:bg-paper-dim transition-colors"
+                                  >
+                                    <span className="font-mono text-2xs text-fountain">{c.code}</span>
+                                    <span className="font-sans text-2xs text-ink-faint truncate">{c.name}</span>
+                                    {activeNote.courseId === c.key && <span className="ml-auto text-fountain">·</span>}
+                                  </button>
+                                ))
+                              )}
+                            </>
+                          )}
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
 

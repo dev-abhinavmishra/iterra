@@ -41,6 +41,10 @@ export interface Note {
   transcript: string; // The raw or processed transcript/source text
   type: 'AUDIO' | 'PDF' | 'VIDEO' | 'TEXT' | 'IMAGE';
   tags: string[];
+  /** Structured course binding — the canonical syllabus:course:<id> key and
+      its display code. Preferred over tag inference when publishing. */
+  courseId?: string;
+  course?: string;
   attachments?: Attachment[];
   isProcessing?: boolean;
   isBookmarked?: boolean;

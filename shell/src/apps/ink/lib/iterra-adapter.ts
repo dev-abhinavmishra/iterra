@@ -50,7 +50,7 @@ interface IterraSurface {
 interface IntakeRecord {
   id?: string;
   from?: string;
-  entity?: { app?: string; type?: string; id?: string; title?: string; key?: string };
+  entity?: { app?: string; type?: string; id?: string; title?: string; key?: string; courseId?: string; course?: string };
   payload?: { text?: string };
 }
 
@@ -122,6 +122,8 @@ export function registerAdapter() {
     return courseKeyCache.get(c)!;
   };
   const courseForNote = async (n: Note): Promise<{ course?: string; courseId?: string }> => {
+    /* structured binding wins over tag inference */
+    if (n.courseId) return { course: n.course, courseId: n.courseId };
     for (const tag of n.tags ?? []) {
       const key = await canonicalCourseKey(tag);
       if (key) return { course: tag, courseId: key };
@@ -242,6 +244,9 @@ export function registerAdapter() {
           title,
           content: intakeDoc(rec),
           wordCount: text ? text.split(/\s+/).length : 0,
+          /* the sent entity's course binding follows the note into the
+             dossier — a card made from a MTH deck lands filed under MTH */
+          ...(typeof rec?.entity?.courseId === 'string' ? { courseId: rec.entity.courseId, course: rec.entity.course } : {}),
         });
         /* provenance: the new page was derived FROM the sent entity — the
            relationship edge is what dossiers/search show, not just the

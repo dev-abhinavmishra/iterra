@@ -252,8 +252,9 @@ export function registerAdapter() {
     }
     return courseKeyCache.get(c)!;
   };
-  /* a note's course is inferred from its tags — the first tag that resolves */
+  /* a note's course: structured binding first, then tag inference */
   const courseForNote = async (n: Note): Promise<{ course?: string; courseId?: string }> => {
+    if (n.courseId) return { course: n.course, courseId: n.courseId };
     for (const tag of n.tags ?? []) {
       const key = await canonicalCourseKey(tag);
       if (key) return { course: tag, courseId: key };
@@ -358,6 +359,11 @@ export function registerAdapter() {
          opens it via the margin:intake-note CustomEvent. */
       'note.create': async (rec: any) => {
         const note = intakeNote(rec);
+        /* the sent entity's course binding follows the note into the dossier */
+        if (typeof rec?.entity?.courseId === 'string') {
+          note.courseId = rec.entity.courseId;
+          note.course = rec.entity.course;
+        }
         await saveNote(note);
         /* provenance edge: the note was derived FROM the sent entity —
            dossiers and search read links, not the title prefix */

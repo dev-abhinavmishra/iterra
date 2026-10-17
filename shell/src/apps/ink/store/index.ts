@@ -10,6 +10,10 @@ export type Note = {
   title: string;
   content: string; // TipTap JSON stringified
   tags: string[];
+  /** Structured course binding — the canonical syllabus:course:<id> key and
+      its display code. Preferred over tag inference when publishing. */
+  courseId?: string;
+  course?: string;
   lastModified: number;
   createdAt: number;
   isPinned: boolean;
@@ -196,6 +200,8 @@ export const useStore = create<AppState>()(
             trashedAt: null,
             dailyKey: partial.dailyKey ?? null,
             ink: partial.ink,
+            courseId: partial.courseId,
+            course: partial.course,
           };
           return { notes: [newNote, ...state.notes], activeNoteId: newNote.id };
         });

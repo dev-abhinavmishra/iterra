@@ -722,6 +722,9 @@ const EditorView: React.FC<EditorViewProps> = ({
                                             duration={note.duration}
                                             words={words}
                                             saveState={saveState}
+                                            course={note.course}
+                                            courseId={note.courseId}
+                                            onCourseChange={(courseId, course) => onUpdate({ ...note, courseId, course })}
                                         />
                                     )}
                                     <Divider className="my-5" />
