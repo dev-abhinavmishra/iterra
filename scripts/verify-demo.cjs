@@ -205,8 +205,43 @@ const ok = (msg) => console.log('  ok:', msg);
     await page.waitForTimeout(700);
   }
   if (!btnFound) {
-    const txt = await page.evaluate(() => document.body.innerText.slice(0, 400));
-    fail('Today shows no Log routine row: ' + txt);
+    /* diagnose WHICH gate failed — presence pending, the course-matched
+       routine entity, or just label drift. innerText on this page mixes
+       hidden keep-alive subtrees and is useless as a signal. */
+    const diag = await page.evaluate(async () => {
+      const out = { presence: null, register: null, routineEnts: [], idxRoutine: [] };
+      try {
+        const pres = JSON.parse(localStorage.getItem('iterra.v1.apps') || '{}');
+        out.presence = pres.rhythm?.summary ?? Object.keys(pres);
+      } catch (e) { out.presence = String(e); }
+      try {
+        const shared = JSON.parse(localStorage.getItem('iterra.v1.doc.shared') || '{}');
+        out.register = shared.register?.v ?? null;
+      } catch (e) { out.register = String(e); }
+      try {
+        const idx = JSON.parse(localStorage.getItem('iterra.v1.doc.index.rhythm') || 'null');
+        const list = idx?.entities || idx?.v?.entities || [];
+        out.idxRoutine = list.map((e) => `${e.t || e.type}:${e.course || '-'}`);
+      } catch (e) { out.idxRoutine = String(e); }
+      try {
+        out.routineEnts = await new Promise((res) => {
+          const rq = indexedDB.open('iterra.core.v1');
+          rq.onerror = () => res('idb-open-fail');
+          rq.onsuccess = () => {
+            try {
+              const tx = rq.result.transaction('entities', 'readonly');
+              const all = tx.objectStore('entities').getAll();
+              all.onsuccess = () => res((all.result || [])
+                .filter((v) => v?.app === 'rhythm')
+                .map((v) => `${v.key} t=${v.type} c=${v.course || '-'}`));
+              all.onerror = () => res('idb-read-fail');
+            } catch (e) { res(String(e)); }
+          };
+        });
+      } catch (e) { out.routineEnts = String(e); }
+      return out;
+    }).catch((e) => ({ evalErr: String(e) }));
+    fail('Today shows no Log routine row: ' + JSON.stringify(diag));
   } else {
     await logBtn.click();
     let checked = 0;
