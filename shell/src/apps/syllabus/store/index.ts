@@ -223,7 +223,7 @@ export const useFolio = create<FolioState>()(
           terms: { ...s.terms, [term.id]: term },
           activeTermId: term.id,
         }));
-        feed(`term filed: ${term.name}`, '/apps/syllabus/');
+        feed(`term filed: ${term.name}`, '/apps/syllabus/?p=semester');
         return term;
       },
 
@@ -611,7 +611,7 @@ export const useFolio = create<FolioState>()(
           createdAt: new Date().toISOString(),
         };
         set((st) => ({ reviews: { ...st.reviews, [weekStart]: review } }));
-        feed(`week reviewed: ${actual}m against ${planned}m planned`, '/apps/syllabus/');
+        feed(`week reviewed: ${actual}m against ${planned}m planned`, '/apps/syllabus/?p=review');
         return review;
       },
 
@@ -637,7 +637,7 @@ export const useFolio = create<FolioState>()(
           const data = parseFolioBackup(text);
           data.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
           set({ ...data });
-          feed('folio restored', '/apps/syllabus/');
+          feed('folio restored', '/apps/syllabus/?p=semester');
           return { ok: true };
         } catch (e) {
           return { ok: false, error: e instanceof Error ? e.message : 'Import failed' };
@@ -646,7 +646,7 @@ export const useFolio = create<FolioState>()(
 
       resetFolio: () => {
         set({ ...EMPTY_DATA, settings: { ...get().settings } });
-        feed('folio struck', '/apps/syllabus/');
+        feed('folio struck', '/apps/syllabus/?p=semester');
       },
     }),
     {

@@ -124,7 +124,8 @@ Also honored:
   boot, consumed once blocks hydrate — the subscribe-retry guards the
   persist-hydration race); `?commitment=<id>` → open that commitment's
   drawer (index entities for uncovered commitments link here; ghost ids
-  degrade silently)
+  degrade silently); `?p=<view>` → open a tab directly
+  (`today|semester|calendar|review`)
 - **gradestack**: `?scanId=<id>` → open that sheet's review modal
   (one-shot, strips; `testId` stays as the working filter)
 

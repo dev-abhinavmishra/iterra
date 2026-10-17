@@ -82,7 +82,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     } finally {
       endBulkFeed();
     }
-    stir(`courses filed: ${filled.length}`, '/apps/syllabus/');
+    stir(`courses filed: ${filled.length}`, '/apps/syllabus/?p=semester');
     onDone();
   };
 

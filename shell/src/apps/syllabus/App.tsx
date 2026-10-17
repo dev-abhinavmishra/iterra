@@ -54,6 +54,22 @@ export default function App({ query = '' }: { query?: string }) {
     if (h.includes('?')) window.location.hash = h.slice(0, h.indexOf('?'));
   }, [query]);
 
+  /* ?p=<view> — 'week reviewed' stirs and the like land on the right tab
+     instead of the folio default. Consumed params strip. */
+  useEffect(() => {
+    const p = new URLSearchParams(query).get('p');
+    if (!p || !['today', 'semester', 'calendar', 'review'].includes(p)) return;
+    setRoute({ view: p as ViewKey });
+    const h = window.location.hash;
+    if (h.includes('?')) {
+      const q = new URLSearchParams(h.slice(h.indexOf('?') + 1));
+      q.delete('p');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, h.indexOf('?')) + (rest ? '?' + rest : '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
   /* ?settings — the terrain's central settings surface deep-links here;
      consumed params strip so the same link fires again later */
   useEffect(() => {
