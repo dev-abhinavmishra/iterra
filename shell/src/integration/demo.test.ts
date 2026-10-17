@@ -67,6 +67,10 @@ describe('seedDemoSemester', () => {
     const sessions = JSON.parse(store.get('timer.sessions.v1') ?? '[]');
     expect(sessions.filter((x: { id: string }) => x.id.startsWith('demo-'))).toHaveLength(5);
 
+    const gs = JSON.parse(store.get('gradestack-storage') ?? '{}');
+    expect(gs.state.tests.filter((t: { id: string }) => t.id.startsWith('demo-'))).toHaveLength(1);
+    expect(gs.state.scans.filter((x: { id: string }) => x.id.startsWith('demo-'))).toHaveLength(2);
+
     expect(demo.isDemoLoaded()).toBe(true);
   });
 
@@ -273,6 +277,20 @@ describe('removeDemoData', () => {
     expect(Object.keys(reg.state.routines)).toEqual(['rtn_user']);
     expect(Object.keys(reg.state.courses)).toEqual(['crs_user']);
     expect(Object.keys(reg.state.entries)).toEqual(['ent-user']);
+  });
+
+  it('sweeps the gradestack gradebook — demo test and scans, user rows stay', async () => {
+    const demo = await load();
+    await demo.seedDemoSemester();
+    /* a user's own gradebook row written alongside the demo rows */
+    const gs = JSON.parse(store.get('gradestack-storage') ?? '{}');
+    gs.state.tests.push({ id: 't_user', name: 'My real quiz', numQuestions: 5 });
+    gs.state.scans.push({ id: 'sc_user', testId: 't_user', percentage: 80 });
+    localStorageStub.setItem('gradestack-storage', JSON.stringify(gs));
+    await demo.removeDemoData();
+    const after = JSON.parse(store.get('gradestack-storage') ?? '{}');
+    expect(after.state.tests.map((t: any) => t.id)).toEqual(['t_user']);
+    expect(after.state.scans.map((x: any) => x.id)).toEqual(['sc_user']);
   });
 
   it('sweeps derivedFrom links on either endpoint — a user link to a demo source goes too', async () => {

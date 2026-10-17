@@ -2,7 +2,7 @@
    Usage: node scripts/verify-demo.cjs [baseUrl] */
 const { chromium } = require('playwright-core');
 
-const BASE = process.argv[2] || 'http://localhost:5455';
+const BASE = process.argv[2] || 'http://localhost:5173';
 const fs = require('fs');
 const EXE = [
   'C:/Users/pmsma/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe',
@@ -181,6 +181,20 @@ const ok = (msg) => console.log('  ok:', msg);
     fail('rhythm missing intake routine: ' + JSON.stringify(rhythmRes.v) + ' pending=' + (await dumpIntakes()));
   } else ok('rhythm drained the demo intake → ' + rhythmRes.v.routines.filter((k) => k.includes('demo')).join(','));
 
+  /* ── gradestack — seeded gradebook rows sit in the zustand blob ── */
+  const gsRes = await page.evaluate(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem('gradestack-storage') || '{}');
+      return {
+        tests: (s.state?.tests || []).map((t) => t.id),
+        scans: (s.state?.scans || []).map((x) => `${x.id}:${x.grade}`),
+      };
+    } catch (e) { return { err: String(e) }; }
+  });
+  if (!gsRes.tests?.some((id) => String(id).startsWith('demo-')) || !gsRes.scans?.some((id) => String(id).startsWith('demo-')))
+    fail('gradestack missing demo rows: ' + JSON.stringify(gsRes));
+  else ok('gradestack seeded → ' + gsRes.scans.filter((id) => String(id).startsWith('demo-')).join(', '));
+
   /* Today lists the routine; clicking 'Log routine' marks inline. Poll —
      the entity publish + presence summary lag a few seconds on slow disks. */
   await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
@@ -331,6 +345,19 @@ const ok = (msg) => console.log('  ok:', msg);
   if (regAfter.routines.some((k) => String(k).includes('demo')) || regAfter.courses.some((k) => String(k).includes('demo')) || regAfter.entries.some((k) => String(k).includes('demo'))) {
     fail('rhythm still has demo rows: ' + JSON.stringify(regAfter));
   } else ok('rhythm clean');
+
+  const gsAfter = await page.evaluate(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem('gradestack-storage') || '{}');
+      return {
+        tests: (s.state?.tests || []).map((t) => t.id),
+        scans: (s.state?.scans || []).map((x) => x.id),
+      };
+    } catch { return { tests: [], scans: [] }; }
+  });
+  if (gsAfter.tests.some((k) => String(k).includes('demo')) || gsAfter.scans.some((k) => String(k).includes('demo')))
+    fail('gradestack still has demo rows: ' + JSON.stringify(gsAfter));
+  else ok('gradestack clean');
 
   const hubEnts = await page.evaluate(() => window.iterra.store.list().then((r) => r.map((e) => e.key)));
   if (hubEnts.some((k) => String(k).includes('demo'))) fail('hub entities still carry demo rows: ' + JSON.stringify(hubEnts.filter((k) => String(k).includes('demo'))));

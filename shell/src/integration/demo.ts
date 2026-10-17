@@ -47,6 +47,7 @@ const LS_LINKS_KEY = 'iterra.v1.store.links';
 const INK_KEY = 'ink-notes-storage';
 const PROOF_KEY = 'proof.workbench.v1';
 const RHYTHM_KEY = 'rhythm.register.v1';
+const GS_KEY = 'gradestack-storage';
 
 /* every artifact the seed can leave behind — direct rows carry 'demo-*',
    objects created by a drained demo intake carry the adapter's own
@@ -100,6 +101,17 @@ function syncMountedStores() {
       (window as any).__rhythmRegisterStore?.setState?.({
         routines: rs.routines, entries: rs.entries, courses: rs.courses, exceptions: rs.exceptions,
       });
+    }
+    const gsNow = lsGet<{ state?: { tests?: any[]; scans?: any[] } }>(GS_KEY);
+    if (gsNow?.state) {
+      const g = (window as any).__gradestackStore;
+      if (g?.persist?.hasHydrated?.()) {
+        g.setState({ tests: gsNow.state.tests, scans: gsNow.state.scans });
+      } else {
+        /* mid-hydration the store would merge its stale read over this
+           write — force it to re-read the cleaned blob instead */
+        g?.persist?.rehydrate?.().catch?.(() => {});
+      }
     }
   } catch { /* unmounted or a foreign shape — the LS writes already landed */ }
 }
@@ -310,6 +322,48 @@ function seedSessions() {
   return rows;
 }
 
+/* gradestack — one graded sheet so the gradebook isn't empty: a keyed
+   quiz plus two scans, merged into the persisted zustand blob without
+   touching whatever the user already logged */
+function seedGradestack() {
+  const blob = lsGet<{ state?: Record<string, any>; version?: number }>(GS_KEY);
+  const s = { ...(blob?.state ?? {}) };
+  const tests = Array.isArray(s.tests) ? s.tests : [];
+  if (tests.some((t: any) => String(t?.id ?? '').startsWith(DEMO_PREFIX))) return;
+  const now = Date.now();
+  const test = {
+    id: `${DEMO_PREFIX}gs-quiz`, name: 'Quiz — cellular respiration',
+    courseName: 'BIO 201', date: new Date(now - 3 * DAY).toISOString().slice(0, 10),
+    numQuestions: 6, format: 'A-D', includeStudentId: false,
+    createdAt: now - 3 * DAY,
+    answerKey: { 1: 'B', 2: 'C', 3: 'A', 4: 'D', 5: 'B', 6: 'A' },
+  };
+  const scan = (id: string, studentName: string, responses: Record<number, string>) => {
+    let raw = 0;
+    for (let i = 1; i <= 6; i++) if (responses[i] === (test.answerKey as any)[i]) raw++;
+    const pct = Math.round((raw / 6) * 100);
+    const grade = pct >= 90 ? 'A' : pct >= 80 ? 'B' : pct >= 70 ? 'C' : pct >= 60 ? 'D' : 'F';
+    return {
+      id, testId: test.id, studentId: '', studentName,
+      rawScore: raw, maxScore: 6, percentage: pct, grade,
+      needsReview: false, responses, createdAt: now - DAY,
+    };
+  };
+  s.tests = [...tests, test];
+  s.scans = [
+    ...(Array.isArray(s.scans) ? s.scans : []),
+    scan(`${DEMO_PREFIX}gs-scan-1`, 'Rivera, A.', { 1: 'B', 2: 'C', 3: 'A', 4: 'D', 5: 'B', 6: 'A' }),
+    scan(`${DEMO_PREFIX}gs-scan-2`, 'Kim, J.', { 1: 'B', 2: 'C', 3: 'C', 4: 'D', 5: 'B', 6: 'A' }),
+  ];
+  lsSet(GS_KEY, { state: s, version: blob?.version ?? 0 });
+  /* the mounted store may have already hydrated an empty blob — push the
+     seeded rows in (setState persists), or force a rehydrate if it's
+     still mid-hydration so it doesn't re-stamp stale memory over this */
+  const g = (window as any).__gradestackStore;
+  if (g?.persist?.hasHydrated?.()) g.setState({ tests: s.tests, scans: s.scans });
+  else g?.persist?.rehydrate?.().catch?.(() => {});
+}
+
 async function seedHub(sessions: Array<Record<string, any>>) {
   const it = hub();
   if (!it?.store?.put) return;
@@ -479,6 +533,7 @@ export async function seedDemoSemester(): Promise<DemoResult> {
   try {
     const folioSeeded = seedFolio();
     seedCardfile();
+    seedGradestack();
     const sessions = seedSessions();
     await seedHub(sessions);
     /* flag records the seed regardless of per-store success so removal
@@ -587,6 +642,14 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
         }
       }
       lsSet(RHYTHM_KEY, reg);
+    }
+
+    /* gradestack — demo test + scans ride in the same zustand blob */
+    const gs = lsGet<{ state?: { tests?: Array<{ id?: string }>; scans?: Array<{ id?: string }> } }>(GS_KEY);
+    if (gs?.state) {
+      if (gs.state.tests) gs.state.tests = gs.state.tests.filter((t) => !isDemoId(t?.id));
+      if (gs.state.scans) gs.state.scans = gs.state.scans.filter((x) => !isDemoId(x?.id));
+      lsSet(GS_KEY, gs);
     }
 
     /* feed — seed stirs carry demo:true; stirs the adapters emitted while

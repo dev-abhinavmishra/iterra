@@ -5,7 +5,7 @@ const { chromium } = require('playwright-core');
 const path = require('path');
 const fs = require('fs');
 
-const BASE = process.argv[2] || 'http://localhost:5455';
+const BASE = process.argv[2] || 'http://localhost:5173';
 const EXE = [
   'C:/Users/pmsma/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe',
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
