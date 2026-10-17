@@ -317,3 +317,63 @@ describe('block.plan intake', () => {
     expect(res).toEqual({ url: null, toast: 'No course “GHOST101” in Planning — add it first' });
   });
 });
+
+describe('block.done intake', () => {
+  const seedBlock = async (over: Record<string, any> = {}) => {
+    const { useFolio } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+      commitments: { k1: mkCommitment('k1', 'c1') },
+      blocks: { b1: mkBlock('b1', 'k1', { label: 'review slip', ...over }) },
+    });
+    return useFolio;
+  };
+
+  it('stamps a planned slip done and returns its deep link without navigating', async () => {
+    const useFolio = await seedBlock();
+    const res = await adapterOpts.intakes['block.done']({
+      id: 'bd1', action: 'block.done', payload: { blockId: 'b1' },
+    });
+    const b = useFolio.getState().blocks.b1 as any;
+    expect(b.state).toBe('done');
+    expect(res).toEqual({
+      url: '/apps/syllabus/?block=b1',
+      navigate: false,
+      toast: 'review slip — stamped done',
+    });
+    /* canonical mirror picked up the transition */
+    expect(entities.get('syllabus:block:b1')?.data?.state).toBe('done');
+  });
+
+  it('resolves the block from the sent entity when payload.blockId is absent', async () => {
+    const useFolio = await seedBlock();
+    const res = await adapterOpts.intakes['block.done']({
+      id: 'bd2', action: 'block.done',
+      entity: { key: 'syllabus:block:b1', app: 'syllabus', type: 'block', id: 'b1' },
+      payload: {},
+    });
+    expect((useFolio.getState().blocks.b1 as any).state).toBe('done');
+    expect(res.url).toBe('/apps/syllabus/?block=b1');
+  });
+
+  it('is idempotent — a repeat send reports already-stamped, logs nothing twice', async () => {
+    const useFolio = await seedBlock();
+    await adapterOpts.intakes['block.done']({ id: 'bd3', action: 'block.done', payload: { blockId: 'b1' } });
+    const logged = (useFolio.getState().commitments.k1 as any).loggedMinutes;
+    const res = await adapterOpts.intakes['block.done']({ id: 'bd4', action: 'block.done', payload: { blockId: 'b1' } });
+    expect((useFolio.getState().commitments.k1 as any).loggedMinutes).toBe(logged);
+    expect(res.toast).toContain('already stamped');
+  });
+
+  it('refuses missed/deferred slips with a re-open hint', async () => {
+    await seedBlock({ state: 'missed' });
+    const res = await adapterOpts.intakes['block.done']({ id: 'bd5', action: 'block.done', payload: { blockId: 'b1' } });
+    expect(res.toast).toContain('reopen it on the folio');
+  });
+
+  it('explains when the slip is gone', async () => {
+    await seedBlock();
+    const res = await adapterOpts.intakes['block.done']({ id: 'bd6', action: 'block.done', payload: { blockId: 'ghost' } });
+    expect(res).toEqual({ url: null, toast: 'that slip no longer exists' });
+  });
+});

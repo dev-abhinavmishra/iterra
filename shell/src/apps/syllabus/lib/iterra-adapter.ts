@@ -633,13 +633,14 @@ export function registerAdapter() {
           : (rec?.entity?.type === 'block' && typeof rec.entity.id === 'string' ? rec.entity.id : '');
         const b = bid ? s.blocks[bid] : undefined;
         if (!b) return { url: null, toast: 'that slip no longer exists' };
-        if (b.state === 'done') return { url: null, navigate: false, toast: `${b.label || 'Slip'} — already stamped` };
+        const deep = `/apps/syllabus/?block=${encodeURIComponent(b.id)}`;
+        if (b.state === 'done') return { url: deep, navigate: false, toast: `${b.label || 'Slip'} — already stamped` };
         if (b.state === 'missed' || b.state === 'deferred') {
-          return { url: null, navigate: false, toast: `${b.label || 'Slip'} is ${b.state} — reopen it on the folio first` };
+          return { url: deep, navigate: false, toast: `${b.label || 'Slip'} is ${b.state} — reopen it on the folio first` };
         }
         const title = b.label || s.commitments[b.commitmentId]?.title || 'Slip';
         s.completeBlock(b.id);
-        return { url: null, navigate: false, toast: `${title} — stamped done` };
+        return { url: deep, navigate: false, toast: `${title} — stamped done` };
       },
     },
     wake: () => mirrorFolio(),

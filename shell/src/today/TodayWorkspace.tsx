@@ -883,12 +883,25 @@ export function TodayWorkspace({
                             title="Stamp this slip done — off-clock work, no timer"
                             onClick={() => {
                               const o = scheduledWork.primary!;
-                              void (window as any).iterra?.send?.({
-                                to: 'syllabus',
-                                action: 'block.done',
-                                entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                payload: { blockId: o.id },
-                              });
+                              void (window as any).iterra
+                                ?.send?.({
+                                  to: 'syllabus',
+                                  action: 'block.done',
+                                  entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                  payload: { blockId: o.id },
+                                })
+                                .then((r: any) => {
+                                  if (!r?.ok) {
+                                    notify('Couldn’t mark it done — Planning may still be starting.');
+                                    return;
+                                  }
+                                  notify(
+                                    r.delivered === true
+                                      ? `Done — ${o.title}`
+                                      : 'Marked done — Planning applies it on next open.',
+                                    r.delivered === true ? undefined : r.url,
+                                  );
+                                });
                             }}
                           >
                             Mark done
@@ -1036,12 +1049,22 @@ export function TodayWorkspace({
                           onClick={() => {
                             if (rev.inlineCheck && rev.object) {
                               const o = rev.object;
-                              void (window as any).iterra?.send?.({
-                                to: 'rhythm',
-                                action: 'routine.check',
-                                entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                payload: { routineId: o.id },
-                              });
+                              void (window as any).iterra
+                                ?.send?.({
+                                  to: 'rhythm',
+                                  action: 'routine.check',
+                                  entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                  payload: { routineId: o.id },
+                                })
+                                .then((r: any) => {
+                                  if (!r?.ok) {
+                                    notify('Couldn’t log it — Rhythm may still be starting.');
+                                    return;
+                                  }
+                                  if (r.delivered !== true) {
+                                    notify('Log queued — Rhythm applies it on next open.', r.url);
+                                  }
+                                });
                               return;
                             }
                             if (rev.object) onSelectObject?.(rev.object);
