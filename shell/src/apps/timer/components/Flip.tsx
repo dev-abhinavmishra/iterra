@@ -157,26 +157,31 @@ export function FlipRow({
   const chars = text.split('');
   const n = chars.length;
   return (
-    <div className={cn('flex items-center', className)} style={{ gap: Math.max(2, Math.round(size * 0.05)) }}>
-      {chars.map((c, i) => {
-        const delay = (n - 1 - i) * delayStep;
-        if (c === ':') return <FlipColon key={i} size={size} live={live} />;
-        if (c === ' ') return <div key={i} style={{ width: Math.round(size * 0.3) }} />;
-        return (
-          <FlipDigit
-            key={i}
-            char={c}
-            size={size}
-            delay={delay}
-            duration={duration}
-            accent={accent}
-            quiet={quiet}
-            sound={sound}
-            square={square}
-            flipIn={flipIn}
-          />
-        );
-      })}
+    /* role=img + one label for the whole row — a ticking clock would read
+       each flap as a separate digit ("4", "2", "0", "0") instead of a
+       time ("42:00"). The digit divs stay decorative under aria-hidden. */
+    <div role="img" aria-label={text} className={className}>
+      <div className="flex items-center" aria-hidden style={{ gap: Math.max(2, Math.round(size * 0.05)) }}>
+        {chars.map((c, i) => {
+          const delay = (n - 1 - i) * delayStep;
+          if (c === ':') return <FlipColon key={i} size={size} live={live} />;
+          if (c === ' ') return <div key={i} style={{ width: Math.round(size * 0.3) }} />;
+          return (
+            <FlipDigit
+              key={i}
+              char={c}
+              size={size}
+              delay={delay}
+              duration={duration}
+              accent={accent}
+              quiet={quiet}
+              sound={sound}
+              square={square}
+              flipIn={flipIn}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

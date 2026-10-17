@@ -528,7 +528,10 @@ export function TodayWorkspace({
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Toast / action notification */}
         {notice && (
-          <div className="anim-rise flex items-center justify-between gap-3 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-3.5 py-2 text-[12.5px] text-[var(--color-accent)]">
+          <div
+            role="status"
+            className="anim-rise flex items-center justify-between gap-3 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-3.5 py-2 text-[12.5px] text-[var(--color-accent)]"
+          >
             <span className="font-medium">{notice.text}</span>
             {notice.url && (
               <button
