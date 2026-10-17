@@ -17,6 +17,7 @@ import {
 import { PLACES, PLACE_MAP, formatEntityType } from '../places';
 import type { Presence, SharedField, FeedItem, Entity, StoreEntity, IntakeWait } from '../hub';
 import { sendTo } from '../hub';
+import { isDemoLoaded, seedDemoSemester } from '../integration/demo';
 import { subscribeShelf, togglePin, type ShelfPin } from '../shelf';
 import { Badge, Button, EmptyState, SectionHeader } from '../ui/primitives';
 import {
@@ -29,6 +30,15 @@ import {
 
 const STALE_MS = 35000;
 const isStale = (p: Presence | undefined) => !p || Date.now() - p.at > STALE_MS;
+
+/* seed + reload — mounted places hold their stores in memory, so only a
+   reload rehydrates every surface from the seeded envelopes (the Settings
+   sample-semester row does the same) */
+function loadSampleSemester() {
+  void seedDemoSemester().then((r) => {
+    if (r.ok) window.location.reload();
+  });
+}
 
 function fmtClock(sec: number): string {
   const s = Math.max(0, Math.round(sec));
@@ -1104,6 +1114,14 @@ export function TodayWorkspace({
                       <Button variant="secondary" size="xs" onClick={() => onGo('#/c/unfiled')}>
                         View Unfiled Items
                       </Button>
+                      {/* first-run affordance — the demo pack lands a real
+                          semester through the same stores; removable in one
+                          pass from Settings → Sample semester */}
+                      {!isDemoLoaded() && (
+                        <Button variant="ghost" size="xs" icon={<Sparkles className="h-3.5 w-3.5" />} onClick={loadSampleSemester}>
+                          Or load a sample semester
+                        </Button>
+                      )}
                     </>
                   }
                 />
