@@ -621,6 +621,26 @@ export function registerAdapter() {
           }]);
         }
       },
+      /* {blockId} → stamp the slip done where it sits — Today's 'Mark done'
+         completes off-clock work without a timer session. navigate:false:
+         the point is staying on the surface that asked. completeBlock is
+         idempotent, so a redelivered record returns 'already done'. */
+      'block.done': async (rec: any) => {
+        await whenBooted();
+        const s = useFolio.getState();
+        const p = (rec?.payload ?? {}) as Record<string, any>;
+        const bid = typeof p.blockId === 'string' ? p.blockId
+          : (rec?.entity?.type === 'block' && typeof rec.entity.id === 'string' ? rec.entity.id : '');
+        const b = bid ? s.blocks[bid] : undefined;
+        if (!b) return { url: null, toast: 'that slip no longer exists' };
+        if (b.state === 'done') return { url: null, navigate: false, toast: `${b.label || 'Slip'} — already stamped` };
+        if (b.state === 'missed' || b.state === 'deferred') {
+          return { url: null, navigate: false, toast: `${b.label || 'Slip'} is ${b.state} — reopen it on the folio first` };
+        }
+        const title = b.label || s.commitments[b.commitmentId]?.title || 'Slip';
+        s.completeBlock(b.id);
+        return { url: null, navigate: false, toast: `${title} — stamped done` };
+      },
     },
     wake: () => mirrorFolio(),
   });

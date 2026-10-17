@@ -867,6 +867,24 @@ export function TodayWorkspace({
                         >
                           Open Block
                         </Button>
+                        {scheduledWork.primary.type === 'block' && (
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            title="Stamp this slip done — off-clock work, no timer"
+                            onClick={() => {
+                              const o = scheduledWork.primary!;
+                              void (window as any).iterra?.send?.({
+                                to: 'syllabus',
+                                action: 'block.done',
+                                entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                payload: { blockId: o.id },
+                              });
+                            }}
+                          >
+                            Mark done
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
