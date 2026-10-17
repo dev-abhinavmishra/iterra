@@ -8,6 +8,7 @@ dist/
 !.env.example
 dist-*/
 .playwright-mcp/
+scripts/.verify-downloads/
 scripts/x/
 scripts/shot-*.png
 shot-*.png

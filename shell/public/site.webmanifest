@@ -11,5 +11,11 @@
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Today", "url": "/#/", "description": "Today's workspace — what's next" },
+    { "name": "Planning", "url": "/#/p/syllabus", "description": "The registrar's folio — terms, courses, week" },
+    { "name": "Focus timer", "url": "/#/p/timer", "description": "Time instruments — pomodoro and routines" },
+    { "name": "Cards", "url": "/#/p/flashcards", "description": "The cardfile — decks and review" }
   ]
 }

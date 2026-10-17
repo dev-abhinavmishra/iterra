@@ -40,7 +40,7 @@ const fail = (m) => { console.log('FAIL:', m); process.exitCode = 1; };
   const backupPath = path.join(OUT, file.suggestedFilename());
   await file.saveAs(backupPath);
   const parsed = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
-  console.log('  backup:', file.suggestedFilename(), '| keys:', parsed.localStorage ? Object.keys(parsed.localStorage).length : '?', '| dbs:', (parsed.databases || []).length);
+  console.log('  backup:', file.suggestedFilename(), '| keys:', parsed.localStorage ? Object.keys(parsed.localStorage).length : '?', '| dbs:', parsed.idb ? Object.keys(parsed.idb).length : 0);
   ok('backup downloaded');
 
   /* wipe: remove demo data entirely */
