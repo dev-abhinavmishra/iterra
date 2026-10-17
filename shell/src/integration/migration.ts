@@ -336,6 +336,15 @@ export function installCrossTabSync(onExternalUpdate?: (key: string) => void): (
       } else if (key === 'ink-notes-storage') {
         const s = (window as any).__inkStore;
         if (s?.persist?.rehydrate) s.persist.rehydrate();
+      } else if (key === 'proof.workbench.v1') {
+        const s = (window as any).__proofWorkbenchStore;
+        if (s?.persist?.rehydrate) s.persist.rehydrate();
+      } else if (key === 'gradestack-storage') {
+        const s = (window as any).__gradestackStore;
+        if (s?.persist?.rehydrate) s.persist.rehydrate();
+      } else if (key === 'rhythm.register.v1') {
+        const s = (window as any).__rhythmRegisterStore;
+        if (s?.persist?.rehydrate) s.persist.rehydrate();
       } else if (key === 'cardfile.decks.v1') {
         const fc = (window as any).__fcApp;
         if (fc?.state && ev.newValue) {
