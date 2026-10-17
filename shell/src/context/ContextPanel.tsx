@@ -281,11 +281,17 @@ export function ContextPanel({
           resolved.push({ key: targetKey, direction, kind: kind || 'linked', title, app, type, url });
         };
 
+        /* direction is kind-aware: derivedFrom runs created→source, so an
+           inbound one names work derived FROM this object (connected) and an
+           outbound one names this object's source (from). Other kinds keep
+           inn→source / out→connected (attached lands on the object, etc). */
         for (const l of inn.slice(0, 6)) {
-          await resolveKey(String(l?.from || ''), 'source', String(l?.kind || 'derived'));
+          const kind = String(l?.kind || 'linked');
+          await resolveKey(String(l?.from || ''), kind === 'derivedFrom' ? 'connected' : 'source', kind);
         }
         for (const l of out.slice(0, 8)) {
-          await resolveKey(String(l?.to || ''), 'connected', String(l?.kind || 'linked'));
+          const kind = String(l?.kind || 'linked');
+          await resolveKey(String(l?.to || ''), kind === 'derivedFrom' ? 'source' : 'connected', kind);
         }
         if (alive) setEdges(resolved);
       })
