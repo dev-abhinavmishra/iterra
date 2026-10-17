@@ -8,9 +8,20 @@ import { useStore, type Note } from '../store';
 export function applyInboundLink(query: string) {
   const id = new URLSearchParams(query).get('note');
   if (!id) return;
-  const { notes, setActiveNote } = useStore.getState();
-  if (notes.some((n) => n.id === id && !n.trashedAt)) {
+  const { notes, setActiveNote, restoreNote, setNotice } = useStore.getState();
+  const hit = notes.find((n) => n.id === id);
+  if (hit && !hit.trashedAt) {
     setActiveNote(id);
+    return;
+  }
+  /* a link that resolves to nothing deserves a spoken reason — a trashed
+     page can still be pulled back, a deleted one can't */
+  if (hit?.trashedAt) {
+    restoreNote(id);
+    setActiveNote(id);
+    setNotice({ message: 'That page was in the wastebasket — pulled it back out' });
+  } else {
+    setNotice({ message: 'That page isn’t on this desk — it may have been deleted' });
   }
 }
 
