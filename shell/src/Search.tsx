@@ -388,6 +388,10 @@ export function Search({
           <input
             ref={inputRef}
             value={q}
+            role="combobox"
+            aria-expanded={hits.length > 0}
+            aria-controls="iterra-search-results"
+            aria-activedescendant={hits[sel] ? `sr-${hitId(hits[sel])}` : undefined}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
@@ -488,18 +492,23 @@ export function Search({
           </div>
         )}
 
-        <ul className="today-rail max-h-[56vh] overflow-y-auto py-1.5">
+        <ul id="iterra-search-results" role="listbox" className="today-rail max-h-[56vh] overflow-y-auto py-1.5">
           {hits.length ? (
             groups.map((g, gi) => (
-              <li key={g.header ?? `g${gi}`}>
+              <li key={g.header ?? `g${gi}`} role="presentation">
                 {g.header && (
                   <div className="px-4 pb-1 pt-2.5 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
                     {g.header}
                   </div>
                 )}
-                <ul>
+                <ul role="presentation">
                   {g.items.map(({ h, i }) => (
-                    <li key={`${h.app}-${h.url}-${h.label}-${i}`}>
+                    <li
+                      key={`${h.app}-${h.url}-${h.label}-${i}`}
+                      id={`sr-${hitId(h)}`}
+                      role="option"
+                      aria-selected={i === sel}
+                    >
                       <div
                         onMouseEnter={() => setSel(i)}
                         className={`flex w-full items-center gap-3 px-4 py-2 text-left transition-colors ${
