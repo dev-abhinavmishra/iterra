@@ -8,6 +8,16 @@ import { useStore, type Note } from '../store';
 export function applyInboundLink(query: string) {
   const id = new URLSearchParams(query).get('note');
   if (!id) return;
+  /* consume the param — an unstripped ?note= re-fires on every keep-alive
+     remount and yanks the user back to the linked page */
+  const h = window.location.hash;
+  const qi = h.indexOf('?');
+  if (qi !== -1) {
+    const q = new URLSearchParams(h.slice(qi + 1));
+    q.delete('note');
+    const rest = q.toString();
+    window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+  }
   const { notes, setActiveNote, restoreNote, setNotice } = useStore.getState();
   const hit = notes.find((n) => n.id === id);
   if (hit && !hit.trashedAt) {

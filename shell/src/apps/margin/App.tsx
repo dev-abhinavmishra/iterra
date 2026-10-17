@@ -134,7 +134,9 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
         };
         if (id) {
             const note = notes.find(n => n.id === id);
-            if (note) { strip(); handleOpenNote(note); }
+            /* dead link — strip the param so it doesn't linger in the
+               hash re-firing on every mount (syllabus does the same) */
+            if (note) { strip(); handleOpenNote(note); } else strip();
         } else if (deck || quiz) {
             strip();
             setStudyRequest({ kind: deck ? 'deck' : 'quiz', id: (deck || quiz)! });
