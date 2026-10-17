@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Timer, Activity, CheckCircle2, Clock, Flame, Download, Coffee, TimerReset, Trash2 } from 'lucide-react';
+import { Timer, Activity, CheckCircle2, Clock, Flame, Download, Coffee, TimerReset, Trash2, PenLine } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { vibrate } from '../lib/utils';
 import { getStats, getSessions, sessionsCsv, deleteSession, Session } from '../lib/stats';
 import { boundCourseCode, inTerrain, openTerrain } from '../lib/iterra-adapter';
+import { execCommand } from '../../../integration/commands';
 
 export default function StatsView({ active = true }: { active?: boolean }) {
   const [stats, setStats] = useState(() => getStats());
   const [showAll, setShowAll] = useState(false);
   /* two-tap delete — one accidental click can't lose a logged session */
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  /* manual entry — studied off-timer shouldn't be lost from the ledger */
+  const [logOpen, setLogOpen] = useState(false);
+  const [logLabel, setLogLabel] = useState('');
+  const [logMinutes, setLogMinutes] = useState('25');
+  const [logBusy, setLogBusy] = useState(false);
 
   // keep-alive shell: re-read the ledger every time this view is shown —
   // sessions logged while it was hidden must appear on the next visit
@@ -62,12 +68,82 @@ export default function StatsView({ active = true }: { active?: boolean }) {
           </h1>
           <p className="text-ink-soft font-body text-sm mt-2">The last seven days, and everything before them.</p>
         </div>
-        {stats.allSessions.length > 0 && (
-          <button onClick={exportCsv} className="chip px-3 py-1.5 text-[10px] flex items-center gap-1.5 shrink-0">
-            <Download size={12} /> CSV
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setLogOpen((v) => !v)}
+            className="chip px-3 py-1.5 text-[10px] flex items-center gap-1.5"
+            aria-expanded={logOpen}
+          >
+            <PenLine size={12} /> Log
           </button>
-        )}
+          {stats.allSessions.length > 0 && (
+            <button onClick={exportCsv} className="chip px-3 py-1.5 text-[10px] flex items-center gap-1.5">
+              <Download size={12} /> CSV
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Manual session entry — goes through recordSessionOutcome so the
+          row counts in stats, files its minutes to any bound work, and
+          lands on the feed like a live-timed session would. */}
+      <AnimatePresence>
+        {logOpen && (
+          <motion.form
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="panel-wall mb-8 overflow-hidden p-4"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const mins = Math.max(1, Math.min(600, Math.round(Number(logMinutes) || 0)));
+              if (!mins || logBusy) return;
+              setLogBusy(true);
+              try {
+                const res = await execCommand('recordSessionOutcome', {
+                  outcome: 'completed',
+                  elapsedMinutes: mins,
+                  plannedMinutes: mins,
+                  label: logLabel.trim() || 'Focus session',
+                  confirmedByUser: true,
+                  idempotencyKey: `manual:${Date.now()}`,
+                });
+                if (res?.ok !== false) {
+                  setStats(getStats());
+                  setLogLabel('');
+                  setLogOpen(false);
+                }
+              } finally {
+                setLogBusy(false);
+              }
+            }}
+          >
+            <div className="flex flex-wrap items-end gap-3">
+              <label className="flex-1 min-w-40">
+                <span className="label-wall text-[9px] block mb-1">What did you work on</span>
+                <input
+                  value={logLabel}
+                  onChange={(e) => setLogLabel(e.target.value)}
+                  placeholder="e.g. Lab report draft"
+                  className="w-full bg-transparent border-b border-[var(--color-line,#333)] py-1 font-body text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:border-[var(--color-signal)]"
+                />
+              </label>
+              <label className="w-24">
+                <span className="label-wall text-[9px] block mb-1">Minutes</span>
+                <input
+                  value={logMinutes}
+                  onChange={(e) => setLogMinutes(e.target.value.replace(/[^0-9]/g, ''))}
+                  inputMode="numeric"
+                  className="w-full bg-transparent border-b border-[var(--color-line,#333)] py-1 font-body text-sm text-ink focus:outline-none focus:border-[var(--color-signal)]"
+                />
+              </label>
+              <button type="submit" disabled={logBusy} className="chip px-4 py-2 text-[10px] disabled:opacity-50">
+                {logBusy ? 'Logging…' : 'Log session'}
+              </button>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
 
       {stats.allSessions.length === 0 ? (
         <div className="panel-wall p-10 flex flex-col items-center text-center">
