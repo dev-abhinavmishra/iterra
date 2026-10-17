@@ -642,6 +642,28 @@ export function registerAdapter() {
         s.completeBlock(b.id);
         return { url: deep, navigate: false, toast: `${title} — stamped done` };
       },
+      /* {blockId, date?} → push the slip — defaults to tomorrow, stays
+         'planned' on the new date (deferBlock with toDate reschedules
+         rather than marking 'deferred'). Today's 'Push to tomorrow' —
+         a slip you can't start shouldn't have to go 'missed'. */
+      'block.defer': async (rec: any) => {
+        await whenBooted();
+        const s = useFolio.getState();
+        const p = (rec?.payload ?? {}) as Record<string, any>;
+        const bid = typeof p.blockId === 'string' ? p.blockId
+          : (rec?.entity?.type === 'block' && typeof rec.entity.id === 'string' ? rec.entity.id : '');
+        const b = bid ? s.blocks[bid] : undefined;
+        if (!b) return { url: null, toast: 'that slip no longer exists' };
+        const deep = `/apps/syllabus/?block=${encodeURIComponent(b.id)}`;
+        if (b.state === 'done') return { url: deep, navigate: false, toast: `${b.label || 'Slip'} is already stamped` };
+        const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+        const to = typeof p.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.date)
+          ? p.date
+          : tomorrow;
+        s.deferBlock(b.id, 'pushed from Today', to as any);
+        const title = b.label || s.commitments[b.commitmentId]?.title || 'Slip';
+        return { url: deep, navigate: false, toast: `${title} — pushed to ${to === tomorrow ? 'tomorrow' : to}` };
+      },
     },
     wake: () => mirrorFolio(),
   });

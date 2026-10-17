@@ -377,3 +377,57 @@ describe('block.done intake', () => {
     expect(res).toEqual({ url: null, toast: 'that slip no longer exists' });
   });
 });
+
+describe('block.defer intake', () => {
+  const seedBlock = async (over: Record<string, any> = {}) => {
+    const { useFolio } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+      commitments: { k1: mkCommitment('k1', 'c1') },
+      blocks: { b1: mkBlock('b1', 'k1', { label: 'review slip', ...over }) },
+    });
+    return useFolio;
+  };
+
+  it('pushes a planned slip to tomorrow — stays planned, deferCount bumps', async () => {
+    const useFolio = await seedBlock();
+    const res = await adapterOpts.intakes['block.defer']({ id: 'df1', action: 'block.defer', payload: { blockId: 'b1' } });
+    const b = useFolio.getState().blocks.b1 as any;
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    expect(b.state).toBe('planned');
+    expect(b.plannedDate).toBe(tomorrow);
+    expect(b.deferCount).toBe(1);
+    expect(b.carriedFrom).toBe('2026-10-12');
+    expect(res).toMatchObject({ url: '/apps/syllabus/?block=b1', navigate: false });
+    expect(res.toast).toContain('tomorrow');
+  });
+
+  it('honors an explicit date and names it', async () => {
+    const useFolio = await seedBlock();
+    const res = await adapterOpts.intakes['block.defer']({
+      id: 'df2', action: 'block.defer', payload: { blockId: 'b1', date: '2026-10-20' },
+    });
+    expect((useFolio.getState().blocks.b1 as any).plannedDate).toBe('2026-10-20');
+    expect(res.toast).toContain('2026-10-20');
+  });
+
+  it('rescues a missed slip back onto tomorrow', async () => {
+    const useFolio = await seedBlock({ state: 'missed' });
+    await adapterOpts.intakes['block.defer']({ id: 'df3', action: 'block.defer', payload: { blockId: 'b1' } });
+    const b = useFolio.getState().blocks.b1 as any;
+    expect(b.state).toBe('planned');
+    expect(b.plannedDate).not.toBe('2026-10-12');
+  });
+
+  it('refuses a stamped slip', async () => {
+    await seedBlock({ state: 'done' });
+    const res = await adapterOpts.intakes['block.defer']({ id: 'df4', action: 'block.defer', payload: { blockId: 'b1' } });
+    expect(res.toast).toContain('already stamped');
+  });
+
+  it('explains when the slip is gone', async () => {
+    await seedBlock();
+    const res = await adapterOpts.intakes['block.defer']({ id: 'df5', action: 'block.defer', payload: { blockId: 'ghost' } });
+    expect(res).toEqual({ url: null, toast: 'that slip no longer exists' });
+  });
+});

@@ -104,6 +104,7 @@ Emit only types in the catalogue — others are rejected.
 | `routine.check` | rhythm | `{entity|payload:{routineId}}` → idempotent today's check-in; `{url:null,navigate:false}` |
 | `block.plan` | syllabus | `{payload:{title, courseId?, course?, date?, start?, minutes?, phase?, label?}}` → a slip on the folio |
 | `block.done` | syllabus | `{entity|payload:{blockId}}` → stamps the slip done off-clock; idempotent; `{url:'…?block=<id>',navigate:false}` |
+| `block.defer` | syllabus | `{entity|payload:{blockId, date?}}` → pushes the slip (default tomorrow), stays planned; rescues missed slips |
 | `problem.create` | proof | `{payload:{topic?, prompt?, course?, courseId?, difficulty?, tags?, source?}}` → a problem on the bench |
 | `weights.import` | gradestack | `{payload:{courseId}}` → pull categories/weights from syllabus |
 | `study-plan.request` | syllabus | `{payload:{courseId, examId?}}` → open generated plan |

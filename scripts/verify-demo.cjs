@@ -55,22 +55,69 @@ const ok = (msg) => console.log('  ok:', msg);
     fail('flashcards missing seeded decks: ' + fcTxt.slice(0, 200));
   } else ok('flashcards shows seeded decks');
 
-  /* ── intake deliveries: check the stores, not the render timing ── */
-  await page.goto(`${BASE}/#/p/ink`, { waitUntil: 'load' });
-  await page.waitForTimeout(3000);
-  const inkNotes = await page.evaluate(() => {
-    try {
-      const s = JSON.parse(localStorage.getItem('ink-notes-storage') || '{}');
-      return (s.state?.notes || []).map((n) => n.id + '|' + n.title);
-    } catch (e) { return ['ERR ' + e]; }
-  });
-  if (!inkNotes.some((n) => n.includes('intake-in-demo-'))) {
-    fail('ink missing intake-delivered notes: ' + JSON.stringify(inkNotes));
-  } else ok('ink drained the demo intake → ' + inkNotes.filter((n) => n.includes('demo')).join(', '));
+  /* ── intake deliveries: poll the stores — adapter registration, drain,
+     handler, and persist are all async and stretch to tens of seconds on
+     a loaded disk. On failure, dump the pending queue so 'never drained'
+     vs 'drained but not persisted' is distinguishable. ── */
+  const dumpIntakes = async () => {
+    const ls = await page.evaluate(() => {
+      try { return Object.keys(JSON.parse(localStorage.getItem('iterra.v1.store.intakes') || '{}')); }
+      catch { return []; }
+    });
+    const idb = await page.evaluate(() => new Promise((res) => {
+      try {
+        const req = indexedDB.open('iterra');
+        req.onsuccess = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('intakes')) { db.close(); res([]); return; }
+          const r = db.transaction('intakes', 'readonly').objectStore('intakes').getAll();
+          r.onsuccess = () => { db.close(); res(r.result.map((x) => `${x.id}:${x.status || '?'}`)); };
+          r.onerror = () => { db.close(); res(['ERR']); };
+        };
+        req.onerror = () => res(['ERR open']);
+      } catch (e) { res(['ERR ' + e]); }
+    }));
+    return JSON.stringify({ ls, idb });
+  };
 
-  await page.goto(`${BASE}/#/p/margin`, { waitUntil: 'load' });
-  await page.waitForTimeout(6000);
-  const marginNotes = await page.evaluate(() => new Promise((res) => {
+  /* poll until `probe()` satisfies `pred`, visiting `place` first so the
+     adapter mounts + drains. The ?intake= mount path navigates the frame
+     to the delivered result.url mid-drain — an evaluate that races it
+     throws 'execution context destroyed'; retry rather than die. */
+  const safeEval = async (probe) => {
+    try { return await page.evaluate(probe); }
+    catch (e) {
+      if (/context|navigat/i.test(String(e))) { await page.waitForTimeout(600); return undefined; }
+      throw e;
+    }
+  };
+  const pollDelivered = async (place, probe, pred, tries = 30, gap = 1000) => {
+    await page.goto(`${BASE}/#/p/${place}`, { waitUntil: 'load' });
+    let last;
+    for (let i = 0; i < tries; i++) {
+      const v = await safeEval(probe);
+      if (v !== undefined) {
+        last = v;
+        if (pred(v)) return { ok: true, v };
+      }
+      await page.waitForTimeout(gap);
+    }
+    return { ok: false, v: last };
+  };
+
+  const inkRes = await pollDelivered('ink',
+    () => {
+      try {
+        const s = JSON.parse(localStorage.getItem('ink-notes-storage') || '{}');
+        return (s.state?.notes || []).map((n) => n.id + '|' + n.title);
+      } catch (e) { return ['ERR ' + e]; }
+    },
+    (v) => v.some((n) => n.includes('intake-in-demo-')));
+  if (!inkRes.ok) {
+    fail('ink missing intake-delivered notes: ' + JSON.stringify(inkRes.v) + ' pending=' + (await dumpIntakes()));
+  } else ok('ink drained the demo intake → ' + inkRes.v.filter((n) => n.includes('demo')).join(', '));
+
+  const marginProbe = () => new Promise((res) => {
     const req = indexedDB.open('ModularAINotesDB');
     req.onsuccess = () => {
       const db = req.result;
@@ -86,22 +133,24 @@ const ok = (msg) => console.log('  ok:', msg);
       } catch (e) { db.close(); res(['NO STORE ' + store + ' (' + names.join(',') + ')']); }
     };
     req.onerror = () => res(['ERR open']);
-  }));
-  if (!marginNotes.some((k) => String(k).includes('intake-in-demo-'))) {
-    fail('margin missing intake note: ' + JSON.stringify(marginNotes));
-  } else ok('margin drained the demo intake → ' + marginNotes.filter((k) => String(k).includes('demo')).join(','));
-
-  await page.goto(`${BASE}/#/p/proof`, { waitUntil: 'load' });
-  await page.waitForTimeout(7000);
-  const proofProblems = await page.evaluate(() => {
-    try {
-      const s = JSON.parse(localStorage.getItem('proof.workbench.v1') || '{}');
-      return Object.keys(s.state?.problems || {});
-    } catch (e) { return ['ERR ' + e]; }
   });
-  if (!proofProblems.some((k) => String(k).startsWith('p_in-demo-'))) {
-    fail('proof missing intake problem: ' + JSON.stringify(proofProblems));
-  } else ok('proof drained the demo intake → ' + proofProblems.filter((k) => k.includes('demo')).join(','));
+  const marginRes = await pollDelivered('margin', marginProbe,
+    (v) => v.some((k) => String(k).includes('intake-in-demo-')), 35);
+  if (!marginRes.ok) {
+    fail('margin missing intake note: ' + JSON.stringify(marginRes.v) + ' pending=' + (await dumpIntakes()));
+  } else ok('margin drained the demo intake → ' + marginRes.v.filter((k) => String(k).includes('demo')).join(','));
+
+  const proofRes = await pollDelivered('proof',
+    () => {
+      try {
+        const s = JSON.parse(localStorage.getItem('proof.workbench.v1') || '{}');
+        return Object.keys(s.state?.problems || {});
+      } catch (e) { return ['ERR ' + e]; }
+    },
+    (v) => v.some((k) => String(k).startsWith('p_in-demo-')), 35);
+  if (!proofRes.ok) {
+    fail('proof missing intake problem: ' + JSON.stringify(proofRes.v) + ' pending=' + (await dumpIntakes()));
+  } else ok('proof drained the demo intake → ' + proofRes.v.filter((k) => k.includes('demo')).join(','));
 
   /* the intake binds a CANONICAL course key — proof's local registry must
      mirror it or every course lookup (chip, publish, picker) misses */
@@ -113,24 +162,24 @@ const ok = (msg) => console.log('  ok:', msg);
       return { courseId: p?.courseId || null, code: c?.code || null, keys: Object.keys(s.state?.courses || {}) };
     } catch (e) { return { err: String(e) }; }
   });
-  if (!proofCourse.courseId || !proofCourse.courseId.startsWith('syllabus:course:')) {
+  if (proofRes.ok && (!proofCourse.courseId || !proofCourse.courseId.startsWith('syllabus:course:'))) {
     fail('proof problem not bound to a canonical course: ' + JSON.stringify(proofCourse));
-  } else if (proofCourse.code !== 'STAT 220') {
+  } else if (proofRes.ok && proofCourse.code !== 'STAT 220') {
     fail('proof registry missing the canonical course mirror: ' + JSON.stringify(proofCourse));
-  } else ok('proof resolved the canonical course → ' + proofCourse.code + ' (' + proofCourse.courseId + ')');
+  } else if (proofRes.ok) ok('proof resolved the canonical course → ' + proofCourse.code + ' (' + proofCourse.courseId + ')');
 
   /* ── rhythm register: routine.plan intake + Today's inline check-in ── */
-  await page.goto(`${BASE}/#/p/rhythm`, { waitUntil: 'load' });
-  await page.waitForTimeout(6000);
-  const regState = await page.evaluate(() => {
-    try {
-      const s = JSON.parse(localStorage.getItem('rhythm.register.v1') || '{}');
-      return { routines: Object.keys(s.state?.routines || {}), courses: Object.keys(s.state?.courses || {}) };
-    } catch (e) { return { err: String(e) }; }
-  });
-  if (!regState.routines?.some((k) => String(k).startsWith('rtn_in-demo-'))) {
-    fail('rhythm missing intake routine: ' + JSON.stringify(regState));
-  } else ok('rhythm drained the demo intake → ' + regState.routines.filter((k) => k.includes('demo')).join(','));
+  const rhythmRes = await pollDelivered('rhythm',
+    () => {
+      try {
+        const s = JSON.parse(localStorage.getItem('rhythm.register.v1') || '{}');
+        return { routines: Object.keys(s.state?.routines || {}), courses: Object.keys(s.state?.courses || {}) };
+      } catch (e) { return { err: String(e) }; }
+    },
+    (v) => v.routines?.some?.((k) => String(k).startsWith('rtn_in-demo-')), 30);
+  if (!rhythmRes.ok) {
+    fail('rhythm missing intake routine: ' + JSON.stringify(rhythmRes.v) + ' pending=' + (await dumpIntakes()));
+  } else ok('rhythm drained the demo intake → ' + rhythmRes.v.routines.filter((k) => k.includes('demo')).join(','));
 
   /* Today lists the routine; clicking 'Log routine' marks inline. Poll —
      the entity publish + presence summary lag a few seconds on slow disks. */

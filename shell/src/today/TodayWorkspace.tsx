@@ -271,7 +271,9 @@ export function TodayWorkspace({
     }[] = [];
 
     // Flashcard decks with due cards
-    const decks = allObjects.filter((o) => o.app === 'flashcards' && o.type === 'deck');
+    const decks = allObjects.filter(
+      (o) => o.app === 'flashcards' && o.type === 'deck' && matchesCourseFilter(o.course, o.topic),
+    );
     const dueCardsInStore = entities.filter(
       (e) =>
         e.type === 'card' &&
@@ -324,6 +326,7 @@ export function TodayWorkspace({
     const dueProblems = allObjects.filter(
       (o) =>
         o.app === 'proof' &&
+        matchesCourseFilter(o.course, o.topic) &&
         o.dueAt != null &&
         (typeof o.dueAt === 'number' ? o.dueAt : Date.parse(String(o.dueAt))) <= now,
     );
@@ -356,11 +359,15 @@ export function TodayWorkspace({
       });
     }
 
-    // Rhythm pending attendance routines
+    // Rhythm pending attendance routines — the itemized rows carry a
+    // course key, so filter per-row like the neighbors rather than hiding
+    // the whole section under an active course filter.
     const rhythmSum = (presences['rhythm']?.summary as any) || shared.register?.v;
     const pendingRoutines = typeof rhythmSum?.pending === 'number' ? rhythmSum.pending : 0;
-    if (pendingRoutines > 0 && !courseFilterLow) {
-      const routines = allObjects.filter((o) => o.app === 'rhythm' && o.type === 'routine');
+    if (pendingRoutines > 0) {
+      const routines = allObjects.filter(
+        (o) => o.app === 'rhythm' && o.type === 'routine' && matchesCourseFilter(o.course, o.topic),
+      );
       if (routines.length > 0) {
         for (const r of routines.slice(0, 2)) {
           const doneToday = r.data?.todayDone === true;
@@ -880,35 +887,66 @@ export function TodayWorkspace({
                           Open Block
                         </Button>
                         {scheduledWork.primary.type === 'block' && (
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            title="Stamp this slip done — off-clock work, no timer"
-                            onClick={() => {
-                              const o = scheduledWork.primary!;
-                              void (window as any).iterra
-                                ?.send?.({
-                                  to: 'syllabus',
-                                  action: 'block.done',
-                                  entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                  payload: { blockId: o.id },
-                                })
-                                .then((r: any) => {
-                                  if (!r?.ok) {
-                                    notify('Couldn’t mark it done — Planning may still be starting.');
-                                    return;
-                                  }
-                                  notify(
-                                    r.delivered === true
-                                      ? `Done — ${o.title}`
-                                      : 'Marked done — Planning applies it on next open.',
-                                    r.delivered === true ? undefined : r.url,
-                                  );
-                                });
-                            }}
-                          >
-                            Mark done
-                          </Button>
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="xs"
+                              title="Push this slip to tomorrow — stays planned, not missed"
+                              onClick={() => {
+                                const o = scheduledWork.primary!;
+                                void (window as any).iterra
+                                  ?.send?.({
+                                    to: 'syllabus',
+                                    action: 'block.defer',
+                                    entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                    payload: { blockId: o.id },
+                                  })
+                                  .then((r: any) => {
+                                    if (!r?.ok) {
+                                      notify('Couldn’t push it — Planning may still be starting.');
+                                      return;
+                                    }
+                                    notify(
+                                      r.delivered === true
+                                        ? `Pushed to tomorrow — ${o.title}`
+                                        : 'Push queued — Planning applies it on next open.',
+                                      r.delivered === true ? undefined : r.url,
+                                    );
+                                  });
+                              }}
+                            >
+                              Tomorrow
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="xs"
+                              title="Stamp this slip done — off-clock work, no timer"
+                              onClick={() => {
+                                const o = scheduledWork.primary!;
+                                void (window as any).iterra
+                                  ?.send?.({
+                                    to: 'syllabus',
+                                    action: 'block.done',
+                                    entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                    payload: { blockId: o.id },
+                                  })
+                                  .then((r: any) => {
+                                    if (!r?.ok) {
+                                      notify('Couldn’t mark it done — Planning may still be starting.');
+                                      return;
+                                    }
+                                    notify(
+                                      r.delivered === true
+                                        ? `Done — ${o.title}`
+                                        : 'Marked done — Planning applies it on next open.',
+                                      r.delivered === true ? undefined : r.url,
+                                    );
+                                  });
+                              }}
+                            >
+                              Mark done
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>
