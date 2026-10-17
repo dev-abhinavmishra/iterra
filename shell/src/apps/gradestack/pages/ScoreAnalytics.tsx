@@ -142,7 +142,7 @@ export function ScoreAnalytics() {
     ]);
     const csv = [header, ...rows].map(r => r.map(csvEscape).join(',')).join('\n');
     downloadFile(`${test.name.replace(/[^\w\-]+/g, '_')}_gradebook.csv`, csv);
-    feed(`gradebook exported: ${test.name}`, '/apps/gradestack/', test.courseName || undefined);
+    feed(`gradebook exported: ${test.name}`, `/apps/gradestack/?assessment=${encodeURIComponent(String(test.id))}`, test.courseName || undefined);
   };
 
   return (

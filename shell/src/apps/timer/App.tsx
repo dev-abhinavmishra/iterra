@@ -82,6 +82,27 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
     setView(id);
   };
 
+  /* ?p=<view> intake — session stirs and entities point at the Ledger
+     (?p=stats) instead of dumping on the timer face. Consumed params
+     strip so a reload can't re-fire the navigation. */
+  const lastViewQuery = useRef('');
+  useEffect(() => {
+    if (query === lastViewQuery.current) return;
+    lastViewQuery.current = query;
+    const p = new URLSearchParams(query).get('p');
+    if (!p || !NAV.some((n) => n.id === p)) return;
+    const h = window.location.hash;
+    const qi = h.indexOf('?');
+    if (qi !== -1) {
+      const q = new URLSearchParams(h.slice(qi + 1));
+      q.delete('p');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    requestView(p as View);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
   /* ?settings deep link — the terrain's central settings surface lands
      here; the tab itself hides when integrated so settings live in one
      doorway. Consumed params strip so the same link fires again later. */

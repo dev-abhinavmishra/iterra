@@ -1177,7 +1177,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     learnEmptyEl.hidden = true;
   
     if (L.queue.length === 0) {  // session complete
-      if (!L.done) { L.done = true; showLearnResults(); feedIt(`learn complete · ${d.title}`, null, d.course); }
+      if (!L.done) { L.done = true; showLearnResults(); feedIt(`learn complete · ${d.title}`, `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`, d.course); }
       // terminal state — without it the stage freezes on the last card
       // with a stale "1 left" and verdict buttons that do nothing
       const stillNeed = d.cards.filter(c => L.missed.includes(c.id) && c.status !== 'mastered').length;
@@ -1293,7 +1293,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     quizEmptyEl.hidden = true;
   
     if (Q.idx >= Q.order.length) {  // session complete — terminal state
-      if (!Q.done) { Q.done = true; showQuizResults(); feedIt(`quiz complete · ${d.title}`, null, d.course); }
+      if (!Q.done) { Q.done = true; showQuizResults(); feedIt(`quiz complete · ${d.title}`, `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`, d.course); }
       $('quiz-count').textContent = `${Q.order.length} / ${Q.order.length}`;
       $('quiz-progress').style.width = '100%';
       $('quiz-score').textContent = `${Q.correct} correct`;
@@ -1435,7 +1435,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     $('write-form').style.visibility = '';
   
     if (W.idx >= W.order.length) {  // session complete — terminal state
-      if (!W.done) { W.done = true; showWriteResults(); feedIt(`write complete · ${d.title}`, null, d.course); }
+      if (!W.done) { W.done = true; showWriteResults(); feedIt(`write complete · ${d.title}`, `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`, d.course); }
       $('write-count').textContent = `${W.order.length} / ${W.order.length}`;
       $('write-progress').style.width = '100%';
       $('write-score').textContent = `${W.correct} right`;

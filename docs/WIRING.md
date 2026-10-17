@@ -118,7 +118,7 @@ Also honored:
   → Study opens the quiz runner (unknown ids stay on the browse list)
 - **rhythm**: `?experiment=<id>` → Experiments view with that card scrolled
   into view and lit (unknown ids degrade to the plain list)
-- **timer**: `?routine=<name>` → open Intervals focused on the named routine
+- **timer**: `?routine=<name>` → open Intervals focused on the named routine; `?p=<view>` → open a tab directly (`stats` for session links, plus `timer|stopwatch|clock|intervals|presets|settings`)
   (standalone — no `from=` gate; unknown names degrade to a plain open)
 - **syllabus**: `?block=<id>` → select that work slip on Today (stashed at
   boot, consumed once blocks hydrate — the subscribe-retry guards the

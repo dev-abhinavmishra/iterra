@@ -118,7 +118,7 @@ export function wireIterra() {
           const r = e ? s.routines[e.routineId] : null;
           iterra.feed?.({ app: 'rhythm',
             text: `${r?.name ?? 'a channel'} hit${e?.isMinimum ? ' (minimum)' : ''}`,
-            url: '/apps/rhythm/',
+            url: r ? `/apps/rhythm/?routine=${encodeURIComponent(r.name)}` : '/apps/rhythm/',
             course: routineCourse(r?.courseId),
           });
         }

@@ -75,9 +75,12 @@ describe('register emit contract', () => {
     env.calls.length = 0;
     await useStore.getState().addScan(mkScan('f1', 'tX', true) as any);
     await useStore.getState().addScan(mkScan('c1', 'tX', false, 100, 'Clean Carol') as any);
+    /* addScan mints its own ids — read back what landed */
+    const flagged = useStore.getState().scans.find((s: any) => s.needsReview)!;
+    const clean = useStore.getState().scans.find((s: any) => !s.needsReview)!;
     expect(env.calls).toEqual([
-      { text: 'scanned: Fork Quiz — needs review', url: '/apps/gradestack/', course: 'MATH 241' },
-      { text: 'marked: Fork Quiz · 100%', url: '/apps/gradestack/', course: 'MATH 241' },
+      { text: 'scanned: Fork Quiz — needs review', url: `/apps/gradestack/?scanId=${flagged.id}`, course: 'MATH 241' },
+      { text: 'marked: Fork Quiz · 100%', url: `/apps/gradestack/?scanId=${clean.id}`, course: 'MATH 241' },
     ]);
     const mb = env.fields['shared.markbook'];
     expect(mb?.v).toEqual({ assessment: 'Fork Quiz', scored: 1, total: 2 });
@@ -97,6 +100,7 @@ describe('register emit contract', () => {
     useStore.getState().mergeRemote([mkTest('tA', 'Quiz A')] as any, [mkScan('s1', 'tA')] as any);
     env.calls.length = 0;
     await useStore.getState().addScan(mkScan('local1', 'tA') as any);
-    expect(env.calls).toEqual([{ text: 'marked: Quiz A · 80%', url: '/apps/gradestack/', course: 'MATH 241' }]);
+    const added = useStore.getState().scans.find((s: any) => s.testId === 'tA' && s.id !== 's1');
+    expect(env.calls).toEqual([{ text: 'marked: Quiz A · 80%', url: `/apps/gradestack/?scanId=${added!.id}`, course: 'MATH 241' }]);
   });
 });

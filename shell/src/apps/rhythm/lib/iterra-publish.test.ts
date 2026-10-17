@@ -130,7 +130,7 @@ describe('iterra publish contract', () => {
     feedCalls.length = 0;
     store.getState().checkIn('r1');
     const hit = feedCalls.find((f) => /hit/.test(f.text));
-    expect(hit).toMatchObject({ text: 'Cards hit', url: '/apps/rhythm/', course: 'MTH151' });
+    expect(hit).toMatchObject({ text: 'Cards hit', url: `/apps/rhythm/?routine=${encodeURIComponent('Cards')}`, course: 'MTH151' });
   });
 
   it('tags register-complete by course when all coursed marks agree', async () => {

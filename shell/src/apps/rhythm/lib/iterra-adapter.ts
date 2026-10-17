@@ -222,7 +222,7 @@ export function entryEntity(
     sub: e.date,
     ...(opts.course ? { course: opts.course } : {}),
     ...(opts.courseId ? { courseId: opts.courseId } : {}),
-    url: '/apps/rhythm/',
+    url: r ? `/apps/rhythm/?routine=${encodeURIComponent(r.name)}` : '/apps/rhythm/',
     data: {
       day: e.date,
       kind,
@@ -564,7 +564,7 @@ export function registerAdapter() {
           entryId: id,
           date: e?.date,
           course: localCourse(r?.courseId),
-          url: '/apps/rhythm/',
+          url: r ? `/apps/rhythm/?routine=${encodeURIComponent(r.name)}` : '/apps/rhythm/',
         }).catch(() => {});
       }
       const p = pendingNow();
@@ -608,7 +608,10 @@ export function registerAdapter() {
         const cid = await projectCourse(rec?.payload ?? {}, rec?.id);
         if (cid) draft.courseId = cid;
         ingest(draft);
-        return { url: '/apps/rhythm/' };
+        const hit = typeof draft.routineId === 'string'
+          ? useRegister.getState().routines[draft.routineId]
+          : undefined;
+        return { url: hit ? `/apps/rhythm/?routine=${encodeURIComponent(hit.name)}` : '/apps/rhythm/' };
       },
       /* {name, course?, courseId?, dueAt?, perWeek?, minutes?, unit?} →
          a real Routine on the register: syllabus's 'plan on the register'

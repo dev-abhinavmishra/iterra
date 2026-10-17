@@ -126,7 +126,7 @@ wireIterra();
       const text = x.needsReview
         ? `scanned: ${t?.name ?? 'a sheet'} — needs review`
         : `marked: ${t?.name ?? 'a sheet'}${x.percentage != null ? ` · ${Math.round(x.percentage)}%` : ''}`;
-      it.feed({ text, url: '/apps/gradestack/', course: t?.courseName || undefined });
+      it.feed({ text, url: `/apps/gradestack/?scanId=${encodeURIComponent(String(x.id))}`, course: t?.courseName || undefined });
     }
     lastIds = ids;
     const tids = new Set<string>(tests.map((t: any) => String(t.id)));

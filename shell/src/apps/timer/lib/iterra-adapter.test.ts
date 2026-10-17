@@ -67,7 +67,7 @@ describe('session entity + event builders', () => {
     expect(e).toMatchObject({
       app: 'timer', type: 'session', id: 's1',
       courseId: 'syllabus:course:c1', course: 'BIO',
-      title: 'Ch 4', sub: '25m', url: '/apps/timer/', createdAt: 1_000_000,
+      title: 'Ch 4', sub: '25m', url: '/apps/timer/?p=stats', createdAt: 1_000_000,
       data: { minutes: 25, label: 'Ch 4', commitmentId: 'cm1', startedAt: -500000, endedAt: 1_000_000 },
     });
   });

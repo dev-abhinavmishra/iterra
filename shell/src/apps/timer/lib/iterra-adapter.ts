@@ -42,7 +42,7 @@ export function sessionEntity(s: Session, bound: BoundCourse = {}) {
     course: bound.course ?? s.course,
     title: label,
     sub: `${minutes}m`,
-    url: '/apps/timer/',
+    url: '/apps/timer/?p=stats',
     createdAt: s.timestamp,
     data: {
       minutes,
@@ -63,7 +63,7 @@ export function sessionCompletedEvent(s: Session, bound: BoundCourse = {}) {
     courseId: bound.courseId ?? s.courseId,
     course: bound.course ?? s.course,
     text: `focus · ${minutes}m — ${label}`,
-    url: '/apps/timer/',
+    url: '/apps/timer/?p=stats',
   };
 }
 
