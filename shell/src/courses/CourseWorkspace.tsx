@@ -194,16 +194,27 @@ export function CourseWorkspace({
   );
 
   const nextCommit = useMemo(
-    () =>
-      courseEnts
+    () => {
+      /* commitments carry ISO dueAt; blocks carry date-only plannedDate —
+         resolve either to ms, or sort last */
+      const dueMs = (e: (typeof courseEnts)[number]) => {
+        const raw = e.data?.dueAt ?? e.data?.plannedDate;
+        const ms = typeof raw === 'number' ? raw : typeof raw === 'string' ? Date.parse(raw) : NaN;
+        return Number.isFinite(ms) ? ms : Infinity;
+      };
+      return courseEnts
         .filter(
           (e) =>
             (e.type === 'commitment' || e.type === 'block') &&
             e.data &&
+            /* commitments close via status; blocks close via state */
             e.data.status !== 'done' &&
-            e.data.status !== 'completed',
+            e.data.status !== 'completed' &&
+            e.data.state !== 'done' &&
+            e.data.state !== 'deferred',
         )
-        .sort((a, b) => ((a.data?.dueAt as number) || Infinity) - ((b.data?.dueAt as number) || Infinity))[0] || null,
+        .sort((a, b) => dueMs(a) - dueMs(b))[0] || null;
+    },
     [courseEnts],
   );
 
