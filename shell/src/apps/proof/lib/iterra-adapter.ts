@@ -351,6 +351,12 @@ export function registerAdapter() {
           source: typeof p.source === 'string' ? p.source : 'iterra',
           attachments: [],
         });
+        /* provenance: the filed problem was derived FROM the sent entity —
+           dossiers/search read links, not the 'source' tag */
+        const srcKey = typeof rec?.entity?.key === 'string' ? rec.entity.key : null;
+        if (srcKey) {
+          try { await (window as any).iterra?.links?.add(`proof:problem:${problem.id}`, srcKey, 'derivedFrom'); } catch { /* best effort */ }
+        }
         return { url: `/apps/proof/?problem=${encodeURIComponent(problem.id)}` };
       },
     },

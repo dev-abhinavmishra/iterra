@@ -8,12 +8,14 @@ type Ent = Record<string, any>;
 let puts: Ent[];
 let emits: { t: string; p: any }[];
 let sends: any[];
+let links: { from: string; to: string; kind: string }[];
 let adapterOpts: any;
 
 const installStubs = () => {
   puts = [];
   emits = [];
   sends = [];
+  links = [];
   adapterOpts = null;
   const mem = new Map<string, string>();
   const localStorageStub = {
@@ -33,6 +35,7 @@ const installStubs = () => {
         remove: async () => ({ ok: true }),
       },
       events: { emit: (t: string, p: any) => emits.push({ t, p }) },
+      links: { add: async (from: string, to: string, kind: string) => { links.push({ from, to, kind }); return { ok: true }; } },
       courses: { resolve: async () => null },
       send: async (o: any) => { sends.push(o); return { ok: true, delivered: 'queued' }; },
       doc: () => null,
@@ -157,6 +160,32 @@ describe('adapter wiring', () => {
     const res2 = await adapterOpts.intakes['step.append']({ entity: { key: 'k' } });
     expect(res2.url).toBe(`/apps/proof/?attempt=${a2.id}`);
     expect(store.getState().attempts[a2.id].work.at(-1)?.text).toBe('ref · k (k)');
+  });
+
+  it('problem.create files the problem and records a derivedFrom link to the source entity', async () => {
+    await seed();
+    await import('./iterra-adapter');
+    const res = await adapterOpts.intakes['problem.create']({
+      id: 'in-7', from: 'margin',
+      entity: { key: 'margin:note:n9', title: 'Rotational inertia' },
+      payload: { prompt: 'Derive I for a hoop', topic: 'rotation' },
+    });
+    expect(res.url).toMatch(/^\/apps\/proof\/\?problem=/);
+    expect(links).toContainEqual({
+      from: expect.stringMatching(/^proof:problem:p_in-7$/),
+      to: 'margin:note:n9',
+      kind: 'derivedFrom',
+    });
+  });
+
+  it('problem.create with no entity key files the problem without a provenance link', async () => {
+    await seed();
+    await import('./iterra-adapter');
+    const res = await adapterOpts.intakes['problem.create']({
+      id: 'in-8', payload: { prompt: 'Factor x²−1' },
+    });
+    expect(res.url).toMatch(/^\/apps\/proof\/\?problem=/);
+    expect(links).toEqual([]);
   });
 
   it('a filed error emits attempt.diverged and sends the retest card', async () => {
