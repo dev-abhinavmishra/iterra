@@ -41,7 +41,9 @@ export interface BackupSummary {
 
 const KNOWN_DBS = ['iterra', 'ModularAINotesDB'];
 
-const openDb = (name: string, version?: number, onUpgrade?: (db: IDBDatabase) => void): Promise<IDBDatabase | null> =>
+/* exported for sibling integration tools (demo seed) that need the same
+   tolerant open/list/read primitives — never throw, null on failure */
+export const openDatabase = (name: string, version?: number, onUpgrade?: (db: IDBDatabase) => void): Promise<IDBDatabase | null> =>
   new Promise((res) => {
     let req: IDBOpenDBRequest;
     try {
@@ -55,6 +57,19 @@ const openDb = (name: string, version?: number, onUpgrade?: (db: IDBDatabase) =>
     req.onblocked = () => res(null);
     if (onUpgrade) req.onupgradeneeded = () => onUpgrade(req.result);
   });
+
+export const storeAllKeys = (dbName: string, storeName: string): Promise<IDBValidKey[]> =>
+  openDatabase(dbName).then((db) => {
+    if (!db || !db.objectStoreNames.contains(storeName)) { db?.close(); return []; }
+    return new Promise<IDBValidKey[]>((res) => {
+      const r = db.transaction(storeName, 'readonly').objectStore(storeName).getAllKeys();
+      r.onsuccess = () => { db.close(); res(r.result || []); };
+      r.onerror = () => { db.close(); res([]); };
+    });
+  });
+
+export const listDatabases = async (): Promise<{ name: string }[]> =>
+  (await dbNames()).map((name) => ({ name }));
 
 const dbNames = async (): Promise<string[]> => {
   try {
@@ -73,7 +88,7 @@ const dbNames = async (): Promise<string[]> => {
 };
 
 const dumpDb = async (name: string): Promise<BackupDb | null> => {
-  const db = await openDb(name);
+  const db = await openDatabase(name);
   if (!db) return null;
   try {
     const stores: BackupDb['stores'] = {};
@@ -203,7 +218,7 @@ const restoreDb = (name: string, dump: BackupDb): Promise<void> =>
         res();
       });
     };
-    openDb(name, dump.version, (upgrading) => {
+    openDatabase(name, dump.version, (upgrading) => {
       for (const [sn, s] of Object.entries(dump.stores)) {
         if (!upgrading.objectStoreNames.contains(sn)) {
           upgrading.createObjectStore(sn, {
@@ -214,7 +229,7 @@ const restoreDb = (name: string, dump: BackupDb): Promise<void> =>
       }
     }).then((db) => {
       if (db) return finish(db);
-      openDb(name).then(finish);
+      openDatabase(name).then(finish);
     });
   });
 

@@ -78,7 +78,23 @@ installCrossTabSync();
    would fight HMR; the whole point here is the deployed build. */
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => {
+        /* A new worker reaching 'installed' while a controller already
+           exists means a deploy landed mid-session — surface a refresh
+           toast instead of silently serving the stale tab. */
+        reg.addEventListener('updatefound', () => {
+          const w = reg.installing;
+          if (!w) return;
+          w.addEventListener('statechange', () => {
+            if (w.state === 'installed' && navigator.serviceWorker.controller) {
+              window.dispatchEvent(new CustomEvent('iterra:update-available'));
+            }
+          });
+        });
+      })
+      .catch(() => {});
   });
 }
 

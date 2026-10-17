@@ -18,7 +18,7 @@ export function Ambient({
   /* details panel is a 320px rail at lg+ — slide the toast clear of it */
   panelOpen?: boolean;
 }) {
-  const [toast, setToast] = useState<{ text: string; url?: string } | null>(null);
+  const [toast, setToast] = useState<{ text: string; url?: string; refresh?: boolean } | null>(null);
   const seenSessions = useRef<Set<string> | null>(null);
 
   useEffect(() => {
@@ -53,6 +53,14 @@ export function Ambient({
     return off;
   }, []);
 
+  /* deployed while this tab is open — the new SW is installed and about to
+     take control; offer the refresh instead of quietly stranding the tab */
+  useEffect(() => {
+    const onUpdate = () => setToast({ text: 'A new version of Iterra is ready', refresh: true });
+    window.addEventListener('iterra:update-available', onUpdate);
+    return () => window.removeEventListener('iterra:update-available', onUpdate);
+  }, []);
+
   if (!toast) return null;
 
   return (
@@ -64,6 +72,10 @@ export function Ambient({
       <button
         type="button"
         onClick={() => {
+          if (toast.refresh) {
+            window.location.reload();
+            return;
+          }
           if (toast.url) onGo(toast.url);
           setToast(null);
         }}
@@ -71,7 +83,8 @@ export function Ambient({
       >
         <span className="live-dot inline-block h-2 w-2 rounded-full bg-[var(--color-accent)]" />
         <span>{toast.text}</span>
-        {toast.url && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Open →</span>}
+        {toast.refresh && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Refresh</span>}
+        {!toast.refresh && toast.url && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Open →</span>}
       </button>
     </div>
   );

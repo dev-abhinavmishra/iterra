@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Moon, Settings2, Sun, ChevronRight, Download, Upload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser } from 'lucide-react';
 import { PLACES } from '../places';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
 import { useWorkspaceTheme } from '../ui/theme';
@@ -11,6 +11,7 @@ import {
   summarizeBackup,
   type IterraBackup,
 } from '../integration/backup';
+import { demoRowCount, isDemoLoaded, removeDemoData, seedDemoSemester } from '../integration/demo';
 
 /* Central settings — the one doorway for terrain preferences and every
    tool's settings. Per-app settings chrome is hidden while integrated;
@@ -99,6 +100,9 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
 
       {/* Backup */}
       <BackupSection />
+
+      {/* Sample semester */}
+      <DemoSection />
 
       {/* Tools */}
       <section className="pt-6">
@@ -268,6 +272,122 @@ function BackupSection() {
           </Button>
           <Button variant="danger" onClick={onRestore} disabled={restoring}>
             {restoring ? 'Restoring…' : 'Replace everything'}
+          </Button>
+        </div>
+      </Dialog>
+    </section>
+  );
+}
+
+/* A sample semester is how the terrain shows what it does before a student
+   has real work behind it — three courses, commitments, planned blocks,
+   decks, sessions — all through the same stores the tools write. Everything
+   it adds is demo-marked and removable in one pass; both directions reload
+   so mounted tools rehydrate from the new state rather than overwrite it. */
+function DemoSection() {
+  const [loaded] = useState(isDemoLoaded);
+  const [rows, setRows] = useState(0);
+  const [confirming, setConfirming] = useState<'seed' | 'remove' | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    void demoRowCount().then((n) => { if (live) setRows(n); });
+    return () => { live = false; };
+  }, [loaded]);
+
+  const run = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = confirming === 'seed' ? await seedDemoSemester() : await removeDemoData();
+      if (!res.ok) throw new Error((res as { error?: string }).error ?? 'failed');
+      window.location.reload();
+    } catch {
+      setBusy(false);
+      setConfirming(null);
+      setError(confirming === 'seed'
+        ? 'The sample semester did not finish loading — try again.'
+        : 'Cleanup did not finish — remaining sample rows are marked “demo” and can be removed again.');
+    }
+  };
+
+  return (
+    <section className="pt-6">
+      <SectionHeader title="Sample semester" />
+      <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
+        {!loaded ? (
+          <button
+            type="button"
+            onClick={() => setConfirming('seed')}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+          >
+            <Sparkles className="h-4 w-4 shrink-0 text-[var(--color-accent)]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+                Load a sample semester
+              </span>
+              <span className="block truncate text-[12px] text-[var(--color-mute)]">
+                Three courses, assignments, decks and sessions — the terrain as it looks in use.
+              </span>
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setConfirming('remove')}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+          >
+            <Eraser className="h-4 w-4 shrink-0 text-[var(--color-accent)]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+                Remove sample data
+              </span>
+              <span className="block truncate text-[12px] text-[var(--color-mute)]">
+                {rows > 0
+                  ? `${rows} sample records loaded — removes every one, keeps everything you made.`
+                  : 'Removes every sample record, keeps everything you made.'}
+              </span>
+            </span>
+          </button>
+        )}
+      </div>
+      {error && <p className="mt-2 text-[12px] text-[var(--color-bad)]">{error}</p>}
+
+      <Dialog
+        open={confirming === 'seed'}
+        onClose={() => !busy && setConfirming(null)}
+        title="Load a sample semester?"
+      >
+        <p className="text-[12.5px] leading-relaxed text-[var(--color-mute)]">
+          Iterra adds a small set of demo records — courses, assignments,
+          planned blocks, flashcard decks and focus sessions — alongside
+          anything already here. Everything it adds is marked and can be
+          removed in one pass from this same panel.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button onClick={() => setConfirming(null)} disabled={busy}>Cancel</Button>
+          <Button variant="primary" onClick={run} disabled={busy}>
+            {busy ? 'Loading…' : 'Load sample'}
+          </Button>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={confirming === 'remove'}
+        onClose={() => !busy && setConfirming(null)}
+        title="Remove the sample semester?"
+      >
+        <p className="text-[12.5px] leading-relaxed text-[var(--color-mute)]">
+          Every demo-marked record is deleted — including the notes and
+          problems the sample queued into Ink, Margin and Proof. Anything you
+          created or edited yourself is untouched.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button onClick={() => setConfirming(null)} disabled={busy}>Cancel</Button>
+          <Button variant="danger" onClick={run} disabled={busy}>
+            {busy ? 'Removing…' : 'Remove sample data'}
           </Button>
         </div>
       </Dialog>
