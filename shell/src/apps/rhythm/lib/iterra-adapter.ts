@@ -610,6 +610,12 @@ export function registerAdapter() {
         /* same mapping the register's folio inbox uses — see planRoutine */
         const routine = await planRoutine({ ...(p as RoutinePlanFields), entityTitle: rec?.entity?.title });
         if (!routine) return { ok: false };
+        /* provenance: the routine was derived FROM the sent commitment —
+           dossiers read links, not just the shared courseId */
+        const srcKey = typeof rec?.entity?.key === 'string' ? rec.entity.key : null;
+        if (srcKey) {
+          try { await (window as any).iterra?.links?.add(`rhythm:routine:${routine.id}`, srcKey, 'derivedFrom'); } catch { /* best effort */ }
+        }
         return { url: `/apps/rhythm/?routine=${encodeURIComponent(routine.name)}`, toast: `${routine.name} — on the register` };
       },
     },
