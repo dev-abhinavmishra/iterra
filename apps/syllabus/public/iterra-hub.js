@@ -832,7 +832,27 @@
       if (r && r.ok === false) return r; // never map a failure to a committed remove
       _notify('entity', { op: 'remove', key: key });
       syncPushRemove(key);
-      return { ok: true };
+      /* cascade: links whose either endpoint is the removed key dangle —
+         dossiers would resolve them to fabricated ghosts. Sweep both
+         lanes; a link-table hiccup must never fail the entity remove. */
+      return linksList().then(function (rows) {
+        var doomed = (rows || []).filter(function (l) { return l && (l.from === key || l.to === key); });
+        if (!doomed.length) return r;
+        return openDB().then(function (d) {
+          if (d) {
+            return Promise.all(doomed.map(function (l) {
+              return idbTx(d, 'links', 'readwrite', function (s) { s.delete(l.key); });
+            }));
+          }
+          var b = lsRead('links');
+          for (var i = 0; i < doomed.length; i++) delete b[doomed[i].key];
+          lsWrite('links', b);
+          return null;
+        }).then(function () {
+          for (var i = 0; i < doomed.length; i++) _notify('link', { op: 'remove', key: doomed[i].key });
+          return r;
+        });
+      }).catch(function () { return r; });
     });
   }
 

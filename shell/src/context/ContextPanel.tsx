@@ -273,6 +273,10 @@ export function ContextPanel({
           if (!ent && it.store?.get) {
             ent = await it.store.get(targetKey).catch(() => null);
           }
+          /* a link whose target was deleted is a ghost — falling back to
+             key-part parsing would render an 'Open' button that lands on a
+             generic app root for an object that no longer exists */
+          if (!ent) return;
           const parts = targetKey.split(':');
           const app = ent?.app || parts[0] || 'unknown';
           const type = ent?.type || parts[1] || 'item';

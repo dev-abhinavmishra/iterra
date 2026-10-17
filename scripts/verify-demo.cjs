@@ -3,7 +3,13 @@
 const { chromium } = require('playwright-core');
 
 const BASE = process.argv[2] || 'http://localhost:5455';
-const EXE = 'C:/Users/pmsma/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe';
+const fs = require('fs');
+const EXE = [
+  'C:/Users/pmsma/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+].find((p) => fs.existsSync(p));
+if (!EXE) { console.log('FAIL: no chromium-family browser found'); process.exit(1); }
 
 const fail = (msg) => { console.log('FAIL:', msg); process.exitCode = 1; };
 const ok = (msg) => console.log('  ok:', msg);
