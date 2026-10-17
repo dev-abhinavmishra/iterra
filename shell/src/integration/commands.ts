@@ -1428,7 +1428,9 @@ export async function handleRecordSessionOutcome(
     title: label,
     sub: `${elapsedMinutes}m · ${input.outcome}`,
     url: '/apps/timer/',
-    createdAt: now,
+    /* the entity timestamps the session, not the moment of logging — a
+       backfilled entry belongs to its study day in recency ordering */
+    createdAt: at,
     data: {
       minutes: elapsedMinutes,
       elapsedSeconds,

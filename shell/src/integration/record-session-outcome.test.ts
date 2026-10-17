@@ -174,6 +174,9 @@ describe('recordSessionOutcome', () => {
     const ent = puts.find((e) => e.type === 'session' && e.id === 's_back');
     expect(ent?.data?.endedAt).toBe(yesterday);
     expect(ent?.data?.startedAt).toBe(yesterday - 40 * 60 * 1000);
+    /* the entity's own createdAt rides the study day too — a backfilled
+       session shouldn't top Recent Work as if it happened just now */
+    expect(ent?.createdAt).toBe(yesterday);
   });
 
   it('courseId binds the session to a canonical course', async () => {
