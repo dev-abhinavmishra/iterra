@@ -108,7 +108,7 @@ export function wireIterra() {
         );
         iterra.feed?.({ app: 'rhythm',
           text: `register complete — ${sum.total}/${sum.total} for today`,
-          url: '/apps/rhythm/',
+          url: '/apps/rhythm/?p=heatmap',
           course: keys.size === 1 ? [...keys][0] : undefined,
         });
       }

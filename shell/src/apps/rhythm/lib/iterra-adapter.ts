@@ -569,7 +569,7 @@ export function registerAdapter() {
       }
       const p = pendingNow();
       if (prevPending !== null && prevPending > 0 && p === 0) {
-        it.events.emit('routine.completed', { date: todayISO(), url: '/apps/rhythm/' }).catch(() => {});
+        it.events.emit('routine.completed', { date: todayISO(), url: '/apps/rhythm/?p=heatmap' }).catch(() => {});
       }
       prevPending = p;
     } else {

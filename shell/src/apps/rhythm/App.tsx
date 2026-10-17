@@ -70,6 +70,23 @@ function Rhythm({ query = '' }: { query?: string }) {
     if (focusedExperimentId) setView('experiments');
   }, [focusedExperimentId]);
 
+  /* ?p=<view> — aggregate stirs (register complete) land on the Heatmap
+     rather than Today. Consumed params strip so a reload can't re-nav. */
+  useEffect(() => {
+    const p = new URLSearchParams(query).get('p');
+    if (!p || !TABS.some((t) => t.key === p)) return;
+    const h = window.location.hash;
+    const qi = h.indexOf('?');
+    if (qi !== -1) {
+      const q = new URLSearchParams(h.slice(qi + 1));
+      q.delete('p');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    setView(p as View);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
   /* ?settings — the terrain's central settings surface deep-links here;
      consumed params strip so the same link fires again later */
   useEffect(() => {
