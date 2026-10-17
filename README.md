@@ -61,6 +61,12 @@ docs/WIRING.md     the integration contract every place follows
 - **Switcher** — "in this place" + "linked across the terrain" + dossier
   links; ⌘1–8 places, ⌘0 home.
 - **Stirrings** — the last 12h of cross-app activity, deep-linked.
+- **Local-first durability** — every byte lives in this browser
+  (localStorage + IndexedDB, persistent-storage requested at boot).
+  Settings ships a full JSON backup/restore, a one-pass sample semester,
+  diagnostics for queued writes, and an erase-everything reset.
+- **Offline** — a service worker caches the shell, fonts, and hashed
+  bundles; the whole terrain works without a network after first load.
 
 ## Dev
 
