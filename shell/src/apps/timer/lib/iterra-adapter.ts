@@ -14,6 +14,7 @@ type Hub = {
     put(e: Record<string, unknown>): Promise<unknown>;
     get(k: string): Promise<unknown>;
     list(q?: Record<string, unknown>): Promise<Array<{ id?: string }>>;
+    remove?(key: string): Promise<unknown>;
   };
   courses?: {
     resolve(ref: unknown): Promise<{ key?: string; id?: string; course?: string; title?: string; data?: { code?: string } } | null>;
@@ -254,6 +255,24 @@ function listenSessions() {
   listening = true;
   window.addEventListener('timer:session', (e) => {
     void onSessionSaved((e as CustomEvent<Session>).detail);
+  });
+  /* per-session delete in Stats — the canonical mirror goes too, or the
+     row would keep surfacing in dossiers/search after deletion */
+  window.addEventListener('timer:session-removed', (e) => {
+    const id = (e as CustomEvent<{ id?: string }>).detail?.id;
+    if (!id) return;
+    void hub()?.store?.remove?.(`timer:session:${id}`).catch(() => {});
+  });
+  window.addEventListener('timer:sessions-cleared', () => {
+    void (async () => {
+      const it = hub();
+      if (!it?.store?.list || !it.store.remove) return;
+      try {
+        for (const e of await it.store.list({ app: 'timer', type: 'session' })) {
+          if (e?.id) await it.store.remove(`timer:session:${e.id}`).catch(() => {});
+        }
+      } catch { /* mirror cleanup is best-effort */ }
+    })();
   });
 }
 

@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Timer, Activity, CheckCircle2, Clock, Flame, Download, Coffee, TimerReset } from 'lucide-react';
+import { Timer, Activity, CheckCircle2, Clock, Flame, Download, Coffee, TimerReset, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { vibrate } from '../lib/utils';
-import { getStats, getSessions, sessionsCsv, Session } from '../lib/stats';
+import { getStats, getSessions, sessionsCsv, deleteSession, Session } from '../lib/stats';
 import { boundCourseCode, inTerrain, openTerrain } from '../lib/iterra-adapter';
 
 export default function StatsView({ active = true }: { active?: boolean }) {
   const [stats, setStats] = useState(() => getStats());
   const [showAll, setShowAll] = useState(false);
+  /* two-tap delete — one accidental click can't lose a logged session */
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   // keep-alive shell: re-read the ledger every time this view is shown —
   // sessions logged while it was hidden must appear on the next visit
@@ -206,6 +208,29 @@ export default function StatsView({ active = true }: { active?: boolean }) {
                       {m.tag}
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    aria-label={confirmingId === s.id ? `Confirm delete ${m.name}` : `Delete ${m.name}`}
+                    title={confirmingId === s.id ? 'Tap again to delete' : 'Delete session'}
+                    onClick={() => {
+                      vibrate(15);
+                      if (confirmingId === s.id) {
+                        deleteSession(s.id);
+                        setStats(getStats());
+                        setConfirmingId(null);
+                      } else {
+                        setConfirmingId(s.id);
+                        window.setTimeout(() => setConfirmingId((c) => (c === s.id ? null : c)), 3000);
+                      }
+                    }}
+                    className={`ml-3 shrink-0 flex h-8 w-8 items-center justify-center rounded-md transition-colors cursor-pointer ${
+                      confirmingId === s.id
+                        ? 'text-[var(--color-signal)] bg-[rgb(var(--ink-rgb)_/_0.08)]'
+                        : 'text-ink-soft opacity-60 hover:opacity-100 hover:bg-[rgb(var(--ink-rgb)_/_0.06)]'
+                    }`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </motion.div>
               );
             })

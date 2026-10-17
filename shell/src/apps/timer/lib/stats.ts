@@ -53,6 +53,22 @@ export function getSessions(): Session[] {
 export function clearSessions() {
   localStorage.removeItem(STORAGE_KEY);
   LEGACY_KEYS.forEach(k => localStorage.removeItem(k));
+  /* mirrored session entities ride in the canonical store — tell the
+     adapter to drop them all or wiped sessions haunt dossiers/search */
+  try { window.dispatchEvent(new CustomEvent('timer:sessions-cleared')); } catch {}
+}
+
+/* Remove one logged session — a fat-fingered stopwatch or a test run
+   shouldn't ride in the stats forever. Emits so the iterra adapter can
+   drop the canonical mirror (timer:session:<id>) the same way saves do. */
+export function deleteSession(id: string): boolean {
+  if (typeof window === 'undefined' || !id) return false;
+  const sessions = getSessions();
+  const next = sessions.filter((s) => s.id !== id);
+  if (next.length === sessions.length) return false;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  try { window.dispatchEvent(new CustomEvent('timer:session-removed', { detail: { id } })); } catch {}
+  return true;
 }
 
 export function sessionsCsv(sessions: Session[]): string {
