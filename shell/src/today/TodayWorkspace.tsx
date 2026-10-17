@@ -264,6 +264,10 @@ export function TodayWorkspace({
       actionLabel: string;
       url: string;
       object?: WorkspaceObject;
+      /* send a 'routine.check' intake instead of navigating — the rail
+         surfaces the handler's toast and the republished entity flips
+         this row's state */
+      inlineCheck?: boolean;
     }[] = [];
 
     // Flashcard decks with due cards
@@ -359,16 +363,20 @@ export function TodayWorkspace({
       const routines = allObjects.filter((o) => o.app === 'rhythm' && o.type === 'routine');
       if (routines.length > 0) {
         for (const r of routines.slice(0, 2)) {
+          const doneToday = r.data?.todayDone === true;
           items.push({
             id: `rhythm:${r.id}`,
             app: 'rhythm',
             typeLabel: 'Attendance',
             title: r.title,
-            detail: r.sub || 'Scheduled today',
+            detail: doneToday ? 'Logged today ✓' : r.sub || 'Scheduled today',
             course: r.course,
-            actionLabel: 'Log routine',
+            actionLabel: doneToday ? 'Logged' : 'Log routine',
             url: r.url,
             object: r,
+            /* the register stays durable through the intake queue — the
+               button marks inline (navigate:false) rather than leaving Today */
+            inlineCheck: !doneToday,
           });
         }
       } else {
@@ -997,12 +1005,23 @@ export function TodayWorkspace({
                         <Button
                           variant="primary"
                           size="xs"
+                          disabled={!rev.inlineCheck && rev.app === 'rhythm' && rev.object?.data?.todayDone === true}
                           onClick={() => {
+                            if (rev.inlineCheck && rev.object) {
+                              const o = rev.object;
+                              void (window as any).iterra?.send?.({
+                                to: 'rhythm',
+                                action: 'routine.check',
+                                entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                payload: { routineId: o.id },
+                              });
+                              return;
+                            }
                             if (rev.object) onSelectObject?.(rev.object);
                             onGo(rev.url);
                           }}
                         >
-                          {rev.actionLabel} →
+                          {rev.actionLabel}{rev.inlineCheck ? '' : ' →'}
                         </Button>
                       </div>
                     </div>

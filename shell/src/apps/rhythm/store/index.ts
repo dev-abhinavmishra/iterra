@@ -60,6 +60,10 @@ interface RegisterState extends RegisterData {
 
   // ── routines ──
   addRoutine: (r: {
+    /* deterministic id for intake-driven creation — a redelivered record
+       upserts the same routine instead of stacking twins (proof's
+       p_<intake> does the same) */
+    id?: string;
     name: string;
     measure: RoutineMeasure;
     unit?: string;
@@ -110,7 +114,7 @@ interface RegisterState extends RegisterData {
   resolveExperiment: (id: string, status: 'completed' | 'abandoned', outcome?: string) => void;
 
   // ── courses ──
-  addCourse: (c: { name: string; code?: string }) => CourseRef;
+  addCourse: (c: { id?: string; name: string; code?: string }) => CourseRef;
   removeCourse: (id: string) => void;
 
   // ── settings & backup ──
@@ -256,7 +260,7 @@ export const useRegister = create<RegisterState>()(
       // ── routines ──
       addRoutine: (r) => {
         const routine: Routine = {
-          id: uid('rtn'),
+          id: r.id || uid('rtn'),
           name: r.name.trim(),
           measure: r.measure,
           unit: r.unit?.trim() || undefined,
@@ -529,7 +533,7 @@ export const useRegister = create<RegisterState>()(
       // ── courses ──
       addCourse: (c) => {
         const course: CourseRef = {
-          id: uid('crs'),
+          id: c.id || uid('crs'),
           name: c.name.trim(),
           code: c.code?.trim() || undefined,
           createdAt: nowISO(),

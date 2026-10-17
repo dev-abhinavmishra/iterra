@@ -125,10 +125,11 @@ describe('seedDemoSemester', () => {
     await demo.seedDemoSemester();
     const bucket = JSON.parse(store.get('iterra.v1.store.intakes') ?? '{}');
     const ids = Object.keys(bucket).filter((k) => k.startsWith('in-demo-'));
-    expect(ids.length).toBe(4);
+    expect(ids.length).toBe(5);
     expect(bucket['in-demo-ink1'].to).toBe('ink');
     expect(bucket['in-demo-ink1'].delivered).toBeNull();
     expect(bucket['in-demo-proof1'].action).toBe('problem.create');
+    expect(bucket['in-demo-rhythm1'].action).toBe('routine.plan');
   });
 });
 
@@ -244,6 +245,34 @@ describe('removeDemoData', () => {
     await demo.removeDemoData();
     const ents = JSON.parse(store.get('iterra.v1.store.entities') ?? '{}');
     expect(Object.keys(ents)).toEqual(['ink:note:user-note']);
+  });
+
+  it('sweeps the rhythm register — demo routine, projected course, and its entries', async () => {
+    const demo = await load();
+    await demo.seedDemoSemester();
+    /* what a drained routine.plan delivery + one inline check-in leaves */
+    localStorageStub.setItem('rhythm.register.v1', JSON.stringify({
+      state: {
+        routines: {
+          'rtn_in-demo-rhythm1': { id: 'rtn_in-demo-rhythm1', name: 'Practice problems', courseId: 'crs_in-demo-rhythm1' },
+          'rtn_user': { id: 'rtn_user', name: 'Mine', courseId: 'crs_user' },
+        },
+        courses: {
+          'crs_in-demo-rhythm1': { id: 'crs_in-demo-rhythm1', name: 'STAT 220' },
+          'crs_user': { id: 'crs_user', name: 'Mine' },
+        },
+        entries: {
+          'ent-demo': { id: 'ent-demo', routineId: 'rtn_in-demo-rhythm1', date: '2026-10-17', value: 1 },
+          'ent-user': { id: 'ent-user', routineId: 'rtn_user', date: '2026-10-17', value: 1 },
+        },
+      },
+      version: 2,
+    }));
+    await demo.removeDemoData();
+    const reg = JSON.parse(store.get('rhythm.register.v1') ?? '{}');
+    expect(Object.keys(reg.state.routines)).toEqual(['rtn_user']);
+    expect(Object.keys(reg.state.courses)).toEqual(['crs_user']);
+    expect(Object.keys(reg.state.entries)).toEqual(['ent-user']);
   });
 
   it('sweeps derivedFrom links on either endpoint — a user link to a demo source goes too', async () => {

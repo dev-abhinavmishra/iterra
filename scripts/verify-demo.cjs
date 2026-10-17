@@ -119,6 +119,47 @@ const ok = (msg) => console.log('  ok:', msg);
     fail('proof registry missing the canonical course mirror: ' + JSON.stringify(proofCourse));
   } else ok('proof resolved the canonical course → ' + proofCourse.code + ' (' + proofCourse.courseId + ')');
 
+  /* ── rhythm register: routine.plan intake + Today's inline check-in ── */
+  await page.goto(`${BASE}/#/p/rhythm`, { waitUntil: 'load' });
+  await page.waitForTimeout(6000);
+  const regState = await page.evaluate(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem('rhythm.register.v1') || '{}');
+      return { routines: Object.keys(s.state?.routines || {}), courses: Object.keys(s.state?.courses || {}) };
+    } catch (e) { return { err: String(e) }; }
+  });
+  if (!regState.routines?.some((k) => String(k).startsWith('rtn_in-demo-'))) {
+    fail('rhythm missing intake routine: ' + JSON.stringify(regState));
+  } else ok('rhythm drained the demo intake → ' + regState.routines.filter((k) => k.includes('demo')).join(','));
+
+  /* Today lists the routine; clicking 'Log routine' marks inline. Poll —
+     the entity publish + presence summary lag a few seconds on slow disks. */
+  await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+  const logBtn = page.getByRole('button', { name: 'Log routine' }).first();
+  let btnFound = false;
+  for (let i = 0; i < 30; i++) {
+    if (await logBtn.count()) { btnFound = true; break; }
+    await page.waitForTimeout(700);
+  }
+  if (!btnFound) {
+    const txt = await page.evaluate(() => document.body.innerText.slice(0, 400));
+    fail('Today shows no Log routine row: ' + txt);
+  } else {
+    await logBtn.click();
+    let checked = 0;
+    for (let i = 0; i < 20; i++) {
+      checked = await page.evaluate(() => {
+        const s = JSON.parse(localStorage.getItem('rhythm.register.v1') || '{}');
+        const entries = Object.values(s.state?.entries || {});
+        return entries.filter((e) => String(e.routineId || '').startsWith('rtn_in-demo-')).length;
+      });
+      if (checked >= 1) break;
+      await page.waitForTimeout(500);
+    }
+    if (checked < 1) fail('inline Log routine wrote no entry');
+    else ok("Today's inline check-in landed on the register");
+  }
+
   /* ── provenance — each delivered object links derivedFrom its seeded
        source commitment (resolvable, clickable in the dossier). Poll:
        proof's drain is the slowest and races a fixed sleep. ── */
@@ -201,6 +242,20 @@ const ok = (msg) => console.log('  ok:', msg);
   if (proofAfter.problems.some((k) => String(k).includes('demo'))) fail('proof still has demo problem');
   else if (proofAfter.courses.some((k) => String(k).includes('demo'))) fail('proof still has a mirrored demo course: ' + JSON.stringify(proofAfter.courses));
   else ok('proof clean');
+
+  const regAfter = await page.evaluate(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem('rhythm.register.v1') || '{}');
+      return {
+        routines: Object.keys(s.state?.routines || {}),
+        courses: Object.keys(s.state?.courses || {}),
+        entries: Object.values(s.state?.entries || {}).map((e) => String(e.routineId || e.id || '')),
+      };
+    } catch { return { routines: [], courses: [], entries: [] }; }
+  });
+  if (regAfter.routines.some((k) => String(k).includes('demo')) || regAfter.courses.some((k) => String(k).includes('demo')) || regAfter.entries.some((k) => String(k).includes('demo'))) {
+    fail('rhythm still has demo rows: ' + JSON.stringify(regAfter));
+  } else ok('rhythm clean');
 
   const hubEnts = await page.evaluate(() => window.iterra.store.list().then((r) => r.map((e) => e.key)));
   if (hubEnts.some((k) => String(k).includes('demo'))) fail('hub entities still carry demo rows: ' + JSON.stringify(hubEnts.filter((k) => String(k).includes('demo'))));

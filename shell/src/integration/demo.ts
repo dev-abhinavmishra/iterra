@@ -46,15 +46,20 @@ const LS_ENTITIES_KEY = 'iterra.v1.store.entities';
 const LS_LINKS_KEY = 'iterra.v1.store.links';
 const INK_KEY = 'ink-notes-storage';
 const PROOF_KEY = 'proof.workbench.v1';
+const RHYTHM_KEY = 'rhythm.register.v1';
 
 /* every artifact the seed can leave behind — direct rows carry 'demo-*',
    objects created by a drained demo intake carry the adapter's own
    intake-derived id ('intake-in-demo-*' for ink/margin, 'p_in-demo-*' for
-   proof). One predicate for all three so removal can't strand the
-   delivered lane. */
+   proof, 'rtn_in-demo-*' + 'crs_in-demo-*' for rhythm routine + projected
+   course). One predicate for all lanes so removal can't strand a lane. */
 const isDemoId = (id: unknown): boolean => {
   const s = String(id ?? '');
-  return s.startsWith(DEMO_PREFIX) || s.startsWith(`intake-${DEMO_INTAKE_PREFIX}`) || s.startsWith(`p_${DEMO_INTAKE_PREFIX}`);
+  return s.startsWith(DEMO_PREFIX)
+    || s.startsWith(`intake-${DEMO_INTAKE_PREFIX}`)
+    || s.startsWith(`p_${DEMO_INTAKE_PREFIX}`)
+    || s.startsWith(`rtn_${DEMO_INTAKE_PREFIX}`)
+    || s.startsWith(`crs_${DEMO_INTAKE_PREFIX}`);
 };
 /* canonical store key is 'app:type:id' — the demo mark lives in the id slot */
 const isDemoKey = (key: unknown): boolean => isDemoId(String(key ?? '').split(':').slice(2).join(':'));
@@ -87,6 +92,13 @@ function syncMountedStores() {
          into proof's local registry — removal must retract them the same way */
       (window as any).__proofWorkbenchStore?.setState?.({
         problems: proofNow.state.problems, courses: proofNow.state.courses,
+      });
+    }
+    const rhythmNow = lsGet<{ state?: Record<string, any> }>(RHYTHM_KEY);
+    if (rhythmNow?.state) {
+      const rs = rhythmNow.state;
+      (window as any).__rhythmRegisterStore?.setState?.({
+        routines: rs.routines, entries: rs.entries, courses: rs.courses, exceptions: rs.exceptions,
       });
     }
   } catch { /* unmounted or a foreign shape — the LS writes already landed */ }
@@ -396,6 +408,14 @@ async function seedHub(sessions: Array<Record<string, any>>) {
       payload: { prompt: 'Two independent samples: n1 = 24, x̄1 = 82, s1 = 6; n2 = 21, x̄2 = 78, s2 = 8. Test whether the means differ at α = 0.05 (two-tailed). State hypotheses, the test statistic, and your conclusion.', topic: 'hypothesis testing', courseId: ckey(`${DEMO_PREFIX}stat220`), course: 'STAT 220', difficulty: 3, tags: ['midterm', 'inference'], source: 'demo' },
       from: 'syllabus', at: now, delivered: null,
     },
+    /* a register entry through the real intake path — Today's attendance
+       row only appears when a routine exists, so the demo needs one */
+    {
+      id: `${DEMO_INTAKE_PREFIX}rhythm1`, to: 'rhythm', action: 'routine.plan',
+      entity: cent(`${DEMO_PREFIX}pset-stat`, 'Problem set 6 — regression inference', ckey(`${DEMO_PREFIX}stat220`), 'STAT 220'),
+      payload: { name: 'Practice problems — statistics', courseId: ckey(`${DEMO_PREFIX}stat220`), course: 'STAT 220', perWeek: 3, minutes: 30, unit: 'min' },
+      from: 'syllabus', at: now, delivered: null,
+    },
   ];
   await writeIntakes(intakes);
   seedFeed(now);
@@ -551,6 +571,22 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
       const cs = proof.state.courses;
       if (cs) for (const k of Object.keys(cs)) if (isDemoKey(k)) delete cs[k];
       lsSet(PROOF_KEY, proof);
+    }
+
+    /* rhythm register — the routine.plan demo intake delivers
+       rtn_in-demo-* + a crs_in-demo-* projected course; entries keyed to
+       the demo routine go with it */
+    const reg = lsGet<{ state?: Record<string, any>; version?: number }>(RHYTHM_KEY);
+    if (reg?.state) {
+      const rs = reg.state;
+      if (rs.routines) for (const k of Object.keys(rs.routines)) if (isDemoId(k)) delete rs.routines[k];
+      if (rs.courses) for (const k of Object.keys(rs.courses)) if (isDemoId(k)) delete rs.courses[k];
+      if (rs.entries) {
+        for (const [k, e] of Object.entries(rs.entries)) {
+          if (isDemoId(k) || isDemoId((e as any)?.routineId)) delete rs.entries[k];
+        }
+      }
+      lsSet(RHYTHM_KEY, reg);
     }
 
     /* feed — seed stirs carry demo:true; stirs the adapters emitted while

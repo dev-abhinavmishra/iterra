@@ -184,7 +184,7 @@ export function streakDays(
 
 export function routineEntity(
   r: Routine,
-  opts: { course?: string; courseId?: string; streak?: number } = {},
+  opts: { course?: string; courseId?: string; streak?: number; todayValue?: number } = {},
 ): Record<string, unknown> {
   return {
     app: 'rhythm',
@@ -200,6 +200,10 @@ export function routineEntity(
       measure: r.measure,
       perWeek: r.target.perWeek,
       status: r.status,
+      /* surfaces like Today read this to flip 'Log routine' into a done
+         state without opening the register — value, not a boolean, so
+         count routines can show partial progress too */
+      ...(opts.todayValue ? { todayDone: true, todayValue: opts.todayValue } : {}),
     },
   };
 }
@@ -239,7 +243,7 @@ const hub = () => (typeof window !== 'undefined' ? window.iterra : undefined);
 /* Project the canonical course on a payload into a local CourseRef so the
    event lands coursed — match on code/name, else create the projection.
    The canonical key itself stays out of the register's local-id field. */
-const projectCourse = async (payload: Record<string, unknown>): Promise<string | undefined> => {
+const projectCourse = async (payload: Record<string, unknown>, intakeId?: string): Promise<string | undefined> => {
   const it = hub();
   let label: string | undefined = typeof payload.course === 'string' ? payload.course : undefined;
   if (!label && typeof payload.courseId === 'string' && it?.store?.get) {
@@ -254,11 +258,13 @@ const projectCourse = async (payload: Record<string, unknown>): Promise<string |
   const found = Object.values(s.courses).find(
     (c) => (c.code ?? c.name).toLowerCase() === lower,
   );
-  return (found ?? s.addCourse({ name: String(label) })).id;
+  /* deterministic crs_<intake> id — a redelivery re-finds the projection
+     it made and demo removal can sweep it by prefix */
+  return (found ?? s.addCourse({ id: intakeId ? `crs_${intakeId}` : undefined, name: String(label) })).id;
 };
 
 export interface RoutinePlanFields {
-  name?: string; entityTitle?: string;
+  id?: string; name?: string; entityTitle?: string;
   course?: string; courseId?: string;
   dueAt?: string; perWeek?: number; minutes?: number; unit?: string;
 }
@@ -266,7 +272,9 @@ export interface RoutinePlanFields {
 export async function planRoutine(p: RoutinePlanFields): Promise<Routine | null> {
   const name = typeof p.name === 'string' && p.name.trim() ? p.name.trim() : p.entityTitle;
   if (!name) return null;
-  const cid = await projectCourse(p as Record<string, unknown>);
+  /* p.id is the deterministic routine id (rtn_<intake>) — the projected
+     course mirrors it as crs_<intake> so both rows are demo-sweepable */
+  const cid = await projectCourse(p as Record<string, unknown>, typeof p.id === 'string' ? p.id.replace(/^rtn_/, '') : undefined);
   const due = typeof p.dueAt === 'string' ? p.dueAt.slice(0, 10) : undefined;
   const minutes = Number(p.minutes) > 0 ? Math.round(Number(p.minutes)) : undefined;
   const perWeek = Math.max(1, Math.min(14, Math.round(Number(p.perWeek) || 1)));
@@ -284,6 +292,7 @@ export async function planRoutine(p: RoutinePlanFields): Promise<Routine | null>
   );
   if (existing) return existing;
   const routine = s.addRoutine({
+    id: p.id,
     name,
     measure: 'count',
     unit: p.unit || (minutes ? 'min' : 'times'),
@@ -455,6 +464,7 @@ export function registerAdapter() {
         course: label,
         courseId: key ?? undefined,
         streak: streakDays(r, s.entries, s.exceptions),
+        todayValue: entriesOn(s.entries, r.id, todayISO()).reduce((t, e) => t + (e.value || 0), 0),
       });
       const j = JSON.stringify(ent);
       if (published.get(`rhythm:routine:${id}`) !== j) {
@@ -595,7 +605,7 @@ export function registerAdapter() {
         if (!draft) {
           return { url: null, toast: 'log.activity needs a kind — nothing marked' };
         }
-        const cid = await projectCourse(rec?.payload ?? {});
+        const cid = await projectCourse(rec?.payload ?? {}, rec?.id);
         if (cid) draft.courseId = cid;
         ingest(draft);
         return { url: '/apps/rhythm/' };
@@ -607,8 +617,15 @@ export function registerAdapter() {
       'routine.plan': async (rec: any) => {
         await whenHydrated();
         const p = (rec?.payload ?? {}) as Record<string, any>;
-        /* same mapping the register's folio inbox uses — see planRoutine */
-        const routine = await planRoutine({ ...(p as RoutinePlanFields), entityTitle: rec?.entity?.title });
+        /* same mapping the register's folio inbox uses — see planRoutine.
+           The intake id becomes the routine id ('rtn_in-*'): a redelivery
+           finds it in `existing` by name+fields anyway, and demo removal
+           can sweep it by prefix */
+        const routine = await planRoutine({
+          ...(p as RoutinePlanFields),
+          id: typeof p.id === 'string' ? p.id : (rec?.id ? `rtn_${rec.id}` : undefined),
+          entityTitle: rec?.entity?.title,
+        });
         if (!routine) return { ok: false };
         /* provenance: the routine was derived FROM the sent commitment —
            dossiers read links, not just the shared courseId */
@@ -617,6 +634,36 @@ export function registerAdapter() {
           try { await (window as any).iterra?.links?.add(`rhythm:routine:${routine.id}`, srcKey, 'derivedFrom'); } catch { /* best effort */ }
         }
         return { url: `/apps/rhythm/?routine=${encodeURIComponent(routine.name)}`, toast: `${routine.name} — on the register` };
+      },
+      /* {routineId, date?, value?, isMinimum?} → one check-in, written by a
+         sibling surface (Today's 'Log routine'). navigate:false — the whole
+         point is staying put. Dedupe on the intake id through entry.context
+         so a redelivered record can't double-mark a count routine (check
+         routines are already idempotent per day in the store). */
+      'routine.check': async (rec: any) => {
+        await whenHydrated();
+        const p = (rec?.payload ?? {}) as Record<string, any>;
+        const rid = typeof p.routineId === 'string' ? p.routineId
+          : (typeof rec?.entity?.id === 'string' && rec.entity.type === 'routine' ? rec.entity.id : '');
+        const s = useRegister.getState();
+        const r = rid ? s.routines[rid] : undefined;
+        if (!r) return { url: null, toast: 'that routine no longer exists' };
+        if (r.status === 'archived') return { url: null, toast: `${r.name} is archived` };
+        const ctx = rec?.id ? `intake:${rec.id}` : undefined;
+        if (ctx && Object.values(s.entries).some((e) => e.routineId === rid && e.context === ctx)) {
+          return { url: null, navigate: false, toast: `${r.name} — already logged` };
+        }
+        const date = typeof p.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.date) ? p.date : todayISO();
+        const entry = s.checkIn(rid, {
+          date,
+          value: Number.isFinite(Number(p.value)) ? Number(p.value) : undefined,
+          isMinimum: p.isMinimum === true,
+          context: ctx,
+        });
+        if (!entry) {
+          return { url: null, navigate: false, toast: `${r.name} — already marked for ${date === todayISO() ? 'today' : date}` };
+        }
+        return { url: null, navigate: false, toast: `${r.name} — logged ✓` };
       },
     },
     /* a keep-alive frame waking up: re-run the diff in case it missed
