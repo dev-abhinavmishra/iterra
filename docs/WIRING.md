@@ -343,6 +343,12 @@ is mounted, else a pending intake the target's adapter drains on boot
 Targets register handlers through `iterra.adapter({name,title,summary,
 intakes:{action:handler},wake})`.
 
+Entity-field convention: when a send carries `entity` but the payload omits
+`course`/`courseId`/`title`, handlers read the entity's own fields as the
+fallback — a palette "send to" ships only `{to,action,entity}` and must still
+land filed under the sender's course (`block.plan`, `log.activity`,
+`problem.create`, `cards.create`, `note.create` all honor it).
+
 Delivery is **durable and exactly-once**: drains are serialized per app,
 each record is atomically claimed before its handler runs, thrown /
 `{retry:true}` / timed-out handlers release the claim and stay pending
