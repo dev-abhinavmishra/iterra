@@ -9,6 +9,7 @@
     "dev": "cd shell && npm run dev",
     "dev:apps": "bash scripts/dev-apps.sh",
     "lint": "cd shell && npm run lint",
+    "test": "cd shell && npm test",
     "verify:demo": "node scripts/verify-demo.cjs",
     "verify:restore": "node scripts/verify-restore.cjs"
   },

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, Plus, FileText, Layers, Sigma, Calendar } from 'lucide-react';
 import type { Entity, StoreEntity } from '../hub';
 import { Button, EmptyState, Input, Select, Tabs } from '../ui/primitives';
@@ -29,7 +29,11 @@ export function LibraryView({
 }) {
   const [filter, setFilter] = useState<LibraryFilter>('all');
   const [query, setQuery] = useState('');
+  /* starts on the ambient filter but is local state: 'All courses' (value
+     '') must be able to clear it — falling back to the ambient value here
+     would make that option a dead end while a course filter is active */
   const [coursePick, setCoursePick] = useState<string>(activeCourseFilter);
+  useEffect(() => setCoursePick(activeCourseFilter), [activeCourseFilter]);
 
   const allObjects = useMemo<WorkspaceObject[]>(() => {
     const out: WorkspaceObject[] = [];
@@ -83,7 +87,7 @@ export function LibraryView({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const cFilter = (coursePick || activeCourseFilter).trim().toLowerCase();
+    const cFilter = coursePick.trim().toLowerCase();
 
     return allObjects.filter((o) => {
       if (cFilter) {

@@ -7,16 +7,20 @@ instruments, the workbench — under one theme color and one roof.
 ## Layout
 
 ```
-apps/<name>/       the eight places (vendored sources, own toolchains)
-  rhythm           attendance register            → /apps/rhythm
-  proof            calculation workbench          → /apps/proof
-  syllabus         registrar's planning folio     → /apps/syllabus
-  gradestack       bubble-sheet mark book         → /apps/gradestack
-  timer            split-flap time instruments    → /apps/timer
-  ink              ink-writing notes desk         → /apps/ink
-  flashcards       index-card tin                 → /apps/flashcards
-  margin           marginalia + study sheets      → /apps/margin
-shell/             the terrain — home, chrome, keep-alive frames
+shell/             the terrain — the whole app builds and ships from here
+  src/apps/        the eight places, as integrated React modules
+    rhythm           attendance register
+    proof            calculation workbench
+    syllabus         registrar's planning folio
+    gradestack       bubble-sheet mark book
+    timer            split-flap time instruments
+    ink              ink-writing notes desk
+    flashcards       index-card tin
+    margin           marginalia + study sheets
+  src/today        the Today workspace — what's next, live rails
+  src/courses      course dossiers + library
+  src/integration  commands, demo seed, backup/restore
+apps/<name>/       vendored upstream sources (reference only — not built)
 packages/hub/      iterra-hub.js — the one shared environment bus
 api/               Margin's serverless functions (needs Supabase + Groq env vars)
 docs/WIRING.md     the integration contract every place follows
@@ -30,8 +34,9 @@ docs/WIRING.md     the integration contract every place follows
 - **Suite links stay inside** — syllabus/proof launch timer focus sessions,
   timer files minutes back, rhythm accepts `?event=` pushes, flashcards imports
   `?deck/?cards` — all routed through the shell instead of new tabs.
-- **Keep-alive frames** — visited places stay mounted; wander and return to
-  exactly where you were.
+- **Keep-alive places** — no iframes: each place is a lazily-imported React
+  subtree that stays mounted once visited; wander and return to exactly
+  where you were.
 - **The mesh** — every app publishes into the shared doc (`iterra.v1.doc.*`):
   commons fields (focus session, today's plan, open note, active deck…), an
   entity index (`index.<app>`, ~50 rows of blocks/decks/notes/problems with
@@ -60,10 +65,14 @@ docs/WIRING.md     the integration contract every place follows
 ## Dev
 
 ```bash
-bash scripts/sync-hub.sh          # once, and after editing the hub
-npm run dev:apps                  # every place on its port (3001–3008)
-npm run dev                       # the shell on :5173 → http://localhost:5173
+npm run dev                       # the whole terrain on :5173 → http://localhost:5173
+cd shell && npm test              # the suite (vitest)
+node scripts/verify-demo.cjs      # headless seed→use→remove pass (needs a dev server)
+node scripts/verify-restore.cjs   # backup round-trip pass
 ```
+
+The vendored `apps/` tree is upstream reference only — `npm run dev:apps`
+runs those standalone on ports 3001–3008, which the terrain doesn't need.
 
 ## Build & deploy
 
