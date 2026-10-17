@@ -65,6 +65,7 @@ export function Ambient({
 
   return (
     <div
+      role="status"
       className={`pointer-events-none fixed bottom-[calc(1rem+var(--iterra-bottom-inset,0px))] z-50 flex flex-col items-end gap-2 transition-[right] duration-150 ${
         panelOpen ? 'right-4 lg:right-[336px]' : 'right-4'
       }`}
