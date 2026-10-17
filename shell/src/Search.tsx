@@ -592,15 +592,28 @@ export function Search({
                               </span>
                               {h.entity.course && <span>· Course: {h.entity.course}</span>}
                               {h.entity.topic && <span>· Topic: {h.entity.topic}</span>}
-                              {typeof h.entity.data?.dueAt === 'number' && h.entity.data.dueAt > 0 && (
-                                <span>
-                                  · Due{' '}
-                                  {new Date(h.entity.data.dueAt).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                  })}
-                                </span>
-                              )}
+                              {(() => {
+                                /* commitments store ISO strings; cards store
+                                   ms epochs (0 = due now, shown as due) */
+                                const raw = h.entity.data?.dueAt;
+                                const ms =
+                                  typeof raw === 'number' ? raw
+                                  : typeof raw === 'string' ? Date.parse(raw) : NaN;
+                                if (!Number.isFinite(ms)) return null;
+                                /* flashcards mark due cards with dueAt:0 —
+                                   0 is a sentinel, not the epoch */
+                                if (ms === 0) return <span className="text-[var(--color-warn)]">· Due now</span>;
+                                const past = ms <= Date.now();
+                                return (
+                                  <span className={past ? 'text-[var(--color-warn)]' : ''}>
+                                    · {past ? 'Was due' : 'Due'}{' '}
+                                    {new Date(ms).toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })}
+                                  </span>
+                                );
+                              })()}
                             </div>
                           )}
                           {blinks.length > 0 && sendHit === h && (

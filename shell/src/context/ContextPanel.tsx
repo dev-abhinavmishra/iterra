@@ -967,6 +967,26 @@ export function ContextPanel({
                     </span>
                   </div>
                 ) : null}
+                {(() => {
+                  /* commitments carry ISO dueAt; blocks carry plannedDate;
+                     cards use dueAt:0 (due now) which has no date to show */
+                  const raw = object.dueAt ?? object.data?.dueAt ?? object.data?.plannedDate;
+                  /* date-only 'YYYY-MM-DD' parses as UTC midnight — anchor it
+                     midday-local so it doesn't render the previous day */
+                  const ms = typeof raw === 'number' ? raw
+                    : typeof raw === 'string' ? Date.parse(raw.length === 10 ? `${raw}T12:00:00` : raw)
+                    : NaN;
+                  if (!Number.isFinite(ms) || ms <= 0) return null;
+                  const past = ms <= Date.now();
+                  return (
+                    <div className="flex items-center justify-between text-[var(--color-mute)]">
+                      <span>{past ? 'Was due' : 'Due'}</span>
+                      <span className={`font-mono text-[11.5px] ${past ? 'text-[var(--color-warn)]' : 'text-[var(--color-ink)]'}`}>
+                        {new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    </div>
+                  );
+                })()}
                 <div className="flex items-center justify-between text-[var(--color-mute)]">
                   <span>Persistence</span>
                   <span className="text-[11.5px] text-[var(--color-accent)] font-medium">
