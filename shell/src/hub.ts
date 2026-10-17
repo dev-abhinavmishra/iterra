@@ -130,6 +130,9 @@ export interface SendResult {
   id?: string;
   delivered?: 'direct' | 'queued';
   url?: string | null;
+  /* a declined delivery ({url:null}) carries the handler's reason here —
+     senders should phrase it, not a blanket 'sent' */
+  toast?: string;
   error?: string;
 }
 

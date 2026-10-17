@@ -618,3 +618,11 @@ export const useRegister = create<RegisterState>()(
     },
   ),
 );
+
+/* the command layer (integration/commands.ts) writes rhythm.register.v1
+   through localStorage and syncs the mounted store through this global —
+   without it a command write is invisible to the live register and the
+   next mutation rewrites the file from stale state. */
+if (typeof window !== 'undefined') {
+  (window as any).__rhythmRegisterStore = useRegister;
+}

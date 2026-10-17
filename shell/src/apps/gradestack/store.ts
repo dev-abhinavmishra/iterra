@@ -490,3 +490,11 @@ export function shrinkImage(dataUrl: string, maxDim = 1100, quality = 0.72): Pro
     img.src = dataUrl;
   });
 }
+
+/* the command layer (integration/commands.ts) writes gradestack-storage
+   through localStorage and syncs the mounted store through this global —
+   without it a command write is invisible to the live gradebook and the
+   next mutation rewrites the file from stale state. */
+if (typeof window !== 'undefined') {
+  (window as any).__gradestackStore = useStore;
+}

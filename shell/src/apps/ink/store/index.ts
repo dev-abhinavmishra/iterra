@@ -510,3 +510,13 @@ export const useStore = create<AppState>()(
     }
   )
 );
+
+/* integration/commands.ts writes ink-notes-storage through localStorage and
+   then calls window.__inkStore.setState to keep a mounted store in sync —
+   that global was never assigned, so a command-layer write (attach source
+   material onto a page) landed in localStorage but not memory, and the next
+   note edit rewrote the file from stale state and silently undid it. Publish
+   the handle so the command path reaches the live store. */
+if (typeof window !== 'undefined') {
+  (window as any).__inkStore = useStore;
+}

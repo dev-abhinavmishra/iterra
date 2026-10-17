@@ -249,3 +249,71 @@ describe('study-plan.request intake', () => {
     expect(res).toEqual({ url: null, toast: 'No course “nope” in Planning — add it first' });
   });
 });
+
+describe('block.plan intake', () => {
+  it('books a plain slip and lands on it', async () => {
+    const { useFolio } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+      commitments: { k1: mkCommitment('k1', 'c1') },
+    });
+    const res = await adapterOpts.intakes['block.plan']({
+      id: 'bp1', action: 'block.plan',
+      payload: { courseId: 'syllabus:course:c1', title: 'review set', minutes: 30 },
+    });
+    const made = Object.values(useFolio.getState().blocks);
+    expect(made).toHaveLength(1);
+    expect(res.url).toBe(`/apps/syllabus/?block=${(made[0] as any).id}`);
+    expect((made[0] as any).materialRef).toBeUndefined();
+  });
+
+  it('attaches a sent deck as material + scheduledFor edge', async () => {
+    (globalThis.localStorage as any).setItem('cardfile.decks.v1', JSON.stringify({
+      d1: { id: 'd1', title: 'Trig identities', cards: [], course: 'MTH151', flipped: false, createdAt: 1, lastStudiedAt: 0 },
+    }));
+    const { useFolio } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+    });
+    const res = await adapterOpts.intakes['block.plan']({
+      id: 'bp2', action: 'block.plan',
+      entity: { key: 'flashcards:deck:d1', app: 'flashcards', type: 'deck', id: 'd1' },
+      payload: { courseId: 'syllabus:course:c1', minutes: 30 },
+    });
+    const made = Object.values(useFolio.getState().blocks);
+    expect(made).toHaveLength(1);
+    const b = made[0] as any;
+    expect(b.materialRef).toBe('flashcards:deck:d1');
+    expect(b.materialTitle).toBe('Trig identities');
+    expect(res.url).toBe(`/apps/syllabus/?block=${b.id}`);
+    /* the canonical block entity carries the material too */
+    expect(entities.get(`syllabus:block:${b.id}`)?.data?.materialRef).toBe('flashcards:deck:d1');
+  });
+
+  it('a repeat send for the same material+day reuses the slip', async () => {
+    (globalThis.localStorage as any).setItem('cardfile.decks.v1', JSON.stringify({
+      d1: { id: 'd1', title: 'Trig identities', cards: [], course: 'MTH151', flipped: false, createdAt: 1, lastStudiedAt: 0 },
+    }));
+    const { useFolio } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+    });
+    const send = () => adapterOpts.intakes['block.plan']({
+      id: `bp-${Math.random()}`, action: 'block.plan',
+      entity: { key: 'flashcards:deck:d1', app: 'flashcards', type: 'deck', id: 'd1' },
+      payload: { courseId: 'syllabus:course:c1' },
+    });
+    const r1 = await send();
+    const r2 = await send();
+    expect(Object.values(useFolio.getState().blocks)).toHaveLength(1);
+    expect(r2.url).toBe(r1.url);
+  });
+
+  it('explains when the course is unknown', async () => {
+    await seedAndWire({});
+    const res = await adapterOpts.intakes['block.plan']({
+      id: 'bp4', action: 'block.plan', payload: { course: 'GHOST101' },
+    });
+    expect(res).toEqual({ url: null, toast: 'No course “GHOST101” in Planning — add it first' });
+  });
+});

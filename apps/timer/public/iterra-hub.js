@@ -1588,7 +1588,20 @@
       if (!r.ok) return r;
       return intakeWhen(r.id, 700).then(function (rec) {
         if (rec && rec.delivered) {
-          return { ok: true, delivered: 'direct', url: (rec.result && rec.result.url) || ('/apps/' + to + '/'), id: rec.id };
+          var res = rec.result;
+          /* a handler can decline the landing ({url:null} + toast, or
+             navigate:false for background actions) — don't fabricate a
+             place url over that, and hand the toast back to the caller so
+             senders can phrase "what happened" honestly instead of a
+             blanket 'sent'. */
+          var declined = res && (res.navigate === false || res.url === null || res.url === undefined);
+          return {
+            ok: true,
+            delivered: 'direct',
+            url: declined ? (res && res.url) || undefined : (res && res.url) || ('/apps/' + to + '/'),
+            toast: res && typeof res.toast === 'string' ? res.toast : undefined,
+            id: rec.id,
+          };
         }
         return { ok: true, delivered: 'queued', url: '/apps/' + to + '/?intake=' + r.id, id: r.id };
       });

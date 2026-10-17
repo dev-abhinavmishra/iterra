@@ -59,6 +59,20 @@ function writeZustandWrapper(storageKey: string, state: Record<string, any>, ver
   localStorage.setItem(storageKey, JSON.stringify({ state, version }));
 }
 
+/* a write through localStorage is invisible to a mounted zustand store —
+   without a live sync the next in-memory mutation rewrites the file from
+   stale state and silently undoes the command. Each app's store module
+   publishes its handle on window (e.g. __syllabusFolioStore); merge the
+   persisted keys into it. setState merges top-level, and `state` here is
+   the persisted (partialize) subset — data keys only, never actions. */
+function syncLiveStore(globalName: string, state: Record<string, any>): void {
+  try {
+    (window as any)[globalName]?.setState?.({ ...state });
+  } catch {
+    /* store not mounted — the LS write is the truth it boots from */
+  }
+}
+
 function notifyStoreChange(app: string): void {
   try {
     window.dispatchEvent(new CustomEvent('iterra:authoritative-write', { detail: { app, at: Date.now() } }));
@@ -2091,6 +2105,7 @@ export async function handleScheduleProblemRetry(
     lastAttemptId: attObj?.id || existingRev?.lastAttemptId || '',
   };
   writeZustandWrapper('proof.workbench.v1', wb, wbWrapper.version || 1);
+  syncLiveStore('__proofWorkbenchStore', wb);
   notifyStoreChange('proof');
 
   // 2. Schedule the linked retry block in Syllabus
@@ -2353,6 +2368,7 @@ export async function handleCreateTargetedReview(
         : t,
     );
     writeZustandWrapper('gradestack-storage', gs, gsWrapper.version || 0);
+    syncLiveStore('__gradestackStore', gs);
     notifyStoreChange('gradestack');
   }
 
@@ -2688,6 +2704,7 @@ export async function handleLogStudyActivity(
   st.entries[entryId] = entry;
 
   writeZustandWrapper('rhythm.register.v1', st, regWrapper.version || 2);
+  syncLiveStore('__rhythmRegisterStore', st);
   notifyStoreChange('rhythm');
 
   const entryKey = `rhythm:entry:${entryId}`;

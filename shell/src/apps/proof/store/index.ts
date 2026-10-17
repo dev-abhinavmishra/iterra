@@ -591,3 +591,11 @@ export function selectErrorsFor(s: WorkbenchState, problemId?: string): ErrorRec
     .filter((e) => !problemId || e.problemId === problemId)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
+
+/* the command layer (integration/commands.ts) writes proof.workbench.v1
+   through localStorage and syncs the mounted store through this global —
+   without it a command write is invisible to the live workbench and the
+   next mutation rewrites the file from stale state. */
+if (typeof window !== 'undefined') {
+  (window as any).__proofWorkbenchStore = useWorkbench;
+}

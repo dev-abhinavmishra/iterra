@@ -31,20 +31,25 @@ const NAV: { id: View; label: string; icon: React.ReactNode }[] = [
 
 export default function App({ query = '' }: { query?: string; wakeTick?: number }) {
   /* ?routine=<name> intake — the hash carries the query now, not
-     location.search; consumed once: navigate Intervals + focus the named
-     routine. */
-  const pendingRoutine = useRef(parseRoutineLink(query));
+     location.search. Reacts to the query prop (not a mount-time ref) so a
+     warm keep-alive mount still picks up a later routine link — same
+     pattern as the ?settings effect below. The consumed param strips, so
+     a reload can't refire it. */
   const [focusRoutine, setFocusRoutine] = useState<string | null>(null);
+  const lastRoutineQuery = useRef('');
   useEffect(() => {
-    if (!pendingRoutine.current) return;
-    setFocusRoutine(pendingRoutine.current);
+    if (query === lastRoutineQuery.current) return;
+    lastRoutineQuery.current = query;
+    const name = parseRoutineLink(query);
+    if (!name) return;
+    setFocusRoutine(name);
     go('intervals');
     /* strip the param from the hash — consumed params shouldn't survive a
        reload, or the routine would refocus on every boot */
     const h = window.location.hash.replace(/([?&])routine=[^&]*/, '$1').replace(/[?&]$/, '');
     window.history.replaceState({}, '', window.location.pathname + window.location.search + h);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [query]);
   const [view, setView] = useState<View>('timer');
   const [preset, setPreset] = useState<{ minutes: number; name?: string; n: number }>({ minutes: 25, n: 0 });
   const [focusMode, setFocusMode] = useState(false);

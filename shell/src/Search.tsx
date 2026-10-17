@@ -344,9 +344,10 @@ export function Search({
     }
     const label = PLACE_MAP[t.to]?.label || t.to;
     setSentNote(
-      r.delivered === 'direct'
-        ? `Sent to ${label}`
-        : `Queued for ${label} — delivers on open`,
+      r.toast ||
+        (r.delivered === 'direct'
+          ? `Sent to ${label}`
+          : `Queued for ${label} — delivers on open`),
     );
     window.setTimeout(() => setSentNote((n) => (n ? null : n)), 5000);
     if (r.url) {

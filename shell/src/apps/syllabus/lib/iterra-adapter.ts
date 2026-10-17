@@ -8,6 +8,7 @@
    Store writes are incremental — only the entity that changed is put. */
 
 import { useFolio } from '../store';
+import { execCommand } from '../../../integration/commands';
 import { addDaysISO, clamp, diffDaysISO, dueDateISO, isoAtTime, todayISO } from './utils';
 import type { Commitment, Course, Term, WorkBlock } from './types';
 import type { ProposedBlock } from './schedule';
@@ -533,34 +534,92 @@ export function registerAdapter() {
           : `${course.code || course.name} — planned session`;
         const date = /^\d{4}-\d{2}-\d{2}$/.test(String(p.date || '')) ? String(p.date) : todayISO();
         const minutes = clamp(Math.round(Number(p.minutes) || 45), 15, 240);
-        const open = Object.values(s.commitments)
-          .filter((c) => c.courseId === course.id && c.status === 'open')
-          .sort((a, b) => a.dueAt.localeCompare(b.dueAt));
-        const anchor = open[0] ?? s.addCommitment({
-          courseId: course.id,
-          type: 'custom',
-          title: `${course.code || course.name} — planned work`,
-          detail: 'Filed by block.plan so incoming slips have somewhere to live.',
-          dueAt: isoAtTime(date, '23:59'),
-          weight: 0,
-          estimatedMinutes: 0,
-          pinned: false,
-        });
+        const start = /^\d{2}:\d{2}$/.test(String(p.start || '')) ? String(p.start) : '16:00';
         const phase = ['work', 'review', 'practice', 'draft', 'outline', 'read', 'check'].includes(p.phase)
           ? p.phase
-          : 'work';
-        const made = s.acceptProposals([{
-          commitmentId: anchor.id,
-          plannedDate: date,
-          plannedStart: /^\d{2}:\d{2}$/.test(String(p.start || '')) ? String(p.start) : '16:00',
-          plannedMinutes: minutes,
-          phase,
-          label: p.label || title,
-          reasons: ['planned from another app'],
-          score: 0,
-          late: false,
-        }]);
-        return { url: made.length ? '/apps/syllabus/' : null };
+          : undefined;
+
+        /* a send carrying study material (an entity on the record, or an
+           explicit materialRef) takes the typed command path: materialRef/
+           Url/Title land on the block and a scheduledFor edge links them,
+           so the slip's Start opens the deck/note/problem — the generic
+           slip path can't carry provenance. Non-material entities (a
+           course, a commitment) fall through to the plain slip. */
+        const MATERIAL = new Set(['deck', 'card', 'note', 'problem', 'attempt', 'quiz', 'material', 'source']);
+        const matRef =
+          typeof p.materialRef === 'string' && p.materialRef ? p.materialRef
+          : typeof p.material === 'string' && p.material ? p.material
+          : rec?.entity && MATERIAL.has(rec.entity.type)
+            ? rec.entity.key || `${rec.entity.app}:${rec.entity.type}:${rec.entity.id}`
+            : null;
+        if (matRef) {
+          /* drains can invoke one intake through racing claims — a second
+             run finds the same material+day slip and reuses it rather than
+             stacking a copy (the dedup acceptProposals gives the generic
+             path) */
+          const existing = Object.values(s.blocks).find(
+            (b) =>
+              b.materialRef === matRef &&
+              b.plannedDate === date &&
+              b.state !== 'done' &&
+              b.state !== 'missed',
+          );
+          if (existing) {
+            return { url: `/apps/syllabus/?block=${encodeURIComponent(existing.id)}` };
+          }
+          const res = await execCommand('scheduleReviewBlock', {
+            materialRef: matRef,
+            title: typeof p.title === 'string' && p.title.trim() ? p.title.trim() : (p.label || undefined),
+            plannedDate: date,
+            plannedStart: start,
+            plannedMinutes: minutes,
+            phase,
+            courseId: rawKey || undefined,
+            course: p.course || course.code,
+            idempotencyKey: rec?.id ? `block.plan:${rec.id}` : undefined,
+          }).catch(() => null);
+          if (res?.ok) return { url: res.url };
+          /* material path failed (missing/unresolvable) — the generic slip
+             still answers the ask; note the attachment didn't land */
+          const made = bookGeneric();
+          return {
+            url: made.length ? `/apps/syllabus/?block=${encodeURIComponent(made[0].id)}` : null,
+            toast: `Block planned — couldn't attach the material (${res?.error || 'not found'})`,
+          };
+        }
+
+        const made = bookGeneric();
+        return {
+          url: made.length ? `/apps/syllabus/?block=${encodeURIComponent(made[0].id)}` : null,
+          toast: made.length ? undefined : 'An identical slip is already on the folio for that slot',
+        };
+
+        function bookGeneric() {
+          const open = Object.values(s.commitments)
+            .filter((c) => c.courseId === course.id && c.status === 'open')
+            .sort((a, b) => a.dueAt.localeCompare(b.dueAt));
+          const anchor = open[0] ?? s.addCommitment({
+            courseId: course.id,
+            type: 'custom',
+            title: `${course.code || course.name} — planned work`,
+            detail: 'Filed by block.plan so incoming slips have somewhere to live.',
+            dueAt: isoAtTime(date, '23:59'),
+            weight: 0,
+            estimatedMinutes: 0,
+            pinned: false,
+          });
+          return s.acceptProposals([{
+            commitmentId: anchor.id,
+            plannedDate: date,
+            plannedStart: start,
+            plannedMinutes: minutes,
+            phase: phase || 'work',
+            label: p.label || title,
+            reasons: ['planned from another app'],
+            score: 0,
+            late: false,
+          }]);
+        }
       },
     },
     wake: () => mirrorFolio(),

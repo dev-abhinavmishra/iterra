@@ -733,6 +733,17 @@ export function commitmentDueISO(c: Commitment): ISODate {
   return dueDateISO(c.dueAt);
 }
 
+/* integration/commands.ts writes syllabus.folio.v1 through localStorage and
+   then calls window.__syllabusFolioStore.setState to keep a mounted folio in
+   sync — that global was never assigned in the shell, so a command-layer
+   write (scheduleReviewBlock, attachMaterialToBlock, recordSessionOutcome)
+   landed in localStorage but not memory, and the next folio mutation
+   rewrote the file from stale state and silently undid it. Publish the
+   handle so the command path reaches the live store. */
+if (typeof window !== 'undefined') {
+  (window as any).__syllabusFolioStore = useFolio;
+}
+
 // ── Optional desk reminders (browser Notification API — never required) ─────
 // Fires once per boot when enabled + permission already granted: a single
 // registrar's memo naming what's due inside 48h. No scheduling daemon, no
