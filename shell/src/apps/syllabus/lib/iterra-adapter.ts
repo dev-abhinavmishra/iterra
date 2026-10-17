@@ -52,7 +52,8 @@ export function courseEntity(c: Course, categories?: Record<string, number>) {
     id: c.id,
     title: c.name,
     course: c.code,
-    url: '/apps/syllabus/',
+    /* the dossier is a course's real front door — deeper than the folio root */
+    url: c.code ? `#/c/${encodeURIComponent(c.code)}` : '/apps/syllabus/',
     data: {
       code: c.code,
       termId: c.termId,

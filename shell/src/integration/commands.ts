@@ -701,7 +701,7 @@ export async function handleScheduleReviewBlock(
     id: localCourseId,
     course: courseCode,
     title: courseInfo!.name,
-    url: '/apps/syllabus/',
+    url: courseCode ? `#/c/${encodeURIComponent(courseCode)}` : '/apps/syllabus/',
     data: { code: courseCode, termId: st.courses[localCourseId].termId, color: 'teal' },
   });
 

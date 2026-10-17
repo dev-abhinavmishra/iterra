@@ -531,7 +531,7 @@ export async function resolveCanonicalCourse(
         id,
         title: name,
         course: code,
-        url: '/apps/syllabus/',
+        url: code ? `#/c/${encodeURIComponent(code)}` : '/apps/syllabus/',
         data: { code, termId, color: 'teal' },
       }).catch(() => {});
     }

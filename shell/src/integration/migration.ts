@@ -103,7 +103,7 @@ export async function runIntegrationMigrations(): Promise<{
           id: c.id,
           title: c.name || c.code,
           course: c.code,
-          url: '/apps/syllabus/',
+          url: c.code ? `#/c/${encodeURIComponent(c.code)}` : '/apps/syllabus/',
           data: { code: c.code, termId: c.termId, color: c.color, archived: c.archived || undefined },
         }).catch(() => {});
         entitiesBackfilled++;

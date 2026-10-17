@@ -379,7 +379,7 @@ async function seedHub(sessions: Array<Record<string, any>>) {
     if (!c) continue;
     await put({
       app: 'syllabus', type: 'course', id: c.id, title: c.name, course: c.code,
-      url: '/apps/syllabus/',
+      url: c.code ? `#/c/${encodeURIComponent(c.code)}` : '/apps/syllabus/',
       data: { code: c.code, termId: c.termId, color: c.color, instructor: c.instructor },
     });
   }
