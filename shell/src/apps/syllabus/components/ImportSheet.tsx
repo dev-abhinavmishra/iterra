@@ -93,10 +93,11 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
       });
       courseId = c.id;
     }
+    const filedIds: string[] = [];
     beginBulkFeed();
     try {
       for (const r of checked) {
-        s.addCommitment({
+        filedIds.push(s.addCommitment({
           courseId,
           type: r.type,
           title: r.title,
@@ -107,16 +108,16 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
           pinned: false,
           dependencies: [],
           recurrence: r.recur ? 'weekly' : undefined,
-        });
+        }).id);
       }
     } finally {
       endBulkFeed();
     }
     const code = useFolio.getState().courses[courseId]?.code;
     if (checked.length > 1) {
-      stir(`commitments filed: ${checked.length} · ${code ?? 'no course'}`, '/apps/syllabus/', code);
+      stir(`commitments filed: ${checked.length} · ${code ?? 'no course'}`, code ? `#/c/${encodeURIComponent(code)}` : '/apps/syllabus/', code);
     } else {
-      stir(`commitment filed: ${checked[0].title}`, '/apps/syllabus/', code);
+      stir(`commitment filed: ${checked[0].title}`, `/apps/syllabus/?commitment=${encodeURIComponent(filedIds[0])}`, code);
     }
     setFiled(checked.length);
   };

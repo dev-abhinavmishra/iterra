@@ -43,8 +43,8 @@ describe('bulk feed suppression', () => {
     }
     expect(feedCalls).toHaveLength(0); // zero per-row stirs during the wave
 
-    stir(`commitments filed: 3 · ${course.code}`, '/apps/syllabus/', course.code);
-    expect(feedCalls).toEqual([{ text: 'commitments filed: 3 · HIST 140', url: '/apps/syllabus/', course: 'HIST 140' }]);
+    stir(`commitments filed: 3 · ${course.code}`, `#/c/${encodeURIComponent(course.code)}`, course.code);
+    expect(feedCalls).toEqual([{ text: 'commitments filed: 3 · HIST 140', url: '#/c/HIST%20140', course: 'HIST 140' }]);
     expect(Object.keys(useFolio.getState().commitments)).toHaveLength(3); // suppressed rows still commit
   });
 
@@ -54,7 +54,8 @@ describe('bulk feed suppression', () => {
     feedCalls.length = 0;
 
     useFolio.getState().addCommitment(mkCommitment(course.id, 1));
-    expect(feedCalls).toEqual([{ text: 'commitment filed: Row 1', url: '/apps/syllabus/', course: 'MATH 241' }]);
+    const k = Object.keys(useFolio.getState().commitments)[0];
+    expect(feedCalls).toEqual([{ text: 'commitment filed: Row 1', url: `/apps/syllabus/?commitment=${k}`, course: 'MATH 241' }]);
   });
 
   it('depth counter nests: suppression holds until depth returns to zero', () => {
@@ -70,6 +71,7 @@ describe('bulk feed suppression', () => {
     endBulkFeed(); // depth 0 — emits resume
     useFolio.getState().addCommitment(mkCommitment(course.id, 3));
 
-    expect(feedCalls).toEqual([{ text: 'commitment filed: Row 3', url: '/apps/syllabus/', course: 'PHYS 221' }]);
+    const k3 = Object.values(useFolio.getState().commitments).find((c) => c.title === 'Row 3')!.id;
+    expect(feedCalls).toEqual([{ text: 'commitment filed: Row 3', url: `/apps/syllabus/?commitment=${k3}`, course: 'PHYS 221' }]);
   });
 });

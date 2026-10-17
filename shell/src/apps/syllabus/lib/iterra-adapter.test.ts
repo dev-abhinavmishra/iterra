@@ -222,9 +222,8 @@ describe('study-plan.request intake', () => {
     const handler = adapterOpts?.intakes?.['study-plan.request'];
     expect(typeof handler).toBe('function');
     const res = await handler({ id: 'in1', action: 'study-plan.request', payload: { courseId: 'syllabus:course:c1' } });
-    expect(res).toEqual({ url: '/apps/syllabus/' });
-
     const made = Object.values(useFolio.getState().blocks);
+    expect(res).toEqual({ url: `/apps/syllabus/?block=${(made[0] as any).id}` });
     expect(made.length).toBeGreaterThan(0);
     // card pace: ceil(2 due / 40) = 1 card block/day + one weak-topic block on day 1
     expect(made.some((b: any) => b.label === 'review due cards' && b.phase === 'review')).toBe(true);

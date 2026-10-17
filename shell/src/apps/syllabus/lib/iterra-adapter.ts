@@ -209,7 +209,7 @@ function mirrorFolioInner() {
           courseId: `${COURSE_KEY}${c.id}`,
           course: c.code,
           title: c.name,
-          url: '/apps/syllabus/',
+          url: c.code ? `#/c/${encodeURIComponent(c.code)}` : '/apps/syllabus/',
         });
       }
     }
@@ -481,7 +481,8 @@ export async function studyPlan(rec: any): Promise<{ url: string | null; toast?:
   } catch { /* scaffold is best-effort */ }
 
   return {
-    url: made.length ? '/apps/syllabus/' : null,
+    /* land on the first generated slip — same as block.plan */
+    url: made.length ? `/apps/syllabus/?block=${encodeURIComponent(made[0].id)}` : null,
     toast: made.length
       ? undefined
       : 'Nothing to plan — no due cards or weak topics found for that course',

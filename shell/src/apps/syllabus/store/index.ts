@@ -23,6 +23,11 @@ export type { ProposedBlock };
 // but the same query must never consume an inbound link twice.
 let lastBootQuery: string | undefined;
 
+/* Feed-stir targets: course-bound stirs land on the dossier, everything else
+   falls back to the folio root. */
+const dossierUrl = (code?: string) =>
+  code ? `#/c/${encodeURIComponent(code)}` : '/apps/syllabus/';
+
 export const DEFAULT_SETTINGS: AppSettings = {
   timerBaseUrl: '/apps/timer',
   inkBaseUrl: '/apps/ink',
@@ -241,7 +246,7 @@ export const useFolio = create<FolioState>()(
           createdAt: new Date().toISOString(),
         };
         set((st) => ({ courses: { ...st.courses, [course.id]: course } }));
-        feed(`course filed: ${course.code}`, '/apps/syllabus/', course.code);
+        feed(`course filed: ${course.code}`, dossierUrl(course.code), course.code);
         return course;
       },
 
@@ -257,7 +262,7 @@ export const useFolio = create<FolioState>()(
         }));
         feed(
           `course ${archived ? 'archived' : 'unarchived'}: ${code ?? 'a course'}`,
-          '/apps/syllabus/',
+          dossierUrl(code),
           code,
         );
       },
@@ -275,7 +280,7 @@ export const useFolio = create<FolioState>()(
         set((s) => ({ commitments: { ...s.commitments, [commitment.id]: commitment } }));
         feed(
           `commitment filed: ${commitment.title}`,
-          '/apps/syllabus/',
+          `/apps/syllabus/?commitment=${encodeURIComponent(commitment.id)}`,
           commitment.courseId ? get().courses[commitment.courseId]?.code : undefined,
         );
         return commitment;
@@ -325,7 +330,7 @@ export const useFolio = create<FolioState>()(
         if (before && before.status !== status && (status === 'done' || status === 'dropped')) {
           feed(
             `commitment ${status === 'done' ? 'done' : 'dropped'}: ${before.title}`,
-            '/apps/syllabus/',
+            `/apps/syllabus/?commitment=${encodeURIComponent(before.id)}`,
             before.courseId ? get().courses[before.courseId]?.code : undefined,
           );
         }
@@ -335,7 +340,7 @@ export const useFolio = create<FolioState>()(
         if (spawned) {
           feed(
             `commitment filed: ${spawned.title}`,
-            '/apps/syllabus/',
+            `/apps/syllabus/?commitment=${encodeURIComponent(spawned.id)}`,
             spawned.courseId ? get().courses[spawned.courseId]?.code : undefined,
           );
         }
@@ -389,7 +394,7 @@ export const useFolio = create<FolioState>()(
           });
           return { blocks };
         });
-        if (made.length) feed(`plan generated: ${made.length} slip${made.length === 1 ? '' : 's'}`, '/apps/syllabus/');
+        if (made.length) feed(`plan generated: ${made.length} slip${made.length === 1 ? '' : 's'}`, `/apps/syllabus/?block=${encodeURIComponent(made[0].id)}`);
         return made;
       },
 

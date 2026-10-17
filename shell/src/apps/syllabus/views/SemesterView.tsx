@@ -431,7 +431,7 @@ function seedTemplate(s: ReturnType<typeof useFolio.getState>, courseId: string,
   // `s` is the caller's render snapshot — taken before addCourse — so the
   // new course isn't in it; read fresh state for the stir's course key
   const code = useFolio.getState().courses[courseId]?.code;
-  stir(`commitments seeded: ${TEMPLATES[kind].length} · ${code ?? 'course'}`, '/apps/syllabus/', code);
+  stir(`commitments seeded: ${TEMPLATES[kind].length} · ${code ?? 'course'}`, code ? `#/c/${encodeURIComponent(code)}` : '/apps/syllabus/', code);
 }
 
 /* ── Filed terms — file a new term or amend the active one ── */
