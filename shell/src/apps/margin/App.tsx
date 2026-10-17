@@ -121,11 +121,13 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
     }, [notes]);
 
     // inbound: ?note=<id> opens that note in the editor; ?deck=<id> /
-    // ?quiz=<id> land in Study on that item (unknown id stays browse)
+    // ?quiz=<id> land in Study on that item (unknown id stays browse).
+    // ?source=<id> is rhythm's evidenceUrl contract for this app — a source
+    // material id is a note id here.
     useEffect(() => {
         if (!isLoaded) return;
         const params = new URLSearchParams(query);
-        const id = params.get('note');
+        const id = params.get('note') || params.get('source');
         const deck = params.get('deck');
         const quiz = params.get('quiz');
         const strip = () => {
