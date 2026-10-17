@@ -84,7 +84,9 @@ beforeEach(() => {
 });
 
 describe('ink publish contract', () => {
-  it('publishes note entities in the documented shape — live notes only', async () => {
+  /* the first import pulls the whole ink module graph (TipTap chain) —
+     flaky past the 5s default on a loaded/disk-starved box, so budget it */
+  it('publishes note entities in the documented shape — live notes only', { timeout: 30000 }, async () => {
     const store = await freshStore();
     const live = makeNote({ title: 'Desk page', folder: 'Work' });
     const trashed = makeNote({ title: 'binned', trashedAt: Date.now() });

@@ -207,12 +207,15 @@ export function TodayWorkspace({
       | { id?: string; title?: string; minutes?: number; course?: string }
       | undefined;
 
-    const blocksAndCommitments = allObjects.filter(
-      (o) =>
-        (o.type === 'block' || o.type === 'commitment') &&
-        o.data?.status !== 'done' &&
-        o.data?.status !== 'completed',
-    );
+    const allBC = allObjects.filter((o) => o.type === 'block' || o.type === 'commitment');
+    /* commitments carry data.status, blocks carry data.state — check both;
+       a block completed while syllabus was cold must not linger here */
+    const isLive = (o: WorkspaceObject) =>
+      o.data?.status !== 'done' &&
+      o.data?.status !== 'completed' &&
+      o.data?.state !== 'done' &&
+      o.data?.state !== 'deferred';
+    const blocksAndCommitments = allBC.filter(isLive);
 
     blocksAndCommitments.sort((a, b) => {
       const da = typeof a.dueAt === 'number' ? a.dueAt : a.dueAt ? Date.parse(String(a.dueAt)) : Infinity;
@@ -221,8 +224,13 @@ export function TodayWorkspace({
       return (b.updatedAt || 0) - (a.updatedAt || 0);
     });
 
+    /* shared.today.nextBlock goes stale when a bound session marks its block
+       done while syllabus is cold — if the live object exists and says done,
+       skip it rather than fabricating a finished slip as next up */
+    const nbDone = nb?.id ? allBC.some((o) => o.id === nb.id && !isLive(o)) : false;
+
     let primary: WorkspaceObject | null = null;
-    if (nb?.title && matchesCourseFilter(nb.course)) {
+    if (nb?.title && matchesCourseFilter(nb.course) && !nbDone) {
       primary =
         blocksAndCommitments.find((b) => b.id === nb.id || b.title === nb.title) || {
           key: `syllabus:block:${nb.id || 'next'}`,
@@ -234,7 +242,8 @@ export function TodayWorkspace({
           url: nb.id ? `/apps/syllabus/?block=${encodeURIComponent(nb.id)}` : '/apps/syllabus/',
           data: { minutes: nb.minutes || 25 },
         };
-    } else if (blocksAndCommitments.length > 0) {
+    }
+    if (!primary && blocksAndCommitments.length > 0) {
       primary = blocksAndCommitments[0];
     }
 
