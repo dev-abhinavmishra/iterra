@@ -252,6 +252,25 @@ export function TodayWorkspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shared.today, shared.activeCourse, allObjects, courseFilterLow]);
 
+  /* 'Scheduled Next' should admit when it's late — a slipped block or a
+     past-due commitment wears a warn badge instead of blending in. */
+  const primaryLate = useMemo(() => {
+    const p = scheduledWork.primary;
+    if (!p) return null;
+    if (p.type === 'block' && p.data?.state === 'planned' && typeof p.data?.plannedDate === 'string') {
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (p.data.plannedDate < today) {
+        return `slipped · was ${new Date(`${p.data.plannedDate}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      }
+    }
+    if (p.dueAt != null) {
+      const ms = typeof p.dueAt === 'number' ? p.dueAt : Date.parse(String(p.dueAt));
+      if (!Number.isNaN(ms) && ms !== 0 && ms <= now) return 'overdue';
+    }
+    return null;
+  }, [scheduledWork, now]);
+
   /* ── 4. Review & Follow-Up: Due cards, due problems, open routines ── */
   const reviewItems = useMemo(() => {
     const items: {
@@ -847,6 +866,7 @@ export function TodayWorkspace({
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <Badge tone="accent">Scheduled Next</Badge>
+                          {primaryLate && <Badge tone="warn">{primaryLate}</Badge>}
                           {scheduledWork.primary.course && (
                             <Badge
                               tone="neutral"

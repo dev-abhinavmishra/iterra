@@ -151,6 +151,22 @@ export function ObjectRow({
     if (item.type === 'deck' && typeof item.data?.due === 'number' && item.data.due > 0) {
       return { text: `${item.data.due} due`, warn: true };
     }
+    /* blocks carry plannedDate (YYYY-MM-DD local), not dueAt — a slip that
+       stayed planned past its day gets the same warn treatment */
+    if (
+      item.type === 'block' &&
+      item.data?.state === 'planned' &&
+      typeof item.data?.plannedDate === 'string'
+    ) {
+      const d = new Date();
+      const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      if (item.data.plannedDate < today) {
+        return {
+          text: `slipped · was ${new Date(`${item.data.plannedDate}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+          warn: true,
+        };
+      }
+    }
     if (item.dueAt != null) {
       const ms = typeof item.dueAt === 'number' ? item.dueAt : Date.parse(String(item.dueAt));
       if (!Number.isNaN(ms)) {
