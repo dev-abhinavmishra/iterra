@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../store';
 import { downloadFile } from '../../lib/notes';
 import { useNow } from '../../lib/useNow';
+import { PlacePortal } from '../../../portal';
 import { Folder, Pencil, Trash2, Download, Plus, Inbox, Tag } from 'lucide-react';
 
 export const TagsView: React.FC = () => {
@@ -227,9 +228,13 @@ export const TagsView: React.FC = () => {
         </div>
       </div>
 
+      {/* portaled to the place root — this view is a scroll container, so an
+          inline `absolute` veil would drift with the scroll offset and could
+          open out of view down-list */}
       {dialog && (
+        <PlacePortal place="ink">
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/25 p-4"
+          className="absolute inset-0 z-[100] flex items-center justify-center bg-ink/25 p-4"
           onMouseDown={event => { if (event.target === event.currentTarget) setDialog(null); }}
         >
           <form
@@ -266,6 +271,7 @@ export const TagsView: React.FC = () => {
             </div>
           </form>
         </div>
+        </PlacePortal>
       )}
     </div>
   );

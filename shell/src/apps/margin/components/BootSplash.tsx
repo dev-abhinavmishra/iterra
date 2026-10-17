@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 const BootSplash = () => {
     return (
         <motion.div
-            className="fixed inset-0 z-[9999] bg-paper flex items-center justify-center"
+            className="absolute inset-0 z-[9999] bg-paper flex items-center justify-center"
             exit={{ opacity: 0, y: -28 }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
         >

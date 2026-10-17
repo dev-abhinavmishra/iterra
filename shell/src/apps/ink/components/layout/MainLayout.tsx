@@ -30,6 +30,7 @@ export const MainLayout: React.FC = () => {
   const [moreOpen, setMoreOpen] = React.useState(false);
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const { notice, setNotice, restoreNote, notes } = useStore();
+  const noteOpen = useStore(s => !!s.activeNoteId);
   const navigate = useNavigate();
   const trashCount = notes.filter(n => n.trashedAt).length;
 
@@ -76,7 +77,7 @@ export const MainLayout: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 md:left-6 md:translate-x-0 z-[90] flex items-center gap-3 bg-ink text-paper pl-4 pr-2 py-2 rounded-md shadow-pop"
+            className="fixed bottom-[calc(5rem+var(--iterra-bottom-inset,0px))] lg:bottom-[calc(1.5rem+var(--iterra-bottom-inset,0px))] left-1/2 -translate-x-1/2 lg:left-6 lg:translate-x-0 z-[90] flex items-center gap-3 bg-ink text-paper pl-4 pr-2 py-2 rounded-md shadow-pop"
           >
             <span className="text-sm">{notice.message}</span>
             {notice.noteId && (
@@ -99,8 +100,14 @@ export const MainLayout: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-stretch px-2 pt-1 pb-[max(env(safe-area-inset-bottom),0.25rem)] bg-paper border-t border-line">
+      {/* Mobile bar — carries the desk's sections until lg, where the
+          sidebar returns. Hidden while a page is being edited: the editor
+          is a full-sheet takeover then, and a second bar under it only
+          crowds the inkbar. */}
+      <nav className={clsx(
+        'fixed bottom-[var(--iterra-bottom-inset,0px)] left-0 w-full z-50 justify-around items-stretch px-2 pt-1 pb-[max(env(safe-area-inset-bottom),0.25rem)] bg-paper border-t border-line',
+        noteOpen ? 'hidden md:flex lg:hidden' : 'flex lg:hidden',
+      )}>
         {mobileItems.map(item => {
           const Icon = item.icon;
           if (item.to === '/today') {
@@ -152,13 +159,13 @@ export const MainLayout: React.FC = () => {
       <AnimatePresence>
         {moreOpen && (
           <>
-            <div className="fixed inset-0 z-[55] md:hidden" onClick={() => setMoreOpen(false)} />
+            <div className="fixed inset-0 z-[55] lg:hidden" onClick={() => setMoreOpen(false)} />
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
               transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-              className="md:hidden fixed bottom-16 left-3 right-3 z-[56] bg-paper border border-line rounded-md shadow-pop overflow-hidden"
+              className="lg:hidden fixed bottom-[calc(4rem+var(--iterra-bottom-inset,0px))] left-3 right-3 z-[56] bg-paper border border-line rounded-md shadow-pop overflow-hidden"
             >
               {moreItems.map(item => (
                 <NavLink
@@ -191,7 +198,7 @@ export const MainLayout: React.FC = () => {
       </AnimatePresence>
 
       {/* Mobile settings — popover anchors above this fixed rail */}
-      <div className="md:hidden fixed bottom-16 left-3 right-3 z-[60] h-0 pointer-events-none">
+      <div className="lg:hidden fixed bottom-[calc(4rem+var(--iterra-bottom-inset,0px))] left-3 right-3 z-[60] h-0 pointer-events-none">
         <div className="relative h-0 pointer-events-auto">
           <SettingsPopover open={settingsOpen} onClose={() => setSettingsOpen(false)} />
         </div>

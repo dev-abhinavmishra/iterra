@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { placeActive } from '../../../active';
+import { PlacePortal } from '../../../portal';
 
 /* "Index" primitives — the only sanctioned building blocks.
    Tokens live in index.css (--paper/--card/--ink/--line/--mark). */
@@ -28,7 +29,7 @@ export const Btn: React.FC<{
     className?: string;
     type?: 'button' | 'submit';
 }> = ({ children, onClick, variant = 'quiet', size = 'md', icon, disabled, title, className = '', type = 'button' }) => {
-    const base = 'inline-flex items-center justify-center gap-1.5 font-sans font-medium rounded-[var(--r)] border transition-all duration-150 select-none disabled:opacity-45 disabled:pointer-events-none active:scale-[0.98]';
+    const base = 'inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-sans font-medium rounded-[var(--r)] border transition-all duration-150 select-none disabled:opacity-45 disabled:pointer-events-none active:scale-[0.98]';
     const sizes = size === 'sm' ? 'h-8 px-3 text-[13px]' : 'h-9 px-3.5 text-sm';
     const variants: Record<BtnVariant, string> = {
         primary: 'bg-[var(--mark)] text-[var(--mark-ink)] border-transparent hover:brightness-110 shadow-card',
@@ -211,13 +212,16 @@ export const Modal: React.FC<{
         };
     }, [open, onClose]);
 
+    /* portaled to the place root — callers render <Modal> inside `relative`
+       view <main>s (some scrollable), where `absolute` would cover only the
+       column or scroll with content instead of claiming the whole surface */
     return (
-    <AnimatePresence>
+    <PlacePortal place="margin"><AnimatePresence>
         {open && (
             <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="fixed inset-0 z-[90] bg-black/45 flex items-center justify-center p-4"
+                className="absolute inset-0 z-[90] bg-black/45 flex items-center justify-center p-4"
                 onClick={onClose}
             >
                 <motion.div
@@ -234,7 +238,7 @@ export const Modal: React.FC<{
                 </motion.div>
             </motion.div>
         )}
-    </AnimatePresence>
+    </AnimatePresence></PlacePortal>
     );
 };
 

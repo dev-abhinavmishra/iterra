@@ -113,7 +113,7 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
 
   return (
     <div
-      className="fixed inset-0 z-40 flex justify-end bg-[rgb(var(--desk-rgb)/0.6)]"
+      className="absolute inset-0 z-40 flex justify-end bg-[rgb(var(--desk-rgb)/0.6)]"
       role="dialog"
       aria-modal="true"
       aria-label={`Commitment: ${commitment.title}`}

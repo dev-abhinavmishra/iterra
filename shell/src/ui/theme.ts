@@ -52,12 +52,12 @@ export function useWorkspaceTheme(): [WorkspaceTheme, (next?: WorkspaceTheme) =>
     };
   }, []);
 
+  /* updater stays pure — applyWorkspaceTheme writes storage + dispatches
+     iterra:theme, and running it inside the updater would fire setState in
+     sibling subscribers mid-render (StrictMode double-invokes updaters).
+     The [theme] effect above applies every committed value instead. */
   const toggleOrSet = useCallback((next?: WorkspaceTheme) => {
-    setThemeState((cur) => {
-      const target = next ?? (cur === 'paper' ? 'graphite' : 'paper');
-      applyWorkspaceTheme(target);
-      return target;
-    });
+    setThemeState((cur) => next ?? (cur === 'paper' ? 'graphite' : 'paper'));
   }, []);
 
   return [theme, toggleOrSet];

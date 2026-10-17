@@ -14,7 +14,7 @@ const KEYS: [string, string][] = [
 export function HelpOverlay({ onClose }: { onClose: () => void }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(22_24_27/0.6)] p-6"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-[rgb(22_24_27/0.6)] p-6"
       role="dialog"
       aria-modal="true"
       aria-label="Keyboard shortcuts"

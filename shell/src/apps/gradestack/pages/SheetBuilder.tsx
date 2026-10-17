@@ -7,6 +7,7 @@ import { generatePDF } from '../lib/pdfGenerator';
 import { Reorder, motion } from 'motion/react';
 import { Icon, Button, Input, Field, Toggle, BubbleMark } from '../components/ui';
 import { optionsFor, isMultiple, FORMAT_LABELS, formatsForTest } from '../lib/grading';
+import { PlacePortal } from '../../portal';
 
 const layoutOf = (secs: TestSection[]) => {
   let start = 1;
@@ -501,6 +502,7 @@ export function SheetBuilder() {
   return (
     <div className="flex-1 flex flex-col md:flex-row overflow-hidden w-full h-full relative bg-paper">
       {isImporting && (
+        <PlacePortal place="gradestack">
         <div
           className="absolute inset-0 z-50 bg-ink/50 flex items-center justify-center p-6"
           role="dialog"
@@ -554,6 +556,7 @@ export function SheetBuilder() {
             )}
           </motion.div>
         </div>
+        </PlacePortal>
       )}
 
       {/* Tool rail */}

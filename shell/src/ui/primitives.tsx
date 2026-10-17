@@ -109,7 +109,7 @@ export function Badge({
         type="button"
         onClick={onClick}
         title={title}
-        className={`inline-flex items-center gap-1 rounded-[4px] border px-1.5 py-0.5 text-[11px] font-medium leading-none transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] cursor-pointer ${toneCls} ${className}`}
+        className={`inline-flex items-center gap-1 rounded-[4px] border px-1.5 py-0.5 text-[11px] font-medium leading-none whitespace-nowrap transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] cursor-pointer ${toneCls} ${className}`}
       >
         {children}
       </button>
@@ -119,7 +119,7 @@ export function Badge({
   return (
     <span
       title={title}
-      className={`inline-flex items-center gap-1 rounded-[4px] border px-1.5 py-0.5 text-[11px] font-medium leading-none ${toneCls} ${className}`}
+      className={`inline-flex items-center gap-1 rounded-[4px] border px-1.5 py-0.5 text-[11px] font-medium leading-none whitespace-nowrap ${toneCls} ${className}`}
     >
       {children}
     </span>
@@ -205,7 +205,7 @@ export function Tabs<K extends string = string>({
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className="flex items-center gap-1 overflow-x-auto border-b border-[var(--color-line)]"
+      className="scrollbar-none flex items-center gap-1 overflow-x-auto border-b border-[var(--color-line)]"
     >
       {items.map((item) => {
         const isOn = item.key === active;
@@ -404,10 +404,15 @@ export function Disclosure({
 export function DropdownMenu({
   trigger,
   align = 'right',
+  side = 'bottom',
+  className = '',
   children,
 }: {
   trigger: (open: boolean, toggle: (e: React.MouseEvent) => void) => React.ReactNode;
   align?: 'left' | 'right';
+  /* 'top' opens upward — used by the bottom tab bar on small screens */
+  side?: 'bottom' | 'top';
+  className?: string;
   children: (close: () => void) => React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -432,16 +437,16 @@ export function DropdownMenu({
   }, [open]);
 
   return (
-    <div ref={wrapRef} className="relative inline-block">
+    <div ref={wrapRef} className={`relative inline-block ${className}`}>
       {trigger(open, (e) => {
         e.stopPropagation();
         setOpen((v) => !v);
       })}
       {open && (
         <div
-          className={`anim-pop absolute top-full z-50 mt-1 min-w-[190px] rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-1 shadow-xl ${
-            align === 'right' ? 'right-0' : 'left-0'
-          }`}
+          className={`anim-pop absolute z-50 min-w-[190px] rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-1 shadow-xl ${
+            side === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
+          } ${align === 'right' ? 'right-0' : 'left-0'}`}
           onClick={(e) => e.stopPropagation()}
         >
           {children(() => setOpen(false))}

@@ -5,6 +5,7 @@ import { Note } from '../../types';
 import { generateNoteFromTranscript, processDocument, transcribeAudio } from '../../services/aiService';
 import { extractPdfText } from '../../services/pdfService';
 import { Btn, Icon, ProgressBar, Spinner } from '../ui/primitives';
+import { PlacePortal } from '../../../portal';
 
 export type ImportPhase = 'reading' | 'extracting' | 'transcribing' | 'structuring' | 'done' | 'error';
 
@@ -257,14 +258,16 @@ const ImportOverlay: React.FC<{
     dragging: boolean;
     onDismiss: () => void;
 }> = ({ items, finished, dragging, onDismiss }) => (
-    <AnimatePresence>
+    /* portaled to the place root — rendered inside a `relative` view, where
+       the veil would cover only the column and leave the rail clickable */
+    <PlacePortal place="margin"><AnimatePresence>
         {dragging && !items && <DropVeil key="veil" />}
         {items && (
             <motion.div
                 key="queue"
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="fixed inset-0 z-[90] bg-black/45 flex items-center justify-center p-4"
+                className="absolute inset-0 z-[90] bg-black/45 flex items-center justify-center p-4"
             >
                 <motion.div
                     initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
@@ -317,7 +320,7 @@ const ImportOverlay: React.FC<{
                 </motion.div>
             </motion.div>
         )}
-    </AnimatePresence>
+    </AnimatePresence></PlacePortal>
 );
 
 export default ImportOverlay;

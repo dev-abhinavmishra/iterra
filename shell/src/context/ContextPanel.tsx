@@ -747,7 +747,7 @@ export function ContextPanel({
               </div>
             )}
 
-            <div className="grid gap-1.5">
+            <div className="grid grid-cols-1 gap-1.5">
               {/* Start Focus Session */}
               <button
                 type="button"
@@ -811,7 +811,7 @@ export function ContextPanel({
 
               {/* Less-used handoffs fold away — same actions, less noise */}
               <Disclosure label="More actions" className="pt-0.5">
-                <div className="grid gap-1.5">
+                <div className="grid grid-cols-1 gap-1.5">
                   {/* Create Follow-up Study Block in Syllabus — attaches this
                       object as the block's material via scheduleReviewBlock,
                       so starting the block opens the real deck/note/problem. */}
@@ -998,7 +998,7 @@ export function ContextPanel({
           role="dialog"
           aria-modal="true"
           aria-label="Details panel"
-          className="anim-rise relative z-10 h-full w-80 max-w-[88vw] border-l border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-2xl"
+          className="anim-rise relative z-10 h-full w-full sm:w-80 sm:max-w-[88vw] sm:border-l border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-2xl"
         >
           {panelBody}
         </aside>
@@ -1089,7 +1089,7 @@ function ContextHome({
                   type="button"
                   onClick={() => togglePin(pin)}
                   title="Unpin"
-                  className="shrink-0 rounded p-0.5 text-[var(--color-faint)] opacity-0 group-hover:opacity-100 hover:text-[var(--color-ink)] cursor-pointer"
+                  className="shrink-0 rounded p-0.5 text-[var(--color-faint)] opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[var(--color-ink)] cursor-pointer"
                 >
                   <X className="h-3 w-3" />
                 </button>

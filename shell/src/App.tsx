@@ -23,6 +23,7 @@ import {
   BookOpen,
   LayoutDashboard,
   Library,
+  GraduationCap,
   Wrench,
   EllipsisVertical,
   Settings2,
@@ -133,11 +134,14 @@ export default function App() {
   /* Theme & Workspace Context state */
   const [theme, setTheme] = useWorkspaceTheme();
   const [contextOpen, setContextOpen] = useState<boolean>(() => {
+    /* under lg the panel is a full-screen drawer — always start closed there;
+       a persisted "open" from a desktop session must not cover a phone. */
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) return false;
     try {
-      return localStorage.getItem('iterra.v1.contextOpen') !== '0';
-    } catch {
-      return true;
-    }
+      const v = localStorage.getItem('iterra.v1.contextOpen');
+      if (v !== null) return v !== '0';
+    } catch { /* ignore */ }
+    return true;
   });
   const toggleContext = useCallback(() => {
     setContextOpen((prev) => {
@@ -301,7 +305,9 @@ export default function App() {
           ? 'Courses · Iterra'
           : section === 'library'
             ? 'Library · Iterra'
-            : 'Iterra — Study Workspace';
+            : section === 'settings'
+              ? 'Settings · Iterra'
+              : 'Iterra — Study Workspace';
   }, [active, course, section]);
 
   const enter = useCallback((id: string) => {
@@ -539,8 +545,104 @@ export default function App() {
     ((shared.activeCourse?.v as any)?.code as string) ||
     '';
 
+  /* Course-context menu body — shared between the header selector (md+) and
+     the bottom tab bar's Course item (< lg), which opens it upward. */
+  const courseMenuContent = (close: () => void) => (
+    <div className="w-60 p-1">
+      <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
+        Course Context
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          close();
+          setCourseFilter('');
+          if (section === 'courses' && course) goUrl('#/courses');
+        }}
+        className={`flex w-full items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-[12px] cursor-pointer ${
+          !effectiveCourseContext
+            ? 'bg-[var(--color-accent-soft)] font-semibold text-[var(--color-accent)]'
+            : 'text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)]'
+        }`}
+      >
+        <span>All Courses</span>
+      </button>
+      {knownCourses.map((c) => (
+        <div
+          key={c.code}
+          className="flex items-center justify-between gap-1 rounded-[4px] px-2 py-1 hover:bg-[var(--color-sheet-hover)]"
+        >
+          <button
+            type="button"
+            onClick={() => {
+              close();
+              setCourseFilter(c.code);
+              if (section === 'courses') {
+                goUrl(`#/c/${encodeURIComponent(c.code)}`);
+              }
+            }}
+            className="min-w-0 flex-1 text-left text-[12px] text-[var(--color-ink)] cursor-pointer"
+          >
+            <span className="font-mono font-semibold text-[var(--color-accent)]">
+              {c.code}
+            </span>
+            {c.name && (
+              <span className="ml-1.5 truncate text-[var(--color-mute)]">
+                {c.name}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              close();
+              goUrl(`#/c/${encodeURIComponent(c.code)}`);
+            }}
+            className="shrink-0 rounded px-1.5 py-0.5 text-[10.5px] font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
+            title={`Open ${c.code} workspace`}
+          >
+            Open →
+          </button>
+        </div>
+      ))}
+      <div className="mt-1 border-t border-[var(--color-line)] pt-1">
+        <button
+          type="button"
+          onClick={() => {
+            close();
+            goUrl('#/c/unfiled');
+          }}
+          className="flex w-full items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-mute)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+        >
+          <span>Getting Started</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  /* shared tab-bar item styling — icon over label, accent when current.
+     h-full lets the dropdown trigger fill its stretch-wrapped slot. */
+  const navItemCls = (on: boolean) =>
+    `flex h-full flex-1 flex-col items-center justify-center gap-0.5 py-1 text-[10.5px] font-medium transition-colors cursor-pointer ${
+      on ? 'text-[var(--color-accent)]' : 'text-[var(--color-mute)] hover:text-[var(--color-ink)]'
+    }`;
+
   return (
     <div className="flex h-full flex-col bg-[var(--color-paper)] text-[var(--color-ink)]">
+      {/* Skip link — first Tab stop, lands on the workspace region. The hash
+          router claims raw fragments, so the href can't drive this — focus is
+          moved programmatically instead (target carries tabIndex={-1}). */}
+      <a
+        href="#iterra-workspace"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById('iterra-workspace')?.focus();
+        }}
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[999] focus:rounded-[5px] focus:border focus:border-[var(--color-accent)] focus:bg-[var(--color-sheet)] focus:px-3 focus:py-1.5 focus:text-[12.5px] focus:font-medium focus:text-[var(--color-accent)]"
+      >
+        Skip to workspace
+      </a>
       {/* ── CONSISTENT GLOBAL WORKSPACE HEADER ── */}
       <header className="relative z-30 flex h-12 shrink-0 items-center justify-between gap-2 border-b border-[var(--color-line)] bg-[var(--color-sheet)] px-3 sm:px-4">
         {/* Left: Brand + Primary Navigation (Today, Courses, Library, Tools) */}
@@ -559,10 +661,11 @@ export default function App() {
             </span>
           </button>
 
-          <span className="h-4 w-px bg-[var(--color-line)] hidden sm:block" />
+          <span className="h-4 w-px bg-[var(--color-line)] hidden lg:block" />
 
-          {/* Primary Navigation Items */}
-          <nav aria-label="Primary navigation" className="flex items-center gap-0.5">
+          {/* Primary Navigation Items — lg+ only; below lg the bottom tab
+              bar carries these (the row overlapped the header controls) */}
+          <nav aria-label="Primary navigation" className="hidden lg:flex items-center gap-0.5">
             <button
               type="button"
               onClick={goHome}
@@ -607,10 +710,14 @@ export default function App() {
               }`}
             >
               <Library className="h-3.5 w-3.5 shrink-0" />
-              <span className="hidden md:inline">Library</span>
+              <span>Library</span>
             </button>
+          </nav>
 
-            {/* Tools Dropdown / Active Tool Switcher */}
+          {/* Tools Dropdown / Active Tool Switcher — stays in the header at
+              every size: it's the place switcher when a tool is mounted */}
+          <div className="flex items-center">
+            {/* kept outside the lg-only nav above */}
             <DropdownMenu
               align="left"
               trigger={(open, toggle) => (
@@ -721,7 +828,7 @@ export default function App() {
                 </div>
               )}
             </DropdownMenu>
-          </nav>
+          </div>
         </div>
 
         {/* Center/Right: Course Context + Global Search + Active Focus Status + Save Status + Controls */}
@@ -746,79 +853,7 @@ export default function App() {
               </button>
             )}
           >
-            {(close) => (
-              <div className="w-60 p-1">
-                <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
-                  Course Context
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    close();
-                    setCourseFilter('');
-                    if (section === 'courses' && course) goUrl('#/courses');
-                  }}
-                  className={`flex w-full items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-[12px] cursor-pointer ${
-                    !effectiveCourseContext
-                      ? 'bg-[var(--color-accent-soft)] font-semibold text-[var(--color-accent)]'
-                      : 'text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)]'
-                  }`}
-                >
-                  <span>All Courses</span>
-                </button>
-                {knownCourses.map((c) => (
-                  <div
-                    key={c.code}
-                    className="flex items-center justify-between gap-1 rounded-[4px] px-2 py-1 hover:bg-[var(--color-sheet-hover)]"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        close();
-                        setCourseFilter(c.code);
-                        if (section === 'courses') {
-                          goUrl(`#/c/${encodeURIComponent(c.code)}`);
-                        }
-                      }}
-                      className="min-w-0 flex-1 text-left text-[12px] text-[var(--color-ink)] cursor-pointer"
-                    >
-                      <span className="font-mono font-semibold text-[var(--color-accent)]">
-                        {c.code}
-                      </span>
-                      {c.name && (
-                        <span className="ml-1.5 truncate text-[var(--color-mute)]">
-                          {c.name}
-                        </span>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        close();
-                        goUrl(`#/c/${encodeURIComponent(c.code)}`);
-                      }}
-                      className="shrink-0 rounded px-1.5 py-0.5 text-[10.5px] font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
-                      title={`Open ${c.code} workspace`}
-                    >
-                      Open →
-                    </button>
-                  </div>
-                ))}
-                <div className="mt-1 border-t border-[var(--color-line)] pt-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      close();
-                      goUrl('#/c/unfiled');
-                    }}
-                    className="flex w-full items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-mute)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
-                  >
-                    <span>Getting Started</span>
-                    <span>→</span>
-                  </button>
-                </div>
-              </div>
-            )}
+            {courseMenuContent}
           </DropdownMenu>
 
           {/* Global Search / Command Palette */}
@@ -1045,7 +1080,7 @@ export default function App() {
       </header>
 
       {/* ── MAIN WORKSPACE AREA + SHARED CONTEXT PANEL ── */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div id="iterra-workspace" tabIndex={-1} className="flex flex-1 min-h-0 overflow-hidden outline-none">
         {/* Central Working Surface */}
         <div className="relative flex-1 min-w-0 h-full overflow-hidden">
           {/* Keep-alive embedded tools container with .it-workspace-mode */}
@@ -1102,7 +1137,7 @@ export default function App() {
 
           {/* Shell Workspaces (Today, Course Workspace, Courses Index, Library) */}
           {!activePlace && (
-            <div className="h-full overflow-y-auto">
+            <main className="h-full overflow-y-auto">
               {section === 'courses' && course ? (
                 <CourseWorkspace
                   course={course}
@@ -1151,7 +1186,7 @@ export default function App() {
                   onGo={goUrl}
                 />
               )}
-            </div>
+            </main>
           )}
         </div>
 
@@ -1167,6 +1202,64 @@ export default function App() {
           onSelectObject={handleSelectObject}
         />
       </div>
+
+      {/* ── BOTTOM TAB BAR — small screens only. Primary destinations plus
+          the course-context selector (the header versions are lg+/md+ only).
+          In-flow so nothing floats over content. The bar is 3.5rem of items
+          *plus* safe-area padding — a fixed h-14 + padding would squeeze the
+          items on home-indicator devices. Matches --iterra-bottom-inset. */}
+      <nav
+        aria-label="Primary navigation — compact"
+        className="flex h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] shrink-0 items-stretch border-t border-[var(--color-line)] bg-[var(--color-sheet)] pb-[env(safe-area-inset-bottom)] lg:hidden"
+      >
+        <button
+          type="button"
+          onClick={goHome}
+          aria-current={section === 'today' ? 'page' : undefined}
+          className={navItemCls(section === 'today')}
+        >
+          <LayoutDashboard className="h-[18px] w-[18px]" />
+          <span>Today</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => goUrl('#/courses')}
+          aria-current={section === 'courses' ? 'page' : undefined}
+          className={navItemCls(section === 'courses')}
+        >
+          <BookOpen className="h-[18px] w-[18px]" />
+          <span>Courses</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => goUrl('#/library')}
+          aria-current={section === 'library' ? 'page' : undefined}
+          className={navItemCls(section === 'library')}
+        >
+          <Library className="h-[18px] w-[18px]" />
+          <span>Library</span>
+        </button>
+        <DropdownMenu
+          side="top"
+          align="right"
+          className="min-w-0 flex-1"
+          trigger={(_open, toggle) => (
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label={`Course context: ${effectiveCourseContext || 'All'}`}
+              className={navItemCls(!!effectiveCourseContext)}
+            >
+              <GraduationCap className="h-[18px] w-[18px]" />
+              <span className="max-w-full truncate px-1">
+                {effectiveCourseContext || 'Course'}
+              </span>
+            </button>
+          )}
+        >
+          {courseMenuContent}
+        </DropdownMenu>
+      </nav>
 
       {/* Global Search / Command Palette */}
       <Search
@@ -1184,6 +1277,7 @@ export default function App() {
         entities={entities}
         mounted={Object.keys(mounted)}
         activePlace={active}
+        panelOpen={contextOpen}
         onEnter={enter}
         onGo={goUrl}
       />

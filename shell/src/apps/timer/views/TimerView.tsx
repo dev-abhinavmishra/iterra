@@ -14,6 +14,7 @@ import { stationChime, secondTick, flapLand } from '../lib/sound';
 import { parseSyllabusLink, syllabusReturnUrl } from '../lib/deeplink';
 import { boundCourseCode, inTerrain, openTerrain, recentCourses, queuedTimerControls, dequeueTimerControl, type RecentCourse } from '../lib/iterra-adapter';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 
 const QUICK = [5, 10, 15, 25, 30, 45, 60, 90];
 /* app-local mirror of the live session — the publish effect writes it,
@@ -25,6 +26,24 @@ function fmt(totalSec: number) {
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+/* takeovers portal to the terrain frame — measure the takeover element so
+   the edge ring/confetti/flip sizing follow the frame box, not the
+   viewport (which includes the shell chrome and overshoots on desktop) */
+function useBox() {
+  const [el, setEl] = useState<HTMLElement | null>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    if (!el) return;
+    const measure = () => setBox({ w: el.clientWidth, h: el.clientHeight });
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [el]);
+  return [setEl, box] as const;
 }
 
 export default function TimerView({ presetMinutes = 25, presetName, linkQuery = '', onFocusModeChange, active = true, onRequestView, onTakeover, takeoverMuted = false }: {
@@ -40,6 +59,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const cd = useCountdown();
   const settings = useSettings();
   const vp = useViewport();
+  const [takeoverEl, tbox] = useBox();
+  const tw = tbox.w || vp.w, th = tbox.h || vp.h;
 
   const [setMinutes, setSetMinutes] = useState(presetMinutes);
   const [label, setLabel] = useState<string | undefined>(presetName);
@@ -848,15 +869,19 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       </section>
 
       {/* ---------- FOCUS MODE ---------- */}
-      <AnimatePresence>
+      {/* overlays portal to the place root — this view root is `relative`,
+          so inline `absolute` overlays would cover only the view and leave
+          the app chrome visible above the takeover */}
+      <PlacePortal place="timer"><AnimatePresence>
         {focus && (
           <motion.div
             key="focus"
+            ref={takeoverEl}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.7, ease: [0.32, 0.72, 0, 1] }}
-            className="fixed inset-0 z-[200] flex flex-col items-center justify-center"
+            className="absolute inset-0 z-[200] flex flex-col items-center justify-center"
             style={{ background: 'linear-gradient(180deg, #16130B 0%, #0F0C06 100%)' }}
           >
             {/* slow ambient breathing */}
@@ -872,8 +897,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                 glides the drain between second ticks instead of stepping. */}
             {(() => {
               const inset = 13;
-              const w = Math.max(0, vp.w - inset * 2);
-              const h = Math.max(0, vp.h - inset * 2);
+              const w = Math.max(0, tw - inset * 2);
+              const h = Math.max(0, th - inset * 2);
               const r = 10;
               const P = 2 * (w + h) - 8 * r + 2 * Math.PI * r;
               const frac = hasTime ? Math.min(1, Math.max(0, cd.progress)) : 0;
@@ -886,8 +911,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.5, delay: 0.15 }}
                   className="absolute inset-0 pointer-events-none"
-                  width={vp.w}
-                  height={vp.h}
+                  width={tw}
+                  height={th}
                 >
                   <rect x={inset} y={inset} width={w} height={h} rx={r}
                     fill="none" stroke="rgba(242,233,207,0.09)" strokeWidth={2} />
@@ -909,7 +934,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
             >
               <FlipRow
                 text={dispStr}
-                size={Math.min(220, Math.round(vp.w / (dispStr.length === 5 ? 6.4 : 7.2)))}
+                size={Math.min(220, Math.round(tw / (dispStr.length === 5 ? 6.4 : 7.2)))}
                 live={running}
                 accent={isBreak}
               />
@@ -944,14 +969,14 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence></PlacePortal>
 
       {/* ---------- CUSTOM DURATION ---------- */}
-      <AnimatePresence>
+      <PlacePortal place="timer"><AnimatePresence>
         {customOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[210] flex items-center justify-center p-4"
+            className="absolute inset-0 z-[210] flex items-center justify-center p-4"
             style={{ background: 'rgba(15,12,6,0.7)', backdropFilter: 'blur(6px)' }}
             onClick={() => setCustomOpen(false)}
           >
@@ -983,16 +1008,17 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence></PlacePortal>
 
       {/* ---------- COMPLETION TAKEOVER ---------- */}
-      <AnimatePresence>
+      <PlacePortal place="timer"><AnimatePresence>
         {done && (
           <motion.div
             key="done"
+            ref={takeoverEl}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-[300] flex flex-col items-center justify-center overflow-hidden"
+            className="absolute inset-0 z-[300] flex flex-col items-center justify-center overflow-hidden"
             style={{ background: 'linear-gradient(180deg, #16130B 0%, #0F0C06 100%)' }}
           >
             {/* punched-ticket confetti */}
@@ -1001,8 +1027,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                 key={i}
                 initial={{ x: 0, y: '-10vh', rotate: 0, opacity: 1 }}
                 animate={{
-                  x: (Math.random() - 0.5) * vp.w * 0.9,
-                  y: vp.h * (0.55 + Math.random() * 0.5),
+                  x: (Math.random() - 0.5) * tw * 0.9,
+                  y: th * (0.55 + Math.random() * 0.5),
                   rotate: (Math.random() - 0.5) * 720,
                   opacity: [1, 1, 0],
                 }}
@@ -1023,7 +1049,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
               transition={{ type: 'spring', stiffness: 160, damping: 18, delay: 0.15 }}
               className="flex flex-col items-center gap-10 z-10 px-6"
             >
-              <FlipText text={done === 'break' ? 'RECESS OVER' : 'SESSION COMPLETE'} size={Math.min(72, vp.w / 16)} accent={false} />
+              <FlipText text={done === 'break' ? 'RECESS OVER' : 'SESSION COMPLETE'} size={Math.min(72, tw / 16)} accent={false} />
               <motion.p
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 0.6, y: 0 }}
@@ -1062,7 +1088,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
             ))}
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence></PlacePortal>
     </div>
   );
 }

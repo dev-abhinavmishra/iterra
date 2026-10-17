@@ -498,6 +498,7 @@ export function CourseWorkspace({
           onNotify={showToast}
           primaryActionLabel={primaryActionLabel}
           onPrimaryAction={onPrimaryAction}
+          contextCourse={course}
         />
         {rels.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 bg-[var(--color-paper)]/45 px-3.5 py-1.5 pl-12 border-t border-dashed border-[var(--color-line)]">
@@ -755,7 +756,7 @@ export function CourseWorkspace({
           {unfiled && (
             <div className="mt-4 border-t border-[var(--color-line)] pt-3.5">
               <SectionHeader title="Guides for every tool" />
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {GETTING_STARTED.map((g) => {
                   const p = PLACE_MAP[g.place];
                   if (!p) return null;
@@ -776,7 +777,7 @@ export function CourseWorkspace({
                         <span className="font-mono text-[10px] text-[var(--color-faint)]">
                           {p.place}
                         </span>
-                        <span className="ml-auto text-[11px] font-medium text-[var(--color-accent)] opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="ml-auto text-[11px] font-medium text-[var(--color-accent)] opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity">
                           Open →
                         </span>
                       </div>
@@ -859,7 +860,7 @@ export function CourseWorkspace({
         {activeTab === 'overview' && (
           <>
             <WorkspaceChainView courseKey={course} onGo={onGo} />
-            <div className="grid gap-6 lg:grid-cols-12">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="space-y-6 lg:col-span-7">
               {/* Schedule & Next Work */}
               <section>
@@ -870,7 +871,7 @@ export function CourseWorkspace({
                     <button
                       type="button"
                       onClick={() => setActiveTab('schedule')}
-                      className="text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
+                      className="-mx-1 -my-1.5 inline-flex min-h-[28px] items-center px-1 py-1.5 text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
                     >
                       View all →
                     </button>
@@ -925,7 +926,7 @@ export function CourseWorkspace({
                     <button
                       type="button"
                       onClick={() => setActiveTab('materials')}
-                      className="text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
+                      className="-mx-1 -my-1.5 inline-flex min-h-[28px] items-center px-1 py-1.5 text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
                     >
                       View all →
                     </button>
@@ -966,7 +967,7 @@ export function CourseWorkspace({
                     <button
                       type="button"
                       onClick={() => setActiveTab('practice')}
-                      className="text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
+                      className="-mx-1 -my-1.5 inline-flex min-h-[28px] items-center px-1 py-1.5 text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
                     >
                       View all →
                     </button>
@@ -1011,7 +1012,7 @@ export function CourseWorkspace({
                     <button
                       type="button"
                       onClick={() => setActiveTab('results')}
-                      className="text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
+                      className="-mx-1 -my-1.5 inline-flex min-h-[28px] items-center px-1 py-1.5 text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
                     >
                       View all →
                     </button>

@@ -23,6 +23,7 @@ import {
 import { courseColorVar } from '../lib/colors';
 import { Check, X, CalendarPlus, Inbox } from 'lucide-react';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 import type { ISODate, WorkBlock } from '../lib/types';
 
 /**
@@ -408,7 +409,10 @@ function DeferSheet({
     ref.current?.querySelector('select')?.focus();
   }, []);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--desk-rgb)/0.72)] p-4" role="dialog" aria-modal="true" aria-label="Defer block" onClick={onClose}>
+    /* portaled to the place root — `.sheet` is `position: relative`, so an
+       inline dialog would bind to the folio and leave the nav rail live */
+    <PlacePortal place="syllabus">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-[rgb(var(--desk-rgb)/0.72)] p-4" role="dialog" aria-modal="true" aria-label="Defer block" onClick={onClose}>
       <div ref={ref} className="sheet w-full max-w-sm p-5" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
         <div className="kicker mb-1">RE-BOOKING SLIP</div>
         <h3 className="slab text-lg font-semibold mb-3">Defer this block</h3>
@@ -433,5 +437,6 @@ function DeferSheet({
         </div>
       </div>
     </div>
+    </PlacePortal>
   );
 }

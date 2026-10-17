@@ -29,7 +29,7 @@ export const GETTING_STARTED: GettingStartedGuide[] = [
   {
     place: 'ink',
     steps: [
-        'Press N or hit New page — start writing immediately.',
+      'Press N or hit New page — start writing immediately.',
       'Tag a note with a course code to file it under that course.',
       'Select text and send it to Flashcards or Calculations to work on it.',
     ],

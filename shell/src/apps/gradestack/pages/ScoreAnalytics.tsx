@@ -7,6 +7,7 @@ import { feed } from '../lib/iterra';
 import { useCourseLoggedMinutes, fmtLoggedMinutes, folioUrlFor } from '../lib/iterra-adapter';
 import { openTerrain } from '../components/terrain';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 import { execCommand } from '../../../integration/commands';
 
 export function ScoreAnalytics() {
@@ -386,8 +387,9 @@ export function ScoreAnalytics() {
       {/* Targeted review — topics come from the question map when it exists;
           otherwise the instructor names them (never inferred from the score). */}
       {reviewOpen && (
+        <PlacePortal place="gradestack">
         <div
-          className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 p-4"
+          className="absolute inset-0 z-[120] flex items-center justify-center bg-black/40 p-4"
           onClick={() => !reviewBusy && setReviewOpen(false)}
           role="dialog"
           aria-modal="true"
@@ -493,6 +495,7 @@ export function ScoreAnalytics() {
             </div>
           </div>
         </div>
+        </PlacePortal>
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import { KeyButton } from '../components/KeyButton';
 import { stationChime, flapLand, secondTick } from '../lib/sound';
 import { useRef } from 'react';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 
 function fmtDur(s: number) {
   return s >= 60 ? `${Math.round(s / 60)}m` : `${s}s`;
@@ -176,7 +177,7 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
               initial={{ opacity: 0.55 }}
               animate={{ opacity: 0 }}
               transition={{ duration: 0.9, ease: 'easeOut' }}
-              className="fixed inset-0 pointer-events-none z-[60]"
+              className="absolute inset-0 pointer-events-none z-[60]"
               style={{ background: phase?.kind === 'rest' ? 'var(--color-signal)' : 'var(--color-ink)' }}
             />
           )}
@@ -331,11 +332,13 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
       </div>
 
       {/* ---------- ROUTINE EDITOR ---------- */}
-      <AnimatePresence>
+      {/* portaled to the place root — this view root is `relative`, so an
+          inline `absolute` modal would cover only the view, not the frame */}
+      <PlacePortal place="timer"><AnimatePresence>
         {editing && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[210] flex items-center justify-center p-4"
+            className="absolute inset-0 z-[210] flex items-center justify-center p-4"
             style={{ background: 'rgba(15,12,6,0.7)', backdropFilter: 'blur(6px)' }}
             onClick={() => setEditing(false)}
           >
@@ -409,7 +412,7 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence></PlacePortal>
     </div>
   );
 }

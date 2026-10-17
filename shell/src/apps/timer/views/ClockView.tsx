@@ -8,6 +8,7 @@ import { FlipRow, FlipText, Board } from '../components/Flip';
 import { KeyButton } from '../components/KeyButton';
 import { alarmRing, flapTick } from '../lib/sound';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 
 interface Alarm { id: string; hh: number; mm: number; on: boolean; label: string }
 const KEY = 'timer.alarms.v1';
@@ -219,11 +220,13 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
       </div>
 
       {/* ---------- ADD ALARM ---------- */}
-      <AnimatePresence>
+      {/* portaled to the place root — the app's <main> is `relative`, so an
+          inline overlay would cover only the view and leave the header live */}
+      <PlacePortal place="timer"><AnimatePresence>
         {showAdd && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[210] flex items-center justify-center p-4"
+            className="absolute inset-0 z-[210] flex items-center justify-center p-4"
             style={{ background: 'rgba(15,12,6,0.7)', backdropFilter: 'blur(6px)' }}
             onClick={() => setShowAdd(false)}
           >
@@ -263,15 +266,15 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence></PlacePortal>
 
       {/* ---------- ALARM FIRING ---------- */}
-      <AnimatePresence>
+      <PlacePortal place="timer"><AnimatePresence>
         {firing && (
           <motion.div
             key="alarm"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[300] flex flex-col items-center justify-center overflow-hidden"
+            className="absolute inset-0 z-[300] flex flex-col items-center justify-center overflow-hidden"
             style={{ background: 'linear-gradient(180deg, #1B1509 0%, #0F0C06 100%)' }}
           >
             <motion.div
@@ -307,7 +310,7 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence></PlacePortal>
     </div>
   );
 }

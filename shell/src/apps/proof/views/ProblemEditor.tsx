@@ -6,6 +6,7 @@ import { Field } from '../components/Field';
 import { DocView } from '../components/DocView';
 import { X, Plus, Trash2, ImagePlus } from 'lucide-react';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 
 const SPEC_KINDS: { kind: AnswerSpec['kind']; label: string; hint: string }[] = [
   { kind: 'exact', label: 'Exact text', hint: 'normalized match — case, punctuation, spacing ignored' },
@@ -85,8 +86,12 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
     }
   };
 
+  /* portaled to the place root — callers render the editor inside the
+     scrollable <main>, where an inline `absolute` sheet would drift with
+     the scroll offset and could open out of view mid-list */
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-[rgb(22_24_27/0.45)]" role="dialog" aria-modal="true" aria-label={problem ? 'Edit problem' : 'New problem'} onClick={onClose}>
+    <PlacePortal place="proof">
+    <div className="absolute inset-0 z-40 flex justify-end bg-[rgb(22_24_27/0.45)]" role="dialog" aria-modal="true" aria-label={problem ? 'Edit problem' : 'New problem'} onClick={onClose}>
       <div className="film h-full w-full max-w-2xl overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between">
           <div className="kicker">{problem ? 'Edit problem' : 'New problem'}</div>
@@ -201,6 +206,7 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
         </div>
       </div>
     </div>
+    </PlacePortal>
   );
 }
 

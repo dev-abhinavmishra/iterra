@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../store';
 import { isIntegrated } from '../../../theme';
+import { PlacePortal } from '../../../portal';
 import { SettingsPopover } from '../SettingsPopover';
 import { todayKey } from '../../lib/notes';
 import { useNow } from '../../lib/useNow';
@@ -92,7 +93,7 @@ export const SideNavBar: React.FC = () => {
   };
 
   return (
-    <aside className="hidden md:flex flex-col h-full w-[232px] lg:w-[248px] flex-shrink-0 bg-desk border-r border-line select-none">
+    <aside className="hidden lg:flex flex-col h-full w-[248px] flex-shrink-0 bg-desk border-r border-line select-none">
       {/* Wordmark — the period is a drop of ink that fell */}
       <div className="flex items-baseline gap-1.5 px-5 pt-6 pb-5">
         <span className="font-serif text-[26px] font-bold tracking-tight text-ink leading-none">
@@ -220,9 +221,12 @@ export const SideNavBar: React.FC = () => {
         </div>
       </div>
 
+      {/* portaled to the place root — a `role="dialog"` must claim the whole
+          frame; mounting inside <aside> keeps the main column live otherwise */}
       {folderDialogOpen && (
+        <PlacePortal place="ink">
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/25 p-4"
+          className="absolute inset-0 z-[100] flex items-center justify-center bg-ink/25 p-4"
           onMouseDown={event => { if (event.target === event.currentTarget) setFolderDialogOpen(false); }}
         >
           <form
@@ -259,6 +263,7 @@ export const SideNavBar: React.FC = () => {
             </div>
           </form>
         </div>
+        </PlacePortal>
       )}
     </aside>
   );

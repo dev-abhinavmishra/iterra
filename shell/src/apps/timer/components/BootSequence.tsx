@@ -50,7 +50,7 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[400] flex flex-col items-center justify-center"
+      className="absolute inset-0 z-[400] flex flex-col items-center justify-center"
       style={{ background: 'linear-gradient(180deg, #16130B 0%, #0F0C06 100%)' }}
       initial={{ opacity: 1 }}
       animate={{ opacity: phase === 2 ? 0 : 1, scale: phase === 2 ? 1.04 : 1 }}

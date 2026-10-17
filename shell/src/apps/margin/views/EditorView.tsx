@@ -6,6 +6,7 @@ import { Icon, IconBtn, Btn, Modal, Divider } from '../components/ui/primitives'
 import FormatToolbar, { FormatState } from '../components/editor/FormatToolbar';
 import FloatingToolbar, { InlineAIAction } from '../components/editor/FloatingToolbar';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 import NoteMetaBar from '../components/editor/NoteMetaBar';
 import OutlinePanel, { OutlineItem } from '../components/editor/OutlinePanel';
 import FindReplace, { unwrapFindMarks } from '../components/editor/FindReplace';
@@ -451,7 +452,8 @@ const EditorView: React.FC<EditorViewProps> = ({
         const el = editorRef.current;
         if (!el) return;
         const headings = el.querySelectorAll('h1, h2, h3');
-        headings[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        headings[index]?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     };
 
     /* ---------------- word count ---------------- */
@@ -808,7 +810,7 @@ const EditorView: React.FC<EditorViewProps> = ({
             />
 
             {aiError && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pop-in flex items-center gap-2 bg-card border border-[var(--bad)]/40 rounded-[var(--r)] shadow-pop px-4 py-2.5">
+                <div className="fixed bottom-[calc(1.5rem+var(--iterra-bottom-inset,0px))] left-1/2 -translate-x-1/2 z-50 pop-in flex items-center gap-2 bg-card border border-[var(--bad)]/40 rounded-[var(--r)] shadow-pop px-4 py-2.5">
                     <Icon name="error" size={16} className="text-bad shrink-0" />
                     <span className="font-sans text-[13px] text-ink">{aiError}</span>
                     <IconBtn icon="close" size={14} title="Dismiss" onClick={() => setAiError(null)} />
@@ -817,7 +819,10 @@ const EditorView: React.FC<EditorViewProps> = ({
 
             {/* Assistant — mobile overlay */}
             {showMobileAssistant && (
-                <div className="fixed inset-0 z-50 bg-paper flex flex-col md:hidden fade-in">
+                /* portaled to the place root — the `relative` <main> would
+                   otherwise leave the sidebar rail uncovered */
+                <PlacePortal place="margin">
+                <div className="absolute inset-0 z-50 bg-paper flex flex-col md:hidden fade-in">
                     <div className="h-14 border-b border-line flex items-center justify-between px-4 bg-paper shrink-0">
                         <div className="flex items-center gap-2">
                             <Icon name="forum" size={18} className="text-ink-3" />
@@ -831,6 +836,7 @@ const EditorView: React.FC<EditorViewProps> = ({
                         setContextualAttachments={setContextualAttachments}
                     />
                 </div>
+                </PlacePortal>
             )}
 
             {/* Source viewer */}

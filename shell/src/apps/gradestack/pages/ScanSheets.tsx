@@ -10,6 +10,7 @@ import { Icon, Button, Input, Select, Chip, Modal, BubbleMark, Field } from '../
 import { gradeResponses, optionsFor, isMultiple, formatsForTest, normalizeAnswer, letterFor } from '../lib/grading';
 import { shrinkImage } from '../store';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 
 export function ScanSheets() {
   const tests = useStore(state => state.tests);
@@ -1045,7 +1046,8 @@ export function ScanSheets() {
       {/* ── Crop / review before grading ────────────────────── */}
       <AnimatePresence>
         {isReviewingImage && capturedImage && (
-          <div className="fixed inset-0 bg-black/90 z-[70] flex flex-col items-center justify-center p-4 md:p-8" role="dialog" aria-modal="true" aria-label="Frame the sheet">
+        <PlacePortal place="gradestack">
+          <div className="absolute inset-0 bg-black/90 z-[70] flex flex-col items-center justify-center p-4 md:p-8" role="dialog" aria-modal="true" aria-label="Frame the sheet">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1092,6 +1094,7 @@ export function ScanSheets() {
               </div>
             </motion.div>
           </div>
+        </PlacePortal>
         )}
       </AnimatePresence>
     </div>

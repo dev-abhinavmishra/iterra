@@ -488,6 +488,7 @@ export function TodayWorkspace({
 
   return (
     <div className="terrain-map min-h-full">
+      <h1 className="sr-only">Today — workspace overview</h1>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Toast / action notification */}
         {notice && (
@@ -649,7 +650,7 @@ export function TodayWorkspace({
         )}
 
         {/* ── Primary Workstation Grid: Left (Resume + Next Up + Recent) / Right (Review + Courses) ── */}
-        <div className="grid gap-6 lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Left Column (7 cols on lg) */}
           <div className="space-y-6 lg:col-span-7">
             {/* ── 2. RESUME WORKING ── */}
@@ -796,7 +797,7 @@ export function TodayWorkspace({
               {scheduledWork.primary ? (
                 <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
                   <div className="p-4 bg-[var(--color-accent-soft)]/35 border-b border-[var(--color-line)]">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <Badge tone="accent">Scheduled Next</Badge>
@@ -1140,7 +1141,7 @@ export function TodayWorkspace({
         {/* ── 7. SPECIALIZED TOOLS DIRECTORY STRIP (Compact, functional names first) ── */}
         <section aria-label="Workspace tools" className="pt-2 border-t border-[var(--color-line)]">
           <SectionHeader title="Tools" />
-          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {PLACES.map((p) => {
               const pres = presences[p.id];
               const stale = isStale(pres);

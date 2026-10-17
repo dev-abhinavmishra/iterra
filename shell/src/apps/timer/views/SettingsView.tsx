@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 import { Palette, CheckCircle2, RefreshCcw, AlertTriangle, Volume2, Gauge, Keyboard, MoonStar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { vibrate, cn } from '../lib/utils';
@@ -167,12 +168,13 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
         </div>
       </motion.section>
 
-      {/* confirm */}
-      <AnimatePresence>
+      {/* confirm — portaled to the place root (app <main> is `relative`,
+          an inline overlay would leave the header uncovered) */}
+      <PlacePortal place="timer"><AnimatePresence>
         {confirm && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[210] flex items-center justify-center p-4"
+            className="absolute inset-0 z-[210] flex items-center justify-center p-4"
             style={{ background: 'rgba(15,12,6,0.7)', backdropFilter: 'blur(6px)' }}
             onClick={() => setConfirm(false)}
           >
@@ -196,7 +198,7 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence></PlacePortal>
 
       {/* toast */}
       <AnimatePresence>
@@ -204,7 +206,7 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
           <motion.div
             initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[150] board px-5 py-3 flex items-center gap-3"
+            className="fixed bottom-[calc(7rem+var(--iterra-bottom-inset,0px))] left-1/2 -translate-x-1/2 z-[150] board px-5 py-3 flex items-center gap-3"
           >
             <CheckCircle2 size={16} style={{ color: 'var(--color-signal-bright)' }} />
             <span className="engraved text-[10px]">Log cleared</span>

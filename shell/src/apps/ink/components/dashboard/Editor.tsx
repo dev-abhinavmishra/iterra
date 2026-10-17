@@ -20,6 +20,7 @@ import { PENS, PEN_ORDER, penOf, type PenId } from '../../lib/pens';
 import { useNow } from '../../lib/useNow';
 import { SharedNoteLink } from './SharedNoteLink';
 import { TerrainChips } from './TerrainChips';
+import { PlacePortal } from '../../../portal';
 
 type SaveState = 'idle' | 'saving' | 'saved';
 
@@ -139,7 +140,7 @@ export const Editor: React.FC = () => {
     <div className={clsx(
       'flex-col overflow-hidden',
       activeNote
-        ? 'fixed inset-0 z-[60] flex md:static md:z-auto md:flex-1'
+        ? 'absolute inset-0 z-[60] flex md:static md:z-auto md:flex-1'
         : 'hidden md:flex md:flex-1'
     )}>
       {!activeNote ? (
@@ -167,7 +168,7 @@ export const Editor: React.FC = () => {
               >
                 <ArrowLeft className="w-4 h-4" strokeWidth={1.75} />
               </button>
-              <label className="flex items-center gap-1.5 text-xs font-medium text-ink-faint hover:text-ink transition-colors px-1.5 py-1 rounded hover:bg-paper-dim cursor-pointer">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-ink-faint hover:text-ink transition-colors px-2 py-1.5 rounded hover:bg-paper-dim cursor-pointer">
                 <FolderOpen className="w-3.5 h-3.5" strokeWidth={1.75} />
                 <select
                   aria-label="Move note to folder"
@@ -494,8 +495,11 @@ const DraftsDrawer: React.FC<{
   onClose: () => void;
 }> = ({ drafts, preview, onPreview, onRestore, onClose }) => {
   const shown = drafts[preview];
+  /* portal to the place root — rendered inside the `relative` paper sheet,
+     an inline `absolute` veil would dim only the sheet and leave the desk
+     chrome/sidebar clickable while aria-modal claims the surface */
   return (
-    <>
+    <PlacePortal place="ink">
       <div className="absolute inset-0 z-[72] bg-ink/15" onClick={onClose} />
       <motion.aside
         initial={{ opacity: 0, x: 24 }}
@@ -586,7 +590,7 @@ const DraftsDrawer: React.FC<{
           </>
         )}
       </motion.aside>
-    </>
+    </PlacePortal>
   );
 };
 

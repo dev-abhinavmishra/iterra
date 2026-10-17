@@ -13,6 +13,10 @@ let lastQuery = undefined;
 /* bumped on every mount — global listeners from an older mount (bound to
    a detached root) check it and no-op instead of mutating orphaned state */
 let mountGen = 0;
+/* unsubs for global listeners bound inside a mount — flushed when a new
+   generation starts so a remount doesn't accumulate dead handlers (the
+   gen guards no-op their logic, but the handlers would still fire) */
+let unsubs: Array<() => void> = [];
 
 let parseUrlDeckRef: ((q: string) => boolean) | undefined;
 
@@ -28,6 +32,8 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     console.warn('[flashcards] place root remounted — rebinding controller');
   }
   const gen = ++mountGen;
+  unsubs.forEach(fn => fn());
+  unsubs = [];
   const stripPlaceQuery = () => {
     const h = window.location.hash;
     const qi = h.indexOf('?');
@@ -785,6 +791,15 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const empty = !d;
     els.emptyStage.hidden = !empty;
     els.deckView.hidden = empty;
+    /* empty stage carries two variants: inside the terrain the workspace
+       creation panel (course-bound, provenance-aware) replaces the
+       standalone marketing intro — the id can't travel in a link anyway */
+    const wsStage = $('ws-create-stage'), soloStage = $('standalone-empty-stage');
+    if (wsStage && soloStage) {
+      const inTerrain = isIntegrated();
+      wsStage.hidden = !inTerrain;
+      soloStage.hidden = inTerrain;
+    }
     /* the React island listens for this and portals the source-freshness
        banner (derivedFrom provenance, changed-source review) into
        #fc-source-banner — vanilla can't render it on its own */
@@ -2030,18 +2045,22 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       menu.hidden = !open;
       btn.setAttribute('aria-expanded', String(open));
     });
-    document.addEventListener('click', e => {
+    const onDocClick = e => {
       if (gen !== mountGen || !placeActive('flashcards')) return;
       if (!menu.hidden && !menu.contains(e.target) && e.target !== btn) menu.hidden = true;
       const rm = $('row-menu');
       if (rm && !rm.hidden && !rm.contains(e.target) && !e.target.closest('.dr-kebab')) { rm.hidden = true; rowMenuFor = null; }
-    });
+    };
+    document.addEventListener('click', onDocClick);
+    unsubs.push(() => document.removeEventListener('click', onDocClick));
     // row-menu is position:fixed — scrolling would detach it from its row, so close instead
-    window.addEventListener('scroll', () => {
+    const onWinScroll = () => {
       if (gen !== mountGen) return;
       const rm = $('row-menu');
       if (rm && !rm.hidden) { rm.hidden = true; rowMenuFor = null; }
-    }, true);
+    };
+    window.addEventListener('scroll', onWinScroll, true);
+    unsubs.push(() => window.removeEventListener('scroll', onWinScroll, true));
     $('menu-rename').addEventListener('click', () => {
       menu.hidden = true;
       promptModal('Rename deck', 'Deck title', deck().title, v => {
@@ -2251,11 +2270,13 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       saveStore(); resetSessions(); renderEditor(); renderLibrary(); renderMeta();
     });
   
-    window.addEventListener('resize', () => { if (gen === mountGen) positionTabInk(); });
+    const onResize = () => { if (gen === mountGen) positionTabInk(); };
+    window.addEventListener('resize', onResize);
+    unsubs.push(() => window.removeEventListener('resize', onResize));
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(positionTabInk);
   
     // global keys
-    document.addEventListener('keydown', e => {
+    const onKeydown = e => {
       if (gen !== mountGen || !placeActive('flashcards')) return;
       if (!els.veil.hidden) {
         if (e.key === 'Escape') closeModal();
@@ -2302,25 +2323,121 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         if ((k === 'Enter') && state.write.checked) { /* form submit handles */ }
         else if (k === 'ArrowRight' && state.write.checked) { $('write-skip').click(); }
       }
-    });
+    };
+    document.addEventListener('keydown', onKeydown);
+    unsubs.push(() => document.removeEventListener('keydown', onKeydown));
   }
   
   /* ---------------- boot ---------------- */
-  
+
+  /* Integrated empty state — wire the workspace creation panel once. The
+     standalone intro is replaced wholesale (it pitches link-sharing, which
+     doesn't apply inside the terrain); everything below is inert standalone
+     because the panel stays hidden there. */
+  function wireWorkspaceCreate() {
+    if (!isIntegrated()) return;
+    const titleEl = $('ws-deck-title'), courseEl = $('ws-deck-course'),
+      cardsEl = $('ws-deck-cards'), preview = $('ws-parse-preview'),
+      sel = $('ws-source-select'), pill = $('ws-active-course-pill'),
+      list = $('ws-course-list');
+    if (!titleEl || !cardsEl || !preview) return;
+    const it = (window as any).iterra;
+
+    const paintPill = (code) => {
+      if (!pill) return;
+      pill.textContent = code ? `course: ${code}` : '';
+      pill.hidden = !code;
+    };
+    try { paintPill(it?.context?.get?.().course || ''); } catch {}
+    try {
+      // keep the unsubscribe — remounts rebuild the DOM and the callback
+      // would otherwise keep firing on a detached pill
+      const un = it?.context?.subscribe?.(c => paintPill(c?.course || ''));
+      if (typeof un === 'function') unsubs.push(un);
+    } catch {}
+
+    // course datalist — the canonical course entities
+    try {
+      it?.courses?.list?.().then(cs => {
+        if (!list) return;
+        list.innerHTML = (cs || [])
+          .map(c => `<option value="${esc((c.data && c.data.code) || c.course || c.id)}"></option>`)
+          .join('');
+      }).catch(() => {});
+    } catch {}
+
+    // linked-material source picker — notes, study sheets, problems. Picking
+    // one pre-fills title/course and records a derived-from link at create.
+    try {
+      it?.store?.list?.({ limit: 60 }).then(ents => {
+        if (!sel) return;
+        const PLACE_LABEL = { ink: 'Ink', margin: 'Margin', proof: 'Proof', syllabus: 'Planning' };
+        const srcs = (ents || []).filter(e =>
+          e && e.title && e.app !== 'flashcards' && ['note', 'material', 'problem', 'sheet'].includes(e.type));
+        sel.innerHTML = '<option value="">Write or paste cards manually…</option>' + srcs.map(e =>
+          `<option value="${esc(`${e.app}:${e.type}:${e.id}`)}" data-course="${esc(e.course || '')}">${esc(PLACE_LABEL[e.app] || e.app)} · ${esc(e.title)}</option>`
+        ).join('');
+        sel.addEventListener('change', () => {
+          const opt = sel.selectedOptions && sel.selectedOptions[0];
+          if (!opt || !opt.value) return;
+          const c = opt.dataset.course || '';
+          if (c && !courseEl.value) courseEl.value = c;
+          if (!titleEl.value) titleEl.value = opt.textContent.split('·').slice(1).join('·').trim();
+        });
+      }).catch(() => {});
+    } catch {}
+
+    cardsEl.addEventListener('input', () => {
+      const n = parsePasted(cardsEl.value).length;
+      preview.textContent = n
+        ? `${n} valid card${n === 1 ? '' : 's'} detected`
+        : 'Type or paste cards above to preview count';
+    });
+
+    $('ws-create-btn')?.addEventListener('click', () => {
+      void (async () => {
+        const cards = parsePasted(cardsEl.value);
+        if (!cards.length) {
+          preview.textContent = 'Nothing to create — write at least one term : answer line.';
+          return;
+        }
+        const d = createDeck(titleEl.value.trim() || 'Untitled deck', cards.map(c => newCard(c.q, c.a, c.ex)));
+        const code = courseEl.value.trim();
+        if (code) {
+          d.course = code;
+          try { const c = await it.courses.resolve(code); d.courseId = c?.key || undefined; } catch {}
+        }
+        saveStore(); selectDeck(d.id);
+        const srcRef = sel && sel.value;
+        if (srcRef && it?.links?.add) {
+          try { await it.links.add(`flashcards:deck:${d.id}`, srcRef, 'derivedFrom', { course: code || undefined }); } catch {}
+        }
+        feedIt(`deck made: ${d.title}`, `/apps/flashcards/?deck=${encodeURIComponent(d.id)}`, d.course);
+        toast(`Created “${d.title}” — ${d.cards.length} cards`);
+      })();
+    });
+    $('ws-import-file-btn')?.addEventListener('click', openImportModal);
+    $('ws-backup-btn')?.addEventListener('click', openBackupModal);
+  }
+
   function boot(query: string) {
     loadStore();
   
     // theme — integrated places follow the terrain's single switch
     if (isIntegrated()) {
       applyTheme(terrainIsDark());
-      onTerrainTheme(t => { if (gen === mountGen) applyTheme(t === 'graphite'); });
+      unsubs.push(onTerrainTheme(t => { if (gen === mountGen) applyTheme(t === 'graphite'); }));
     } else {
       const stored = (() => { try { return localStorage.getItem(THEME_KEY) || localStorage.getItem('theme'); } catch { return null; } })();
       const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
       applyTheme(stored ? stored === 'dark' : prefersDark);
     }
     applyMotionPref(motionPref);
-    if (osReduceMQ.addEventListener) osReduceMQ.addEventListener('change', () => { if (gen === mountGen) applyMotionPref(motionPref); });
+    if (osReduceMQ.addEventListener) {
+      const onReduceChange = () => { if (gen === mountGen) applyMotionPref(motionPref); };
+      osReduceMQ.addEventListener('change', onReduceChange);
+      unsubs.push(() => osReduceMQ.removeEventListener('change', onReduceChange));
+    }
   
     // migrate: old single-file app stored decks as 'flashcard_deck_*'.
     // Each key is migrated once — deleting the imported deck must not resurrect it.
@@ -2368,6 +2485,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     }
   
     wireEvents();
+    wireWorkspaceCreate();
   
     const hadUrl = parseUrlDeck(query);
     if (!hadUrl) {

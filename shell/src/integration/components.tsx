@@ -36,6 +36,17 @@ import {
   useWorkflowContext,
 } from './context';
 
+function useEscapeClose(open: boolean, onClose: () => void) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+}
+
 function navigateTo(url: string, onGo?: (u: string) => void) {
   if (onGo) {
     onGo(url);
@@ -98,6 +109,8 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdResult, setCreatedResult] = useState<{ deckId: string; deckRef: string; url: string; count: number } | null>(null);
+
+  useEscapeClose(open, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -207,23 +220,23 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
       aria-label="Create flashcards deck from selection"
     >
       <div
-        className="w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-lg border border-stone-300 bg-[#faf8f3] p-5 text-stone-900 shadow-xl"
+        className="w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-lg border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 text-[var(--color-ink)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-stone-200 pb-3">
+        <div className="flex items-start justify-between gap-3 border-b border-[var(--color-line)] pb-3">
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-stone-500">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-[var(--color-faint)]">
               {sourceRef.app} → flashcards · provenance preserved
             </div>
             <h3 className="text-lg font-semibold">Create &amp; Review Deck from Note</h3>
-            <p className="text-xs text-stone-600 mt-0.5">
+            <p className="text-xs text-[var(--color-mute)] mt-0.5">
               Source: <span className="font-medium">{sourceTitle || sourceRef.id}</span> — preview and edit cards before saving.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded px-2 py-1 text-sm text-stone-500 hover:bg-stone-200"
+            className="rounded px-2 py-1 text-sm text-[var(--color-faint)] hover:bg-[var(--color-sheet-2)]"
             aria-label="Close"
           >
             ✕
@@ -232,11 +245,11 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
 
         {createdResult ? (
           <div className="py-6 space-y-4">
-            <div className="rounded-md border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
+            <div className="rounded-md border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] p-4 text-sm text-[var(--color-ink)]">
               <div className="font-semibold">
                 ✓ Saved “{deckTitle}” ({createdResult.count} card{createdResult.count === 1 ? '' : 's'})
               </div>
-              <div className="mt-1 text-xs text-emerald-800">
+              <div className="mt-1 text-xs text-[var(--color-accent)]">
                 Linked to source <span className="font-mono">{sourceRef.app}:{sourceRef.type}:{sourceRef.id}</span>
                 {course ? ` · Course: ${course}` : ''}
                 {topic ? ` · Topic: ${topic}` : ''}.
@@ -246,7 +259,7 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-100"
+                className="rounded border border-[var(--color-line)] px-3 py-1.5 text-xs font-medium text-[var(--color-mute)] hover:bg-[var(--color-sheet-hover)]"
               >
                 Stay here
               </button>
@@ -256,7 +269,7 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
                   onClose();
                   navigateTo(createdResult.url);
                 }}
-                className="rounded bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-stone-800"
+                className="rounded bg-[var(--color-accent)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-2)]"
               >
                 Open deck in Flashcards →
               </button>
@@ -266,17 +279,17 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
           <form onSubmit={handleSave} className="mt-4 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <label className="block sm:col-span-1">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Deck title</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Deck title</span>
                 <input
                   type="text"
                   value={deckTitle}
                   onChange={(e) => setDeckTitle(e.target.value)}
-                  className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                   required
                 />
               </label>
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">
                   Course (inherited / editable)
                 </span>
                 <div className="flex gap-1">
@@ -289,7 +302,7 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
                         const hit = courses.find((c) => c.code === code);
                         setCourseId(hit?.courseId || '');
                       }}
-                      className="rounded border border-stone-300 bg-white px-2 py-1.5 text-xs"
+                      className="rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1.5 text-xs"
                       aria-label="Select course"
                     >
                       <option value="">None / Custom</option>
@@ -309,25 +322,25 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
                       setCourseId(hit?.courseId || '');
                     }}
                     placeholder="e.g. MTH"
-                    className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                    className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                   />
                 </div>
               </label>
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Topic</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Topic</span>
                 <input
                   type="text"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="e.g. Integration by parts"
-                  className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                 />
               </label>
             </div>
 
             {selectedText && (
-              <div className="rounded border border-stone-200 bg-stone-100/80 px-3 py-2 text-[11px] text-stone-600">
-                <span className="font-mono uppercase text-[10px] text-stone-500 block mb-0.5">
+              <div className="rounded border border-[var(--color-line)] bg-[var(--color-sheet-2)] px-3 py-2 text-[11px] text-[var(--color-mute)]">
+                <span className="font-mono uppercase text-[10px] text-[var(--color-faint)] block mb-0.5">
                   Source Excerpt Snapshot
                 </span>
                 <div className="line-clamp-2 italic">{selectedText}</div>
@@ -336,13 +349,13 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-stone-800">
+                <span className="text-xs font-semibold text-[var(--color-ink)]">
                   Cards ({cards.length}) — edit or add manually
                 </span>
                 <button
                   type="button"
                   onClick={addBlankCard}
-                  className="rounded border border-stone-300 bg-white px-2.5 py-1 text-xs font-medium text-stone-700 hover:bg-stone-100"
+                  className="rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1 text-xs font-medium text-[var(--color-mute)] hover:bg-[var(--color-sheet-hover)]"
                 >
                   + Add card
                 </button>
@@ -351,7 +364,7 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
                 {cards.map((c, idx) => (
                   <div
                     key={c.id || idx}
-                    className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-start rounded border border-stone-200 bg-white p-2.5"
+                    className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-start rounded border border-[var(--color-line)] bg-[var(--color-sheet)] p-2.5"
                   >
                     <div className="sm:col-span-5">
                       <input
@@ -360,7 +373,7 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
                         onChange={(e) => updateCard(idx, { q: e.target.value })}
                         placeholder="Front (question / term)"
                         aria-label={`Card ${idx + 1} front`}
-                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs"
+                        className="w-full rounded border border-[var(--color-line)] px-2 py-1 text-xs"
                       />
                     </div>
                     <div className="sm:col-span-5">
@@ -370,14 +383,14 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
                         onChange={(e) => updateCard(idx, { a: e.target.value })}
                         placeholder="Back (answer / definition)"
                         aria-label={`Card ${idx + 1} back`}
-                        className="w-full rounded border border-stone-300 px-2 py-1 text-xs"
+                        className="w-full rounded border border-[var(--color-line)] px-2 py-1 text-xs"
                       />
                     </div>
                     <div className="sm:col-span-2 flex items-center justify-end gap-1">
                       <button
                         type="button"
                         onClick={() => removeCard(idx)}
-                        className="rounded px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
+                        className="rounded px-2 py-1 text-xs text-[var(--color-bad)] hover:bg-[var(--color-bad-soft)]"
                         title="Remove card"
                       >
                         Remove
@@ -389,23 +402,23 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
             </div>
 
             {error && (
-              <div className="rounded border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-800" role="alert">
+              <div className="rounded border border-[var(--color-bad)]/40 bg-[var(--color-bad-soft)] px-3 py-2 text-xs text-[var(--color-bad)]" role="alert">
                 {error}
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-2 border-t border-stone-200 pt-3">
+            <div className="flex items-center justify-end gap-2 border-t border-[var(--color-line)] pt-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded border border-stone-300 px-3 py-1.5 text-xs font-medium text-stone-700 hover:bg-stone-100"
+                className="rounded border border-[var(--color-line)] px-3 py-1.5 text-xs font-medium text-[var(--color-mute)] hover:bg-[var(--color-sheet-hover)]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded bg-stone-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-stone-800 disabled:opacity-50"
+                className="rounded bg-[var(--color-accent)] px-4 py-1.5 text-xs font-medium text-[var(--color-accent-fg)] hover:bg-[var(--color-accent-2)] disabled:opacity-50"
               >
                 {saving ? 'Saving deck…' : `Save Deck (${cards.filter((c) => c.q.trim() && c.a.trim()).length} cards)`}
               </button>
@@ -452,6 +465,8 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
+
+  useEscapeClose(open, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -511,28 +526,28 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
       aria-label="Review and attach to Ink note"
     >
       <div
-        className="w-full max-w-xl rounded-lg border border-stone-300 bg-[#faf8f3] p-5 text-stone-900 shadow-xl"
+        className="w-full max-w-xl rounded-lg border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 text-[var(--color-ink)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between border-b border-stone-200 pb-3">
+        <div className="flex items-start justify-between border-b border-[var(--color-line)] pb-3">
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-stone-500">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-[var(--color-faint)]">
               margin → ink · review before saving
             </div>
             <h3 className="text-lg font-semibold">Attach Source Material to Ink</h3>
           </div>
-          <button type="button" onClick={onClose} className="rounded px-2 py-1 text-sm text-stone-500 hover:bg-stone-200">
+          <button type="button" onClick={onClose} className="rounded px-2 py-1 text-sm text-[var(--color-faint)] hover:bg-[var(--color-sheet-2)]">
             ✕
           </button>
         </div>
 
         {savedUrl ? (
           <div className="py-5 space-y-4">
-            <div className="rounded border border-emerald-300 bg-emerald-50 p-3.5 text-xs text-emerald-900">
+            <div className="rounded border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] p-3.5 text-xs text-[var(--color-ink)]">
               ✓ Saved to Ink with source provenance linked to <span className="font-mono">{sourceTitle}</span>.
             </div>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={onClose} className="rounded border border-stone-300 px-3 py-1.5 text-xs">
+              <button type="button" onClick={onClose} className="rounded border border-[var(--color-line)] px-3 py-1.5 text-xs">
                 Close
               </button>
               <button
@@ -541,7 +556,7 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
                   onClose();
                   navigateTo(savedUrl);
                 }}
-                className="rounded bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-white"
+                className="rounded bg-[var(--color-accent)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-accent-fg)]"
               >
                 Open in Ink →
               </button>
@@ -551,24 +566,24 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
           <form onSubmit={handleSave} className="mt-4 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Ink Page Title</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Ink Page Title</span>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                   required
                 />
               </label>
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Course</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Course</span>
                 <input
                   type="text"
                   list="margin-ink-courses"
                   value={course}
                   onChange={(e) => setCourse(e.target.value)}
                   placeholder="e.g. MTH"
-                  className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                 />
                 <datalist id="margin-ink-courses">
                   {courses.map((c) => (
@@ -579,42 +594,42 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
                 </datalist>
               </label>
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Topic</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Topic</span>
                 <input
                   type="text"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="Optional topic"
-                  className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                 />
               </label>
             </div>
 
             <label className="block">
-              <span className="block text-[11px] font-medium text-stone-700 mb-1">
+              <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">
                 Review &amp; edit content before saving to Ink
               </span>
               <textarea
                 rows={7}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full rounded border border-stone-300 bg-white p-2.5 text-xs font-serif"
+                className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] p-2.5 text-xs font-[var(--font-place)]"
                 required
               />
             </label>
 
             {error && (
-              <div className="rounded border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-800">{error}</div>
+              <div className="rounded border border-[var(--color-bad)]/40 bg-[var(--color-bad-soft)] px-3 py-2 text-xs text-[var(--color-bad)]">{error}</div>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={onClose} className="rounded border border-stone-300 px-3 py-1.5 text-xs">
+              <button type="button" onClick={onClose} className="rounded border border-[var(--color-line)] px-3 py-1.5 text-xs">
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded bg-stone-900 px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                className="rounded bg-[var(--color-accent)] px-4 py-1.5 text-xs font-medium text-[var(--color-accent-fg)] disabled:opacity-50"
               >
                 {saving ? 'Saving…' : 'Confirm & Save to Ink'}
               </button>
@@ -669,6 +684,8 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scheduled, setScheduled] = useState<{ blockId: string; blockRef: string; url: string; course: string } | null>(null);
+
+  useEscapeClose(open, onClose);
 
   useEffect(() => {
     if (!open) return;
@@ -757,27 +774,27 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
       aria-label="Schedule review block in Syllabus"
     >
       <div
-        className="w-full max-w-lg rounded-lg border border-stone-300 bg-[#faf8f3] p-5 text-stone-900 shadow-xl"
+        className="w-full max-w-lg rounded-lg border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 text-[var(--color-ink)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between border-b border-stone-200 pb-3">
+        <div className="flex items-start justify-between border-b border-[var(--color-line)] pb-3">
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-stone-500">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-[var(--color-faint)]">
               {materialRef.app} → syllabus · scheduledFor relationship
             </div>
             <h3 className="text-lg font-semibold">Schedule Review Block</h3>
-            <p className="text-xs text-stone-600 mt-0.5">
+            <p className="text-xs text-[var(--color-mute)] mt-0.5">
               Material: <span className="font-medium">{materialTitle}</span>
             </p>
           </div>
-          <button type="button" onClick={onClose} className="rounded px-2 py-1 text-sm text-stone-500 hover:bg-stone-200">
+          <button type="button" onClick={onClose} className="rounded px-2 py-1 text-sm text-[var(--color-faint)] hover:bg-[var(--color-sheet-2)]">
             ✕
           </button>
         </div>
 
         {scheduled ? (
           <div className="py-5 space-y-4">
-            <div className="rounded border border-emerald-300 bg-emerald-50 p-3.5 text-xs text-emerald-900">
+            <div className="rounded border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] p-3.5 text-xs text-[var(--color-ink)]">
               <div className="font-semibold">✓ Review block scheduled on Syllabus ({plannedDate} at {plannedStart})</div>
               <div className="mt-1">
                 Attached to <span className="font-mono">{materialRef.app}:{materialRef.type}:{materialRef.id}</span> under course{' '}
@@ -785,7 +802,7 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <button type="button" onClick={onClose} className="rounded border border-stone-300 px-3 py-1.5 text-xs">
+              <button type="button" onClick={onClose} className="rounded border border-[var(--color-line)] px-3 py-1.5 text-xs">
                 Done
               </button>
               <button
@@ -794,7 +811,7 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
                   onClose();
                   navigateTo(scheduled.url);
                 }}
-                className="rounded bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-white"
+                className="rounded bg-[var(--color-accent)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-accent-fg)]"
               >
                 Open block in Syllabus →
               </button>
@@ -803,19 +820,19 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
         ) : (
           <form onSubmit={handleSubmit} className="mt-4 space-y-3">
             <label className="block">
-              <span className="block text-[11px] font-medium text-stone-700 mb-1">Block label</span>
+              <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Block label</span>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                 required
               />
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">
                   Course {inheritedCourse ? '(inherited — editable)' : '(editable)'}
                 </span>
                 <div className="flex gap-1">
@@ -828,7 +845,7 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
                         const hit = courses.find((c) => c.code === code);
                         setCourseId(hit?.courseId || '');
                       }}
-                      className="rounded border border-stone-300 bg-white px-2 py-1.5 text-xs"
+                      className="rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1.5 text-xs"
                     >
                       <option value="">Custom / General</option>
                       {courses.map((c) => (
@@ -847,46 +864,46 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
                       setCourseId(hit?.courseId || '');
                     }}
                     placeholder="e.g. MTH"
-                    className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                    className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                   />
                 </div>
               </label>
 
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Topic</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Topic</span>
                 <input
                   type="text"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="Optional topic"
-                  className="w-full rounded border border-stone-300 bg-white px-2.5 py-1.5 text-xs"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
                 />
               </label>
             </div>
 
             <div className="grid grid-cols-3 gap-2.5">
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Date</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Date</span>
                 <input
                   type="date"
                   value={plannedDate}
                   onChange={(e) => setPlannedDate(e.target.value)}
-                  className="w-full rounded border border-stone-300 bg-white px-2 py-1.5 text-xs font-mono"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1.5 text-xs font-mono"
                   required
                 />
               </label>
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Start time</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Start time</span>
                 <input
                   type="time"
                   value={plannedStart}
                   onChange={(e) => setPlannedStart(e.target.value)}
-                  className="w-full rounded border border-stone-300 bg-white px-2 py-1.5 text-xs font-mono"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1.5 text-xs font-mono"
                   required
                 />
               </label>
               <label className="block">
-                <span className="block text-[11px] font-medium text-stone-700 mb-1">Duration (min)</span>
+                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Duration (min)</span>
                 <input
                   type="number"
                   min={5}
@@ -894,24 +911,24 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
                   step={5}
                   value={plannedMinutes}
                   onChange={(e) => setPlannedMinutes(Number(e.target.value) || 25)}
-                  className="w-full rounded border border-stone-300 bg-white px-2 py-1.5 text-xs font-mono"
+                  className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1.5 text-xs font-mono"
                   required
                 />
               </label>
             </div>
 
             {error && (
-              <div className="rounded border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-800">{error}</div>
+              <div className="rounded border border-[var(--color-bad)]/40 bg-[var(--color-bad-soft)] px-3 py-2 text-xs text-[var(--color-bad)]">{error}</div>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={onClose} className="rounded border border-stone-300 px-3 py-1.5 text-xs">
+              <button type="button" onClick={onClose} className="rounded border border-[var(--color-line)] px-3 py-1.5 text-xs">
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded bg-stone-900 px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                className="rounded bg-[var(--color-accent)] px-4 py-1.5 text-xs font-medium text-[var(--color-accent-fg)] disabled:opacity-50"
               >
                 {saving ? 'Scheduling…' : 'Schedule Block'}
               </button>
@@ -936,6 +953,8 @@ export const SourceChangedBanner: React.FC<{
   const [selectedCards, setSelectedCards] = useState<CandidateCard[]>([]);
   const [busy, setBusy] = useState(false);
 
+  useEscapeClose(reviewing !== null, () => setReviewing(null));
+
   const refresh = () => {
     if (!deckId) {
       setReports([]);
@@ -959,7 +978,7 @@ export const SourceChangedBanner: React.FC<{
       {fresh.map((r) => (
         <div
           key={r.relationshipKey}
-          className="flex flex-wrap items-center justify-between gap-2 rounded border border-stone-300/70 bg-stone-100/70 px-3 py-1.5 text-xs text-stone-700"
+          className="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--color-line)] bg-[var(--color-sheet-2)] px-3 py-1.5 text-xs text-[var(--color-mute)]"
         >
           <span>
             Derived from <span className="font-semibold">{r.sourceTitle}</span>
@@ -967,7 +986,7 @@ export const SourceChangedBanner: React.FC<{
           <button
             type="button"
             onClick={() => navigateTo(r.sourceUrl)}
-            className="font-mono text-[11px] underline hover:text-stone-950"
+            className="font-mono text-[11px] underline hover:text-[var(--color-ink)]"
           >
             Open source →
           </button>
@@ -977,7 +996,7 @@ export const SourceChangedBanner: React.FC<{
       {missing.map((r) => (
         <div
           key={r.relationshipKey}
-          className="flex flex-wrap items-center justify-between gap-2 rounded border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs text-amber-900"
+          className="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--color-warn)]/40 bg-[var(--color-warn-soft)] px-3 py-1.5 text-xs text-[var(--color-warn)]"
         >
           <span>
             Source note <span className="font-semibold">“{r.sourceTitle}”</span> is{' '}
@@ -993,7 +1012,7 @@ export const SourceChangedBanner: React.FC<{
                   refresh();
                 }
               }}
-              className="rounded border border-amber-400 bg-white px-2 py-0.5 text-[11px] font-medium text-amber-900"
+              className="rounded border border-[var(--color-warn)]/60 bg-[var(--color-sheet)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-warn)]"
             >
               Restore source note
             </button>
@@ -1004,13 +1023,13 @@ export const SourceChangedBanner: React.FC<{
       {changed.map((r) => (
         <div
           key={r.relationshipKey}
-          className="flex flex-wrap items-center justify-between gap-2 rounded border border-amber-400 bg-amber-50/90 px-3 py-2 text-xs text-amber-950"
+          className="flex flex-wrap items-center justify-between gap-2 rounded border border-[var(--color-warn)]/60 bg-[var(--color-warn-soft)] px-3 py-2 text-xs text-[var(--color-ink)]"
           role="status"
         >
           <div>
             <span className="font-semibold">Source note updated:</span> “{r.sourceTitle}” has changed since this deck was derived.
             {r.userEditedCardCount > 0 && (
-              <span className="ml-1 text-amber-800">
+              <span className="ml-1 text-[var(--color-warn)]">
                 ({r.userEditedCardCount} user-edited card{r.userEditedCardCount === 1 ? '' : 's'} protected from overwrite)
               </span>
             )}
@@ -1022,7 +1041,7 @@ export const SourceChangedBanner: React.FC<{
                 setReviewing(r);
                 setSelectedCards(r.proposedNewCards);
               }}
-              className="rounded bg-amber-800 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-amber-900"
+              className="rounded bg-[var(--color-warn)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-accent-fg)] hover:opacity-90"
             >
               Review update ({r.proposedNewCards.length} new)
             </button>
@@ -1035,7 +1054,7 @@ export const SourceChangedBanner: React.FC<{
                 setBusy(false);
                 refresh();
               }}
-              className="rounded border border-amber-400 bg-white px-2.5 py-1 text-[11px] text-amber-900 hover:bg-amber-100"
+              className="rounded border border-[var(--color-warn)]/60 bg-[var(--color-sheet)] px-2.5 py-1 text-[11px] text-[var(--color-warn)] hover:bg-[var(--color-warn-soft)]"
             >
               Keep deck as-is
             </button>
@@ -1052,18 +1071,18 @@ export const SourceChangedBanner: React.FC<{
           aria-label="Review source note changes"
         >
           <div
-            className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-lg border border-stone-300 bg-[#faf8f3] p-5 text-stone-900 shadow-xl"
+            className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-lg border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 text-[var(--color-ink)] shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h4 className="text-base font-semibold">Review Changes from “{reviewing.sourceTitle}”</h4>
-            <p className="mt-1 text-xs text-stone-600">
+            <p className="mt-1 text-xs text-[var(--color-mute)]">
               Your existing {reviewing.totalCardCount} card(s) (including {reviewing.userEditedCardCount} user-edited card(s)) will NOT be overwritten.
             </p>
 
             {reviewing.addedExcerpts.length > 0 && (
-              <div className="mt-3 rounded border border-emerald-200 bg-emerald-50/70 p-2.5 text-xs">
-                <div className="font-mono text-[10px] uppercase text-emerald-800 mb-1">Added in source note</div>
-                <ul className="list-disc pl-4 space-y-0.5 text-emerald-950">
+              <div className="mt-3 rounded border border-[var(--color-line)] bg-[var(--color-sheet-2)] p-2.5 text-xs">
+                <div className="font-mono text-[10px] uppercase text-[var(--color-accent)] mb-1">Added in source note</div>
+                <ul className="list-disc pl-4 space-y-0.5 text-[var(--color-mute)]">
                   {reviewing.addedExcerpts.slice(0, 6).map((line, i) => (
                     <li key={i}>{line}</li>
                   ))}
@@ -1076,11 +1095,11 @@ export const SourceChangedBanner: React.FC<{
                 Candidate cards from new source content ({selectedCards.length})
               </div>
               {selectedCards.length === 0 ? (
-                <p className="text-xs text-stone-500 italic">No additional cards proposed.</p>
+                <p className="text-xs text-[var(--color-faint)] italic">No additional cards proposed.</p>
               ) : (
                 <div className="space-y-2 max-h-52 overflow-y-auto">
                   {selectedCards.map((c, i) => (
-                    <div key={i} className="grid grid-cols-12 gap-2 rounded border border-stone-200 bg-white p-2">
+                    <div key={i} className="grid grid-cols-12 gap-2 rounded border border-[var(--color-line)] bg-[var(--color-sheet)] p-2">
                       <input
                         type="text"
                         value={c.q}
@@ -1089,7 +1108,7 @@ export const SourceChangedBanner: React.FC<{
                             prev.map((x, idx) => (idx === i ? { ...x, q: e.target.value } : x)),
                           )
                         }
-                        className="col-span-5 rounded border border-stone-300 px-2 py-1 text-xs"
+                        className="col-span-5 rounded border border-[var(--color-line)] px-2 py-1 text-xs"
                       />
                       <input
                         type="text"
@@ -1099,12 +1118,12 @@ export const SourceChangedBanner: React.FC<{
                             prev.map((x, idx) => (idx === i ? { ...x, a: e.target.value } : x)),
                           )
                         }
-                        className="col-span-5 rounded border border-stone-300 px-2 py-1 text-xs"
+                        className="col-span-5 rounded border border-[var(--color-line)] px-2 py-1 text-xs"
                       />
                       <button
                         type="button"
                         onClick={() => setSelectedCards((prev) => prev.filter((_, idx) => idx !== i))}
-                        className="col-span-2 text-xs text-rose-700 hover:underline"
+                        className="col-span-2 text-xs text-[var(--color-bad)] hover:underline"
                       >
                         Drop
                       </button>
@@ -1114,11 +1133,11 @@ export const SourceChangedBanner: React.FC<{
               )}
             </div>
 
-            <div className="mt-4 flex justify-end gap-2 border-t border-stone-200 pt-3">
+            <div className="mt-4 flex justify-end gap-2 border-t border-[var(--color-line)] pt-3">
               <button
                 type="button"
                 onClick={() => setReviewing(null)}
-                className="rounded border border-stone-300 px-3 py-1.5 text-xs"
+                className="rounded border border-[var(--color-line)] px-3 py-1.5 text-xs"
               >
                 Cancel
               </button>
@@ -1132,7 +1151,7 @@ export const SourceChangedBanner: React.FC<{
                   setReviewing(null);
                   refresh();
                 }}
-                className="rounded border border-stone-300 bg-white px-3 py-1.5 text-xs"
+                className="rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-3 py-1.5 text-xs"
               >
                 Acknowledge without adding cards
               </button>
@@ -1148,7 +1167,7 @@ export const SourceChangedBanner: React.FC<{
                     refresh();
                     onDeckUpdated?.();
                   }}
-                  className="rounded bg-stone-900 px-3.5 py-1.5 text-xs font-medium text-white"
+                  className="rounded bg-[var(--color-accent)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-accent-fg)]"
                 >
                   Append {selectedCards.length} card{selectedCards.length === 1 ? '' : 's'} to deck
                 </button>
@@ -1242,10 +1261,10 @@ export const WorkspaceChainView: React.FC<{
                     onClick={() => navigateTo(step.url, onGo)}
                     className={`group flex flex-col rounded-md border px-2.5 py-1.5 text-left transition-colors ${
                       step.status === 'missing' || step.status === 'deleted'
-                        ? 'border-rose-300 bg-rose-50/70 text-rose-900'
+                        ? 'border-[var(--color-bad)]/40 bg-[var(--color-bad-soft)] text-[var(--color-bad)]'
                         : step.status === 'trashed' || step.sourceChanged
-                          ? 'border-amber-300 bg-amber-50/70 text-amber-900'
-                          : 'border-atlas-300 bg-white hover:border-moss-500'
+                          ? 'border-[var(--color-warn)]/40 bg-[var(--color-warn-soft)] text-[var(--color-warn)]'
+                          : 'border-atlas-300 bg-[var(--color-sheet)] hover:border-moss-500'
                     }`}
                     title={`Open ${step.title} in ${step.app}`}
                   >

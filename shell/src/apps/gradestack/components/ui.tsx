@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 
 /* ── Icon ─────────────────────────────────────────────────── */
 export function Icon({ name, size = 20, fill = false, className = '' }: {
@@ -218,8 +219,12 @@ export function Modal({ onClose, title, subtitle, children, footer, wide }: {
     rootRef.current?.focus();
   }, []);
 
+  /* portaled to the place root — pages render inside a `relative`
+     scrollable <main>, where `absolute` would cover only the column and
+     could be scrolled out of view */
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <PlacePortal place="gradestack">
+    <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         className="absolute inset-0 bg-ink/50"
@@ -252,6 +257,7 @@ export function Modal({ onClose, title, subtitle, children, footer, wide }: {
         )}
       </motion.div>
     </div>
+    </PlacePortal>
   );
 }
 

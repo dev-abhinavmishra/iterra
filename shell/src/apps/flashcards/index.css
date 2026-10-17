@@ -1136,7 +1136,9 @@
 /* ---------- modals ---------- */
 
 .it-place-flashcards .modal-veil {
-  position: fixed;
+  /* frame-bound — .app is unpositioned, so this resolves against the
+     terrain frame (or the page box standalone) */
+  position: absolute;
   inset: 0;
   background: rgba(30, 28, 22, .45);
   display: flex;
@@ -1220,6 +1222,104 @@
   padding: 8px 10px;
   margin-top: 8px;
   min-height: 18px;
+}
+
+/* ---------- integrated workspace creation ----------
+   shown instead of .empty-state inside the terrain — a single filing
+   card: header block, ruled fields, dashed source box, action row */
+
+.it-place-flashcards .ws-create-panel {
+  max-width: 720px;
+  margin: 3vh auto 0;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--blue);
+  box-shadow: var(--shadow-card);
+  padding: 26px 28px 24px;
+}
+.it-place-flashcards .ws-create-panel[hidden] { display: none; }
+
+.it-place-flashcards .ws-create-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 16px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 16px;
+}
+.it-place-flashcards .ws-kicker {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 8px;
+}
+.it-place-flashcards .ws-title {
+  font-family: var(--font-card);
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 0 0 6px;
+}
+.it-place-flashcards .ws-sub {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  max-width: 52ch;
+  margin: 0;
+}
+.it-place-flashcards .ws-course-pill {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .04em;
+  color: var(--blue-deep);
+  background: var(--blue-ink-bg);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 4px 10px;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.it-place-flashcards[data-theme="dark"] .ws-course-pill { color: var(--blue); }
+.it-place-flashcards .ws-course-pill[hidden] { display: none; }
+
+.it-place-flashcards .ws-field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+/* labels are uppercase mono — grammar hints inside them stay readable
+   when the code font takes over from the tracking */
+.it-place-flashcards .ws-create-panel .field-label code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: .02em;
+  color: var(--ink-2);
+}
+
+.it-place-flashcards .ws-source-box {
+  border: 1px dashed var(--rule);
+  background: var(--paper-2);
+  padding: 0 14px 12px;
+  margin: 12px 0 2px;
+}
+.it-place-flashcards[data-theme="dark"] .ws-source-box { background: transparent; }
+
+.it-place-flashcards .ws-create-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
 }
 
 /* results modal */
@@ -1310,7 +1410,9 @@
 /* toast */
 .it-place-flashcards .toast {
   position: fixed;
-  bottom: 24px;
+  /* inside the terrain the shell's bottom tab bar owns the bottom edge —
+     the shared inset var lifts the toast clear of it (0 standalone) */
+  bottom: calc(24px + var(--iterra-bottom-inset, 0px));
   left: 50%;
   transform: translateX(-50%) translateY(8px);
   background: var(--ink);
@@ -1418,7 +1520,7 @@
 }
 
 /* confetti canvas — fixed over everything, inert */
-.it-place-flashcards .confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 300; }
+.it-place-flashcards .confetti-layer { position: absolute; inset: 0; pointer-events: none; z-index: 300; }
 
 @media (prefers-reduced-motion: reduce) {
   .it-place-flashcards:not([data-motion='on']) *, .it-place-flashcards:not([data-motion='on']) *::before, .it-place-flashcards:not([data-motion='on']) *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -1474,6 +1576,12 @@
   .it-place-flashcards .stage { padding: 18px 18px 48px; }
   .it-place-flashcards .card-face { padding: 40px 22px 30px; }
   .it-place-flashcards .card-face .corner-num { left: 22px; }
+  .it-place-flashcards .ws-create-panel { padding: 20px 18px; margin-top: 0; }
+}
+
+@media (max-width: 640px) {
+  .it-place-flashcards .ws-field-grid { grid-template-columns: 1fr; }
+  .it-place-flashcards .ws-course-pill { max-width: 100%; }
 }
 
 @media (max-width: 480px) {

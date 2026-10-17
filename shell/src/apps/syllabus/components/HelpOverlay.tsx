@@ -25,7 +25,7 @@ export function HelpOverlay({ onClose }: { onClose: () => void }) {
   }, []);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(var(--desk-rgb)/0.72)] p-4"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-[rgb(var(--desk-rgb)/0.72)] p-4"
       role="dialog"
       aria-modal="true"
       aria-label="Keyboard map"

@@ -8,6 +8,9 @@ interface FindReplaceProps {
     onChanged: () => void;
 }
 
+const reducedMotion = () =>
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const unwrapFindMarks = (root: HTMLElement) => {
     root.querySelectorAll('mark[data-find]').forEach(m => {
         const p = m.parentNode;
@@ -88,7 +91,7 @@ const FindReplace: React.FC<FindReplaceProps> = ({ open, onClose, editorEl, onCh
         const idx = total === 0 ? 0 : Math.min(preferredIndex, total - 1);
         setCurrent(idx);
         paint(idx);
-        if (total > 0) marks()[idx]?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        if (total > 0) marks()[idx]?.scrollIntoView({ block: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' });
         onChanged();
     };
 
@@ -118,7 +121,7 @@ const FindReplace: React.FC<FindReplaceProps> = ({ open, onClose, editorEl, onCh
         const next = (current + dir + count) % count;
         setCurrent(next);
         paint(next);
-        marks()[next]?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        marks()[next]?.scrollIntoView({ block: 'center', behavior: reducedMotion() ? 'auto' : 'smooth' });
     };
 
     const replaceOne = () => {

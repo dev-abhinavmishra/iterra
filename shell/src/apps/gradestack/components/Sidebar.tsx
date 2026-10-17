@@ -37,7 +37,7 @@ export function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   return (
     <>
       <div
-        className={`fixed inset-0 bg-ink/40 z-20 md:hidden transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className={`absolute inset-0 bg-ink/40 z-20 md:hidden transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
       <motion.nav

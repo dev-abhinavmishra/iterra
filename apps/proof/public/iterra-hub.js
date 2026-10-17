@@ -398,6 +398,7 @@
   var RELATIONSHIP_KINDS = {
     derivedFrom: 'derivedFrom',
     derived: 'derivedFrom',
+    'derived-from': 'derivedFrom',
     scheduledFor: 'scheduledFor',
     practicedIn: 'practicedIn',
     assessedBy: 'assessedBy',

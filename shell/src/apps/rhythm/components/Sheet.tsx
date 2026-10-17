@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 
 /** A register panel drawn up over the deck — the app's only modal. */
 export function Sheet({
@@ -37,8 +38,11 @@ export function Sheet({
     };
   }, []);
 
+  /* Portal to the place root: rendered inside `.deck` (position: relative)
+     an `absolute` sheet would cover only the card — dimming neither the
+     chassis chrome nor the frame and leaving header buttons clickable. */
   return (
-    <>
+    <PlacePortal place="rhythm">
       <div className="sheet-backdrop" onClick={onClose} aria-hidden="true" />
       <div className="sheet-modal" role="dialog" aria-modal="true" aria-label={title}>
         <div
@@ -59,6 +63,6 @@ export function Sheet({
           {children}
         </div>
       </div>
-    </>
+    </PlacePortal>
   );
 }

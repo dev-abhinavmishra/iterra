@@ -19,7 +19,7 @@ const BulkBar: React.FC<BulkBarProps> = ({ count, allPinned, onPin, onExport, on
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.16, ease: 'easeOut' }}
-                className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40"
+                className="fixed bottom-[calc(1.25rem+var(--iterra-bottom-inset,0px))] left-1/2 -translate-x-1/2 z-40"
             >
                 <div className="flex items-center gap-1 bg-card border border-line-2 rounded-[var(--r-lg)] shadow-pop pl-4 pr-2 py-2">
                     <span className="font-mono text-xs text-ink-2 pr-2">

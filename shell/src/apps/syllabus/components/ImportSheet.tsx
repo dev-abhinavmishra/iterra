@@ -4,6 +4,7 @@ import { Field, FInput, FSelect } from './Field';
 import { parseImportPayload, type ImportPayload, type ImportRow } from '../lib/import';
 import { cn, fmtMinutes, dueDateISO, isoAtTime } from '../lib/utils';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 import type { CommitmentType } from '../lib/types';
 import { FileDown, X } from 'lucide-react';
 
@@ -120,8 +121,12 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
     setFiled(checked.length);
   };
 
+  /* portaled to the place root — SemesterView renders this inside `.sheet`
+     (position: relative) and the scrollable <main>, where an inline overlay
+     would cover only the folio page and drift with the scroll offset */
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/45 p-0 sm:p-6" role="dialog" aria-modal="true" aria-label="Import commitments">
+    <PlacePortal place="syllabus">
+    <div className="absolute inset-0 z-50 flex items-end sm:items-center justify-center bg-black/45 p-0 sm:p-6" role="dialog" aria-modal="true" aria-label="Import commitments">
       <div
         ref={ref}
         tabIndex={-1}
@@ -251,5 +256,6 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
         )}
       </div>
     </div>
+    </PlacePortal>
   );
 }

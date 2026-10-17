@@ -12,7 +12,6 @@ import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import Typography from '@tiptap/extension-typography';
 import Highlight from '@tiptap/extension-highlight';
-import Underline from '@tiptap/extension-underline';
 import clsx from 'clsx';
 import {
   Bold, Italic, Strikethrough, Code, List, ListOrdered, Quote,
@@ -349,7 +348,6 @@ export const RichEditor: React.FC<RichEditorProps> = ({
       }),
       Typography,
       Highlight.configure({ multicolor: false }),
-      Underline,
       Placeholder.configure({ placeholder }),
       CharacterCount,
       WikiLinks,

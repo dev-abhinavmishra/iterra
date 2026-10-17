@@ -127,6 +127,7 @@ export function ObjectRow({
   primaryActionLabel,
   onPrimaryAction,
   compact = false,
+  contextCourse,
 }: {
   item: WorkspaceObject;
   selected?: boolean;
@@ -137,6 +138,9 @@ export function ObjectRow({
   primaryActionLabel?: string;
   onPrimaryAction?: (item: WorkspaceObject) => void;
   compact?: boolean;
+  /* course code already implied by the surrounding page — suppresses the
+     redundant per-row course badge inside its own workspace */
+  contextCourse?: string;
 }) {
   const place = PLACE_MAP[item.app];
   const moduleLabel = place ? place.label : item.app;
@@ -264,7 +268,7 @@ export function ObjectRow({
 
       {/* Course & Topic Badges */}
       <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-        {item.course && (
+        {item.course && item.course.toLowerCase() !== (contextCourse || '').toLowerCase() && (
           <Badge
             tone="accent"
             title={`Open ${item.course} course workspace`}

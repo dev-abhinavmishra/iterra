@@ -117,9 +117,13 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
 
   return (
     <MotionConfig reducedMotion={settings.motion === 'reduced' ? 'always' : 'never'}>
-    <div className="it-place-timer h-full flex flex-col wall-tex text-ink font-body overflow-x-hidden overflow-y-auto" data-theme="day" data-motion="full">
+    <div className="it-place-timer h-full flex flex-col wall-tex text-ink font-body overflow-hidden" data-theme="day" data-motion="full">
       {!booted && <BootSequence onDone={() => setBooted(true)} />}
 
+      {/* the place root clips; scrolling lives in this inner column — overlays
+          portaled to .it-place-timer (PlacePortal) are frame-bound, so a wheel
+          scroll can never slide a sheet or veil away */}
+      <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
       {/* ---------- header ---------- */}
       <AnimatePresence>
         {!focusMode && (
@@ -209,7 +213,7 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 90, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 220, damping: 26, delay: 0.05 }}
-            className="fixed bottom-5 left-0 right-0 z-[100] flex justify-center px-4"
+            className="fixed bottom-[calc(1.25rem+var(--iterra-bottom-inset,0px))] left-0 right-0 z-[100] flex justify-center px-4"
           >
             <div className="board board-screws !rounded-2xl px-2 py-2 flex items-center gap-0.5">
               {NAV.filter(item => !isIntegrated() || item.id !== 'settings').map((item) => {
@@ -250,6 +254,7 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
           </motion.nav>
         )}
       </AnimatePresence>
+      </div>
     </div>
     </MotionConfig>
   );

@@ -84,7 +84,7 @@ html[data-theme="graphite"] {
   --color-line-2:      #434c5b;
   --color-ink:         #e8ecf2;
   --color-mute:        #9da6b5;
-  --color-faint:       #7b8494;
+  --color-faint:       #8b94a4;  /* was #7b8494 — measured 4.34:1 on sheet, below AA */
   --color-accent:      #58a07c;
   --color-accent-2:    #6bb38f;
   --color-accent-fg:   #101418;
@@ -344,6 +344,15 @@ body {
 .anim-tick { display: inline-block; animation: iterra-tick 150ms cubic-bezier(0.3, 0.7, 0.4, 1) both; }
 
 @media (prefers-reduced-motion: reduce) {
+  /* blanket: every transition/animation collapses to ~instant; state still
+     changes, motion doesn't — covers Tailwind transition-* utilities the
+     per-class list below can't enumerate */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
   .place-card, .live-dot, .anim-fade, .anim-rise, .anim-stir, .anim-card, .anim-pop, .anim-tick, .frame-fade {
     animation: none !important;
     transition: none !important;
@@ -353,6 +362,24 @@ body {
 
 .today-rail::-webkit-scrollbar { width: 6px; height: 6px; }
 .today-rail::-webkit-scrollbar-thumb { background: var(--color-line-2); border-radius: 3px; }
+
+/* Horizontal strips (tab rows etc.) — keep overflow scrolling for narrow
+   widths but never show a scrollbar; a visible bar steals vertical space
+   and reads as a bug when the row is only a few px over. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
+/* Bottom inset for app-level fixed chrome — below lg the shell renders a
+   compact bottom nav, so places' fixed bottom-* elements must clear it.
+   Zero at lg+ and in standalone builds (var fallback). Apps use
+   bottom: calc(N + var(--iterra-bottom-inset, 0px)). */
+:root { --iterra-bottom-inset: 0px; }
+@media (max-width: 1023.98px) {
+  :root { --iterra-bottom-inset: calc(3.5rem + env(safe-area-inset-bottom, 0px)); }
+}
 
 :focus-visible {
   outline: 2px solid var(--color-accent);
@@ -438,7 +465,7 @@ html[data-theme='graphite'] body {
   --color-line-2:      #434c5b;
   --color-ink:         #e8ecf2;
   --color-mute:        #9da6b5;
-  --color-faint:       #7b8494;
+  --color-faint:       #8b94a4;  /* was #7b8494 — measured 4.34:1 on sheet, below AA */
   --color-accent:      #58a07c;
   --color-accent-2:    #6bb38f;
   --color-accent-fg:   #101418;

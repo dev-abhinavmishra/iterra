@@ -28,6 +28,7 @@ import {
 const KIND_ALIASES: Record<string, RelationshipKind> = {
   derivedFrom: 'derivedFrom',
   derived: 'derivedFrom',
+  'derived-from': 'derivedFrom',
   scheduledFor: 'scheduledFor',
   practicedIn: 'practicedIn',
   assessedBy: 'assessedBy',

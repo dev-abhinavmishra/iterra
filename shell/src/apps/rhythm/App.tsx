@@ -37,7 +37,9 @@ export default function App(props: { query?: string }) {
   const motion = useRegister((s) => s.settings.motion);
   return (
     <div className="it-place-rhythm h-full w-full" data-motion={motion}>
-      <Rhythm {...props} />
+      <div className="rhythm-scroll">
+        <Rhythm {...props} />
+      </div>
     </div>
   );
 }
@@ -224,7 +226,7 @@ function ReceiptCard({
 }) {
   return (
     <div
-      className="fixed bottom-5 right-5 z-50 w-80 no-print"
+      className="fixed bottom-[calc(1.25rem+var(--iterra-bottom-inset,0px))] right-5 z-50 w-80 no-print"
       style={{ animation: 'var(--animate-receipt-in)' }}
       role="status"
     >

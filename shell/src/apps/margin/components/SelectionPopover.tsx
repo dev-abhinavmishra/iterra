@@ -225,7 +225,11 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                           },
                       },
             );
-            setSentUrl(res?.url ?? null);
+            if (!res || res.ok === false) {
+                flash('error', false);
+                return;
+            }
+            setSentUrl(res.url ?? null);
             flash('sent', true);
             window.getSelection()?.removeAllRanges();
         } catch {

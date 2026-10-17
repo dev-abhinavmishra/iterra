@@ -66,7 +66,16 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, notes, o
             : [{ kind: 'action', id: 'study', icon: 'style', label: 'Go to Study', run: () => onNavigate(View.STUDY) } as ActionItem]),
         { kind: 'action', id: 'pinned', icon: 'keep', label: 'Go to Pinned', run: () => onNavigate(View.BOOKMARKS) },
         { kind: 'action', id: 'recent', icon: 'history', label: 'Go to Recently viewed', run: () => onNavigate(View.HISTORY) },
-        { kind: 'action', id: 'settings', icon: 'settings', label: 'Go to Settings', run: () => onNavigate(View.SETTINGS) },
+        /* Settings live in the terrain's central surface when integrated —
+           the palette hands off rather than opening the app-internal view. */
+        { kind: 'action', id: 'settings', icon: 'settings', label: 'Go to Settings', run: () => {
+            if ((window as any).__iterraIntegrated) {
+                try { (window as any).iterra?.open?.('#/settings'); }
+                catch { window.location.hash = '/settings'; }
+                return;
+            }
+            onNavigate(View.SETTINGS);
+        } },
     ]), [onNewNote, onNavigate]);
 
     const { visibleActions, visibleNotes } = useMemo(() => {
@@ -128,7 +137,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, notes, o
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.12 }}
-                    className="fixed inset-0 z-[95] bg-black/45 flex justify-center items-start pt-[12vh] px-4"
+                    className="absolute inset-0 z-[95] bg-black/45 flex justify-center items-start pt-[12vh] px-4"
                     onClick={onClose}
                 >
                     <motion.div

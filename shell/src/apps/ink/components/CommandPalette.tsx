@@ -159,7 +159,7 @@ export const CommandPalette: React.FC<{ isOpen: boolean; onClose: () => void }> 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] px-4" onKeyDown={handleKeyDown}>
+        <div className="absolute inset-0 z-[100] flex items-start justify-center pt-[12vh] px-4" onKeyDown={handleKeyDown}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

@@ -3,8 +3,31 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="iterra is a local-first study workspace that unifies planning, flashcards, notes, timers, calculations, attendance, assessments, and study materials around your courses."
+    />
     <title>iterra — an integrated study terrain</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232f5d46'/%3E%3Cpath d='M9 21c2.5-5 6.5-9 14-9-1 6-4 11-9 11-2 0-4-1-5-2z' fill='%23efe9dc'/%3E%3C/svg%3E" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Iterra" />
+    <meta property="og:title" content="Iterra — an integrated study terrain" />
+    <meta
+      property="og:description"
+      content="Eight study tools under one roof — planning, notes, flashcards, timers, calculations, attendance, assessments, and study materials — local-first and course-aware."
+    />
+    <meta property="og:image" content="/icon-512.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Iterra — an integrated study terrain" />
+    <meta
+      name="twitter:description"
+      content="Eight study tools under one roof — planning, notes, flashcards, timers, calculations, attendance, assessments, and study materials — local-first and course-aware."
+    />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f1e8" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#14171c" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,7 +41,13 @@
   </head>
   <body>
     <div id="root"></div>
-    <script>window.__iterraIntegrated = true;</script>
+    <script>
+      window.__iterraIntegrated = true;
+      try {
+        var t = localStorage.getItem('iterra.v1.theme');
+        document.documentElement.dataset.theme = t === 'graphite' ? 'graphite' : 'paper';
+      } catch (e) { /* private mode — default theme */ }
+    </script>
     <script src="/iterra-hub.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

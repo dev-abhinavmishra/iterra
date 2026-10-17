@@ -8,12 +8,15 @@ import type { StoreEntity } from './hub';
 export function Ambient({
   entities,
   onGo,
+  panelOpen,
 }: {
   entities: StoreEntity[];
   mounted?: string[];
   activePlace?: string | null;
   onEnter?: (id: string) => void;
   onGo: (url: string) => void;
+  /* details panel is a 320px rail at lg+ — slide the toast clear of it */
+  panelOpen?: boolean;
 }) {
   const [toast, setToast] = useState<{ text: string; url?: string } | null>(null);
   const seenSessions = useRef<Set<string> | null>(null);
@@ -53,7 +56,11 @@ export function Ambient({
   if (!toast) return null;
 
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+    <div
+      className={`pointer-events-none fixed bottom-[calc(1rem+var(--iterra-bottom-inset,0px))] z-50 flex flex-col items-end gap-2 transition-[right] duration-150 ${
+        panelOpen ? 'right-4 lg:right-[336px]' : 'right-4'
+      }`}
+    >
       <button
         type="button"
         onClick={() => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { placeActive } from '../../active';
+import { PlacePortal } from '../../portal';
 import { Play, Coffee, TreePine, Zap, Plus, Brain, Flame, Moon, X, Trash2, BookOpen, PenLine, Music } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { vibrate, cn } from '../lib/utils';
@@ -189,11 +190,13 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
       </motion.div>
 
       {/* ---------- ADD PRESET ---------- */}
-      <AnimatePresence>
+      {/* portaled to the place root — the app's <main> is `relative`, so an
+          inline overlay would cover only the view and leave the header live */}
+      <PlacePortal place="timer"><AnimatePresence>
         {showAddModal && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[210] flex items-center justify-center p-4"
+            className="absolute inset-0 z-[210] flex items-center justify-center p-4"
             style={{ background: 'rgba(15,12,6,0.7)', backdropFilter: 'blur(6px)' }}
             onClick={() => setShowAddModal(false)}
           >
@@ -266,7 +269,7 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence></PlacePortal>
     </div>
   );
 }
