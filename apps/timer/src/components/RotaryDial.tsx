@@ -24,6 +24,16 @@ export function RotaryDial({
 
   const angleFor = (m: number) => (m / max) * 360;
 
+  const setTo = useCallback((m: number) => {
+    const clamped = Math.min(max, Math.max(1, m));
+    if (clamped !== lastMinute.current) {
+      lastMinute.current = clamped;
+      flapTick(0.05);
+      vibrate(4);
+      onChange(clamped);
+    }
+  }, [max, onChange]);
+
   const setFromPointer = useCallback((e: React.PointerEvent | PointerEvent) => {
     const el = ref.current;
     if (!el) return;
@@ -37,13 +47,8 @@ export function RotaryDial({
     let m = Math.round((deg / 360) * max);
     if (m < 1) m = deg > 352 ? max : 1;
     if (m > max) m = max;
-    if (m !== lastMinute.current) {
-      lastMinute.current = m;
-      flapTick(0.05);
-      vibrate(4);
-      onChange(m);
-    }
-  }, [max, onChange]);
+    setTo(m);
+  }, [max, setTo]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (disabled) return;
@@ -58,10 +63,28 @@ export function RotaryDial({
   };
   const stop = () => { dragging.current = false; };
 
+  /* role=slider owes the keyboard real detents: arrows step a minute,
+     PageUp/Down step five, Home/End hit the stops */
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (disabled) return;
+    const cur = lastMinute.current;
+    let m: number | null = null;
+    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') m = cur + 1;
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') m = cur - 1;
+    else if (e.key === 'PageUp') m = cur + 5;
+    else if (e.key === 'PageDown') m = cur - 5;
+    else if (e.key === 'Home') m = 1;
+    else if (e.key === 'End') m = max;
+    if (m !== null) { e.preventDefault(); unlockAudio(); setTo(m); }
+  };
+
   const cx = 150, cy = 150, R = 138;
+  /* major tick every 5m on a 60 dial — stretch the cadence on wider scales
+     so 90/120/180-minute dials don't end up all majors or none */
+  const majorStep = max <= 60 ? 5 : max <= 120 ? 15 : 30;
   const ticks = Array.from({ length: max }, (_, i) => {
     const a = (i / max) * Math.PI * 2;
-    const major = i % 5 === 0;
+    const major = i % majorStep === 0;
     const r1 = major ? R - 14 : R - 7;
     return {
       x1: cx + r1 * Math.sin(a), y1: cy - r1 * Math.cos(a),
@@ -85,11 +108,15 @@ export function RotaryDial({
       onPointerMove={onPointerMove}
       onPointerUp={stop}
       onPointerCancel={stop}
+      onKeyDown={onKeyDown}
       role="slider"
       aria-label="Set minutes"
       aria-valuemin={1}
       aria-valuemax={max}
       aria-valuenow={minutes}
+      aria-valuetext={`${minutes} minute${minutes === 1 ? '' : 's'}`}
+      aria-disabled={disabled || undefined}
+      tabIndex={0}
     >
       <svg viewBox="0 0 300 300" className="absolute inset-0 w-full h-full">
         {/* outer bezel */}
@@ -130,8 +157,10 @@ export function RotaryDial({
           </g>
         )}
       </svg>
-      {/* engraved minute numerals on the bezel */}
-      {[0, 15, 30, 45].map(v => {
+      {/* engraved minute numerals on the bezel — 15m marks on the classic
+          60 dial, 30m marks on wider scales (the 0 slot reads the max,
+          like the '60' on a real kitchen timer) */}
+      {(max <= 60 ? [0, 15, 30, 45] : [0, ...Array.from({ length: Math.floor(max / 30) - 1 }, (_, i) => (i + 1) * 30)]).map(v => {
         const va = (v / max) * Math.PI * 2;
         const nr = R - 34;
         return (
@@ -145,7 +174,7 @@ export function RotaryDial({
               color: 'var(--color-ink-soft)',
             }}
           >
-            {v === 0 ? '60' : v}
+            {v === 0 ? max : v}
           </span>
         );
       })}

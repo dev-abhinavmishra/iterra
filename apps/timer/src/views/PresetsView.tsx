@@ -77,10 +77,10 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
   };
 
   const handleAddPreset = () => {
-    if (!newName) return;
+    if (!newName.trim()) return;
     savePresets([...customPresets, {
       id: Math.random().toString(36).substring(2, 9),
-      name: newName, minutes: newMinutes, description: newDesc, icon: newIcon, accent: newAccent,
+      name: newName.trim(), minutes: newMinutes, description: newDesc.trim(), icon: newIcon, accent: newAccent,
     }]);
     setShowAddModal(false);
     setNewName(''); setNewMinutes(20); setNewDesc(''); setNewAccent(false);
@@ -139,7 +139,9 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
                 <div className="flex items-center gap-1.5">
                   {isCustom && (
                     <button onClick={() => handleDelete(preset.id)}
-                      className="w-8 h-8 flex items-center justify-center text-ink-faint hover:text-[color:var(--color-signal)] transition-colors">
+                      className="w-8 h-8 flex items-center justify-center text-ink-faint hover:text-[color:var(--color-signal)] transition-colors"
+                      aria-label={`Delete departure ${preset.name}`}
+                      title="Delete departure">
                       <Trash2 size={15} />
                     </button>
                   )}
@@ -202,7 +204,7 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
             >
               <div className="flex items-center justify-between mb-5">
                 <span className="engraved text-xs">New departure</span>
-                <button onClick={() => setShowAddModal(false)} className="text-flap-dim hover:text-flap-ink"><X size={18} /></button>
+                <button onClick={() => setShowAddModal(false)} className="text-flap-dim hover:text-flap-ink" aria-label="Close" title="Close"><X size={18} /></button>
               </div>
 
               <div className="space-y-4 mb-6">
@@ -210,6 +212,7 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
                   name="preset-name"
                   value={newName} onChange={e => setNewName(e.target.value)}
                   placeholder="Name — e.g. Guitar practice"
+                  maxLength={40}
                   className="w-full bg-[#0F0C06] border border-[rgba(242,233,207,0.12)] rounded-lg px-4 py-2.5 text-sm text-flap-ink placeholder:text-flap-dim focus:outline-none font-body"
                 />
                 <div>
@@ -221,6 +224,7 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
                   name="preset-note"
                   value={newDesc} onChange={e => setNewDesc(e.target.value)}
                   placeholder="Note — e.g. Scales first"
+                  maxLength={90}
                   className="w-full bg-[#0F0C06] border border-[rgba(242,233,207,0.12)] rounded-lg px-4 py-2.5 text-sm text-flap-ink placeholder:text-flap-dim focus:outline-none font-body"
                 />
                 <div>
@@ -230,6 +234,9 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
                       const IconCmp = IconMap[iconName];
                       return (
                         <button key={iconName} onClick={() => setNewIcon(iconName)}
+                          title={iconName}
+                          aria-label={`Mark ${iconName}`}
+                          aria-pressed={newIcon === iconName}
                           className={cn('w-10 h-10 rounded-lg flex items-center justify-center transition-all',
                             newIcon === iconName
                               ? 'bg-[rgba(232,73,15,0.2)] text-[color:var(--color-signal-bright)] border border-[color:var(--color-signal)]'
@@ -252,7 +259,7 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
                 </div>
               </div>
 
-              <KeyButton variant="signal" className="w-full py-3.5 text-sm" onClick={handleAddPreset} disabled={!newName}>
+              <KeyButton variant="signal" className="w-full py-3.5 text-sm" onClick={handleAddPreset} disabled={!newName.trim()}>
                 Post departure
               </KeyButton>
             </motion.div>

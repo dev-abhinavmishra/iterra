@@ -2,7 +2,7 @@
 // A calm scorecard, not a verdict. Confirm what happened, answer one prompt,
 // choose one adjustment. Past reviews file into the ledger.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRegister } from '../store';
 import { bandFor } from '../lib/bands';
 import { weeklyScorecard } from '../lib/register';
@@ -43,6 +43,15 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
   const [reflection, setReflection] = useState('');
   const [adjustment, setAdjustment] = useState('');
   const [filed, setFiled] = useState(false);
+
+  /* The composer belongs to one measure — turning the page must reset it,
+     or the "Cut." receipt for week A would dead-end the form for week B. */
+  useEffect(() => {
+    setConfirmed([]);
+    setReflection('');
+    setAdjustment('');
+    setFiled(false);
+  }, [weekStart]);
 
   const weeksWithHistory = useMemo(
     () =>

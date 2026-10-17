@@ -4,21 +4,47 @@
 declare global {
   interface Window {
     iterra?: {
+      register(app: string, opts: { title?: string; summary?: () => unknown; ownKeys?: string[] }): void;
+      focus?(app: string): void;
+      ownKeys?(app: string): string[];
+      active?(): string | undefined;
       apps(): Record<string, Presence>;
       open(url: string): void;
-      doc(ns: string): { get(): unknown; set(v: unknown): void; subscribe(cb: (v: unknown) => void): () => void };
+      openApp?(name: string, url?: string): void;
+      selfBase?(): string;
+      interceptNav?(): void;
+      doc(ns: string): {
+        get(): unknown;
+        set(v: unknown): void;
+        setField?(field: string, v: unknown): void;
+        subscribe(cb: (v: unknown) => void): () => void;
+      };
+      index?(app: string): Entity[];
+      onIndex?(cb: () => void): () => void;
+      feed?(item: { app?: string; text: string; url?: string; course?: string; topic?: string }): void;
+      ready?: Promise<unknown>;
       isFramed(): boolean;
+      adapter?(o: {
+        name: string;
+        title?: string;
+        summary?: () => unknown;
+        intakes?: Record<string, (rec: IntakeRecord) => unknown>;
+        wake?: () => void;
+      }): unknown;
       store?: {
+        ready?: Promise<unknown>;
         put(e: Record<string, unknown>): Promise<{ ok: boolean; entity?: StoreEntity; error?: string }>;
         get(key: string): Promise<StoreEntity | null>;
         list(q?: { app?: string; type?: string; courseId?: string }): Promise<StoreEntity[]>;
         search(text: string): Promise<StoreEntity[]>;
+        due?(q?: Record<string, unknown>): Promise<StoreEntity[]>;
         remove(key: string): Promise<{ ok: boolean }>;
         subscribe(cb: (kind: string, data: unknown) => void): () => void;
       };
       courses?: {
         list(): Promise<StoreEntity[]>;
         byCode(code: string): Promise<StoreEntity | null>;
+        resolve?(ref: unknown): Promise<StoreEntity | null>;
       };
       send?(opts: SendOpts): Promise<SendResult>;
       events?: {
@@ -26,8 +52,42 @@ declare global {
         list(q?: { type?: string; app?: string; limit?: number }): Promise<StoreEvent[]>;
         on(match: string | string[], cb: (rec: StoreEvent) => void): () => void;
       };
+      links?: {
+        add(l: Record<string, unknown>): unknown;
+        remove(id: string): unknown;
+        for(key: string): Promise<unknown[]>;
+        list(q?: Record<string, unknown>): Promise<unknown[]>;
+      };
+      intakes?: {
+        send(opts: SendOpts): Promise<SendResult>;
+        pending(app: string): Promise<IntakeRecord[]>;
+        get(id: string): Promise<IntakeRecord | null>;
+        resolve(id: string, result: unknown): Promise<unknown>;
+        onDeliver(app: string, action: string | ((rec: IntakeRecord) => unknown), handler?: (rec: IntakeRecord) => unknown): () => void;
+        when(id: string, timeoutMs?: number): Promise<IntakeRecord | null>;
+        drain(app: string, done?: () => void): void;
+      };
+      sync?: {
+        attach(adapter: Record<string, unknown>): Promise<unknown>;
+        status(): Record<string, unknown>;
+      };
+      core?: { version: number; eventTypes: Record<string, number>; entityTypes: Record<string, number> };
     };
   }
+}
+
+export interface IntakeRecord {
+  id: string;
+  to: string;
+  from?: string;
+  action: string;
+  entity?: Partial<StoreEntity>;
+  payload?: Record<string, unknown>;
+  at?: number;
+  delivered?: boolean;
+  result?: { url?: string; toast?: string; [k: string]: unknown };
+  attempts?: number;
+  lastError?: string;
 }
 
 /* ── canonical store client (the hub's shared layer — WIRING §8/ADAPTER) ── */
@@ -126,25 +186,40 @@ export async function sendTo(opts: SendOpts): Promise<SendResult> {
 }
 
 /** wake a keep-alive frame so its adapter refreshes from the store */
-/* queued sends waiting in each app's intake — the switcher badge shows
-   'N waiting' so a queued transfer is visible, not silent. */
-export async function pendingIntakes(): Promise<Record<string, number>> {
+/* oldest pending intake id for a place — a cold frame mounts AT
+   '?intake=<id>' so its boot-drain lands on the delivered result
+   (a bare mount would resolve the send without ever showing it). */
+export async function firstPendingIntake(app: string): Promise<string | null> {
   const it = (window as any).iterra;
-  const out: Record<string, number> = {};
+  if (!it?.intakes?.pending) return null;
+  try {
+    const rows = await it.intakes.pending(app);
+    return rows?.[0]?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/* queued sends waiting in each app's intake — the switcher badge shows
+   'N waiting' so a queued transfer is visible, not silent. A record whose
+   handler keeps declining (attempts + lastError stamped by the hub) is
+   stuck, not merely queued — surfaced so the terrain doesn't lie. */
+export interface IntakeWait { count: number; stuck: string | null }
+
+export async function pendingIntakes(): Promise<Record<string, IntakeWait>> {
+  const it = (window as any).iterra;
+  const out: Record<string, IntakeWait> = {};
   if (!it?.intakes?.pending) return out;
   for (const p of ['syllabus', 'rhythm', 'flashcards', 'ink', 'margin', 'gradestack', 'timer', 'proof']) {
     try {
       const rows = await it.intakes.pending(p);
-      if (rows?.length) out[p] = rows.length;
+      if (!rows?.length) continue;
+      const worst = rows.reduce((m: number, r: any) => Math.max(m, r.attempts || 0), 0);
+      const err = rows.find((r: any) => (r.attempts || 0) === worst)?.lastError;
+      out[p] = { count: rows.length, stuck: worst >= 3 ? (err || 'still trying') : null };
     } catch { /* count stays absent */ }
   }
   return out;
-}
-
-export function wakeFrame(frame: HTMLIFrameElement | null | undefined) {
-  try {
-    frame?.contentWindow?.postMessage({ type: 'iterra:wake' }, window.location.origin);
-  } catch { /* cross-origin or dead frame — nothing to wake */ }
 }
 
 /** subscribe to canonical-store changes (entity puts/removes, events,
@@ -248,7 +323,9 @@ export function readIndexes(): Record<string, Entity[]> {
     if (!m) continue;
     try {
       const d = JSON.parse(localStorage.getItem(k) || 'null');
-      out[m[1]] = Array.isArray(d?.entities) ? d.entities : [];
+      /* index docs can carry nulls (sparse-array deletes serialize as
+         null) — drop non-entities here so no consumer has to re-guard */
+      out[m[1]] = Array.isArray(d?.entities) ? d.entities.filter((e: Entity | null) => e && typeof e === 'object') : [];
     } catch { /* ignore */ }
   }
   return out;

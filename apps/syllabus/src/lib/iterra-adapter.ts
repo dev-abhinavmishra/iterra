@@ -8,7 +8,7 @@
    Store writes are incremental — only the entity that changed is put. */
 
 import { useFolio } from '../store';
-import { addDaysISO, clamp, diffDaysISO, todayISO } from './utils';
+import { addDaysISO, clamp, diffDaysISO, dueDateISO, isoAtTime, todayISO } from './utils';
 import type { Commitment, Course, Term, WorkBlock } from './types';
 import type { ProposedBlock } from './schedule';
 
@@ -305,9 +305,25 @@ const parseHHMM = (v: string): number => {
  *  weak proof topics get one block each, timer history sizes the blocks.
  *  Blocks are written through acceptProposals so they land as real slips —
  *  dedup, ordering, and the 'plan generated' stir all come free. */
+/* a boot drain can claim an intake before the folio's store has booted —
+   waiting is honest, fake-delivering isn't: throw on timeout so the hub
+   releases the claim and a later drain delivers for real. */
+function whenBooted(timeoutMs = 9000): Promise<void> {
+  const t0 = Date.now();
+  return new Promise((res, rej) => {
+    const tick = () => {
+      if (useFolio.getState().booted) return res();
+      if (Date.now() - t0 > timeoutMs) return rej(new Error('syllabus folio not booted'));
+      setTimeout(tick, 120);
+    };
+    tick();
+  });
+}
+
 export async function studyPlan(rec: any): Promise<{ url: string | null }> {
   const it = window.iterra;
   if (!it?.store?.list) return { url: null };
+  await whenBooted();
   const s = useFolio.getState();
   const p = rec?.payload ?? rec?.entity?.data ?? {};
 
@@ -373,7 +389,7 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
   const term = s.terms[course.termId];
   const fallbackTarget =
     term?.endDate && term.endDate >= today ? term.endDate : addDaysISO(today, 7);
-  const target = anchor?.dueAt ? anchor.dueAt.slice(0, 10) : fallbackTarget;
+  const target = anchor?.dueAt ? dueDateISO(anchor.dueAt) : fallbackTarget;
 
   if (!anchor) {
     anchor = s.addCommitment({
@@ -381,7 +397,7 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
       type: 'custom',
       title: `${course.code || course.name} — study plan`,
       detail: 'Filed by study-plan.request so plan blocks have somewhere to live.',
-      dueAt: `${target}T23:59:00`,
+      dueAt: isoAtTime(target, '23:59'),
       weight: 0,
       estimatedMinutes: 0,
       pinned: false,
@@ -442,7 +458,7 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
           name: `study ${anchor.title}`,
           course: course.code || course.name,
           courseId: courseKey,
-          dueAt: `${target}T23:59:00`,
+          dueAt: isoAtTime(target, '23:59'),
           perWeek: Math.min(7, Math.max(1, Math.round(days))),
           minutes: size,
           unit: 'min',
@@ -476,7 +492,8 @@ export function registerAdapter() {
          slip on the folio: the rhythm app files routine sessions here so
          'what's planned' and 'what was done' live on the same ledger.
          Hangs on a found-or-filed commitment in the resolved course. */
-      'block.plan': (rec: any) => {
+      'block.plan': async (rec: any) => {
+        await whenBooted();
         const s = useFolio.getState();
         const p = rec?.payload ?? {};
         const rawKey = String(p.courseId ?? '');
@@ -500,7 +517,7 @@ export function registerAdapter() {
           type: 'custom',
           title: `${course.code || course.name} — planned work`,
           detail: 'Filed by block.plan so incoming slips have somewhere to live.',
-          dueAt: `${date}T23:59:00`,
+          dueAt: isoAtTime(date, '23:59'),
           weight: 0,
           estimatedMinutes: 0,
           pinned: false,

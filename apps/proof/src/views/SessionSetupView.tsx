@@ -7,7 +7,7 @@ import {
   selectSessionAttempts,
 } from '../store';
 import type { Attempt, Difficulty, PracticeSession, SessionRules } from '../lib/types';
-import { isDue } from '../lib/schedule';
+import { isDue, buildSessionList } from '../lib/schedule';
 import { timerDeepLink, type InboundLink } from '../lib/links';
 import { openDeep } from '../lib/iterra';
 import { docToText } from '../lib/doc';
@@ -82,6 +82,23 @@ export function SessionSetupView({
     newRatio,
     order,
   };
+
+  /* build the same list createSession would — a session with zero problems
+     is a dead end (runner instantly shows "complete"), so preview the match
+     and say *why* nothing can build rather than letting the click through */
+  const attemptsMap = useWorkbench((s) => s.attempts);
+  const candidates = useMemo(
+    () =>
+      buildSessionList(
+        rules,
+        problems,
+        reviews,
+        new Set(Object.values(attemptsMap).map((a) => a.problemId)),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [problems, reviews, attemptsMap, selCourses, selTopics, minDiff, maxDiff, minutes, newRatio, order],
+  );
+  const rangeBroken = minDiff > maxDiff;
 
   const build = () => {
     const s = createSession(rules, intent);
@@ -185,6 +202,11 @@ export function SessionSetupView({
                     {[1, 2, 3, 4, 5].map((d) => <option key={d} value={d}>{d} — {['', 'routine', 'standard', 'tricky', 'hard', 'brutal'][d]}</option>)}
                   </select>
                 </div>
+                {rangeBroken && (
+                  <div className="mt-1.5 text-[11px] text-[var(--color-ink-faint)]">
+                    min is above max — nothing can match this range
+                  </div>
+                )}
               </Field>
               <Field label="Order — mix forces method choice">
                 <div className="flex gap-1.5">
@@ -205,11 +227,18 @@ export function SessionSetupView({
                 </div>
               </Field>
             </div>
-            <div className="mt-5 flex items-center justify-between">
+            <div className="mt-5 flex items-center justify-between gap-3">
               <div className="text-[12px] text-[var(--color-ink-soft)]">
-                ≈ {Math.max(1, Math.round(minutes / 7))} problems at typical pace · due retries always file first
+                {problems.length && !candidates.length
+                  ? 'no problems match — widen topics, courses or difficulty'
+                  : `≈ ${Math.max(1, Math.round(minutes / 7))} problems at typical pace · due retries always file first`}
               </div>
-              <button className="btn btn--blueprint" onClick={build} disabled={!problems.length}>
+              <button
+                className="btn btn--blueprint"
+                onClick={build}
+                disabled={!problems.length || !candidates.length}
+                title={!candidates.length && problems.length ? 'The current filters match no problems' : undefined}
+              >
                 <span className="inline-flex items-center gap-1.5"><Play size={12} /> Build session</span>
               </button>
             </div>

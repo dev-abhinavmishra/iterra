@@ -24,8 +24,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose }) => {
                 </h2>
                 <p className="text-sm text-ink-2 mt-2 leading-relaxed">
                     {usage.remaining > 0
-                        ? `You have ${usage.remaining} of ${usage.limit} free AI actions left today — recording, notes, Ask and Study all draw from the same pool. It resets automatically tomorrow.`
-                        : `You've used your ${usage.limit} free AI actions for today — recording, notes, Ask and Study all draw from the same pool. It resets automatically tomorrow.`}
+                        ? `You have ${usage.remaining} of ${usage.limit} free AI actions left — notes, Ask and Study all draw from this pool. (Recordings and auto-titles have their own daily caps.) It resets automatically.`
+                        : `You've used your ${usage.limit} free AI actions — notes, Ask and Study all draw from this pool. (Recordings and auto-titles have their own daily caps.) It resets automatically.`}
                 </p>
 
                 <div className="mt-4 flex items-center justify-between rounded-[var(--r)] border border-line bg-card-2 px-3 py-2.5">

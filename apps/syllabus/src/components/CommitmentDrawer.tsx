@@ -9,7 +9,7 @@ import { remainingMinutes, reversePlan } from '../lib/schedule';
 import { appBadge } from '../lib/links';
 import { openDeep, sendCommitmentToRegister } from '../lib/iterra';
 import { courseColorVar } from '../lib/colors';
-import { fmtMinutes, stampDate, todayISO, isoAtTime, cn } from '../lib/utils';
+import { fmtMinutes, stampDate, todayISO, isoAtTime, dueDateISO, cn } from '../lib/utils';
 import type { Commitment, CommitmentType } from '../lib/types';
 import { CheckCircle2, ExternalLink, Pin, RotateCcw, Timer, X } from 'lucide-react';
 
@@ -30,6 +30,7 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
   );
   const [linking, setLinking] = useState(false);
   const [confirmReplan, setConfirmReplan] = useState(false);
+  const [confirmDrop, setConfirmDrop] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,7 +48,7 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const late = commitment.dueAt.slice(0, 10) < todayISO() && commitment.status === 'open';
+  const late = dueDateISO(commitment.dueAt) < todayISO() && commitment.status === 'open';
   const remain = remainingMinutes(commitment);
   const deps = commitment.dependencies
     .map((id) => s.commitments[id])
@@ -170,7 +171,7 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
           <Field label="Due date">
             <FInput
               type="date"
-              value={commitment.dueAt.slice(0, 10)}
+              value={dueDateISO(commitment.dueAt)}
               onChange={(e) => e.target.value && update({ dueAt: isoAtTime(e.target.value, '23:59') })}
             />
           </Field>
@@ -180,7 +181,7 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
               min={0}
               max={100}
               value={commitment.weight}
-              onChange={(e) => update({ weight: Math.max(0, Number(e.target.value) || 0) })}
+              onChange={(e) => update({ weight: Math.min(100, Math.max(0, Number(e.target.value) || 0)) })}
               className="mono"
             />
           </Field>
@@ -343,8 +344,8 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
         </section>
 
         {/* footer actions */}
-        <div className="mt-8 pt-4 border-t border-[color:var(--color-rule)] flex items-center gap-2">
-          {commitment.status !== 'done' ? (
+        <div className="mt-8 pt-4 border-t border-[color:var(--color-rule)] flex items-center gap-2 flex-wrap">
+          {commitment.status === 'open' ? (
             <button className="btn flex-1" onClick={() => s.setCommitmentStatus(commitment.id, 'done')}>
               File as done
             </button>
@@ -371,15 +372,28 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
               Plan on the register
             </button>
           )}
-          <button
-            className="btn btn--ghost"
-            onClick={() => {
-              s.setCommitmentStatus(commitment.id, 'dropped');
-              onClose();
-            }}
-          >
-            Drop
-          </button>
+          {commitment.status === 'open' &&
+            (!confirmDrop ? (
+              <button className="btn btn--ghost" onClick={() => setConfirmDrop(true)}>
+                Drop
+              </button>
+            ) : (
+              <span className="flex items-center gap-1.5" role="group" aria-label="Confirm drop">
+                <button
+                  className="btn btn--late"
+                  onClick={() => {
+                    s.setCommitmentStatus(commitment.id, 'dropped');
+                    onClose();
+                  }}
+                  title="Strike from the register — stops planning; blocks stay filed"
+                >
+                  Drop it
+                </button>
+                <button className="btn btn--ghost" onClick={() => setConfirmDrop(false)} autoFocus>
+                  Keep
+                </button>
+              </span>
+            ))}
         </div>
       </div>
     </div>

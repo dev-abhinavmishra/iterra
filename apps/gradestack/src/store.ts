@@ -382,10 +382,16 @@ export const useStore = create<AppState>()(
         }, null, 2);
       },
 
+      /* Throws on unparseable or wrong-shaped input so the caller can say
+         "not a GradeStack backup" — returning 0 there lied: it read as
+         "imported nothing" even for corrupt files. 0 now means only
+         "valid file, every record already on the register". */
       importData: (json: string) => {
-        try {
-          const data = JSON.parse(json);
-          if (!Array.isArray(data.tests) || !Array.isArray(data.scans)) return 0;
+        const data = JSON.parse(json);
+        if (!Array.isArray(data.tests) || !Array.isArray(data.scans)) {
+          throw new Error('Not a GradeStack backup — missing tests/scans arrays');
+        }
+        {
           const state = get();
           const testIds = new Set(state.tests.map(t => t.id));
           const scanIds = new Set(state.scans.map(s => s.id));
@@ -418,8 +424,6 @@ export const useStore = create<AppState>()(
             });
           }
           return newTests.length + newScans.length;
-        } catch {
-          return 0;
         }
       },
 

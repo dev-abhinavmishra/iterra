@@ -1,11 +1,11 @@
 import { chatCompletion } from './_providers';
-import { reserveLimit } from './_usage';
+import { envInt, reserveLimit } from './_usage';
 import { readJsonBody } from './_http';
 
 export const config = {
     api: {
         bodyParser: {
-            sizeLimit: '10mb',
+            sizeLimit: '4.5mb',
         },
     },
 };
@@ -18,18 +18,34 @@ export default async function handler(req: any, res: any) {
     try {
         const { action, transcript } = readJsonBody(req);
 
-        // Title generation is lightweight and does NOT consume the user's daily quota.
+        if (action === 'title' || action === 'note') {
+            // Both actions need real text — validate before reserving quota so
+            // a malformed request never consumes then refunds a use.
+            if (typeof transcript !== 'string' || !transcript.trim()) {
+                return res.status(400).json({ error: 'transcript is required.' });
+            }
+        }
+
+        // Title generation is lightweight and keeps its own small daily bucket
+        // ('title') — without it this was an unauthenticated, unbounded proxy
+        // to the provider keys. A spent bucket just falls back to 'New Session'.
         if (action === 'title') {
+            const ticket = await reserveLimit(req, res, {
+                bucket: 'title',
+                limit: envInt('TITLE_DAILY_LIMIT', 60),
+            });
+            if (!ticket) return; // 429 already sent
             try {
                 const { content } = await chatCompletion(
                     [{
                         role: 'user',
-                        content: `Based on this text, generate a short, descriptive title (max 6 words). Respond with ONLY the title, no quotes. Text: ${(transcript || '').slice(0, 1000)}`,
+                        content: `Based on this text, generate a short, descriptive title (max 6 words). Respond with ONLY the title, no quotes. Text: ${transcript.slice(0, 1000)}`,
                     }],
                     { maxTokens: 30, temperature: 0.5 }
                 );
                 return res.status(200).json({ content: content.trim().replace(/^["']|["']$/g, '') || 'New Session' });
             } catch {
+                await ticket.refund();
                 return res.status(200).json({ content: 'New Session' });
             }
         }
@@ -76,7 +92,7 @@ export default async function handler(req: any, res: any) {
             - Keep the section headers exactly as shown (plain text, no emoji).
 
             Raw Text:
-            ${(transcript || '').slice(0, 100000)}
+            ${transcript.slice(0, 100000)}
             `;
 
             try {

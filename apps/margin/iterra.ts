@@ -7,7 +7,7 @@ import { getAllDecks, getAllQuizzes } from './services/storageService';
 declare global {
     interface Window {
         iterra?: {
-            register(app: string, opts: { title?: string; summary?: () => unknown }): void;
+            register(app: string, opts: { title?: string; summary?: () => unknown; ownKeys?: string[] }): void;
             isFramed(): boolean;
             doc?: (ns: string) => {
                 get: () => unknown;
@@ -42,6 +42,8 @@ export function wireMargin() {
     if (!iterra) return;
     iterra.register('margin', {
         title: 'Margin',
+        // the margin's own ⌘K palette stays its own — terrain yields it
+        ownKeys: ['k'],
         summary: () => {
             if (!source) return null;
             const { notes } = source();
@@ -122,6 +124,19 @@ let myLastWriteAt = 0;
     };
     setInterval(publish, 3000);
     publish();
+    /* sibling readers (ink's desk, the ambient rail) drop a noteActive
+       stamp older than 5min — a live desk holding an idle note must keep
+       beating or it reads as dead. Re-stamp `at` only, and never over a
+       sibling's fresh stamp: arbitration still follows v.at, an idle
+       heartbeat mustn't clobber a live ink note with an older margin one. */
+    setInterval(() => {
+        try {
+            const v = lastCommons ? JSON.parse(lastCommons) : null;
+            const cur = (shared.get() as { noteActive?: { by?: string; at?: number } | null } | null)?.noteActive;
+            const siblingFresh = cur && cur.by !== 'margin' && Date.now() - (cur.at || 0) < 5 * 60 * 1000;
+            if (v && !siblingFresh) shared.setField('noteActive', { v, by: 'margin', at: Date.now() });
+        } catch { /* housekeeping beat — never throw */ }
+    }, 2 * 60 * 1000);
 })();
 
 interface NoteActiveEntry {

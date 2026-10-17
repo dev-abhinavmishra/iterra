@@ -7,8 +7,8 @@ export default async function handler(req: any, res: any) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
     try {
-        const { userId, authed } = await resolveUser(req);
-        const usage = await getUsageFor(userId, authed);
+        const { userId, authed, isAnon, ip } = await resolveUser(req);
+        const usage = await getUsageFor(userId, authed, { ip, isAnon });
         return res.status(200).json(usage);
     } catch (error: any) {
         console.error('Usage API Error:', error);

@@ -101,9 +101,22 @@ export function isoAtTime(date: ISODate, hhmm: string): string {
   return d.toISOString();
 }
 
+export function localDateISO(iso: string): ISODate {
+  // An ISO 8601 instant ('…T…Z') denotes a civil day only after converting
+  // back to local time — slicing the UTC prefix lands a day late for any
+  // local time behind UTC (e.g. a 23:59 deadline serializes as next-day UTC).
+  return toISODate(new Date(iso));
+}
+
 export function dueDateISO(dueAt: string): ISODate {
   // dueAt is an ISO instant → civil date in local time
-  return toISODate(new Date(dueAt));
+  return localDateISO(dueAt);
+}
+
+export function localTimeHHMM(iso: string): string {
+  // wall-clock 'HH:MM' an instant string represents locally
+  const d = new Date(iso);
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function daysUntil(iso: ISODate, now = new Date()): number {
@@ -112,6 +125,17 @@ export function daysUntil(iso: ISODate, now = new Date()): number {
 
 export function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
+}
+
+/** True while a modal surface (commitment drawer, defer/import sheet, help
+ *  overlay — all render [role="dialog"][aria-modal="true"]) owns keyboard
+ *  input. Global shortcut handlers must stay quiet so keys can't mutate
+ *  state behind the sheet's back. */
+export function modalOpen(): boolean {
+  return (
+    typeof document !== 'undefined' &&
+    !!document.querySelector('[role="dialog"][aria-modal="true"]')
+  );
 }
 
 export function roundTo(n: number, step: number): number {

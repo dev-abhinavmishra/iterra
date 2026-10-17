@@ -1,0 +1,728 @@
+@import 'tailwindcss';
+
+@theme {
+  /* ── Typography ──────────────────────────────────────────────
+     Space Grotesk — the machine's silkscreen / display face
+     IBM Plex Mono — engraved labels, LCD readouts, timing
+     Source Sans 3 — humanist sans for readable body text        */
+  --font-display: var(--font-sans, system-ui, sans-serif);
+  --font-mono: var(--font-mono, ui-monospace, 'SF Mono', Menlo, monospace);
+  --font-ui: var(--font-sans, system-ui, sans-serif);
+
+  /* ── The unit — a desktop step-sequencer chassis ─────────────
+     Dark graphite hardware on a darker desk. The faceplate is a
+     raised deck of brushed metal; signal amber is the machine's
+     live color; every routine channel gets its own LED hue.     */
+  --color-chassis: #16241d; /* the unit's body — deepest surface */
+  --color-chassis-deep: #0f1a14;
+  --color-deck: #1d332a; /* the faceplate everything mounts on */
+  --color-panel: #24392e; /* raised sub-panel on the deck */
+  --color-recess: #132219; /* recessed screens, tracks, wells */
+  --color-ink: #ede6d0; /* engraved print */
+  --color-ink-soft: #a3a68f;
+  --color-ink-faint: #687a6c;
+  --color-rule: #2e4638;
+  --color-rule-dark: #40594a;
+
+  --color-indigo: #f0a032; /* signal amber — the machine's live color */
+  --color-indigo-deep: #c67e20;
+  --color-amber: #e0b04a; /* caution lamp — recovery, not alarm */
+  --color-ok: #8fce6a;
+  --color-bad: #f0553f;
+  --color-lcd-bg: #10200f;
+  --color-lcd-fg: #cfe382;
+
+  /* alpha triplets */
+  --ink-rgb: 237 232 214;
+  --stock-rgb: 29 51 42;
+  --indigo-rgb: 240 160 50;
+  --amber-rgb: 224 176 74;
+  --ok-rgb: 143 206 106;
+  --bad-rgb: 240 85 63;
+  --lcd-rgb: 207 227 130;
+  --cover-rgb: 15 26 20;
+
+  /* ── Channel accents — LED hues, one per routine ──────────────
+     Names are stored on routines; values are lit-LED tuned.      */
+  --color-acc-indigo: #6ea0ff;
+  --color-acc-oxblood: #ff5a42;
+  --color-acc-hunter: #86d05a;
+  --color-acc-ochre: #ffab3d;
+  --color-acc-plum: #e06fc4;
+  --color-acc-teal: #45d6b8;
+  --color-acc-slate: #cfd8ea;
+  --color-acc-rust: #ff7c30;
+
+  --acc-indigo-rgb: 110 160 255;
+  --acc-oxblood-rgb: 255 90 66;
+  --acc-hunter-rgb: 134 208 90;
+  --acc-ochre-rgb: 255 171 61;
+  --acc-plum-rgb: 224 111 196;
+  --acc-teal-rgb: 69 214 184;
+  --acc-slate-rgb: 207 216 234;
+  --acc-rust-rgb: 255 124 48;
+
+  --shadow-deck: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 18px 44px rgb(0 0 0 / 0.55), 0 3px 8px rgb(0 0 0 / 0.4);
+  --shadow-panel: 0 1px 0 rgb(255 255 255 / 0.045) inset, 0 2px 6px rgb(0 0 0 / 0.4);
+  --shadow-key: 0 2px 0 #0d0c08, 0 3px 7px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.07);
+
+  /* ── Motion — a machine, not a page ───────────────────────────
+     A pad depresses and its LED blooms; the playhead sweeps the
+     measure; switching weeks swaps the pattern. Motion is the
+     machine running — nothing decorative for its own sake.      */
+  --animate-pad-hit: pad-hit 0.4s cubic-bezier(0.25, 1.4, 0.4, 1) both;
+  --animate-page-turn: measure-in 0.34s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+  --animate-sheet-in: panel-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-row-in: row-in 0.24s ease both;
+  --animate-receipt-in: card-in 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+
+  /* the pad drops, the LED flares hot, then settles to steady lit */
+  @keyframes pad-hit {
+    0% { transform: scale(1.3, 0.72); opacity: 0.4; filter: brightness(2.4) drop-shadow(0 0 10px rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.9)); }
+    45% { transform: scale(0.92, 1.06); opacity: 1; filter: brightness(1.7) drop-shadow(0 0 7px rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.7)); }
+    100% { transform: scale(1); opacity: 1; filter: brightness(1) drop-shadow(0 0 4px rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.45)); }
+  }
+  /* the pattern swaps — the new measure slides onto the grid */
+  @keyframes measure-in {
+    from { transform: translateX(30px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes panel-in {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes row-in {
+    from { transform: translateY(-4px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  /* a signal card slides in over the deck */
+  @keyframes card-in {
+    from { transform: translateY(16px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  /* the tempo lamp breathes at the machine's rate */
+  @keyframes led-tick {
+    0%, 55%, 100% { opacity: 0.35; }
+    12%, 30% { opacity: 1; }
+  }
+  /* the playhead's column glow */
+  @keyframes play-glow {
+    0%, 100% { box-shadow: inset 0 2px 0 rgb(var(--indigo-rgb) / 0.9), 0 0 0 rgb(var(--indigo-rgb) / 0); }
+    45% { box-shadow: inset 0 2px 0 rgb(var(--indigo-rgb) / 0.9), 0 0 12px rgb(var(--indigo-rgb) / 0.3); }
+  }
+}
+
+.it-place-rhythm {
+
+  /* ── Typography ──────────────────────────────────────────────
+     Space Grotesk — the machine's silkscreen / display face
+     IBM Plex Mono — engraved labels, LCD readouts, timing
+     Source Sans 3 — humanist sans for readable body text        */
+  --font-display: var(--font-sans, system-ui, sans-serif);
+  --font-mono: var(--font-mono, ui-monospace, 'SF Mono', Menlo, monospace);
+  --font-ui: var(--font-sans, system-ui, sans-serif);
+
+  /* ── The unit — a desktop step-sequencer chassis ─────────────
+     Dark graphite hardware on a darker desk. The faceplate is a
+     raised deck of brushed metal; signal amber is the machine's
+     live color; every routine channel gets its own LED hue.     */
+  --color-chassis: #16241d; /* the unit's body — deepest surface */
+  --color-chassis-deep: #0f1a14;
+  --color-deck: #1d332a; /* the faceplate everything mounts on */
+  --color-panel: #24392e; /* raised sub-panel on the deck */
+  --color-recess: #132219; /* recessed screens, tracks, wells */
+  --color-ink: #ede6d0; /* engraved print */
+  --color-ink-soft: #a3a68f;
+  --color-ink-faint: #687a6c;
+  --color-rule: #2e4638;
+  --color-rule-dark: #40594a;
+
+  --color-indigo: #f0a032; /* signal amber — the machine's live color */
+  --color-indigo-deep: #c67e20;
+  --color-amber: #e0b04a; /* caution lamp — recovery, not alarm */
+  --color-ok: #8fce6a;
+  --color-bad: #f0553f;
+  --color-lcd-bg: #10200f;
+  --color-lcd-fg: #cfe382;
+
+  /* alpha triplets */
+  --ink-rgb: 237 232 214;
+  --stock-rgb: 29 51 42;
+  --indigo-rgb: 240 160 50;
+  --amber-rgb: 224 176 74;
+  --ok-rgb: 143 206 106;
+  --bad-rgb: 240 85 63;
+  --lcd-rgb: 207 227 130;
+  --cover-rgb: 15 26 20;
+
+  /* ── Channel accents — LED hues, one per routine ──────────────
+     Names are stored on routines; values are lit-LED tuned.      */
+  --color-acc-indigo: #6ea0ff;
+  --color-acc-oxblood: #ff5a42;
+  --color-acc-hunter: #86d05a;
+  --color-acc-ochre: #ffab3d;
+  --color-acc-plum: #e06fc4;
+  --color-acc-teal: #45d6b8;
+  --color-acc-slate: #cfd8ea;
+  --color-acc-rust: #ff7c30;
+
+  --acc-indigo-rgb: 110 160 255;
+  --acc-oxblood-rgb: 255 90 66;
+  --acc-hunter-rgb: 134 208 90;
+  --acc-ochre-rgb: 255 171 61;
+  --acc-plum-rgb: 224 111 196;
+  --acc-teal-rgb: 69 214 184;
+  --acc-slate-rgb: 207 216 234;
+  --acc-rust-rgb: 255 124 48;
+
+  --shadow-deck: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 18px 44px rgb(0 0 0 / 0.55), 0 3px 8px rgb(0 0 0 / 0.4);
+  --shadow-panel: 0 1px 0 rgb(255 255 255 / 0.045) inset, 0 2px 6px rgb(0 0 0 / 0.4);
+  --shadow-key: 0 2px 0 #0d0c08, 0 3px 7px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.07);
+
+  /* ── Motion — a machine, not a page ───────────────────────────
+     A pad depresses and its LED blooms; the playhead sweeps the
+     measure; switching weeks swaps the pattern. Motion is the
+     machine running — nothing decorative for its own sake.      */
+  --animate-pad-hit: pad-hit 0.4s cubic-bezier(0.25, 1.4, 0.4, 1) both;
+  --animate-page-turn: measure-in 0.34s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+  --animate-sheet-in: panel-in 0.3s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  --animate-row-in: row-in 0.24s ease both;
+  --animate-receipt-in: card-in 0.4s cubic-bezier(0.22, 0.9, 0.3, 1) both;
+
+  /* the pad drops, the LED flares hot, then settles to steady lit */
+
+  height: 100%;
+  color-scheme: dark;
+  font-family: var(--font-ui);
+  color: var(--color-ink);
+  background-color: var(--color-chassis);
+  background-image:
+    radial-gradient(1100px 680px at 30% -12%, rgb(255 255 255 / 0.05), transparent 62%),
+    radial-gradient(900px 620px at 112% 112%, rgb(0 0 0 / 0.45), transparent 55%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.014) 0 1px, transparent 1px 3px);
+  -webkit-font-smoothing: antialiased;
+  display: block;
+  /* the root clips — scrolling lives on the inner .rhythm-scroll column, so
+     <Sheet> overlays portaled here stay frame-bound and can never drift */
+  overflow-x: clip;
+  overflow-y: clip;
+}
+
+.it-place-rhythm .rhythm-scroll {
+  height: 100%;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+.it-place-rhythm ::selection { background: rgb(var(--indigo-rgb) / 0.3); }
+
+/* ── The deck — the faceplate panel everything mounts on ─────── */
+.it-place-rhythm .deck {
+  position: relative;
+  background-color: var(--color-deck);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 0.045), transparent 110px),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.008) 0 1px, transparent 1px 4px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.03'/%3E%3C/svg%3E");
+  border: 1px solid rgb(255 255 255 / 0.05);
+  border-radius: 8px;
+  box-shadow: var(--shadow-deck);
+}
+
+/* the four case screws holding the faceplate down */
+.it-place-rhythm .deck::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle 4.5px at 12px 12px, #0c0b08 0 2.4px, #4e4a3a 2.8px 3.8px, transparent 4.2px),
+    radial-gradient(circle 4.5px at calc(100% - 12px) 12px, #0c0b08 0 2.4px, #4e4a3a 2.8px 3.8px, transparent 4.2px),
+    radial-gradient(circle 4.5px at 12px calc(100% - 12px), #0c0b08 0 2.4px, #4e4a3a 2.8px 3.8px, transparent 4.2px),
+    radial-gradient(circle 4.5px at calc(100% - 12px) calc(100% - 12px), #0c0b08 0 2.4px, #4e4a3a 2.8px 3.8px, transparent 4.2px);
+}
+
+/* ── Channel rows — one strip per routine ─────────────────────── */
+.it-place-rhythm .chan {
+  border-bottom: 1px solid var(--color-rule);
+  transition: background-color 0.12s ease;
+}
+.it-place-rhythm .chan:last-child {
+  border-bottom: none;
+}
+.it-place-rhythm .chan:hover {
+  background: rgb(255 255 255 / 0.022);
+}
+
+/* ── The pad — a step on the sequencer ──────────────────────────
+   Every recorded day is a pad on the grid. State lives in the
+   SHAPE first: full = lit pad, minimum = smaller lit pad,
+   partial = half-lit, missed = hollow pad with a rest dot,
+   exception = muted (struck) pad, paused = hold bars,
+   unscheduled = an empty slot, future = unprogrammed slot.      */
+.it-place-rhythm .pad {
+  --pad-color: var(--color-ink-soft);
+  --pad-rgb: 168 162 138;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  color: var(--pad-color);
+}
+.it-place-rhythm .pad svg {
+  display: block;
+}
+.it-place-rhythm .pad--full { --pad-color: var(--color-acc-ochre); --pad-rgb: var(--acc-ochre-rgb); filter: drop-shadow(0 0 4px rgb(var(--pad-rgb) / 0.45)); }
+.it-place-rhythm .pad--minimum { --pad-color: var(--color-acc-ochre); --pad-rgb: var(--acc-ochre-rgb); filter: drop-shadow(0 0 3px rgb(var(--pad-rgb) / 0.4)); }
+.it-place-rhythm .pad--partial { --pad-color: var(--color-amber); --pad-rgb: var(--amber-rgb); filter: drop-shadow(0 0 3px rgb(var(--pad-rgb) / 0.3)); }
+.it-place-rhythm .pad--missed { --pad-color: var(--color-ink-faint); }
+.it-place-rhythm .pad--exception { --pad-color: var(--color-ink-soft); }
+.it-place-rhythm .pad--paused { --pad-color: var(--color-ink-faint); }
+.it-place-rhythm .pad--unscheduled,
+.it-place-rhythm .pad--future { --pad-color: var(--color-rule-dark); }
+
+/* accent variants — the channel's own LED color */
+.it-place-rhythm .acc-indigo { --pad-color: var(--color-acc-indigo); --pad-rgb: var(--acc-indigo-rgb); }
+.it-place-rhythm .acc-oxblood { --pad-color: var(--color-acc-oxblood); --pad-rgb: var(--acc-oxblood-rgb); }
+.it-place-rhythm .acc-hunter { --pad-color: var(--color-acc-hunter); --pad-rgb: var(--acc-hunter-rgb); }
+.it-place-rhythm .acc-ochre { --pad-color: var(--color-acc-ochre); --pad-rgb: var(--acc-ochre-rgb); }
+.it-place-rhythm .acc-plum { --pad-color: var(--color-acc-plum); --pad-rgb: var(--acc-plum-rgb); }
+.it-place-rhythm .acc-teal { --pad-color: var(--color-acc-teal); --pad-rgb: var(--acc-teal-rgb); }
+.it-place-rhythm .acc-slate { --pad-color: var(--color-acc-slate); --pad-rgb: var(--acc-slate-rgb); }
+.it-place-rhythm .acc-rust { --pad-color: var(--color-acc-rust); --pad-rgb: var(--acc-rust-rgb); }
+
+.pad--full.acc-indigo, .pad--minimum.acc-indigo,
+.pad--full.acc-oxblood, .pad--minimum.acc-oxblood,
+.pad--full.acc-hunter, .pad--minimum.acc-hunter,
+.pad--full.acc-ochre, .pad--minimum.acc-ochre,
+.pad--full.acc-plum, .pad--minimum.acc-plum,
+.pad--full.acc-teal, .pad--minimum.acc-teal,
+.pad--full.acc-slate, .pad--minimum.acc-slate,
+.it-place-rhythm .pad--full.acc-rust,
+.it-place-rhythm .pad--minimum.acc-rust {
+  filter: drop-shadow(0 0 4px rgb(var(--pad-rgb) / 0.5));
+}
+
+.it-place-rhythm .pad--hit {
+  animation: var(--animate-pad-hit);
+}
+
+/* ── The hit pad — Today's trigger button ─────────────────────── */
+.it-place-rhythm .padbtn {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #2b2a21, #1d1c16);
+  border: 1px solid #3b392b;
+  box-shadow: var(--shadow-key);
+  cursor: pointer;
+  transition: transform 0.07s ease, box-shadow 0.07s ease, border-color 0.12s;
+}
+.it-place-rhythm .padbtn:hover {
+  border-color: #54503c;
+  background: linear-gradient(180deg, #302e24, #1d332a);
+}
+.it-place-rhythm .padbtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0.5px 0 #0d0c08, inset 0 2px 5px rgb(0 0 0 / 0.55);
+}
+.it-place-rhythm .padbtn:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 2px;
+}
+.it-place-rhythm .padbtn[aria-pressed='true'] {
+  border-color: rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.6);
+  box-shadow: 0 2px 0 #0d0c08, 0 0 14px rgb(var(--pad-rgb, var(--indigo-rgb)) / 0.22), inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+
+/* ── Steps — cells on the pattern grid ────────────────────────── */
+.it-place-rhythm .step {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.12s ease, transform 0.1s ease;
+}
+.it-place-rhythm .step:hover { background: rgb(255 255 255 / 0.06); }
+.it-place-rhythm .step:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 1px;
+  z-index: 1;
+}
+.it-place-rhythm .step:active { transform: scale(0.92); }
+/* the playhead is sweeping this step right now */
+.it-place-rhythm .step--play {
+  background: rgb(var(--indigo-rgb) / 0.13);
+  animation: play-glow 0.9s ease both;
+}
+/* today's column — where the song is */
+.it-place-rhythm .step--now {
+  outline: 1px solid rgb(var(--indigo-rgb) / 0.55);
+  outline-offset: -1px;
+}
+
+/* ── Word + display typography ────────────────────────────────── */
+.it-place-rhythm .kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+}
+
+.it-place-rhythm .disp {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.it-place-rhythm .mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* engraved silkscreen on the chassis */
+.it-place-rhythm .silk {
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.85), 0 -1px 0 rgb(255 255 255 / 0.05);
+}
+
+/* ── The LCD — the machine's readout screen ───────────────────── */
+.it-place-rhythm .lcd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-lcd-fg);
+  background: linear-gradient(180deg, #171f0c, var(--color-lcd-bg) 55%, #0e1406);
+  border: 1px solid #2e3817;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.65), inset 0 -1px 0 rgb(255 255 255 / 0.04), 0 1px 0 rgb(255 255 255 / 0.04);
+  text-shadow: 0 0 7px rgb(var(--lcd-rgb) / 0.45);
+}
+
+/* ── Status lamps — band labels as lit indicators ─────────────── */
+.it-place-rhythm .lamp {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 3px;
+  padding: 0.2em 0.55em 0.2em 0.5em;
+  background: rgb(0 0 0 / 0.25);
+  white-space: nowrap;
+}
+.it-place-rhythm .lamp::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  flex: none;
+}
+.it-place-rhythm .lamp--established { color: var(--color-ok); }
+.it-place-rhythm .lamp--recovery { color: var(--color-amber); }
+.it-place-rhythm .lamp--paused,
+.it-place-rhythm .lamp--building { color: var(--color-ink-soft); }
+.it-place-rhythm .lamp--paused::before,
+.it-place-rhythm .lamp--building::before { box-shadow: none; opacity: 0.5; }
+.it-place-rhythm .lamp--experimenting { color: var(--color-acc-plum); }
+
+/* ── Tempo LED — the running lamp ─────────────────────────────── */
+.it-place-rhythm .led {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-indigo);
+  box-shadow: 0 0 8px rgb(var(--indigo-rgb) / 0.8);
+}
+.it-place-rhythm .led--tick {
+  animation: led-tick 0.9s ease-in-out infinite;
+}
+
+/* ── Fields — recessed input wells ────────────────────────────── */
+.it-place-rhythm .f-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-soft);
+  display: block;
+  margin-bottom: 4px;
+}
+.f-input,
+.f-select,
+.it-place-rhythm .f-textarea {
+  width: 100%;
+  background: var(--color-recess);
+  border: 1px solid #3b392b;
+  border-radius: 3px;
+  padding: 7px 9px;
+  font-family: var(--font-ui);
+  font-size: 13.5px;
+  color: var(--color-ink);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.45);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+.f-input::placeholder,
+.it-place-rhythm .f-textarea::placeholder {
+  color: var(--color-ink-faint);
+}
+.f-input:focus-visible,
+.f-select:focus-visible,
+.it-place-rhythm .f-textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-indigo);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.45), 0 0 0 2px rgb(var(--indigo-rgb) / 0.3);
+}
+.it-place-rhythm .f-input:disabled {
+  opacity: 0.5;
+}
+.it-place-rhythm .f-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.it-place-rhythm input[type='checkbox'] {
+  accent-color: var(--color-indigo);
+}
+
+/* ── Buttons — keycaps on the faceplate ───────────────────────── */
+.it-place-rhythm .btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid #3b392b;
+  border-radius: 4px;
+  padding: 6px 12px;
+  color: var(--color-ink);
+  background: linear-gradient(180deg, #2b2a21, #1f1e17);
+  box-shadow: var(--shadow-key);
+  cursor: pointer;
+  transition: transform 0.07s ease, box-shadow 0.07s ease, background-color 0.12s ease, color 0.12s ease, border-color 0.12s;
+}
+.it-place-rhythm .btn:hover { background: linear-gradient(180deg, #302e24, #22211a); border-color: #54503c; }
+.it-place-rhythm .btn:active { transform: translateY(2px); box-shadow: 0 0.5px 0 #0d0c08, inset 0 2px 5px rgb(0 0 0 / 0.55); }
+.it-place-rhythm .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.it-place-rhythm .btn:disabled:active { transform: none; }
+.it-place-rhythm .btn:focus-visible { outline: 2px solid var(--color-indigo); outline-offset: 2px; }
+
+/* the lit action key — amber backlight, dark legend */
+.it-place-rhythm .btn--primary {
+  background: linear-gradient(180deg, #ffb84a, var(--color-indigo) 60%, #d88a26);
+  border-color: #8a5c16;
+  color: #1c1406;
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.25);
+  box-shadow: 0 2px 0 #0d0c08, 0 0 14px rgb(var(--indigo-rgb) / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+.it-place-rhythm .btn--primary:hover {
+  background: linear-gradient(180deg, #ffc35c, #f4a83a 60%, #de9228);
+  border-color: #a06a1a;
+}
+.it-place-rhythm .btn--primary:active { text-shadow: none; }
+
+/* flush engraved key — quiet transport */
+.it-place-rhythm .btn--quiet {
+  border-color: #333124;
+  color: var(--color-ink-soft);
+  background: transparent;
+  box-shadow: none;
+}
+.it-place-rhythm .btn--quiet:hover { color: var(--color-ink); background: rgb(255 255 255 / 0.05); border-color: #40594a; }
+.it-place-rhythm .btn--quiet:active { transform: translateY(1px); background: rgb(0 0 0 / 0.3); box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.4); }
+
+/* the red key — destructive actions only */
+.it-place-rhythm .btn--danger {
+  border-color: #6a2c22;
+  color: var(--color-bad);
+  background: linear-gradient(180deg, #2b1b17, #1f1410);
+  box-shadow: var(--shadow-key);
+}
+.it-place-rhythm .btn--danger:hover { background: linear-gradient(180deg, #35201a, #241611); border-color: #8a3a2c; }
+
+/* ── Section keys — the faceplate's selector bank ─────────────── */
+.it-place-rhythm .stab {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+  padding: 7px 11px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+}
+.it-place-rhythm .stab:hover { color: var(--color-ink-soft); background: rgb(255 255 255 / 0.04); }
+.it-place-rhythm .stab:focus-visible { outline: 2px solid rgb(241 235 215 / 0.6); outline-offset: -2px; }
+/* engaged selector — raised lit key */
+.it-place-rhythm .stab[aria-selected='true'] {
+  color: var(--color-indigo);
+  background: linear-gradient(180deg, #2a291f, #1e1d16);
+  border-color: #3b392b;
+  box-shadow: var(--shadow-key), 0 0 10px rgb(var(--indigo-rgb) / 0.18);
+  text-shadow: 0 0 6px rgb(var(--indigo-rgb) / 0.5);
+}
+
+/* ── Sheets & panels ──────────────────────────────────────────── */
+.it-place-rhythm .panel {
+  position: relative;
+  background: linear-gradient(180deg, #28271f, var(--color-panel) 60%, #22211a);
+  border: 1px solid #3a382b;
+  box-shadow: var(--shadow-panel);
+  border-radius: 5px;
+}
+.it-place-rhythm .panel--in {
+  animation: var(--animate-sheet-in);
+}
+
+.it-place-rhythm .sheet-backdrop {
+  /* absolute — sheets are bound to the place frame (per the terrain
+     contract); fixed would pin them to the viewport and fight the
+     shell's chrome. The <Sheet> portal mounts these at the place root —
+     `.deck` is positioned and would otherwise hijack the overlay so it
+     dimmed only the card and left the chassis clickable. */
+  position: absolute;
+  inset: 0;
+  background: rgb(8 8 5 / 0.65);
+  backdrop-filter: blur(2px);
+  z-index: 40;
+  animation: row-in 0.15s ease both;
+}
+.it-place-rhythm .sheet-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+}
+@media (min-width: 640px) {
+  .sheet-modal { align-items: center; }
+}
+
+/* ── The meter — a segmented LED level bar ────────────────────── */
+.it-place-rhythm .meter {
+  height: 5px;
+  background: rgb(0 0 0 / 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
+}
+.it-place-rhythm .meter > i {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+  transition: width 0.3s ease;
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px);
+  mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px);
+}
+
+
+/* ── Reduced motion — law, not suggestion ──────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .it-place-rhythm:not([data-motion='full']) *,
+  .it-place-rhythm:not([data-motion='full']) *::before,
+  .it-place-rhythm:not([data-motion='full']) *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+.it-place-rhythm[data-motion='reduced'] *,
+.it-place-rhythm[data-motion='reduced'] *::before,
+.it-place-rhythm[data-motion='reduced'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}
+
+/* ── Print — the pattern prints like a set list ────────────────── */
+@media print {
+  .it-place-rhythm {
+    --color-chassis: #ffffff;
+    --color-deck: #ffffff;
+    --color-panel: #ffffff;
+    --color-recess: #f4f4f0;
+    --color-ink: #232019;
+    --color-ink-soft: #555040;
+    --color-ink-faint: #8a8272;
+    --color-rule: #d8d3c0;
+    --color-rule-dark: #b0a98c;
+    --color-lcd-bg: #f0f2e4;
+    --color-lcd-fg: #2c3618;
+  }
+  .it-place-rhythm .deck { box-shadow: none; border-color: #ddd; }
+  .it-place-rhythm .deck::before { display: none; }
+  .it-place-rhythm .pad { filter: none !important; }
+  .it-place-rhythm .lamp::before { box-shadow: none; }
+  .it-place-rhythm .led { box-shadow: none; }
+  .it-place-rhythm .lcd { box-shadow: none; text-shadow: none; }
+  .it-place-rhythm .btn, .padbtn { box-shadow: none; }
+  .it-place-rhythm .silk { text-shadow: none; }
+  .it-place-rhythm .no-print { display: none !important; }
+}
+
+/* ── Terrain theme — paper turns the unit into a cream-paneled
+   instrument. Recessed LCD wells stay dark (as real screens would);
+   signal colors deepen to keep their contrast on the light faceplate. ── */
+[data-terrain='paper'] .it-place-rhythm {
+  --color-chassis: #d3cdb6;
+  --color-chassis-deep: #c2bba0;
+  --color-deck: #dfdac2;
+  --color-panel: #e9e3cb;
+  --color-recess: #b7b095;
+  --color-ink: #33362b;
+  --color-ink-soft: #5e6350;
+  --color-ink-faint: #878b75;
+  --color-rule: #b1a98c;
+  --color-rule-dark: #9a9278;
+  --color-indigo: #d97f14;
+  --color-indigo-deep: #b5680e;
+  --color-amber: #b58a14;
+  --color-ok: #4d8a38;
+  --color-bad: #c2452f;
+  --ink-rgb: 51 54 43;
+  --stock-rgb: 223 218 194;
+  --indigo-rgb: 217 127 20;
+  --amber-rgb: 181 138 20;
+  --ok-rgb: 77 138 56;
+  --bad-rgb: 194 69 47;
+  --cover-rgb: 194 187 160;
+  color-scheme: light;
+}
+
+/* Terrain scoping — @theme emits these tokens to :root where sibling
+   places and the shell collide. Re-declared on the place root so every var
+   stays local to this app; [data-terrain] overrides win by specificity. */
+.it-place-rhythm {
+  --font-display: var(--font-sans, system-ui, sans-serif);
+  --color-chassis-deep: #0f1a14;
+  --color-indigo-deep: #c67e20;
+  --color-ok: #8fce6a;
+  --ink-rgb: 237 232 214;
+  --color-acc-indigo: #6ea0ff;
+  --animate-pad-hit: pad-hit 0.4s cubic-bezier(0.25, 1.4, 0.4, 1) both;
+}

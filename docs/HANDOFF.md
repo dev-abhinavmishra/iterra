@@ -75,9 +75,12 @@ contract every app and the shell follows.
 - `/iterra-hub.js` is root-absolute → build MUST copy hub to `dist/` root
   or the mesh 404s in prod (was silently broken until cfda7c6).
 - Solo (unframed) writers can't overwrite a fresh framed presence (35s TTL).
-- `shared.focus` freshness is 3min (per-minute heartbeats while running);
-  generic commons fields are 10min live / 1h dead. It carries `course`
-  (the bound link's ?course=) + `blockId` — dossiers join on either.
+- `shared.focus` freshness is 3min everywhere (terrain now-strip, commons,
+  dossier live-focus, rail) — running sessions re-stamp every tick; PAUSED
+  sessions heartbeat every 60s (a paused countdown never ticks, its stamp
+  would otherwise age out live). It carries `course` (the bound link's
+  ?course=) + `blockId` — dossiers join on either. `shared.session` (proof)
+  heartbeats every 2min; rail gates it at 5min.
 - Dedupe JSONs MUST serialize every linkage field (course+topic) — a
   linkage-only change otherwise never republishes (fixed in proof, was
   already right in cardfile; full-entity stringifiers are fine).
@@ -102,6 +105,22 @@ contract every app and the shell follows.
   JSON.parse it as a list crash before the assertion.
 - localStorage writes in-page don't fire storage events to the same window —
   probe feed/index state by writing + reload, or drive the hub API itself.
+- `shared.noteActive` arbitration: `v.at` is the note's own write/access
+  time (siblings compare against their own last write); outer `at` is
+  publisher freshness. Margin + ink re-stamp `at` every 2min, sibling-aware
+  (never over the other desk's fresh stamp); rail + useOtherNoteActive gate
+  at 5min — a dead desk's claim ages out instead of lingering.
+- `timer.control` ops are durable — the adapter pushes `{op,at}` to
+  `timer.ops.v1` (localStorage) BEFORE dispatching, and TimerView dequeues
+  only after the op actually applies; a drain effect retries whenever
+  running/hasTime flips. Ops stale-drop at 30s. An op that lands mid-boot
+  or mid-navigation survives and applies when the session arms.
+- The intake drain lands `result.url` ONLY for the `?intake=` launched
+  record — a warm/direct delivery returns `url` to the sender instead;
+  callers must `onGo(r.url)` (palette ⇥ + dossier sends already do).
+- Intakes are bounded like events: IDB keeps the 500 newest DELIVERED rows
+  (pruned inside intakeResolve); LS evicts oldest delivered first —
+  pending rows are never evicted in either path.
 
 ## Open threads
 
@@ -114,6 +133,29 @@ contract every app and the shell follows.
 - In flight on rhythm child: ink `initialNotes` demo-library strip →
   margin-style welcome note + no seeded folders (standing no-fake-data
   rule — was indexing 3 fabricated notes into #/c/unfiled).
+- Durable-intake wave (07b732b→b980f20): send-to is now exactly-once —
+  per-app serialized drains + atomic IndexedDB claims (`claimedBy/
+  claimedAt`, stale-claim reclaim) end duplicate deliveries (one
+  problem.create previously made 4 problems); thrown/`{retry:true}`/
+  timed-out handlers release the claim and stay pending (previously
+  throws marked records delivered — cold-boot sends evaporated);
+  scheduled re-drains + handler timeout bound hangs; no-handler records
+  stay pending forever. Shell mounts cold apps at `?intake=<first-
+  pending>` (hash nav, iterra:open, slot-migration — shell/src/App.tsx +
+  hub.ts `firstPendingIntake`) so referential results land instead of
+  evaporating; `?intake=` frames for already-delivered records navigate
+  once to the stored `result.url` (the >700ms drain race). Adapter
+  readiness: proof/syllabus await boot before mutating (throw 'app not
+  ready' → retry), rhythm/ink await persist hydration, gradestack
+  `?scanId=` deep link, ink `addNote` honors caller ids (idempotent
+  re-delivery). Check: scripts/intake-matrix-check.cjs — all 14
+  documented actions asserting real target-side effects, 17/17.
+  Follow-ups: store.get miss → null (was truthy IDBRequest), drain nav
+  same-origin gated, intakeResolve can't double-stamp, rhythm wake
+  reconciles remote removes, timer binding is one-shot + file-back
+  survives chained recess (files captured focus minutes), shell
+  'waking <place>…' boot chip + 'N waiting' chip turns rose at
+  attempts>=3 (lastError on hover), send.delivered event emitted.
 - Landed recently (verify before re-doing): ?block= slip intake + ring
   (2e40d6e), entity urls carry ?block=<id> so dossier/palette/shelf clicks
   land ON the slip, FOCUS pill on bound slips, Sigma→proof pad links,
@@ -183,3 +225,26 @@ contract every app and the shell follows.
   (a2a04be); mesh contract vitest (b2f9d36, 13/13); syllabus persist
   merge backfills dependencies/reasons — old blobs booted to a white
   screen (583479b, child-verified).
+- Coordination wave (c9ac3fe era): shell send-menus keyed by stable
+  identity (stir at:app, dossier row app|url|id|title) — index-keyed
+  menus silently re-target when lists reorder on refresh; commons sort
+  freshest-first; topbar needs `relative z-30` — its anim-fade layer let
+  keep-alive iframes outpaint the z-40 switcher dropdown while the
+  invisible backdrop swallowed clicks; frame ⌘K forwarding yields via
+  register opts `ownKeys` (defaultPrevented can't work — the hub's
+  document listener precedes window-level app handlers).
+- Polish wave (27a738b→72e0067): Escape now dismisses every shell popover
+  (switcher, rail quick-start, dossier row-send, stir send, cheat) — they
+  had backdrop-click only, and a stranded backdrop eats the next click
+  invisibly; palette Escape peels the send menu before closing the palette
+  itself. Global :focus-visible moss ring — ~19 controls dropped the
+  outline with no replacement. readIndexes filters null entries (sparse-
+  array deletes in index docs serialize as null — crashed the whole shell
+  on a flatMap deref). Stirrings collapse consecutive identical
+  app+text+url rows to 'text ×N'. intake-matrix-check takes ITERRA_BASE /
+  ITERRA_CDP — run it against a spare port (node static-serve dist PORT)
+  so matrix entities never pollute the browsed origin; it seeds a term+
+  MTH course into syllabus.folio.v1 when the folio is empty so block.plan
+  can resolve (block.plan legitimately url:nulls on a course-less folio).
+  Six scripts/appcheck-<app>.cjs (lane D) take BASE/CDP env — same spare-
+  origin rule applies; they double as per-app clickpath regressions.

@@ -170,7 +170,7 @@ const DeckEditor: React.FC<DeckEditorProps> = ({ deck: initialDeck, sourceNote, 
                                     title="Remove card"
                                     danger
                                     onClick={() => removeCard(card.id)}
-                                    className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                                    className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
                                 />
                             </div>
                         ))}

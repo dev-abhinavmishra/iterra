@@ -68,8 +68,16 @@ const { chromium } = require('playwright-core');
   });
 
   // dossier + shelf — navigate to a course dossier, pin a row, assert the
-  // pin lands in iterra.v1.shelf
+  // pin lands in iterra.v1.shelf. A cold profile may hold no course-keyed
+  // entities yet (apps index only what exists) — seed one the way a live
+  // publisher would, mirroring the proof seed below.
   const dossier = await page.evaluate(async () => {
+    const idx = JSON.parse(localStorage.getItem('iterra.v1.doc.index.syllabus') || '{}');
+    const ents = idx.entities || [];
+    if (!ents.some((e) => e.course || e.topic)) {
+      ents.unshift({ t: 'block', id: 'smoke-b', title: 'smoke block', course: 'SMK', url: '/apps/syllabus/?block=smoke-b', at: Date.now() });
+      localStorage.setItem('iterra.v1.doc.index.syllabus', JSON.stringify({ entities: ents }));
+    }
     const keys = new Set();
     for (const k of Object.keys(localStorage)) {
       if (!k.startsWith('iterra.v1.doc.index.')) continue;

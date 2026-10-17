@@ -31,7 +31,7 @@ export function answerKind(spec: AnswerSpec): 'text' | 'numeric' | 'expression' 
   }
 }
 
-export function specSummary(spec: AnswerSpec, rubric?: Rubric): string {
+export function specSummary(spec: AnswerSpec, rubric?: Pick<Rubric, 'title'>): string {
   switch (spec.kind) {
     case 'exact': return `exact — “${spec.expected}”`;
     case 'numeric': {

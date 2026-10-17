@@ -97,6 +97,41 @@ describe('?deck= intake', () => {
   });
 });
 
+describe('?cards= intake', () => {
+  /* senders (proof) build the link with URLSearchParams — the query value
+     arrives already-decoded. Decoding AGAIN turned a literal '%' into a
+     URIError that killed the whole import, and corrupted real '%20' text. */
+  it('imports single-encoded cards carrying a literal %', () => {
+    const w = boot('/?cards=' + encodeURIComponent('50% duty:half rate;x:y'));
+    const decks = JSON.parse(w.localStorage.getItem(STORE));
+    const d = Object.values(decks).find(x => x.title === 'Shared deck');
+    expect(d).toBeTruthy();
+    expect(d.cards.map(c => c.q)).toContain('50% duty');
+    expect(d.cards.map(c => c.q)).toContain('x');
+  });
+
+  it("keeps literal '%20' in card text instead of re-decoding to a space", () => {
+    const w = boot('/?cards=' + encodeURIComponent('code%20x:raw') + '&title=' + encodeURIComponent('Pct'));
+    const decks = JSON.parse(w.localStorage.getItem(STORE));
+    const d = Object.values(decks).find(x => x.title === 'Pct');
+    expect(d.cards[0].q).toBe('code%20x');
+  });
+
+  it('a title/course with % survives instead of failing the import', () => {
+    const w = boot('/?cards=' + encodeURIComponent('a:b') +
+      '&title=' + encodeURIComponent('100% sure') + '&course=' + encodeURIComponent('MTH'));
+    const decks = JSON.parse(w.localStorage.getItem(STORE));
+    const d = Object.values(decks).find(x => x.title === '100% sure');
+    expect(d).toBeTruthy();
+    expect(d.course).toBe('MTH');
+  });
+
+  it('params strip on consume', () => {
+    const w = boot('/?cards=' + encodeURIComponent('a:b'));
+    expect(w.location.search).toBe('');
+  });
+});
+
 describe('store-shape crash guard', () => {
   it('normalizes a stray-name deck, a non-object entry, and missing cards without throwing', () => {
     let w;

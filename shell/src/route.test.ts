@@ -13,22 +13,44 @@ const store: Record<string, string> = {};
 (globalThis as any).StorageEvent = class { constructor(public type: string, public init?: any) {} };
 
 describe('parseHash', () => {
+  // query/section are non-enumerable on the parsed route — assert fields directly
   it('terrain on empty/root', () => {
-    expect(parseHash('')).toEqual({ place: '', course: '' });
-    expect(parseHash('#/')).toEqual({ place: '', course: '' });
+    for (const r of [parseHash(''), parseHash('#/')]) {
+      expect(r.place).toBe('');
+      expect(r.course).toBe('');
+      expect(r.query).toBe('');
+      expect(r.section).toBe('today');
+    }
   });
   it('place route', () => {
-    expect(parseHash('#/p/ink')).toEqual({ place: 'ink', course: '' });
+    const r = parseHash('#/p/ink');
+    expect(r.place).toBe('ink');
+    expect(r.course).toBe('');
+    expect(r.query).toBe('');
+    expect(r.section).toBe('place');
   });
   it('unknown place falls back to terrain', () => {
-    expect(parseHash('#/p/nope')).toEqual({ place: '', course: '' });
+    const r = parseHash('#/p/nope');
+    expect(r.place).toBe('');
+    expect(r.course).toBe('');
+    expect(r.section).toBe('today');
   });
   it('course route decodes the key', () => {
-    expect(parseHash('#/c/MTH')).toEqual({ place: '', course: 'MTH' });
-    expect(parseHash('#/c/Early%20Modern')).toEqual({ place: '', course: 'Early Modern' });
+    const a = parseHash('#/c/MTH');
+    expect(a.place).toBe('');
+    expect(a.course).toBe('MTH');
+    expect(a.section).toBe('courses');
+    const b = parseHash('#/c/Early%20Modern');
+    expect(b.course).toBe('Early Modern');
+  });
+  it('courses directory and library routes', () => {
+    expect(parseHash('#/courses').section).toBe('courses');
+    expect(parseHash('#/courses').course).toBe('');
+    expect(parseHash('#/library').section).toBe('library');
+    expect(parseHash('#/p/timer?minutes=25&from=syllabus').query).toBe('minutes=25&from=syllabus');
   });
   it('course wins over trailing place text', () => {
-    expect(parseHash('#/c/MTH')).not.toEqual({ place: 'c', course: '' });
+    expect(parseHash('#/c/MTH')).not.toEqual({ place: 'c', course: '', query: '' });
   });
 });
 

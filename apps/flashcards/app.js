@@ -511,6 +511,7 @@ function parseUrlDeck() {
        keep that path as fallback when the id isn't a known deck. */
     if (state.decks[deckKey]) {
       selectDeck(deckKey);
+      applyShuffle();
       history.replaceState(null, '', location.pathname);
       return true;
     }
@@ -528,7 +529,10 @@ function parseUrlDeck() {
   }
   if (cardsParam) {
     try {
-      const cards = decodeURIComponent(cardsParam).split(';').map(entry => {
+      /* URLSearchParams.get already decoded once — decoding again turns a
+         literal '%' into a URIError (whole import lost) and corrupts real
+         '%20'/'%2B' card text. */
+      const cards = cardsParam.split(';').map(entry => {
         const [main, ex = ''] = entry.split('|').map(s => s.trim());
         const i = main.indexOf(':');
         if (i < 0) return null;
@@ -536,8 +540,9 @@ function parseUrlDeck() {
         return q && a ? { q, a, ex } : null;
       }).filter(Boolean);
       if (cards.length) {
-        importSharedDeck(titleParam ? decodeURIComponent(titleParam) : 'Shared deck', cards,
-          p.get('course') ? decodeURIComponent(p.get('course')) : undefined);
+        importSharedDeck(titleParam || 'Shared deck', cards,
+          p.get('course') || undefined);
+        applyShuffle();
       }
     } catch { toast('Bad card data in link.'); }
     history.replaceState(null, '', location.pathname);
@@ -557,6 +562,12 @@ function deckStats(d) {
   return { total, starred, mastered, learning, due };
 }
 
+// ids the library has ever painted — the deal-in animation is an entrance,
+// not a per-render flourish: only rows the library hasn't shown yet slide
+// in, so starring/grading a card (or typing in the filter) doesn't replay
+// the whole list
+let _libShown = new Set();
+
 function renderLibrary() {
   const q = norm(state.libSearch);
   const ids = Object.keys(state.decks)
@@ -574,8 +585,9 @@ function renderLibrary() {
   els.deckList.innerHTML = ids.map(id => {
     const d = state.decks[id];
     const s = deckStats(d);
+    const fresh = !_libShown.has(id);
     return `
-      <div class="deck-row dr-in ${id === state.currentId ? 'active' : ''}" data-deck="${id}" style="animation-delay:${Math.min(ids.indexOf(id), 11) * 22}ms">
+      <div class="deck-row ${fresh ? 'dr-in ' : ''}${id === state.currentId ? 'active' : ''}" data-deck="${id}"${fresh ? ` style="animation-delay:${Math.min(ids.indexOf(id), 11) * 22}ms"` : ''}>
         <button class="dr-main">
           <span class="dr-title">${esc(d.title)}</span>
           <span class="dr-meta"><span>${s.total} card${s.total === 1 ? '' : 's'}${s.starred ? ` · ${s.starred}★` : ''}</span><span>${s.due ? `<span class="dr-due" data-due="${id}" title="Review the due cards now">${s.due} due →</span>` : ''}<span>${relTime(d.lastStudiedAt)}</span></span></span>
@@ -584,6 +596,7 @@ function renderLibrary() {
         <button class="dr-kebab" data-kebab="${id}" title="Deck actions" aria-label="Actions for ${esc(d.title)}">⋮</button>
       </div>`;
   }).join('');
+  ids.forEach(id => _libShown.add(id));
   els.deckList.querySelectorAll('.dr-main').forEach(btn =>
     btn.addEventListener('click', () => selectDeck(btn.closest('.deck-row').dataset.deck)));
   els.deckList.querySelectorAll('.dr-kebab').forEach(btn =>
@@ -637,7 +650,7 @@ function rowMenuAction(id, act) {
       if (id === state.currentId) {
         const remaining = Object.keys(state.decks)[0];
         if (remaining) selectDeck(remaining);
-        else { state.currentId = null; localStorage.removeItem(LAST_KEY); renderAll(); }
+        else { state.currentId = null; try { localStorage.removeItem(LAST_KEY); } catch {} renderAll(); }
       } else renderLibrary();
       toast('Deck deleted');
     });
@@ -654,7 +667,7 @@ function studyCards(d) {
 function selectDeck(id, mode) {
   state.currentId = id;
   state.mode = mode || 'review';
-  localStorage.setItem(LAST_KEY, id);
+  try { localStorage.setItem(LAST_KEY, id); } catch {}
   const d = deck();
   if (d) { d.lastStudiedAt = Date.now(); saveStore(); }
   resetSessions();
@@ -863,10 +876,12 @@ function wireCardSources(table, d) {
     }).then(hit => {
       if (!hit || !row.isConnected) return;
       const cell = row.querySelector('.cell.def');
-      if (!cell || cell.querySelector('.source-chip')) return;
+      // the '→ note' chip also carries .source-chip — the dedupe guard must
+      // only match an existing backlink chip or it can never appear
+      if (!cell || cell.querySelector('.src-link')) return;
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'source-chip';
+      b.className = 'source-chip src-link';
       b.textContent = `from ${hit.app} →`;
       b.title = (hit.ent && hit.ent.title) ? String(hit.ent.title) : `linked ${hit.app} entity`;
       b.addEventListener('click', e => {
@@ -1930,7 +1945,7 @@ function wireMenu() {
       saveStore();
       const remaining = Object.keys(state.decks)[0];
       if (remaining) selectDeck(remaining);
-      else { state.currentId = null; localStorage.removeItem(LAST_KEY); renderAll(); }
+      else { state.currentId = null; try { localStorage.removeItem(LAST_KEY); } catch {} renderAll(); }
       toast('Deck deleted');
     });
   });
@@ -2216,7 +2231,7 @@ function boot() {
 
   const hadUrl = parseUrlDeck();
   if (!hadUrl) {
-    const last = localStorage.getItem(LAST_KEY);
+    const last = (() => { try { return localStorage.getItem(LAST_KEY); } catch { return null; } })();
     if (last && state.decks[last]) selectDeck(last);
     else if (Object.keys(state.decks).length) selectDeck(Object.keys(state.decks)[0]);
     else renderAll();  // empty library → welcome page

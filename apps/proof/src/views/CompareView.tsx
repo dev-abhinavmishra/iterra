@@ -9,6 +9,7 @@ import { cn, fmtDateTime } from '../lib/utils';
 import { DocView } from '../components/DocView';
 import { DrawPad } from '../components/DrawPad';
 import { ProofRail } from '../components/ProofRail';
+import { RetestChip } from '../components/TerrainChips';
 import type { ViewKey } from '../components/TopTabs';
 import { CheckCircle2, Circle, ArrowRight, Download, Layers, NotebookPen, RotateCcw } from 'lucide-react';
 
@@ -121,7 +122,9 @@ export function CompareView({
 
   const retryNow = () => {
     if (!problem) return;
-    const a = startAttempt(problem.id);
+    /* carry the session forward — a retry launched from compare used to
+       silently leave the session runner's queue (sessionId loss) */
+    const a = startAttempt(problem.id, attempt.sessionId);
     onAttempt(a);
   };
 
@@ -390,9 +393,15 @@ export function CompareView({
         </div>
 
         <div className="mt-4 flex items-center justify-between">
-          <div className="text-[11.5px] text-[var(--color-ink-faint)]">
-            {filed ? '✓ record filed — retry scheduled on the queue' : 'file the record to schedule the retry'}
-            {existing && ` · filed ${fmtDateTime(existing.createdAt)}`}
+          <div className="flex items-center gap-2 text-[11.5px] text-[var(--color-ink-faint)]">
+            <span>
+              {filed ? '✓ record filed — retry scheduled on the queue' : 'file the record to schedule the retry'}
+              {existing && ` · filed ${fmtDateTime(existing.createdAt)}`}
+            </span>
+            {/* the filed error's retest card lives in flashcards — surface
+                its live link here, the one place a submitted attempt is
+                viewed (the desk chip only ever sees open attempts) */}
+            <RetestChip attemptId={attemptId} />
           </div>
           <div className="flex gap-2">
             <button className="btn btn--ghost" onClick={retryNow}>

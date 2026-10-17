@@ -323,6 +323,17 @@ is mounted, else a pending intake the target's adapter drains on boot
 Targets register handlers through `iterra.adapter({name,title,summary,
 intakes:{action:handler},wake})`.
 
+Delivery is **durable and exactly-once**: drains are serialized per app,
+each record is atomically claimed before its handler runs, thrown /
+`{retry:true}` / timed-out handlers release the claim and stay pending
+(scheduled re-drains), orphaned claims go stale and are reclaimed, and
+records with no registered handler stay `pending` forever rather than
+silently resolving. The shell mounts a cold app at `?intake=<first-pending
+id>` (hash nav, `iterra:open`, and slot-migration all honor it) so the
+frame lands on the delivered `result.url`; a frame launched at `?intake=`
+for an already-delivered record still navigates once to the stored
+`result.url`. Handler contracts live in docs/ADAPTER.md.
+
 **Wake** — the shell posts `{type:'iterra:wake'}` to a keep-alive frame on
 focus; adapters' `wake` re-reads the store. No stale views.
 

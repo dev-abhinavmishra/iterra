@@ -94,6 +94,72 @@ interface WorkbenchState extends WorkbenchData {
   resetWorkbench: () => void;
 }
 
+/* One normalization pass over untrusted blobs — the persist merge hook and
+   the backup/problem-set import paths all feed it, so a hand-edited or
+   pre-schema file can't wedge the desk (undefined .map/.trim/.length crashes
+   are the whole class of bug this prevents). */
+function normalizeWorkbenchData<T extends Partial<WorkbenchData & { settings?: AppSettings }>>(s: T): T {
+  for (const p of Object.values(s.problems || {})) {
+    p.tags = p.tags ?? [];
+    p.hints = p.hints ?? [];
+    p.attachments = p.attachments ?? [];
+    p.promptDoc = p.promptDoc ?? '';
+    p.workedSolutionDoc = p.workedSolutionDoc ?? '';
+    p.answerSpec = p.answerSpec ?? { kind: 'steps', steps: [] };
+    /* nested spec fields — a {kind:'choice'} blob missing `options` crashes
+       autoCheck's .slice and the desk's .map; every kind gets its minimum */
+    const spec = p.answerSpec as Record<string, unknown>;
+    switch (spec.kind) {
+      case 'exact': spec.expected = spec.expected ?? ''; break;
+      case 'numeric': spec.value = Number.isFinite(spec.value) ? spec.value : 0; break;
+      case 'expression':
+        spec.expected = spec.expected ?? '';
+        spec.vars = spec.vars ?? [];
+        break;
+      case 'choice':
+        spec.options = spec.options ?? [];
+        spec.correct = spec.correct ?? [];
+        break;
+      case 'steps': spec.steps = spec.steps ?? []; break;
+      case 'rubric': spec.rubricId = spec.rubricId ?? ''; break;
+    }
+  }
+  for (const a of Object.values(s.attempts || {})) {
+    a.hintReveals = a.hintReveals ?? [];
+    /* work:[] used to crash AttemptDesk on step.text — every attempt needs
+       at least one (possibly blank) assertion slot, and every step needs
+       an id + string text for keys and DocView */
+    if (!Array.isArray(a.work) || !a.work.length) {
+      a.work = [{ id: uid('w_'), text: '' }];
+    } else {
+      a.work = a.work.map((w) => ({ ...w, id: w?.id ?? uid('w_'), text: w?.text ?? '' }));
+    }
+    a.confidence = Number.isFinite(a.confidence) ? a.confidence : 3;
+    a.hintLevel = Number.isFinite(a.hintLevel) ? a.hintLevel : 0;
+  }
+  for (const sess of Object.values(s.sessions || {})) {
+    sess.problemIds = sess.problemIds ?? [];
+    /* a partial rules blob (minutes missing → NaN) renders 'NaNm' in the
+       runner and silently builds 0-problem lists — fill the defaults */
+    sess.rules = {
+      courseIds: [],
+      topics: [],
+      minutes: 30,
+      newRatio: 0.5,
+      minDifficulty: 1,
+      maxDifficulty: 5,
+      order: 'interleaved',
+      /* persisted rules are typed complete but may genuinely be partial —
+         the cast is the whole point of the normalization */
+      ...((sess.rules || {}) as Partial<SessionRules>),
+    };
+  }
+  for (const e of Object.values(s.errors || {})) {
+    e.divergentSteps = e.divergentSteps ?? [];
+  }
+  return s;
+}
+
 const EMPTY_DATA = (): WorkbenchData => ({
   problems: {},
   attempts: {},
@@ -341,7 +407,13 @@ export const useWorkbench = create<WorkbenchState>()(
         }),
       dueReviews: () => {
         const now = nowISO();
-        return Object.values(get().reviews).filter((r) => r.dueAt <= now);
+        const s = get();
+        /* only actionable dues count — a review whose problem was deleted or
+           archived can't be retried, so it must not inflate the badge or
+           the presence summary */
+        return Object.values(s.reviews).filter(
+          (r) => r.dueAt <= now && s.problems[r.problemId] && !s.problems[r.problemId].archived,
+        );
       },
 
       // ── sessions ──
@@ -404,7 +476,9 @@ export const useWorkbench = create<WorkbenchState>()(
         try {
           const data = parseWorkbenchBackup(text);
           if (!data.settings) data.settings = DEFAULT_SETTINGS;
-          set({ ...EMPTY_DATA(), ...data });
+          /* hand-edited backups skip the persist merge — run the same
+             normalization so malformed specs/steps can't wedge the desk */
+          set({ ...EMPTY_DATA(), ...normalizeWorkbenchData(data) });
           return { ok: true };
         } catch (e) {
           return { ok: false, error: e instanceof Error ? e.message : 'Import failed' };
@@ -414,14 +488,19 @@ export const useWorkbench = create<WorkbenchState>()(
         const s = get();
         const merged = { ...s.problems };
         let n = 0;
-        for (const [id, p] of Object.entries(problems)) {
+        for (const [id, p] of Object.entries(problems || {})) {
           if (!merged[id]) {
             merged[id] = p;
             n++;
           }
         }
-        const mergedRubrics = { ...s.rubrics, ...rubrics };
-        set({ problems: merged, rubrics: mergedRubrics });
+        /* problem-set files come straight off disk — normalize the merged
+           maps before they land, same as a backup restore */
+        const norm = normalizeWorkbenchData({
+          problems: merged,
+          rubrics: { ...s.rubrics, ...(rubrics || {}) },
+        });
+        set({ problems: norm.problems, rubrics: norm.rubrics });
         return n;
       },
       resetWorkbench: () => set({ ...EMPTY_DATA(), settings: { ...get().settings } }),
@@ -438,26 +517,9 @@ export const useWorkbench = create<WorkbenchState>()(
            not blank the defaults (defaultSessionMinutes undefined →
            rules.minutes NaN → every session built with 0 problems) */
         s.settings = { ...current.settings, ...(s.settings || {}) };
-        for (const p of Object.values(s.problems || {})) {
-          p.tags = p.tags ?? [];
-          p.hints = p.hints ?? [];
-          p.attachments = p.attachments ?? [];
-          /* answerSpec is a required union — blobs predating it crashed
-             p.answerSpec.kind derefs (LibraryView/AttemptDesk) */
-          p.answerSpec = p.answerSpec ?? { kind: 'steps', steps: [] };
-        }
-        for (const a of Object.values(s.attempts || {})) {
-          a.work = a.work ?? [];
-          a.hintReveals = a.hintReveals ?? [];
-        }
-        for (const sess of Object.values(s.sessions || {})) {
-          sess.problemIds = sess.problemIds ?? [];
-          if (sess.rules) {
-            sess.rules.courseIds = sess.rules.courseIds ?? [];
-            sess.rules.topics = sess.rules.topics ?? [];
-          }
-        }
-        return s;
+        /* every array/spec field the UI iterates is normalized in one pass —
+           see normalizeWorkbenchData above */
+        return normalizeWorkbenchData(s);
       },
       partialize: (s) => ({
         problems: s.problems,

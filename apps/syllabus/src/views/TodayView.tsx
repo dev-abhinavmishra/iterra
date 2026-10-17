@@ -17,6 +17,7 @@ import {
   stampDate,
   fullDate,
   addDaysISO,
+  modalOpen,
   cn,
 } from '../lib/utils';
 import { courseColorVar } from '../lib/colors';
@@ -84,7 +85,9 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
-      if (deferFor) return;
+      // defer sheet or any other modal (commitment drawer, help, import)
+      // owns the keys — never stamp/defer/reorder a slip behind its back.
+      if (deferFor || modalOpen()) return;
       const b = queue[selIdx];
       const move = (dir: 1 | -1) => {
         if (!b) return;
@@ -154,7 +157,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
       <div className="double-rule mt-3 mb-4" />
       <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
         <label className="flex items-center gap-2">
-          <span className="f-label !mb-0">Hours open</span>
+          <span className="f-label !mb-0">Minutes open</span>
           <input
             type="number"
             min={0}

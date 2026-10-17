@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useWorkbench } from '../store';
 import type { AnswerSpec, Attachment, Difficulty, Problem } from '../lib/types';
 import { uid } from '../lib/utils';
@@ -33,6 +33,16 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
   const [spec, setSpec] = useState<AnswerSpec>(problem?.answerSpec ?? { kind: 'open' });
   const [attachments, setAttachments] = useState<Attachment[]>(problem?.attachments ?? []);
   const [previewTab, setPreviewTab] = useState<'write' | 'preview'>('write');
+
+  /* dialogs close on Escape — the backdrop click already did, the key
+     was the missing half of the contract */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   const save = () => {
     const record = {

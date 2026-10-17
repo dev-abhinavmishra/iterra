@@ -45,8 +45,12 @@ service cloud.firestore {
       allow get: if isSignedIn() && isValidId(testId) && existing().userId == request.auth.uid;
       allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
 
+      // createdAt must not be future-dated (>5min skew tolerance). Equality
+      // with request.time was unenforceable — client Date.now() never equals
+      // server receive-time, and past values are legitimate anyway (restores
+      // and remote merges re-create entities with their original stamps).
       allow create: if isSignedIn() && isValidId(testId) &&
-                       isValidTest(incoming()) && incoming().createdAt == request.time.toMillis();
+                       isValidTest(incoming()) && incoming().createdAt <= request.time.toMillis() + 300000;
 
       allow update: if isSignedIn() && isValidId(testId) && existing().userId == request.auth.uid &&
                        isValidTest(incoming()) &&
@@ -62,7 +66,7 @@ service cloud.firestore {
       allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
 
       allow create: if isSignedIn() && isValidId(scanId) &&
-                       isValidScan(incoming()) && incoming().createdAt == request.time.toMillis() &&
+                       isValidScan(incoming()) && incoming().createdAt <= request.time.toMillis() + 300000 &&
                        // Relational Gate: Cannot create scan for a test that doesn't belong to player
                        get(/databases/$(database)/documents/tests/$(incoming().testId)).data.userId == request.auth.uid;
 

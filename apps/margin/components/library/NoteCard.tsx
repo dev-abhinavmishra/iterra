@@ -75,12 +75,21 @@ const NoteCard: React.FC<NoteCardProps> = ({
 }) => {
     const stop = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); };
     const handleOpen = () => (selectionActive ? onToggleSelect(note.id) : onOpen(note));
+    /* The row is one activation target; Enter/Space only fire on the row
+       itself so nested controls keep their own key behavior. */
+    const onRowKey = (e: React.KeyboardEvent) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpen(); }
+    };
     const snippet = snippetFor(note);
 
     if (layout === 'list') {
         return (
             <div
                 onClick={handleOpen}
+                role="button"
+                tabIndex={0}
+                onKeyDown={onRowKey}
                 className={`group relative flex items-center gap-3 px-4 h-12 cursor-pointer transition-colors duration-100
                     ${selected ? '' : 'hover:bg-[var(--card-2)]'}`}
             >
@@ -107,9 +116,9 @@ const NoteCard: React.FC<NoteCardProps> = ({
                 </span>
                 <span className="relative z-10 flex items-center shrink-0">
                     <IconBtn icon="keep" title={note.isBookmarked ? 'Unpin' : 'Pin'} active={note.isBookmarked}
-                        className={note.isBookmarked ? '' : 'opacity-0 group-hover:opacity-100'}
+                        className={note.isBookmarked ? '' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'}
                         onClick={(e) => { stop(e); onTogglePin(note); }} />
-                    <span className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-100">
+                    <span className="flex items-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-100">
                         <IconBtn icon="arrow_forward" title="Open" onClick={(e) => { stop(e); onOpen(note); }} />
                         <IconBtn icon="delete" title="Delete" danger onClick={(e) => { stop(e); onDelete(note); }} />
                     </span>
@@ -136,7 +145,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
                 </button>
                 <IconBtn
                     icon="keep" title={note.isBookmarked ? 'Unpin' : 'Pin'} active={note.isBookmarked}
-                    className={note.isBookmarked ? '' : 'opacity-0 group-hover:opacity-100'}
+                    className={note.isBookmarked ? '' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'}
                     onClick={(e) => { stop(e); onTogglePin(note); }}
                 />
             </div>
@@ -161,7 +170,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
             <div className="relative z-10 mt-auto border-t border-line rule-lines">
                 <div className={`flex items-center justify-between gap-2 px-4 ${compact ? 'py-2' : 'py-2.5'} bg-[var(--card)]`}>
                     <span className="font-mono text-[11px] text-ink-3 truncate">{metaLine(note)}</span>
-                    <span className="flex items-center shrink-0 -mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-100">
+                    <span className="flex items-center shrink-0 -mr-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-100">
                         <IconBtn icon="arrow_forward" title="Open" size={16}
                             onClick={(e) => { stop(e); onOpen(note); }} />
                         <IconBtn icon="delete" title="Delete" danger size={16}

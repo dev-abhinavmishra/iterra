@@ -12,7 +12,49 @@ import { useStore } from '../store';
 import { extractText } from './notes';
 import type { Note } from '../store';
 
-declare const window: any;
+/* intake drains can race the desk's persist hydration — a mutation made
+   pre-hydration is stomped when persisted state lands. Await it; throw on
+   timeout so the hub releases the claim and a later drain delivers. */
+function whenHydrated(timeoutMs = 9000): Promise<void> {
+  const p = (useStore as { persist?: {
+    hasHydrated?: () => boolean;
+    onFinishHydration?: (cb: () => void) => void;
+  } }).persist;
+  if (!p?.hasHydrated || p.hasHydrated()) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const done = () => { clearTimeout(t); clearInterval(poll); res(); };
+    const t = setTimeout(() => { clearInterval(poll); rej(new Error('ink store not hydrated')); }, timeoutMs);
+    const poll = setInterval(() => { if (p.hasHydrated?.()) done(); }, 150);
+    p.onFinishHydration?.(done);
+  });
+}
+
+/* The slice of the terrain surface this adapter touches — typed so the
+   wiring stays honest without leaning on `any`. */
+interface IterraAdapterSpec {
+  name: string;
+  title: string;
+  summary: () => { open: string | null; notes: number; todayWords?: number };
+  intakes: Record<string, (rec: IntakeRecord) => Promise<{ url: string }>>;
+  wake?: () => void;
+}
+interface IterraSurface {
+  adapter?: (spec: IterraAdapterSpec) => void;
+  store?: {
+    put: (entity: Record<string, unknown>) => Promise<unknown>;
+    remove: (key: string) => Promise<unknown>;
+  };
+  courses?: { byCode: (code: string) => Promise<{ key?: string } | null> };
+  events?: { emit: (type: string, payload: Record<string, unknown>) => Promise<unknown> };
+}
+interface IntakeRecord {
+  id?: string;
+  from?: string;
+  entity?: { app?: string; type?: string; id?: string; title?: string };
+  payload?: { text?: string };
+}
+
+declare const window: { iterra?: IterraSurface };
 
 /* ── pure helpers (contract-tested) ─────────────────────────────────────── */
 
@@ -40,7 +82,7 @@ export function noteEntity(n: Note, opts: { course?: string; courseId?: string }
 
 /** TipTap doc seeded from a note.create intake — the entity's title as a
     heading, the selection text as the opening paragraph. */
-export function intakeDoc(rec: { from?: string; entity?: any; payload?: any }): string {
+export function intakeDoc(rec: IntakeRecord): string {
   const title = rec?.entity?.title || `From ${rec?.from ?? 'the terrain'}`;
   const text = typeof rec?.payload?.text === 'string' ? rec.payload.text.trim() : '';
   return JSON.stringify({
@@ -62,16 +104,18 @@ export function registerAdapter() {
   const it = window.iterra;
   if (!it?.adapter || !it?.store) return;
   registered = true;
+  /* Narrowed once — closures below don't re-narrow the optionals. */
+  const { adapter, store, courses, events } = it;
 
   const courseKeyCache = new Map<string, Promise<string | null>>();
   const canonicalCourseKey = (label?: string): Promise<string | null> => {
     const c = (label ?? '').trim();
-    if (!c || !it.courses?.byCode) return Promise.resolve(null);
+    if (!c || !courses?.byCode) return Promise.resolve(null);
     if (!courseKeyCache.has(c)) {
       courseKeyCache.set(
         c,
-        Promise.resolve(it.courses.byCode(c))
-          .then((e: any) => e?.key ?? null)
+        Promise.resolve(courses.byCode(c))
+          .then((e) => e?.key ?? null)
           .catch(() => null),
       );
     }
@@ -119,7 +163,7 @@ export function registerAdapter() {
       const byId = new Map(s.notes.map((n) => [n.id, n]));
       for (const key of [...removed]) {
         removed.delete(key);
-        if (published.delete(key)) await it.store.remove(key).catch(() => {});
+        if (published.delete(key)) await store.remove(key).catch(() => {});
       }
       for (const id of [...dirty]) {
         dirty.delete(id);
@@ -130,7 +174,7 @@ export function registerAdapter() {
         const j = JSON.stringify(ent);
         if (published.get(`ink:note:${id}`) !== j) {
           published.set(`ink:note:${id}`, j);
-          await it.store.put(ent).catch(() => {});
+          await store.put(ent).catch(() => {});
         }
       }
     }).catch(() => {}).finally(() => {
@@ -142,10 +186,10 @@ export function registerAdapter() {
   let seenNoteIds: Set<string> | null = null;
   const emitNew = () => {
     const ids = new Set(liveNotes().map((n) => n.id));
-    if (seenNoteIds && it.events?.emit) {
+    if (seenNoteIds && events?.emit) {
       for (const n of liveNotes()) {
         if (!seenNoteIds.has(n.id)) {
-          it.events.emit('note.created', {
+          events.emit('note.created', {
             noteId: n.id,
             title: n.title || 'untitled',
             url: `/apps/ink/?note=${n.id}`,
@@ -161,7 +205,7 @@ export function registerAdapter() {
   else useStore.persist?.onFinishHydration?.(start);
   useStore.subscribe(() => { diff(); drain(); emitNew(); });
 
-  it.adapter({
+  adapter({
     name: 'ink',
     title: 'Ink',
     /* same shape the bridge registered — {open, notes, todayWords} */
@@ -182,10 +226,19 @@ export function registerAdapter() {
     intakes: {
       /* {entity,payload:{text?}} → a new page on the desk, opened via the
          existing ?note= deep link. */
-      'note.create': (rec: any) => {
+      'note.create': async (rec: IntakeRecord) => {
+        /* a boot drain can claim the intake before zustand persist has
+           rehydrated — a note written now would be stomped by hydration.
+           Wait; throw on timeout so the hub releases the claim. */
+        await whenHydrated();
         const title = rec?.entity?.title || `From ${rec?.from ?? 'the terrain'}`;
         const text = typeof rec?.payload?.text === 'string' ? rec.payload.text.trim() : '';
+        /* deterministic page id from the intake record — the hub can hand
+           one record to several racing drains; a re-run resolves to the
+           page it already made instead of cloning it (margin/proof do the
+           same with their intake-derived ids) */
         const id = useStore.getState().addNote({
+          id: typeof rec?.id === 'string' && rec.id ? `intake-${rec.id}` : undefined,
           title,
           content: intakeDoc(rec),
           wordCount: text ? text.split(/\s+/).length : 0,

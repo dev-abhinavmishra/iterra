@@ -323,7 +323,8 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
   const dayEntries = Object.values(entries).filter((e) => e.routineId === routine.id && e.date === date);
   const dayFriction = Object.values(friction).filter((f) => f.routineId === routine.id && f.date === date);
   const ex = exceptionFor(exceptions, routine.id, date);
-  const state = dayState(routine, date, entries, exceptions, date);
+  // Judge the cell against real today — a future day is 'upcoming', not missed.
+  const state = dayState(routine, date, entries, exceptions, todayISO());
 
   return (
     <Sheet title={`${fmtDayFull(date)} — ${routine.name}`} onClose={onClose}>
@@ -390,7 +391,8 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
         </div>
       )}
 
-      {!ex && diffDaysISO(new Date().toISOString().slice(0, 10), date) >= 0 && (
+      {/* todayISO(), never toISOString() — civil dates are local, not UTC */}
+      {!ex && diffDaysISO(todayISO(), date) >= 0 && (
         <button
           className="btn btn--quiet"
           onClick={() => {

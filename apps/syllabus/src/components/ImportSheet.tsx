@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { beginBulkFeed, endBulkFeed, stir, useFolio } from '../store';
 import { Field, FInput, FSelect } from './Field';
 import { parseImportPayload, type ImportPayload, type ImportRow } from '../lib/import';
-import { cn, fmtMinutes } from '../lib/utils';
+import { cn, fmtMinutes, dueDateISO, isoAtTime } from '../lib/utils';
 import type { CommitmentType } from '../lib/types';
 import { FileDown, X } from 'lucide-react';
 
@@ -218,8 +218,8 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
                     <td className="px-2 py-1.5">
                       <FInput
                         type="date"
-                        value={r.dueAt.slice(0, 10)}
-                        onChange={(e) => e.target.value && patchRow(i, { dueAt: `${e.target.value}T17:00` })}
+                        value={dueDateISO(r.dueAt)}
+                        onChange={(e) => e.target.value && patchRow(i, { dueAt: isoAtTime(e.target.value, '23:59') })}
                         aria-label="Due date"
                       />
                     </td>

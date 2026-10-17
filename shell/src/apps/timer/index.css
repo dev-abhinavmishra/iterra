@@ -1,0 +1,624 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow+Semi+Condensed:wght@500;600&family=Barlow:wght@400;500;600;700&display=swap');
+
+/*
+  TIMER — split-flap departure-board time instruments, wearing the terrain's
+  skin: atlas parchment wall, field ink, moss signal. The instrument
+  hardware itself (boards, flaps, keycaps) keeps its charcoal — dark metal
+  is the object, parchment is the room it sits in. All selectors are scoped
+  to .it-place-timer — this file ships inside the terrain document, not a
+  page of its own.
+*/
+.it-place-timer {
+  --color-wall: #f4f0e4;          /* atlas-100 */
+  --color-wall-deep: #ece5d3;     /* atlas-200 */
+  --color-wall-edge: #ddd2b8;     /* atlas-300 */
+
+  --color-ink: #22302a;           /* field-ink */
+  --color-ink-soft: #5d6b62;      /* field-faint */
+  --color-ink-faint: #a89468;     /* atlas-500 */
+
+  --color-board: #201B10;
+  --color-board-2: #17130A;
+  --color-board-3: #2A2416;
+  --color-flap: #2E2716;
+  --color-flap-hi: #3B3220;
+  --color-flap-ink: #F2E9CF;
+  --color-flap-dim: #8E8264;
+
+  --color-signal: #3a7357;        /* moss-600 — the terrain accent */
+  --color-signal-bright: #4a8a6a; /* moss-500 */
+  --color-signal-deep: #2f5d46;   /* moss-700 */
+  --color-moss: #4a8a6a;
+  --color-brass: #a89468;
+  --color-brass-hi: #c5b48f;
+
+  --color-rule: rgba(34, 48, 42, 0.18);
+  --color-rule-board: rgba(242, 233, 207, 0.14);
+
+  --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-label: 'Barlow Semi Condensed', 'Barlow Condensed', sans-serif;
+
+  --ink-rgb: 34 48 42;            /* field-ink as channels, for alpha tints */
+  --signal-rgb: 58 115 87;        /* moss-600 as channels */
+  --wall-panel: rgba(250, 247, 239, 0.55);
+  --wall-panel-line: rgba(255, 252, 240, 0.6);
+  --wall-panel-glow: rgba(34, 48, 42, 0.1);
+  --chip-bg: rgba(250, 247, 239, 0.4);
+  --key-paper-face: #faf7ef;
+  --key-paper-edge: #c5b48f;
+  --rng-thumb-a: #faf7ef;
+  --rng-thumb-b: #ddd2b8;
+  --rng-thumb-edge: rgba(34, 48, 42, 0.6);
+  --rng-thumb-shade: #a89468;
+  --scroll-thumb: var(--color-wall-edge);
+  --dial-blend: multiply;
+  --mark-flap: var(--color-board);
+
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+.it-place-timer ::selection { background: var(--color-signal); color: #FFEDE3; }
+
+/* ============ NIGHT — the same instruments on a dark graphite wall ============ */
+.it-place-timer[data-theme='night'] {
+  --color-wall: #0F1116;
+  --color-wall-deep: #0A0C10;
+  --color-wall-edge: #1E2330;
+
+  --color-ink: #E4E2D4;
+  --color-ink-soft: #8B8D84;
+  --color-ink-faint: #5A5C58;
+
+  --color-board: #1B1F29;
+  --color-board-2: #0D0F14;
+  --color-board-3: #262B38;
+  --color-flap: #242834;
+  --color-flap-hi: #333947;
+  --color-flap-ink: #EDEBDC;
+  --color-flap-dim: #6C7280;
+
+  --color-rule: rgba(228, 226, 212, 0.13);
+  --color-rule-board: rgba(237, 235, 221, 0.14);
+
+  --ink-rgb: 228 226 212;
+  --wall-panel: rgba(26, 31, 42, 0.72);
+  --wall-panel-line: rgba(160, 172, 204, 0.09);
+  --wall-panel-glow: rgba(0, 0, 0, 0.35);
+  --chip-bg: rgba(228, 226, 212, 0.05);
+  --key-paper-face: #2C323F;
+  --key-paper-edge: #14171F;
+  --rng-thumb-a: #39404F;
+  --rng-thumb-b: #272C38;
+  --rng-thumb-edge: rgba(228, 226, 212, 0.3);
+  --rng-thumb-shade: #14171F;
+  --scroll-thumb: #2A2F3C;
+  --dial-blend: normal;
+  --mark-flap: #39404F;
+}
+
+.it-place-timer[data-theme='night'] .wall-tex {
+  background-image:
+    radial-gradient(1200px 600px at 50% -10%, rgba(86, 108, 150, 0.17), transparent 60%),
+    radial-gradient(900px 500px at 85% 110%, rgba(16, 22, 34, 0.6), transparent 55%),
+    linear-gradient(rgba(146, 162, 196, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(146, 162, 196, 0.05) 1px, transparent 1px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.2 0 0 0 0 0.22 0 0 0 0 0.28 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: auto, auto, 28px 28px, 28px 28px, auto;
+}
+
+.it-place-timer[data-theme='night'] .board {
+  box-shadow:
+    inset 0 1px 0 rgba(200, 214, 240, 0.10),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(146, 162, 196, 0.14),
+    0 10px 24px rgba(0, 0, 0, 0.55),
+    0 30px 60px rgba(0, 0, 0, 0.45);
+}
+.it-place-timer[data-theme='night'] .flap-half--bot,
+.it-place-timer[data-theme='night'] .flap-leaf--bot {
+  background: linear-gradient(180deg, #1C2029 0%, var(--color-flap) 30%, #1E222C 100%);
+}
+.it-place-timer[data-theme='night'] .panel-wall {
+  background: var(--wall-panel);
+  box-shadow: 0 1px 0 var(--wall-panel-line) inset, 0 8px 20px var(--wall-panel-glow);
+}
+.it-place-timer[data-theme='night'] .board-inset { background: #0A0B0F; }
+
+/* every utility is nested under the place root — no bare global classes
+   can leak onto the terrain or another place */
+.it-place-timer {
+  /* ---- Wall ---- */
+  .wall-tex {
+    background-color: var(--color-wall);
+    background-image:
+      radial-gradient(1200px 600px at 50% -10%, rgba(255, 252, 240, 0.55), transparent 60%),
+      radial-gradient(900px 500px at 85% 110%, rgba(160, 145, 105, 0.18), transparent 55%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.2 0 0 0 0 0.17 0 0 0 0 0.09 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---- Board housing: a framed instrument ---- */
+  .board {
+    position: relative;
+    background: linear-gradient(180deg, var(--color-board-3) 0%, var(--color-board) 14%, var(--color-board-2) 100%);
+    border-radius: 14px;
+    border: 1px solid rgba(0, 0, 0, 0.85);
+    box-shadow:
+      inset 0 1px 0 rgba(242, 233, 207, 0.09),
+      inset 0 -2px 6px rgba(0, 0, 0, 0.55),
+      0 1px 0 rgba(255, 252, 240, 0.5),
+      0 10px 24px rgba(38, 33, 16, 0.35),
+      0 30px 60px rgba(38, 33, 16, 0.28);
+  }
+  .board::before {
+    /* glass glare sweep — slides in from the left once on mount, then rests */
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(115deg, transparent 30%, rgba(242, 233, 207, 0.045) 42%, rgba(242, 233, 207, 0.09) 46%, rgba(242, 233, 207, 0.02) 52%, transparent 62%);
+    pointer-events: none;
+    z-index: 5;
+    animation: board-sheen 1.5s cubic-bezier(0.35, 0, 0.2, 1) 0.2s both;
+  }
+  @keyframes board-sheen {
+    0%   { transform: translateX(-70%); opacity: 0; }
+    25%  { opacity: 1; }
+    100% { transform: translateX(0);    opacity: 1; }
+  }
+  .board-screws::after {
+    /* corner screws */
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: 6;
+    background-image:
+      radial-gradient(circle 2.6px at 2.6px 2.6px, #0c0a05 52%, #5a4f30 55%, #0c0a05 72%, transparent 75%),
+      radial-gradient(circle 2.6px at calc(100% - 2.6px) 2.6px, #0c0a05 52%, #5a4f30 55%, #0c0a05 72%, transparent 75%),
+      radial-gradient(circle 2.6px at 2.6px calc(100% - 2.6px), #0c0a05 52%, #5a4f30 55%, #0c0a05 72%, transparent 75%),
+      radial-gradient(circle 2.6px at calc(100% - 2.6px) calc(100% - 2.6px), #0c0a05 52%, #5a4f30 55%, #0c0a05 72%, transparent 75%);
+    background-repeat: no-repeat;
+  }
+  .board-label { animation: board-label-in 0.35s ease-out; }
+  @keyframes board-label-in {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: none; }
+  }
+  .board-inset {
+    background: #0F0C06;
+    border-radius: 8px;
+    box-shadow:
+      inset 0 2px 10px rgba(0, 0, 0, 0.85),
+      inset 0 -1px 0 rgba(242, 233, 207, 0.06),
+      0 1px 0 rgba(242, 233, 207, 0.07);
+  }
+
+  /* ---- Split-flap digit ---- */
+  .flap {
+    position: relative;
+    width: var(--fs-w);
+    height: var(--fs-h);
+    border-radius: calc(var(--fs-h) * 0.055);
+    color: var(--color-flap-ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs);
+    line-height: 1;
+    perspective: calc(var(--fs-h) * 4);
+    transform: translateZ(0);
+  }
+  .flap-half, .flap-leaf {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--color-flap-hi) 0%, var(--color-flap) 100%);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .flap-half--top, .flap-leaf--top {
+    top: 0;
+    border-radius: calc(var(--fs-h) * 0.055) calc(var(--fs-h) * 0.055) 0 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.55);
+    background: linear-gradient(180deg, var(--color-flap-hi) 0%, var(--color-flap) 96%, rgba(0,0,0,0.35) 100%);
+  }
+  .flap-half--bot, .flap-leaf--bot {
+    top: 50%;
+    border-radius: 0 0 calc(var(--fs-h) * 0.055) calc(var(--fs-h) * 0.055);
+    border-top: 1px solid rgba(0, 0, 0, 0.55);
+    background: linear-gradient(180deg, #241E10 0%, var(--color-flap) 30%, #26200F 100%);
+  }
+  .flap-glyph {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--fs-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6), 0 0 1px rgba(0, 0, 0, 0.4);
+    font-variant-numeric: tabular-nums;
+  }
+  .flap-half--top > .flap-glyph, .flap-leaf--top > .flap-glyph { top: 0; }
+  .flap-half--bot > .flap-glyph, .flap-leaf--bot > .flap-glyph { top: -100%; }
+  .flap-leaf {
+    z-index: 3;
+    will-change: transform;
+  }
+  .flap-leaf--top {
+    transform-origin: 50% 100%;
+    z-index: 4;
+  }
+  .flap-leaf--bot {
+    transform-origin: 50% 0%;
+    transform: rotateX(90deg);
+    z-index: 4;
+  }
+  /* shading lives on dedicated overlays driven by opacity — animating
+     `filter` repaints every frame and collapses the fold to a teleport on
+     slower machines; opacity + transform stay on the compositor */
+  .flap-shade {
+    position: absolute;
+    inset: 0;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* shadow the falling card throws across the bottom half */
+  .flap-shadow-bot {
+    position: absolute;
+    left: 0; right: 0; top: 50%; bottom: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 55%, transparent 100%);
+    opacity: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .flap--flipping .flap-leaf--top {
+    animation: flap-fold calc(var(--flip-dur, 600ms) * 0.45) cubic-bezier(0.55, 0.05, 0.8, 0.4) var(--flip-delay, 0ms) forwards;
+  }
+  .flap--flipping .flap-leaf--bot {
+    animation: flap-unfold calc(var(--flip-dur, 600ms) * 0.56) cubic-bezier(0.3, 0.75, 0.35, 1)
+      calc(var(--flip-delay, 0ms) + var(--flip-dur, 600ms) * 0.44) forwards;
+  }
+  .flap--flipping .flap-leaf--top .flap-shade {
+    animation: flap-fold-shade calc(var(--flip-dur, 600ms) * 0.45) linear var(--flip-delay, 0ms) forwards;
+  }
+  .flap--flipping .flap-leaf--bot .flap-shade {
+    animation: flap-unfold-shade calc(var(--flip-dur, 600ms) * 0.56) linear
+      calc(var(--flip-delay, 0ms) + var(--flip-dur, 600ms) * 0.44) forwards;
+  }
+  .flap--flipping .flap-shadow-bot {
+    animation: flap-cast calc(var(--flip-dur, 600ms) * 0.6) linear var(--flip-delay, 0ms) forwards;
+  }
+  @keyframes flap-fold {
+    /* the top card falls forward over the hinge — accelerating like a real
+       leaf under gravity — then a small clack rebound off the seam */
+    0%   { transform: rotateX(0deg); }
+    78%  { transform: rotateX(-90deg); }
+    88%  { transform: rotateX(-83deg); }
+    96%  { transform: rotateX(-90deg); }
+    100% { transform: rotateX(-90deg); }
+  }
+  @keyframes flap-fold-shade {
+    /* the falling card goes dark as it turns edge-on */
+    0%   { opacity: 0; }
+    70%  { opacity: 0.62; }
+    88%  { opacity: 0.5; }
+    100% { opacity: 0.55; }
+  }
+  @keyframes flap-unfold {
+    /* new card rises from behind the seam, swings slightly past level,
+       then settles back with a two-beat soft rebound */
+    0%   { transform: rotateX(92deg); }
+    55%  { transform: rotateX(-7deg); }
+    70%  { transform: rotateX(2.5deg); }
+    82%  { transform: rotateX(-1.4deg); }
+    92%  { transform: rotateX(0.7deg); }
+    100% { transform: rotateX(0deg); }
+  }
+  @keyframes flap-unfold-shade {
+    /* shadowed while folded back, catches light as it lands */
+    0%   { opacity: 0.68; }
+    45%  { opacity: 0.25; }
+    55%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+  @keyframes flap-cast {
+    /* the cast shadow tracks the fold then lifts as the new card covers it */
+    0%   { opacity: 0; }
+    40%  { opacity: 0.6; }
+    62%  { opacity: 0.55; }
+    90%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+  /* hinge pins at the seam */
+  .flap::before, .flap::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: calc(var(--fs-h) * 0.045);
+    height: calc(var(--fs-h) * 0.09);
+    margin-top: calc(var(--fs-h) * -0.045);
+    background: #0C0A05;
+    border-radius: 1px;
+    z-index: 5;
+    box-shadow: inset 0 1px 0 rgba(242, 233, 207, 0.15);
+  }
+  .flap::before { left: -1px; }
+  .flap::after { right: -1px; }
+  /* shadow cast across the seam */
+  .flap-seam {
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2;
+    pointer-events: none;
+  }
+  .flap--accent .flap-half, .flap--accent .flap-leaf {
+    color: #FFE9DC;
+    background: linear-gradient(180deg, var(--color-signal-bright) 0%, var(--color-signal) 100%);
+  }
+  .flap--accent .flap-half--bot, .flap--accent .flap-leaf--bot {
+    background: linear-gradient(180deg, var(--color-signal-deep) 0%, var(--color-signal) 40%, var(--color-signal-deep) 100%);
+  }
+  .flap--quiet .flap-half, .flap--quiet .flap-leaf {
+    color: var(--color-flap-dim);
+  }
+
+  /* colon between digit groups — live heartbeat pulse */
+  .flap-colon {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: calc(var(--fs-h) * 0.22);
+    align-items: center;
+    width: calc(var(--fs-h) * 0.28);
+    height: var(--fs-h);
+  }
+  .flap-colon i {
+    display: block;
+    width: calc(var(--fs-h) * 0.09);
+    height: calc(var(--fs-h) * 0.09);
+    border-radius: 1px;
+    background: var(--color-flap-ink);
+  }
+  .flap-colon--live i { animation: colon-beat 1s steps(1, end) infinite; }
+  @keyframes colon-beat { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.28; } }
+
+  /* view board-turn — CSS-driven so the transform exists only while the
+     animation runs. A transform that persists on the view wrapper makes it a
+     containing block for every position:fixed overlay inside the view
+     (modals, takeovers, toasts anchor to the content box, not the viewport). */
+  @keyframes view-fold-in {
+    from { opacity: 0; transform: perspective(900px) translateY(26px) rotateX(7deg); }
+    to   { opacity: 1; transform: none; }
+  }
+  .view-fold-in {
+    animation: view-fold-in 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    transform-origin: 50% 0;
+  }
+
+  /* rolling digit strip (centiseconds — too fast to flap) */
+  .roll {
+    display: inline-block;
+    overflow: hidden;
+    height: 1em;
+    line-height: 1;
+    vertical-align: baseline;
+  }
+  .roll-strip {
+    display: flex;
+    flex-direction: column;
+    transition: transform 90ms linear;
+    will-change: transform;
+  }
+  .roll-strip span {
+    height: 1em;
+    line-height: 1;
+    display: block;
+    text-align: center;
+  }
+
+  /* ---- physical keycap buttons ---- */
+  .key {
+    --key-face: var(--color-board-3);
+    --key-ink: var(--color-flap-ink);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--key-ink);
+    background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(0,0,0,0.18)), var(--key-face);
+    border: 1px solid rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    box-shadow:
+      inset 0 1px 0 rgba(242, 233, 207, 0.14),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.45),
+      0 4px 0 #0B0904,
+      0 10px 18px rgba(15, 12, 6, 0.55);
+    transition: transform 70ms ease, box-shadow 70ms ease, filter 120ms ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  .key:hover { filter: brightness(1.12); }
+  .key:active, .key--pressed {
+    transform: translateY(4px);
+    box-shadow:
+      inset 0 1px 0 rgba(242, 233, 207, 0.1),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+      0 0 0 #0B0904,
+      0 3px 8px rgba(15, 12, 6, 0.4);
+  }
+  .key:disabled {
+    opacity: 0.42;
+    cursor: default;
+    filter: none;
+    transform: none;
+  }
+  .key--signal {
+    --key-face: var(--color-signal);
+    --key-ink: #FFEDE3;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 240, 230, 0.35),
+      inset 0 -3px 6px rgba(110, 20, 0, 0.55),
+      0 4px 0 #6E1400,
+      0 10px 18px rgba(15, 12, 6, 0.55);
+  }
+  .key--signal:active, .key--signal.key--pressed {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 240, 230, 0.25),
+      inset 0 -2px 4px rgba(110, 20, 0, 0.5),
+      0 0 0 #6E1400,
+      0 3px 8px rgba(15, 12, 6, 0.4);
+  }
+  .key--paper {
+    --key-face: var(--key-paper-face);
+    --key-ink: var(--color-ink);
+    border-color: rgb(var(--ink-rgb) / 0.45);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -3px 6px rgb(var(--ink-rgb) / 0.2),
+      0 4px 0 var(--key-paper-edge),
+      0 10px 18px rgb(var(--ink-rgb) / 0.25);
+  }
+  .key--paper:active, .key--paper.key--pressed {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -2px 4px rgb(var(--ink-rgb) / 0.18),
+      0 0 0 var(--key-paper-edge),
+      0 3px 8px rgb(var(--ink-rgb) / 0.2);
+  }
+
+  /* engraved label on board metal */
+  .engraved {
+    font-family: var(--font-label);
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-flap-dim);
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8), 0 -1px 0 rgba(242, 233, 207, 0.08);
+  }
+  .label-wall {
+    font-family: var(--font-label);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-ink-soft);
+  }
+
+  .rule-h { border: 0; border-top: 1px solid var(--color-rule); }
+  .rule-board { border: 0; border-top: 1px solid var(--color-rule-board); }
+
+  .chip {
+    font-family: var(--font-label);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 6px;
+    border: 1px solid var(--color-rule);
+    color: var(--color-ink-soft);
+    background: var(--chip-bg);
+    transition: all 120ms ease;
+    cursor: pointer;
+  }
+  .chip:hover { border-color: var(--color-ink); color: var(--color-ink); }
+  .chip:active { transform: translateY(1px) scale(0.98); }
+  .chip--on {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-wall);
+  }
+  .chip--on:hover { color: var(--color-wall); }
+
+  .panel-wall {
+    background: var(--wall-panel);
+    border: 1px solid var(--color-rule);
+    border-radius: 10px;
+    box-shadow: 0 1px 0 var(--wall-panel-line) inset, 0 8px 20px var(--wall-panel-glow);
+  }
+
+  /* keyboard focus — the station board's signal ring: a bright outline on
+     keys, chips, the dial and any bare button (icon controls had only a
+     colour hover before, invisible to keyboard users) */
+  .key:focus-visible,
+  .chip:focus-visible,
+  [role="slider"]:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--color-signal-bright);
+    outline-offset: 2px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 3px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* input range restyle (dial fallback / sliders) */
+.it-place-timer input[type="range"].rng {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-board-3);
+  outline: none;
+}
+.it-place-timer input[type="range"].rng::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--rng-thumb-a), var(--rng-thumb-b));
+  border: 1px solid var(--rng-thumb-edge);
+  box-shadow: 0 2px 0 var(--rng-thumb-shade), 0 4px 8px rgba(0,0,0,0.4);
+  cursor: grab;
+}
+.it-place-timer input[type="range"].rng::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--rng-thumb-a); border: 1px solid var(--rng-thumb-edge);
+  box-shadow: 0 2px 0 var(--rng-thumb-shade); cursor: grab;
+}
+
+.it-place-timer {
+  background-color: var(--color-wall);
+}
+
+/* the app's own motion switch is authoritative — an OS-level reduce
+   only takes effect before settings apply (data-motion unset) or when
+   the user has actually picked Reduced; 'full' forces motion regardless */
+@media (prefers-reduced-motion: reduce) {
+  .it-place-timer:not([data-motion='full']) .flap--flipping .flap-leaf--top,
+  .it-place-timer:not([data-motion='full']) .flap--flipping .flap-leaf--bot,
+  .it-place-timer:not([data-motion='full']) .board::before,
+  .it-place-timer:not([data-motion='full']) .board-label,
+  .it-place-timer:not([data-motion='full']) .view-fold-in { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+  .it-place-timer:not([data-motion='full']) .flap-colon--live i { animation: none; }
+}
+.it-place-timer[data-motion='reduced'] .flap--flipping .flap-leaf--top,
+.it-place-timer[data-motion='reduced'] .flap--flipping .flap-leaf--bot { animation-duration: 1ms !important; animation-delay: 0ms !important; }
+.it-place-timer[data-motion='reduced'] .flap-colon--live i { animation: none; }
+
+/* honour the switch app-wide: ambient loops collapse instantly,
+   tactile transitions stay short. MotionConfig covers framer-motion. */
+.it-place-timer[data-motion='reduced'] *,
+.it-place-timer[data-motion='reduced'] *::before,
+.it-place-timer[data-motion='reduced'] *::after {
+  animation-duration: 1ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+}

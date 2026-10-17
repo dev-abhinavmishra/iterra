@@ -9,4 +9,8 @@ for app in rhythm proof syllabus gradestack timer ink margin; do
   cp "$SRC" "apps/$app/public/iterra-hub.js"
 done
 cp "$SRC" "apps/flashcards/iterra-hub.js"
-echo "hub synced to 8 places"
+# the shell serves /iterra-hub.js in dev from its own public dir (prod gets
+# it from build.sh's dist-root copy) — same one-file-one-truth rule
+mkdir -p shell/public
+cp "$SRC" shell/public/iterra-hub.js
+echo "hub synced to 9 places"

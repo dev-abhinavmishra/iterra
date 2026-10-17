@@ -125,9 +125,20 @@ export function SheetBuilder() {
       } catch (e) {}
 
       if (parsedMetadata && parsedMetadata.sections) {
-        setSections(parsedMetadata.sections);
+        // Keywords are attacker/corruption-adjacent data like any other —
+        // clamp counts and whitelist formats before they reach the sheet.
+        const knownFormats = new Set(Object.keys(FORMAT_LABELS));
+        const safe: TestSection[] = (parsedMetadata.sections as any[])
+          .filter((s) => s && typeof s === 'object')
+          .map((s) => ({
+            id: typeof s.id === 'string' ? s.id : uid(),
+            count: Math.min(500, Math.max(0, parseInt(s.count) || 0)),
+            format: (knownFormats.has(s.format) ? s.format : 'A-D') as QuestionFormat,
+          }))
+          .filter((s) => s.count > 0);
+        if (safe.length) setSections(safe);
         if (parsedMetadata.hasOwnProperty('includeStudentId')) {
-          setIncludeStudentId(parsedMetadata.includeStudentId);
+          setIncludeStudentId(Boolean(parsedMetadata.includeStudentId));
         }
         setIsImporting(false);
         return;
@@ -277,24 +288,33 @@ export function SheetBuilder() {
     });
   };
 
+  /* The editor lets a section sit at 0 questions while the user retypes —
+     but that transient empty must never reach the PDF or the saved test.
+     Sanitize at both boundaries; an all-zero sheet can't be filed. */
+  const cleanSections: TestSection[] = sections
+    .map((s) => ({ ...s, count: Math.min(500, Math.max(0, parseInt(s.count as any) || 0)) }))
+    .filter((s) => s.count > 0);
+  const cleanNumQuestions = cleanSections.reduce((acc, s) => acc + s.count, 0);
+
   const handlePrint = async () => {
     setIsGeneratingPdf(true);
     await generatePDF(
-      { name: testName, courseName, instructorName, includeStudentId, sections, numQuestions },
+      { name: testName, courseName, instructorName, includeStudentId, sections: cleanSections, numQuestions: cleanNumQuestions },
       () => setIsGeneratingPdf(false),
       () => setIsGeneratingPdf(false)
     );
   };
 
   const handleSave = async () => {
+    if (cleanSections.length === 0) return;
     const cleanKey = Object.fromEntries(Object.entries(answerKey).filter(([, v]) => v && v !== ''));
     const testData = {
       name: testName || 'Untitled assessment',
       courseName,
       instructorName,
-      numQuestions,
-      format: sections.length > 0 ? sections[0].format : 'A-D' as QuestionFormat,
-      sections,
+      numQuestions: cleanNumQuestions,
+      format: cleanSections.length > 0 ? cleanSections[0].format : 'A-D' as QuestionFormat,
+      sections: cleanSections,
       includeStudentId,
       answerKey: cleanKey,
     };
@@ -481,11 +501,19 @@ export function SheetBuilder() {
   return (
     <div className="flex-1 flex flex-col md:flex-row overflow-hidden w-full h-full relative bg-paper">
       {isImporting && (
-        <div className="absolute inset-0 z-50 bg-ink/50 flex items-center justify-center p-6">
+        <div
+          className="absolute inset-0 z-50 bg-ink/50 flex items-center justify-center p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Restore a sheet"
+          onKeyDown={(e) => { if (e.key === 'Escape' && !isProcessingPdf) setIsImporting(false); }}
+        >
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-form rounded-md card-shadow max-w-xl w-full overflow-hidden flex flex-col border border-hairline"
+            className="bg-form rounded-md card-shadow max-w-xl w-full overflow-hidden flex flex-col border border-hairline outline-none"
+            autoFocus
+            tabIndex={-1}
           >
             <div className="p-8 text-center border-b border-hairline">
               <BubbleMark size={9} className="text-mark mx-auto mb-5" />
@@ -627,7 +655,7 @@ export function SheetBuilder() {
                     <Input
                       type="number" min="1" max="500"
                       value={sec.count.toString()}
-                      onChange={(e) => setSections(sections.map(s => s.id === sec.id ? { ...s, count: parseInt(e.target.value) || 0 } : s))}
+                      onChange={(e) => setSections(sections.map(s => s.id === sec.id ? { ...s, count: Math.min(500, Math.max(0, parseInt(e.target.value) || 0)) } : s))}
                       className="!h-9"
                     />
                   </div>
@@ -684,12 +712,19 @@ export function SheetBuilder() {
             variant="solid"
             icon={isGeneratingPdf ? 'sync' : 'description'}
             onClick={handlePrint}
-            disabled={isGeneratingPdf}
+            disabled={isGeneratingPdf || cleanSections.length === 0}
             className="h-11"
           >
             {isGeneratingPdf ? 'Generating…' : 'Download PDF'}
           </Button>
-          <Button variant="outline" icon="save" onClick={handleSave} className="h-11">
+          <Button
+            variant="outline"
+            icon="save"
+            onClick={handleSave}
+            disabled={cleanSections.length === 0}
+            title={cleanSections.length === 0 ? 'Every section is at 0 questions — nothing to file' : undefined}
+            className="h-11"
+          >
             {editingTest ? 'Save changes' : 'Save assessment'}
           </Button>
         </div>

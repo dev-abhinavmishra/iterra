@@ -29,7 +29,9 @@ export function Settings() {
   const scans = useStore(s => s.scans);
   const user = useStore(s => s.user);
 
-  const [scaleDraft, setScaleDraft] = useState<GradingScale>({ ...gradingScale });
+  /* persisted scale could be corrupt/missing bands — seed the draft from
+     defaults so the editor never starts on undefined cutoffs */
+  const [scaleDraft, setScaleDraft] = useState<GradingScale>({ ...DEFAULT_SCALE, ...(gradingScale ?? {}) });
   const [scaleDirty, setScaleDirty] = useState(false);
   const [keyDraft, setKeyDraft] = useState(geminiKey);
   const [keyDirty, setKeyDirty] = useState(false);
@@ -66,7 +68,9 @@ export function Settings() {
     try {
       const text = await file.text();
       const n = importData(text);
-      flash(`Imported ${n} new item${n === 1 ? '' : 's'}.`);
+      flash(n === 0
+        ? 'Nothing new in that file — every record is already on the register.'
+        : `Imported ${n} new item${n === 1 ? '' : 's'}.`);
     } catch {
       flash("That file isn't a GradeStack backup.");
     }

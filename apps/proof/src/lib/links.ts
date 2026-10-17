@@ -42,6 +42,11 @@ export function timerDeepLink(opts: {
  * Cards must be atomic — a misconception or method-selection cue, never a
  * whole worked problem.
  */
+/* the ?cards= wire format is delimiter-parsed: `q:a|ex;q:a|ex`. A ':' in
+   the question swallows it into the answer and ';' splits a card in two —
+   scrub the wire delimiters out of each field (they're rare in prose). */
+const cardField = (s: string | undefined) => (s ?? '').replace(/[:;|]/g, ' ').replace(/\s+/g, ' ').trim();
+
 export function flashcardsCardsLink(
   settings: AppSettings,
   cards: { q: string; a: string; ex?: string }[],
@@ -51,7 +56,7 @@ export function flashcardsCardsLink(
   const base = baseUrl(settings?.flashcardsBaseUrl, '/apps/flashcards');
   const params = new URLSearchParams();
   params.set('title', title);
-  params.set('cards', cards.map((c) => `${c.q}:${c.a}${c.ex ? '|' + c.ex : ''}`).join(';'));
+  params.set('cards', cards.map((c) => `${cardField(c.q)}:${cardField(c.a)}${c.ex ? '|' + cardField(c.ex) : ''}`).join(';'));
   // carries the real course key so the imported deck files under the dossier
   if (course) params.set('course', course);
   return `${base}/?${params.toString()}`;
@@ -67,7 +72,9 @@ export function misconceptionCard(opts: {
   return {
     q: `What cue signals the ${opts.category} trap${topicHint}?`,
     a: opts.repairCue,
-    ex: opts.problem ? undefined : undefined,
+    /* 'ex' is the card's example slot — carry where the trap last bit so
+       the retest shows context, not an empty third field */
+    ex: opts.problem?.topic ? `missed on ${opts.problem.topic}` : undefined,
   };
 }
 

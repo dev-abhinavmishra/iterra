@@ -6,7 +6,7 @@ import { useStore, type Note } from '../store';
 declare global {
   interface Window {
     iterra?: {
-    register(app: string, opts: { title?: string; summary?: () => unknown }): void;
+    register(app: string, opts: { title?: string; summary?: () => unknown; ownKeys?: string[] }): void;
     doc?: (ns: string) => {
       get: () => unknown;
       set: (v: unknown) => void;
@@ -29,10 +29,16 @@ function applyInboundLink() {
 }
 
 export function wireIterra() {
+  /* Deep links are ours, not the hub's — honor ?note= even when the terrain
+     script failed to load (ad block, stale deploy), or the param just sits
+     in the bar forever pointing at nothing. */
+  applyInboundLink();
   const iterra = window.iterra;
   if (!iterra) return;
   iterra.register('ink', {
     title: 'Ink',
+    // the desk ships its own ⌘K palette — the terrain yields the chord
+    ownKeys: ['k'],
     summary: () => {
       const { notes, activeNoteId } = useStore.getState();
       const live = notes.filter((n) => !n.trashedAt);
@@ -48,7 +54,6 @@ export function wireIterra() {
       };
     },
   });
-  applyInboundLink();
 }
 
 /* ambient layer — commons noteActive, note index, feed on new notes (§7) */
@@ -97,6 +102,19 @@ let myLastWriteAt = 0;
   useStore.subscribe(publish);
   if (useStore.persist?.hasHydrated?.()) publish();
   else useStore.persist?.onFinishHydration?.(publish);
+  /* sibling readers (margin's desk, the ambient rail) drop a noteActive
+     stamp older than 5min — a live desk holding an idle note must keep
+     beating or it reads as dead. Re-stamp `at` only, and never over a
+     sibling's fresh stamp: arbitration still follows v.at, an idle
+     heartbeat mustn't clobber a live margin note with an older ink one. */
+  setInterval(() => {
+    try {
+      const v = lastCommons ? JSON.parse(lastCommons) : null;
+      const cur = (shared.get() as { noteActive?: { by?: string; at?: number } | null } | null)?.noteActive;
+      const siblingFresh = cur && cur.by !== 'ink' && Date.now() - (cur.at || 0) < 5 * 60 * 1000;
+      if (v && !siblingFresh) shared.setField('noteActive', { v, by: 'ink', at: Date.now() });
+    } catch { /* housekeeping beat — never throw */ }
+  }, 2 * 60 * 1000);
 })();
 
 interface NoteActiveEntry {

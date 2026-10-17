@@ -1,0 +1,15 @@
+{
+  "name": "Iterra — an integrated study terrain",
+  "short_name": "Iterra",
+  "description": "A local-first study workspace that unifies planning, flashcards, notes, timers, calculations, attendance, assessments, and study materials around your courses.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f1e8",
+  "theme_color": "#2f5d46",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

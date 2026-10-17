@@ -1,34 +1,18 @@
 #!/usr/bin/env bash
-# Build the whole terrain: each place keeps its own toolchain and dist,
-# the shell caps it. Output: dist/ with /apps/<name>/ per place.
+# Build the integrated terrain: one SPA (shell/) plus the hub script and
+# serverless api/ the deployment mounts. Output: dist/ served as a single
+# app — /apps/<place>/… paths boot-redirect into hash routes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# every app must carry its one adapter file — docs/ADAPTER.md
-node scripts/check-adapters.mjs
-
 rm -rf dist
-mkdir -p dist/apps
-
-VITE_APPS=(rhythm proof syllabus gradestack timer ink margin)
-for app in "${VITE_APPS[@]}"; do
-  echo "── building $app"
-  (cd "apps/$app" && npm ci --no-audit --no-fund --silent && npm run build)
-  cp -r "apps/$app/dist" "dist/apps/$app"
-done
-
-# flashcards is build-free — flat static files
-echo "── copying flashcards"
-mkdir -p dist/apps/flashcards
-cp apps/flashcards/index.html apps/flashcards/app.js apps/flashcards/styles.css \
-   apps/flashcards/iterra-hub.js apps/flashcards/iterra-adapter.js apps/flashcards/favicon.png dist/apps/flashcards/
+mkdir -p dist
 
 echo "── building shell"
 (cd shell && npm ci --no-audit --no-fund --silent && npm run build)
 cp -r shell/dist/. dist/
 
-# the hub must also exist at the root — every app's index.html loads
-# '/iterra-hub.js' absolute, which resolves outside its /apps/<name>/ dir
+# the hub must exist at the root — index.html loads '/iterra-hub.js'
 cp packages/hub/iterra-hub.js dist/iterra-hub.js
 
 echo "── terrain built → dist/"

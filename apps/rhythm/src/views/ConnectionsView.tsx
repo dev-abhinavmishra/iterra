@@ -65,7 +65,9 @@ export function ConnectionsView() {
       <section className="mb-6" aria-label="sources">
         <div className="kicker mb-2">Sources</div>
         <div className="border-y border-rule">
-          {KNOWN_APPS.map((app) => {
+          {/* 'other' isn't a known app, but its events still arrive — list it
+              when it has any so the source can be removed like the rest */}
+          {[...KNOWN_APPS, ...((bySource.get('other')?.length ?? 0) > 0 ? (['other'] as SuiteApp[]) : [])].map((app) => {
             const evs = bySource.get(app) ?? [];
             const base = appBaseUrl(app, s.settings);
             const last = evs[0];

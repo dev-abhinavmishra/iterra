@@ -5,7 +5,7 @@ import { readJsonBody } from './_http';
 export const config = {
     api: {
         bodyParser: {
-            sizeLimit: '10mb',
+            sizeLimit: '4.5mb',
         },
     },
 };
@@ -35,6 +35,12 @@ export default async function handler(req: any, res: any) {
         if (!buildPrompt) return res.status(400).json({ error: 'Unknown action' });
         if (!text || typeof text !== 'string' || !text.trim()) {
             return res.status(400).json({ error: 'Missing text' });
+        }
+        /* context is optional but, when sent, must be a string — a truthy
+           non-string would TypeError inside slice() after quota was already
+           reserved. */
+        if (context !== undefined && context !== null && typeof context !== 'string') {
+            return res.status(400).json({ error: 'context must be a string' });
         }
 
         ticket = await reserveLimit(req, res);

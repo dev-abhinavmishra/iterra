@@ -42,7 +42,12 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
   const filled = useMemo(() => rows.filter((r) => r.code.trim() || r.name.trim()), [rows]);
 
+  // Same guard the Semester term form enforces — an inverted or half-empty
+  // date range must never make it onto the register.
+  const datesOk = !!startDate && !!endDate && startDate <= endDate;
+
   const goCourses = () => {
+    if (!datesOk) return;
     setStep('courses');
     requestAnimationFrame(() => codeRefs.current[0]?.focus());
   };
@@ -57,6 +62,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   };
 
   const file = () => {
+    if (!datesOk) return;
     const term = createTerm({
       name: termName.trim() || 'Untitled term',
       startDate,
@@ -116,11 +122,16 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 <FInput type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
               </Field>
             </div>
+            {startDate && endDate && startDate > endDate && (
+              <p className="mono text-[10px] text-[color:var(--color-late)] mt-3" role="alert">
+                Last day precedes first day — the term card can’t be filed like that.
+              </p>
+            )}
             <div className="mt-6 flex items-center justify-between">
               <span className="mono text-[11px] text-[color:var(--color-ink-faint)]">
-                {stampDate(startDate)} → {stampDate(endDate)}
+                {startDate && endDate && startDate <= endDate ? `${stampDate(startDate)} → ${stampDate(endDate)}` : ''}
               </span>
-              <button className="btn inline-flex items-center gap-2" onClick={goCourses}>
+              <button className="btn inline-flex items-center gap-2" onClick={goCourses} disabled={!datesOk}>
                 Course ledger <ArrowRight size={13} />
               </button>
             </div>

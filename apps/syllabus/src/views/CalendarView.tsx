@@ -9,6 +9,7 @@ import {
   fmtTime12,
   fmtMinutes,
   weekStartISO,
+  dueDateISO,
   cn,
 } from '../lib/utils';
 import { courseColorVar } from '../lib/colors';
@@ -39,7 +40,7 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
     for (const c of Object.values(commitments)) {
       if (c.status !== 'open') continue;
       if (!courses.some((co) => co.id === c.courseId && !co.archived)) continue;
-      const d = c.dueAt.slice(0, 10);
+      const d = dueDateISO(c.dueAt);
       const arr = m.get(d) ?? [];
       arr.push({ id: c.id, title: c.title, late: d < today });
       m.set(d, arr);

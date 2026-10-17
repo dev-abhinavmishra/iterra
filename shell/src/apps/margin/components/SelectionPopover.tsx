@@ -1,0 +1,324 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { runAction, parseJsonArray } from '../services/aiService';
+import { createDeck } from '../services/studyService';
+import type { Note } from '../types';
+import { Icon, Spinner } from './ui/primitives';
+import { placeActive } from '../../active';
+
+interface SelectionPopoverProps {
+    onAddToChat: (text: string) => void;
+    /** The open note — the send-to-flashcards payload's provenance entity. */
+    note?: Note | null;
+}
+
+type Mode = 'idle' | 'busy' | 'saved' | 'copied' | 'error' | 'sent';
+
+interface PopState {
+    visible: boolean;
+    top: number;
+    left: number;
+    below: boolean;
+    text: string;
+}
+
+const HIDDEN: PopState = { visible: false, top: 0, left: 0, below: false, text: '' };
+
+const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }) => {
+    const [pop, setPop] = useState<PopState>(HIDDEN);
+    const [mode, setMode] = useState<Mode>('idle');
+    const [sentUrl, setSentUrl] = useState<string | null>(null);
+    const selecting = useRef(false);
+    const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const hide = useCallback(() => {
+        setPop(HIDDEN);
+        setMode('idle');
+        if (timer.current) clearTimeout(timer.current);
+    }, []);
+
+    const flash = useCallback((m: Mode, thenHide: boolean) => {
+        setMode(m);
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(thenHide ? hide : () => setMode('idle'), 1400);
+    }, [hide]);
+
+    const update = useCallback(() => {
+        if (selecting.current) return;
+        const sel = window.getSelection();
+        const text = sel?.toString().trim() || '';
+        if (!sel || sel.isCollapsed || !text || sel.rangeCount === 0) {
+            if (mode === 'idle') hide();
+            return;
+        }
+        const anchor = sel.anchorNode;
+        const el = anchor instanceof Element ? anchor : anchor?.parentElement;
+        // Never pop over editable surfaces (the editor owns its own toolbar).
+        if (!el || el.closest('input, textarea, [contenteditable="true"], [data-selection-popover]')) {
+            if (mode === 'idle') hide();
+            return;
+        }
+        const rect = sel.getRangeAt(0).getBoundingClientRect();
+        const center = Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120);
+        const below = rect.top < 56; // not enough room above — flip under the selection
+        setPop({
+            visible: true,
+            top: below ? rect.bottom + 8 : rect.top - 8,
+            left: center,
+            below,
+            text,
+        });
+    }, [hide, mode]);
+
+    useEffect(() => {
+        const onDown = () => { selecting.current = true; };
+        const onUp = () => { selecting.current = false; update(); };
+        const onScroll = () => { if (mode === 'idle') hide(); };
+        const onKey = (e: KeyboardEvent) => { if (!placeActive('margin')) return; if (e.key === 'Escape') hide(); };
+
+        document.addEventListener('selectionchange', update);
+        document.addEventListener('mousedown', onDown);
+        document.addEventListener('mouseup', onUp);
+        window.addEventListener('scroll', onScroll, true);
+        window.addEventListener('resize', onScroll);
+        window.addEventListener('blur', onScroll);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('selectionchange', update);
+            document.removeEventListener('mousedown', onDown);
+            document.removeEventListener('mouseup', onUp);
+            window.removeEventListener('scroll', onScroll, true);
+            window.removeEventListener('resize', onScroll);
+            window.removeEventListener('blur', onScroll);
+            document.removeEventListener('keydown', onKey);
+        };
+    }, [update, hide, mode]);
+
+    const doAsk = () => {
+        onAddToChat(pop.text);
+        window.getSelection()?.removeAllRanges();
+        hide();
+    };
+
+    const doCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(pop.text);
+            flash('copied', true);
+        } catch {
+            flash('error', false);
+        }
+    };
+
+    const doCards = async () => {
+        setMode('busy');
+        try {
+            const res = await runAction('flashcards', pop.text);
+            const cards = parseJsonArray<{ front?: string; back?: string }>(res.content)
+                .filter(c => c && typeof c.front === 'string' && typeof c.back === 'string')
+                .map(c => ({ front: c.front as string, back: c.back as string }));
+            if (cards.length === 0) {
+                flash('error', false);
+                return;
+            }
+            /* Integrated: the deck belongs to the Flashcards place — margin
+               only generates the cards. Standalone keeps its own store. */
+            if ((window as any).__iterraIntegrated) {
+                const it = (window as unknown as { iterra?: any }).iterra;
+                const out = await it?.send?.({
+                    to: 'flashcards',
+                    action: 'cards.create',
+                    entity: {
+                        app: 'margin',
+                        type: 'note',
+                        id: note?.id ?? `sel-${Date.now()}`,
+                        title: note?.title || 'untitled',
+                    },
+                    payload: {
+                        cards: cards.map(c => ({ q: c.front, a: c.back })),
+                        deckTitle: note?.title ? `Cards — ${note.title}` : 'From selection',
+                    },
+                });
+                setSentUrl(out?.url ?? null);
+                flash('sent', true);
+            } else {
+                await createDeck('From selection', cards);
+                flash('saved', true);
+            }
+            window.getSelection()?.removeAllRanges();
+        } catch {
+            flash('error', false);
+        }
+    };
+
+    /* Workflow A head — hand the selection to a sibling place through the
+       shared review modals (preview + provenance before anything is saved).
+       Integrated: dispatch 'iterra:modal' — the shell host owns the dialog.
+       Standalone fallback stays on the legacy send queue. */
+    const doSend = async (to: 'flashcards' | 'ink' = 'flashcards') => {
+        const it = (window as unknown as { iterra?: any }).iterra;
+        if (!it?.send) return;
+        setMode('busy');
+        try {
+            const sel = pop.text;
+            const noteTitle = note?.title || 'untitled';
+            /* course linkage: the first tag that resolves to a real course —
+               never a fabricated key */
+            let course: string | undefined;
+            let courseId: string | undefined;
+            for (const tag of note?.tags ?? []) {
+                const ent = await it.courses?.byCode?.(tag).catch(() => null);
+                if (ent?.key) { course = tag; courseId = ent.key; break; }
+            }
+            const sourceRef = {
+                app: 'margin',
+                type: 'note',
+                id: note?.id ?? `sel-${Date.now()}`,
+                title: noteTitle,
+            };
+            if ((window as any).__iterraIntegrated) {
+                window.dispatchEvent(new CustomEvent('iterra:modal', {
+                    detail: to === 'ink'
+                        ? {
+                              kind: 'attach-ink',
+                              sourceRef,
+                              sourceTitle: noteTitle,
+                              initialText: sel,
+                              initialCourse: course,
+                          }
+                        : {
+                              kind: 'create-deck',
+                              sourceRef,
+                              sourceTitle: noteTitle,
+                              selectedText: sel,
+                              initialCourse: course,
+                              initialCourseId: courseId,
+                          },
+                }));
+                hide();
+                window.getSelection()?.removeAllRanges();
+                return;
+            }
+            const res = await it.send(
+                to === 'ink'
+                    ? {
+                          to: 'ink',
+                          action: 'note.create',
+                          entity: sourceRef,
+                          payload: {
+                              ...(course ? { course } : {}),
+                              ...(courseId ? { courseId } : {}),
+                              text: sel,
+                          },
+                      }
+                    : {
+                          to: 'flashcards',
+                          action: 'cards.create',
+                          entity: sourceRef,
+                          payload: {
+                              ...(course ? { course } : {}),
+                              ...(courseId ? { courseId } : {}),
+                              cards: [{
+                                  q: `from “${noteTitle}” — recall`,
+                                  a: sel.length <= 300 ? sel : `${sel.slice(0, 297)}…`,
+                              }],
+                              deckTitle: noteTitle,
+                          },
+                      },
+            );
+            if (!res || res.ok === false) {
+                flash('error', false);
+                return;
+            }
+            setSentUrl(res.url ?? null);
+            flash('sent', true);
+            window.getSelection()?.removeAllRanges();
+        } catch {
+            flash('error', false);
+        }
+    };
+
+    const itemCls = `flex items-center gap-1 px-2 h-7 rounded-[6px] text-xs font-sans font-medium text-ink-2
+        hover:text-ink hover:bg-[var(--card-2)] transition-colors disabled:opacity-40 disabled:pointer-events-none`;
+
+    return (
+        <AnimatePresence>
+            {pop.visible && (
+                <motion.div
+                    data-selection-popover
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.13, ease: 'easeOut' }}
+                    className="fixed z-[80]"
+                    style={{
+                        top: pop.top,
+                        left: pop.left,
+                        transform: pop.below ? 'translateX(-50%)' : 'translate(-50%, -100%)',
+                    }}
+                    onMouseDown={e => e.preventDefault() /* keep the text selection alive */}
+                >
+                    <div className="flex items-center h-9 px-1 bg-card border border-line-2 rounded-[var(--r)] shadow-pop">
+                        {mode === 'idle' || mode === 'busy' ? (
+                            <>
+                                <button className={itemCls} onClick={doAsk} disabled={mode === 'busy'}>
+                                    <Icon name="forum" size={14} className="text-mark" />
+                                    Ask
+                                </button>
+                                <span className="w-px h-4 bg-[var(--line)]" />
+                                <button className={itemCls} onClick={doCards} disabled={mode === 'busy'}>
+                                    {mode === 'busy'
+                                        ? <Spinner size={12} />
+                                        : <Icon name="style" size={14} className="text-ink-3" />}
+                                    Cards
+                                </button>
+                                <span className="w-px h-4 bg-[var(--line)]" />
+                                <button className={itemCls} onClick={doCopy} disabled={mode === 'busy'}>
+                                    <Icon name="content_copy" size={14} className="text-ink-3" />
+                                    Copy
+                                </button>
+                                {(window as unknown as { iterra?: { send?: unknown } }).iterra?.send && (
+                                    <>
+                                        <span className="w-px h-4 bg-[var(--line)]" />
+                                        <button className={itemCls} onClick={() => void doSend('flashcards')} disabled={mode === 'busy'} title="Review and save this selection as a Flashcards deck">
+                                            <Icon name="send" size={14} className="text-ink-3" />
+                                            → Deck
+                                        </button>
+                                        <button className={itemCls} onClick={() => void doSend('ink')} disabled={mode === 'busy'} title="Review and attach this selection to a new Ink page">
+                                            <Icon name="edit_note" size={14} className="text-ink-3" />
+                                            → Note
+                                        </button>
+                                    </>
+                                )}
+                            </>
+                        ) : (
+                            <span className="flex items-center gap-1.5 px-2.5 h-7">
+                                <Icon
+                                    name={mode === 'error' ? 'close' : 'check'}
+                                    size={14}
+                                    className={mode === 'error' ? 'text-bad' : 'text-ok'}
+                                />
+                                {mode === 'sent' && sentUrl ? (
+                                    <button
+                                        className="font-mono text-[11px] text-ink-2 hover:text-ink underline decoration-dotted underline-offset-2"
+                                        onClick={() => {
+                                            const it = (window as unknown as { iterra?: { open?: (u: string) => void } }).iterra;
+                                            if (it?.open) it.open(sentUrl); else window.open(sentUrl, '_blank');
+                                        }}
+                                    >
+                                        Sent — open deck
+                                    </button>
+                                ) : (
+                                    <span className="font-mono text-[11px] text-ink-2">
+                                        {mode === 'saved' ? 'Deck saved' : mode === 'sent' ? 'Sent' : mode === 'copied' ? 'Copied' : 'Couldn’t make cards'}
+                                    </span>
+                                )}
+                            </span>
+                        )}
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+};
+
+export default SelectionPopover;

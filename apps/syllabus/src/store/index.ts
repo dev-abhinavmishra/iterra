@@ -13,7 +13,7 @@ import type {
   WorkBlock,
 } from '../lib/types';
 import type { ProposedBlock } from '../lib/schedule';
-import { uid, weekStartISO, addDaysISO } from '../lib/utils';
+import { uid, weekStartISO, addDaysISO, dueDateISO, localDateISO, localTimeHHMM, isoAtTime, todayISO } from '../lib/utils';
 import { estimateRatio, missedBlocks, remainingMinutes } from '../lib/schedule';
 import { exportFolio, parseFolioBackup } from '../lib/backup';
 
@@ -150,14 +150,17 @@ export const useFolio = create<FolioState>()(
           // Inbound Timer completion: ?completedBlock=<id>&actual=<minutes>
           const actual = Number(q.get('actual'));
           if (blockId && st.blocks[blockId]) {
+            const wasDone = st.blocks[blockId].state === 'done';
             st.completeBlock(blockId, Number.isFinite(actual) && actual > 0 ? actual : undefined);
             const stamped = get().blocks[blockId];
             const c = stamped ? get().commitments[stamped.commitmentId] : undefined;
-            feed(
-              `timer filed ${stamped?.actualMinutes ?? (Number.isFinite(actual) ? actual : 0)}m into ${c?.title ?? 'a block'}`,
-              `/apps/syllabus/?block=${blockId}`,
-              c ? get().courses[c.courseId]?.code : undefined,
-            );
+            if (!wasDone) {
+              feed(
+                `timer filed ${stamped?.actualMinutes ?? (Number.isFinite(actual) ? actual : 0)}m into ${c?.title ?? 'a block'}`,
+                `/apps/syllabus/?block=${blockId}`,
+                c ? get().courses[c.courseId]?.code : undefined,
+              );
+            }
             consumed = true;
           }
           // Search-palette deep link: ?block=<id> → select the slip on Today.
@@ -300,12 +303,12 @@ export const useFolio = create<FolioState>()(
           // term's end date — the syllabus keeps its rhythm.
           if (status === 'done' && c.recurrence === 'weekly') {
             const term = s.terms[c.courseId ? s.courses[c.courseId]?.termId ?? '' : ''];
-            const nextDue = addDaysISO(c.dueAt.slice(0, 10), 7);
+            const nextDue = addDaysISO(dueDateISO(c.dueAt), 7);
             if (!term?.endDate || nextDue <= term.endDate) {
               const next: Commitment = {
                 ...c,
                 id: uid('k_'),
-                dueAt: nextDue + c.dueAt.slice(10),
+                dueAt: isoAtTime(nextDue, localTimeHHMM(c.dueAt)),
                 status: 'open',
                 grade: undefined,
                 loggedMinutes: 0,
@@ -429,7 +432,10 @@ export const useFolio = create<FolioState>()(
       completeBlock: (id, actualMinutes) => {
         set((s) => {
           const b = s.blocks[id];
-          if (!b) return s;
+          /* a done block stays stamped — a re-fired ?completedBlock link
+             (duplicate navigation, tab restore) must not double-count
+             loggedMinutes on the commitment */
+          if (!b || b.state === 'done') return s;
           const actual = actualMinutes ?? b.actualMinutes ?? b.plannedMinutes;
           const c = s.commitments[b.commitmentId];
           const blocks = { ...s.blocks, [id]: { ...b, state: 'done' as const, actualMinutes: actual, completedAt: new Date().toISOString() } };
@@ -586,7 +592,7 @@ export const useFolio = create<FolioState>()(
         const actual = blocks.reduce((sum, b) => sum + (b.actualMinutes ?? 0), 0);
         const carryovers = blocks.filter((b) => b.state === 'missed' || b.state === 'deferred').map((b) => b.id);
         const completedCommitments = Object.values(s.commitments)
-          .filter((c) => c.completedAt && c.completedAt.slice(0, 10) >= weekStart && c.completedAt.slice(0, 10) < addDaysISO(weekStart, 7))
+          .filter((c) => c.completedAt && localDateISO(c.completedAt) >= weekStart && localDateISO(c.completedAt) < addDaysISO(weekStart, 7))
           .map((c) => c.id);
         const review: Review = {
           weekStart,
@@ -623,7 +629,7 @@ export const useFolio = create<FolioState>()(
       importJSON: (text) => {
         try {
           const data = parseFolioBackup(text);
-          if (!data.settings) data.settings = DEFAULT_SETTINGS;
+          data.settings = { ...DEFAULT_SETTINGS, ...(data.settings || {}) };
           set({ ...data });
           feed('folio restored', '/apps/syllabus/');
           return { ok: true };
@@ -654,7 +660,15 @@ export const useFolio = create<FolioState>()(
         for (const b of Object.values(blocks)) {
           if (!Array.isArray((b as WorkBlock).reasons)) (b as WorkBlock).reasons = [];
         }
-        return { ...current, ...p, commitments, blocks };
+        // Settings are key-wise too: a blob written before a key existed
+        // (or a partial write) leaves it undefined — and every deep-link
+        // builder dereferences the base URLs. Fill missing keys from
+        // DEFAULT_SETTINGS; only real values win.
+        const settings = { ...DEFAULT_SETTINGS } as AppSettings;
+        for (const [k, v] of Object.entries(p.settings || {})) {
+          if (v !== undefined && v !== null) (settings as unknown as Record<string, unknown>)[k] = v;
+        }
+        return { ...current, ...p, commitments, blocks, settings };
       },
       partialize: (s) => ({
         terms: s.terms,
@@ -715,7 +729,7 @@ export function selectWeekKey(s: FolioState, date: ISODate): ISODate {
 }
 
 export function commitmentDueISO(c: Commitment): ISODate {
-  return c.dueAt.slice(0, 10);
+  return dueDateISO(c.dueAt);
 }
 
 // ── Optional desk reminders (browser Notification API — never required) ─────
@@ -726,12 +740,12 @@ function maybeNotify(s: FolioState) {
   if (!s.settings.remindersEnabled) return;
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayISO();
   const soon = addDaysISO(today, 2);
   const open = Object.values(s.commitments).filter((c) => c.status === 'open');
-  const overdue = open.filter((c) => c.dueAt.slice(0, 10) < today).length;
+  const overdue = open.filter((c) => dueDateISO(c.dueAt) < today).length;
   const dueSoon = open.filter((c) => {
-    const d = c.dueAt.slice(0, 10);
+    const d = dueDateISO(c.dueAt);
     return d >= today && d <= soon;
   }).length;
   if (overdue === 0 && dueSoon === 0) return;

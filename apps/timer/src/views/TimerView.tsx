@@ -11,9 +11,13 @@ import { RotaryDial } from '../components/RotaryDial';
 import { KeyButton } from '../components/KeyButton';
 import { stationChime, secondTick, flapLand } from '../lib/sound';
 import { parseSyllabusLink, syllabusReturnUrl } from '../lib/deeplink';
-import { boundCourseCode, inTerrain, openTerrain, recentCourses, type RecentCourse } from '../lib/iterra-adapter';
+import { boundCourseCode, inTerrain, openTerrain, recentCourses, queuedTimerControls, dequeueTimerControl, type RecentCourse } from '../lib/iterra-adapter';
 
 const QUICK = [5, 10, 15, 25, 30, 45, 60, 90];
+/* app-local mirror of the live session — the publish effect writes it,
+   mount restores it, completion/reset clears it. shared.focus is the
+   cross-app read; this key is the reload-survival restore point. */
+const LIVE_SESSION_KEY = 'timer.session.live.v1';
 
 function fmt(totalSec: number) {
   const m = Math.floor(totalSec / 60);
@@ -96,16 +100,35 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       totalMin: Math.round(cd.totalMs / 60000),
       break: isBreak || undefined,
     };
-    doc.setField('focus', {
-      v: running
+    const beat = () => {
+      const v = running
         ? { ...base, running: true, endsAt: Date.now() + cd.remainingMs }
         : paused
           ? { ...base, paused: true, remainingSec }
-          : null,
-      by: 'timer',
-      at: Date.now(),
-    });
-  }, [running, paused, isBreak, label, intent, syllabus, remainingSec, cd.totalMs, cd.remainingMs]);
+          : null;
+      doc.setField('focus', { v, by: 'timer', at: Date.now() });
+      /* mirror the same doc app-locally so a reload/remount can re-arm the
+         session — shared.focus is the cross-app read; this is the
+         restore source of truth */
+      try {
+        if (v) localStorage.setItem(LIVE_SESSION_KEY, JSON.stringify({ ...v, intent, syllabus, thenBreak }));
+        else localStorage.removeItem(LIVE_SESSION_KEY);
+      } catch { /* storage full/blocked — restore just won't happen */ }
+    };
+    beat();
+    /* a paused session never ticks — remainingMs is frozen, so without a
+       heartbeat `at` ages out of the rail's 15-min freshness window and a
+       genuinely live pause vanishes. Re-stamp while paused; a dead page
+       stops beating and still expires on schedule. */
+    if (!paused) return;
+    const iv = setInterval(beat, 60000);
+    return () => clearInterval(iv);
+    /* deliberately NOT keyed on remainingMs/secondsLeft: a running session
+       publishes endsAt once — frames compute the countdown locally and a
+       per-tick republish would rewrite the shared doc 20x a second. A paused
+       session freezes remainingMs, so the same value republishes unchanged.
+       eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [running, paused, isBreak, label, intent, syllabus, cd.totalMs]);
 
   /* commons read: index.syllabus — when this session came in bound to a
      block, resolve the block's real title from the folio's entity index
@@ -131,6 +154,12 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
      double-invoke re-applies the link rather than stomping it back to the
      preset — never clear pendingLink; this instance stays a link session. */
   const pendingLink = useRef(parseSyllabusLink(window.location.search));
+  /* captured at render time — the publish effect's first beat clears the
+     live key on an idle mount, so the restore must read it before any
+     effect runs (same reason pendingLink is a ref) */
+  const pendingLive = useRef<any>((() => {
+    try { return JSON.parse(localStorage.getItem(LIVE_SESSION_KEY) || 'null'); } catch { return null; }
+  })());
   useEffect(() => {
     const link = pendingLink.current;
     if (link) {
@@ -139,7 +168,13 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       setIsBreak(false);
       setDone(null);
       if (link.intent) setIntent(link.intent);
-      setSyllabus({ block: link.block, returnUrl: link.returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId });
+      /* the link fully describes the session it arms — no break param
+         means no chained recess, not whatever the user last dialed */
+      setThenBreak(link.thenBreak ?? 0);
+      /* a returnUrl the file-back gate would reject stays out of state —
+         otherwise it renders a dead 'file back' button */
+      const returnUrl = link.returnUrl && syllabusReturnUrl(link, 1) ? link.returnUrl : undefined;
+      setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId });
       const url = new URL(window.location.href);
       if (url.search) {
         url.search = '';
@@ -150,6 +185,42 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       if (link.autostart) cd.start(ms, completeFocusLive);
       return;
     }
+    /* reload survival — the publish effect mirrors the live session into
+       timer.session.live.v1; re-arm it here so a mid-session reload (or a
+       keep-alive remount) doesn't evaporate a running clock. A session
+       whose endsAt already passed while dead is dropped — it wasn't
+       observed, and stamping the full minutes would be fake. */
+    {
+      /* kept (not consumed) — StrictMode re-runs mount effects in dev, and
+         re-applying an identical restore is harmless; the ref is fresh per
+         mount anyway */
+      const live = pendingLive.current;
+      const resumeMs = live?.running ? (live.endsAt || 0) - Date.now()
+        : live?.paused ? (live.remainingSec || 0) * 1000 : -1;
+      if (live && resumeMs > 0) {
+        setSetMinutes(Math.round((live.totalMin || 25)));
+        setLabel(live.label ?? presetName);
+        setIntent(live.intent || '');
+        setIsBreak(!!live.break);
+        setThenBreak(live.thenBreak || 0);
+        setSyllabus(live.syllabus ?? null);
+        const totalMs = (live.totalMin || 25) * 60000;
+        if (live.running) {
+          /* start() re-arms at ms as the total — restore the ORIGINAL total
+             after so progress, paused-derivation and the completion log all
+             stay honest about the session's real size */
+          cd.start(resumeMs, live.break ? completeBreakLive : completeFocusLive);
+          cd.setTotalMs(totalMs);
+        } else {
+          /* paused restores to the paused board: arm at the original total,
+             then bank the saved remainder so paused === true */
+          cd.reset(totalMs);
+          cd.setRemainingMs(resumeMs);
+        }
+        return;
+      }
+      if (live) { try { localStorage.removeItem(LIVE_SESSION_KEY); } catch { /* ignore */ } }
+    }
     setSetMinutes(presetMinutes);
     setLabel(presetName);
     setIsBreak(false);
@@ -158,9 +229,14 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [presetMinutes, presetName]);
 
+  /* the focus session's elapsed minutes, captured at completion — after a
+     chained recess, cd holds the BREAK countdown and would misreport the
+     filed time */
+  const filedActual = useRef<number | null>(null);
+
   const fileBackToSyllabus = () => {
     if (!syllabus) return;
-    const actual = Math.round((cd.totalMs - cd.remainingMs) / 60000);
+    const actual = filedActual.current ?? Math.round((cd.totalMs - cd.remainingMs) / 60000);
     const url = syllabusReturnUrl(syllabus, actual);
     if (!url) return;
     const iterra = (window as any).iterra;
@@ -169,6 +245,10 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     // wakes with ?completedBlock instead of this frame walking away
     if (iterra?.isFramed?.()) iterra.open(url);
     else window.location.href = url;
+    // the binding is spent — clear it with the session so a hidden framed
+    // mount doesn't keep offering file-back (a second tap double-stamps)
+    setDone(null);
+    resetTimer();
   };
 
   /* ---------- title bar ---------- */
@@ -251,7 +331,9 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
         // the completion takeover owns the keys — no ghost restarts underneath
         if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); setDone(null); resetTimer(); }
         else if (e.key === 'r' || e.key === 'R') resetTimer();
-        else if (e.key === 'Escape') setDone(null);
+        /* Escape dismisses to the dial too — dismissing but leaving the
+           countdown parked at 00:00 stranded the board on a dead 'run' panel */
+        else if (e.key === 'Escape') resetTimer();
         return;
       }
       if (e.code === 'Space') { e.preventDefault(); flashKey('toggle'); toggle(); }
@@ -277,6 +359,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
       courseId: syllabus?.courseId,
       commitmentId: syllabus?.commitmentId,
     });
+    if (!recess) filedActual.current = Math.round((cd.totalMs - cd.remainingMs) / 60000);
     /* standalone complete → 'completed Nm' stir; a session bound for
        file-back emits only its 'filed Xm' (the file-back IS its stir) */
     const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
@@ -321,9 +404,23 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
     else cd.start(setMinutes * 60000, completeFocusLive);
   };
 
+  /* the deep-link / intake / chip binding is ONE-SHOT — it belongs to the
+     session it armed. Consume it when that session is finished, reset,
+     re-dialed, dismissed, or filed back; otherwise blockId / course /
+     commitmentId / returnUrl leak into whatever the user starts next
+     (a phantom bound chip, '← syllabus' return, a double file-back). */
+  const clearBinding = () => {
+    if (!syllabus) return;
+    setSyllabus(null);
+    setIntent('');
+    setLabel(presetName);
+    filedActual.current = null;
+  };
+
   const resetTimer = () => {
     vibrate([25, 40, 25]);
     if (chainTimer.current) { clearTimeout(chainTimer.current); chainTimer.current = null; }
+    clearBinding();
     cd.reset(setMinutes * 60000);
     setIsBreak(false);
     setDone(null);
@@ -365,31 +462,66 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
      adapter intake 'timer.control' re-dispatches {op} here. pause /
      resume run the same code path as the Space key; finish logs the
      elapsed minutes then clears (a sub-minute session just clears). */
+  /* returns whether the op actually applied — an op arriving before the
+     countdown is armed stays queued so the drain retries it when state
+     catches up (the ?intake= landing race) */
+  const applyOp = (op: string): boolean => {
+    const jot = (type: 'session.paused' | 'session.resumed') => {
+      const it = (window as any).iterra;
+      try {
+        it?.events?.emit?.(type, {
+          label: label ?? undefined, courseId: syllabus?.courseId ?? undefined,
+          course: syllabus?.course ?? undefined, remainingSec: Math.round(cd.remainingMs / 1000),
+        });
+      } catch { /* journal best-effort */ }
+    };
+    if (op === 'pause' && running) { cd.pause(); jot('session.paused'); return true; }
+    if (op === 'resume' && !running && hasTime && cd.remainingMs > 0) {
+      cd.resume(isBreak ? completeBreakLive : completeFocusLive);
+      jot('session.resumed');
+      return true;
+    }
+    if (op === 'finish' && hasTime) { finishEarly(); return true; }
+    return false;
+  };
+
   useEffect(() => {
     const onCtl = (e: Event) => {
       const op = (e as CustomEvent<{ op?: string }>).detail?.op;
-      const jot = (type: 'session.paused' | 'session.resumed') => {
-        const it = (window as any).iterra;
-        try {
-          it?.events?.emit?.(type, {
-            label: label ?? undefined, courseId: syllabus?.courseId ?? undefined,
-            course: syllabus?.course ?? undefined, remainingSec: Math.round(cd.remainingMs / 1000),
-          });
-        } catch { /* journal best-effort */ }
-      };
-      if (op === 'pause' && running) { cd.pause(); jot('session.paused'); }
-      else if (op === 'resume' && !running && hasTime && cd.remainingMs > 0) {
-        cd.resume(isBreak ? completeBreakLive : completeFocusLive);
-        jot('session.resumed');
+      if (!op) return;
+      /* applied → consume the queued copy so the drain can't re-run it;
+         not applicable yet → leave queued for the drain below */
+      if (applyOp(op)) {
+        const entry = queuedTimerControls().find((x) => x.op === op);
+        if (entry) dequeueTimerControl(entry);
       }
-      else if (op === 'finish' && hasTime) finishEarly();
     };
     window.addEventListener('timer:control', onCtl);
     return () => window.removeEventListener('timer:control', onCtl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, hasTime, isBreak, cd.remainingMs]);
 
+  /* drain ops that arrived while this view wasn't listening — each fires
+     once its state precondition holds (running flips true after the link
+     consume re-arms the countdown); stale ops >30s drop — a steering op
+     that old no longer means anything */
+  useEffect(() => {
+    const now = Date.now();
+    for (const entry of queuedTimerControls()) {
+      if (now - entry.at > 30000) { dequeueTimerControl(entry); continue; }
+      const applicable =
+        (entry.op === 'pause' && running) ||
+        (entry.op === 'resume' && !running && hasTime && cd.remainingMs > 0) ||
+        (entry.op === 'finish' && hasTime);
+      if (applicable && applyOp(entry.op)) dequeueTimerControl(entry);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, hasTime, isBreak, cd.remainingMs]);
+
   const applyMinutes = (m: number) => {
+    /* re-dialing abandons the one-shot binding — the new minutes were
+       chosen by the user, not the link that armed them */
+    clearBinding();
     setSetMinutes(m);
     setLabel(undefined);
     if (!running) { cd.reset(m * 60000); setIsBreak(false); setDone(null); }
@@ -408,6 +540,10 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
   const dispSec = hasTime ? cd.secondsLeft : setMinutes * 60;
   const dispStr = fmt(dispSec);
   const flipSize = Math.max(64, Math.min(150, Math.round(vp.w / (dispStr.length === 5 ? 7.2 : 8))));
+  /* the dial is a 60-minute knob but quick chips go to 90 and custom to
+     180 — grow its scale in 30m steps so a >60m set doesn't paint every
+     tick lit behind a bezel engraved '60' */
+  const dialMax = Math.min(180, Math.max(60, Math.ceil(setMinutes / 30) * 30));
 
   /* ======================= RENDER ======================= */
   return (
@@ -457,7 +593,11 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
               <span className="engraved text-[9px] md:text-[10px]">
                 {intent ? intent.toUpperCase() : 'TIMER TIMEKEEPING'}
                 {blockTitle && <span className="block">{`BLOCK ${blockTitle.toUpperCase()}`}</span>}
-                {syllabus?.from && (
+                {/* '← terrain' is a shell hash route — standalone it can
+                    only spawn a dead timer tab, so it stays terrain-only.
+                    App-sourced links ('← syllabus') still work standalone:
+                    iterra.open drops them onto /apps/<from>/ in a tab. */}
+                {syllabus?.from && (inTerrain() || syllabus.from !== 'terrain') && (
                   <button
                     className="block text-left uppercase tracking-inherit opacity-70 hover:opacity-100 transition-opacity"
                     title={`Bound from ${syllabus.from} — return there`}
@@ -516,7 +656,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                 transition={{ duration: 0.25 }}
                 className="flex flex-col items-center gap-6"
               >
-                <RotaryDial minutes={setMinutes} onChange={applyMinutes} size={250} disabled={running}>
+                <RotaryDial minutes={setMinutes} onChange={applyMinutes} size={250} max={dialMax} disabled={running}>
                   <div className="flex flex-col items-center">
                     <FlipRow text={fmt(setMinutes * 60)} size={46} sound={false} />
                     <span className="label-wall text-[9px] mt-1">Turn to set</span>
@@ -630,7 +770,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                 )}
                 <hr className="rule-h" />
                 <p className="text-[11px] text-ink-faint font-body leading-relaxed">
-                  Step away and the board takes over — focus mode fills the screen after 12 seconds idle.
+                  Step away and the board takes over — focus mode fills the screen after 10 seconds idle.
                 </p>
               </motion.div>
             )}
@@ -754,13 +894,13 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
             >
               <div className="flex items-center justify-between mb-5">
                 <span className="engraved text-xs">Set duration</span>
-                <button onClick={() => setCustomOpen(false)} className="text-flap-dim hover:text-flap-ink"><X size={18} /></button>
+                <button onClick={() => setCustomOpen(false)} className="text-flap-dim hover:text-flap-ink" aria-label="Close" title="Close"><X size={18} /></button>
               </div>
               <div className="flex items-center justify-center gap-4 mb-6">
-                <KeyButton className="w-11 h-11 !rounded-lg" onClick={() => setCustomMin(m => Math.max(1, m - 1))}><Minus size={16} /></KeyButton>
+                <KeyButton className="w-11 h-11 !rounded-lg" onClick={() => setCustomMin(m => Math.max(1, m - 1))} title="One minute less"><Minus size={16} /></KeyButton>
                 <FlipRow text={String(customMin).padStart(2, '0')} size={64} sound={false} />
                 <span className="engraved text-xs">MIN</span>
-                <KeyButton className="w-11 h-11 !rounded-lg" onClick={() => setCustomMin(m => Math.min(180, m + 1))}><Plus size={16} /></KeyButton>
+                <KeyButton className="w-11 h-11 !rounded-lg" onClick={() => setCustomMin(m => Math.min(180, m + 1))} title="One minute more"><Plus size={16} /></KeyButton>
               </div>
               <input
                 name="custom-minutes"
@@ -833,7 +973,7 @@ export default function TimerView({ presetMinutes = 25, presetName, onFocusModeC
                 <KeyButton variant="signal" className="px-10 py-4 text-sm" onClick={() => { setDone(null); resetTimer(); }}>
                   Continue
                 </KeyButton>
-                {done === 'focus' && syllabus?.block && syllabus?.returnUrl && (
+                {(done === 'focus' || done === 'break') && syllabus?.block && syllabus?.returnUrl && (
                   <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus} title="Return to Syllabus and file this time">
                     File back → Syllabus
                   </KeyButton>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Commitment, Course, WorkBlock } from '../lib/types';
 import { courseColorVar, courseColorRgb } from '../lib/colors';
-import { fmtMinutes, fmtTime12, stampDate, cn } from '../lib/utils';
+import { fmtMinutes, fmtTime12, stampDate, dueDateISO, cn } from '../lib/utils';
 import { Stamp } from './Stamp';
 import { Play, Check, CalendarClock, Pin, ChevronRight, Undo2, Sigma } from 'lucide-react';
 import { useSharedFocus } from '../lib/iterra';
@@ -51,13 +51,15 @@ export function BlockSlip({
     wasDone.current = done;
   }, [done]);
   const late =
-    commitment && commitment.status === 'open' && commitment.dueAt.slice(0, 10) < block.plannedDate;
+    commitment && commitment.status === 'open' && dueDateISO(commitment.dueAt) < block.plannedDate;
   const missed = block.state === 'missed' || block.state === 'deferred';
 
   return (
     <article
       className={cn(
-        'slip group flex items-stretch pl-6 pr-2 py-2.5 transition-shadow',
+        /* stacked at phone width — five actions leave no room for the title;
+           side-by-side from sm up */
+        'slip group flex flex-col sm:flex-row sm:items-stretch pl-6 pr-2 py-2.5 transition-shadow',
         selected && 'ring-2 ring-[rgb(var(--ink-rgb)/0.35)]',
         done && 'opacity-75',
       )}
@@ -101,7 +103,7 @@ export function BlockSlip({
         </div>
 
         <button
-          className="slab text-[15px] font-medium leading-snug text-left hover:underline decoration-1 underline-offset-2"
+          className="slab text-[15px] font-medium leading-snug text-left hover:underline decoration-1 underline-offset-2 max-w-full break-words"
           onClick={(e) => {
             e.stopPropagation();
             onInspect?.();
@@ -118,8 +120,8 @@ export function BlockSlip({
         )}
       </div>
 
-      {/* actions */}
-      <div className="flex items-center gap-1 pl-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+      {/* actions — own row under the title on phones, right-hand column on sm+ */}
+      <div className="flex items-center gap-1 sm:pl-2 shrink-0 justify-end sm:justify-start" onClick={(e) => e.stopPropagation()}>
         {done ? (
           <>
             <Stamp text={`DONE${block.actualMinutes ? ` ${fmtMinutes(block.actualMinutes)}` : ''}`} tone="ok" animate={stamped} />

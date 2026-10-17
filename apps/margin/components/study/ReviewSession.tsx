@@ -143,7 +143,12 @@ const ReviewSession: React.FC<ReviewSessionProps> = ({ deck: initialDeck, onExit
                         onClick={flip}
                         className={`flip-inner relative w-full h-[20rem] sm:h-[22rem] transform-style-3d cursor-pointer select-none ${flipped ? 'rotate-y-180' : ''}`}
                         role="button"
-                        aria-label={flipped ? 'Card back — click to see front' : 'Card front — click to flip'}
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                            if (e.target !== e.currentTarget) return;
+                            if (e.key === 'Enter') { e.preventDefault(); flip(); }
+                        }}
+                        aria-label={flipped ? 'Card back — Enter or Space to see front' : 'Card front — Enter or Space to flip'}
                     >
                         {/* front */}
                         <div className="backface-hidden absolute inset-0 bg-card border border-line rounded-[var(--r-lg)] shadow-card flex flex-col overflow-hidden">

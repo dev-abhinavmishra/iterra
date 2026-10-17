@@ -47,6 +47,9 @@ function devApiPlugin(): Plugin {
                         headers: req.headers,
                         body,
                         query: Object.fromEntries(new URL(url, 'http://localhost').searchParams),
+                        // handlers resolve the caller's IP for the anonymous
+                        // quota pin — keep the dev path honest too
+                        socket: { remoteAddress: req.socket?.remoteAddress },
                     };
 
                     try {
@@ -74,6 +77,7 @@ export default defineConfig(({ mode, command }) => {
         'OPENROUTER_API_KEY', 'OPENROUTER_MODEL', 'OPENROUTER_VISION_MODEL',
         'GEMINI_API_KEY', 'GEMINI_MODEL', 'GEMINI_VISION_MODEL',
         'SUPABASE_URL', 'SUPABASE_KEY', 'DAILY_FREE_LIMIT',
+        'ANON_IP_LIMIT_MULT', 'TRANSCRIBE_DAILY_LIMIT', 'TITLE_DAILY_LIMIT',
     ]) {
         if (env[key]) process.env[key] = env[key];
     }
@@ -87,13 +91,16 @@ export default defineConfig(({ mode, command }) => {
         },
         plugins: [react(), devApiPlugin()],
         define: {
+            /* JSON.stringify(undefined) yields `undefined`, which esbuild turns
+               into the truthy string "undefined" — an unset key must inject the
+               literal null so `if (!key)` guards behave under vitest/dev too. */
             // Gemini Live (client-side WebSocket) still reads this if a working key is set.
-            'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+            'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY ?? null),
             // Browser Supabase client (anonymous auth). Publishable key only — safe to expose.
-            'process.env.SUPABASE_URL': JSON.stringify(env.SUPABASE_URL),
-            'process.env.SUPABASE_ANON_KEY': JSON.stringify(env.SUPABASE_ANON_KEY),
+            'process.env.SUPABASE_URL': JSON.stringify(env.SUPABASE_URL ?? null),
+            'process.env.SUPABASE_ANON_KEY': JSON.stringify(env.SUPABASE_ANON_KEY ?? null),
             // hCaptcha site key (public).
-            'process.env.HCAPTCHA_SITE_KEY': JSON.stringify(env.HCAPTCHA_SITE_KEY),
+            'process.env.HCAPTCHA_SITE_KEY': JSON.stringify(env.HCAPTCHA_SITE_KEY ?? null),
         },
         resolve: {
             alias: {

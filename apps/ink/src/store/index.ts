@@ -87,7 +87,7 @@ type AppState = {
    * persisted): timestamps can lie (imports, future dates), a counter can't. */
   writeSeq: number;
   // Actions
-  addNote: (note?: Partial<Omit<Note, 'id' | 'lastModified' | 'createdAt'>>) => string;
+  addNote: (note?: Partial<Omit<Note, 'id' | 'lastModified' | 'createdAt'>> & { id?: string }) => string;
   updateNote: (id: string, updates: Partial<Note>) => void;
   trashNote: (id: string) => void;
   restoreNote: (id: string) => void;
@@ -170,7 +170,11 @@ export const useStore = create<AppState>()(
       notice: null,
 
       addNote: (partial = {}) => {
-        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        const id = partial.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        /* caller-supplied ids are idempotent intake keys (the iterra adapter
+           derives them from the intake record id) — a re-delivery of the
+           same record returns the page it already made, not a second one */
+        if (partial.id && get().notes.some(n => n.id === id)) return id;
         set(state => {
           const newNote: Note = {
             id,

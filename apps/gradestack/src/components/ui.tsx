@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 /* ── Icon ─────────────────────────────────────────────────── */
@@ -197,6 +197,25 @@ export function Modal({ onClose, title, subtitle, children, footer, wide }: {
   onClose: () => void; title: string; subtitle?: string;
   children: React.ReactNode; footer?: React.ReactNode; wide?: boolean;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Escape dismisses only the topmost dialog (nested confirms shouldn't
+  // collapse the sheet beneath them), and focus moves inside on open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const dialogs = document.querySelectorAll('[role="dialog"]');
+      const top = dialogs[dialogs.length - 1];
+      if (top && rootRef.current && top.contains(rootRef.current)) onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  useEffect(() => {
+    rootRef.current?.focus();
+  }, []);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <motion.div
@@ -205,11 +224,16 @@ export function Modal({ onClose, title, subtitle, children, footer, wide }: {
         onClick={onClose}
       />
       <motion.div
+        ref={rootRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 12 }}
         transition={{ duration: 0.18 }}
-        className={`bg-form relative z-10 w-full ${wide ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] rounded-md shadow-2xl border border-hairline flex flex-col overflow-hidden`}
+        className={`bg-form relative z-10 w-full ${wide ? 'max-w-4xl' : 'max-w-lg'} max-h-[90vh] rounded-md shadow-2xl border border-hairline flex flex-col overflow-hidden outline-none`}
       >
         <div className="px-6 py-5 border-b border-hairline flex justify-between items-start shrink-0">
           <div>

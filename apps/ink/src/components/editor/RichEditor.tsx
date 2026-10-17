@@ -525,8 +525,20 @@ export const RichEditor: React.FC<RichEditorProps> = ({
 /* Workflow B — hand the selection to a sibling place through the canonical
    send queue: a Margin page, a Flashcards card, or a Proof step. The send
    resolves with the created entity's deep link, which we then open. */
+interface SendOpts {
+  to: 'margin' | 'flashcards' | 'proof';
+  action: string;
+  entity: { app: string; type: string; id: string; title: string };
+  payload?: Record<string, unknown>;
+}
+interface SendResult { ok?: boolean; url?: string }
+interface IterraSendSurface {
+  send?: (opts: SendOpts) => Promise<SendResult>;
+  open?: (url: string) => void;
+}
+
 const sendSelection = (editor: Editor, to: 'margin' | 'flashcards' | 'proof'): void => {
-  const it = (window as unknown as { iterra?: any }).iterra;
+  const it = (window as unknown as { iterra?: IterraSendSurface }).iterra;
   if (!it?.send) return;
   const { from, to: selTo } = editor.state.selection;
   const sel = editor.state.doc.textBetween(from, selTo, ' ').trim();
@@ -543,7 +555,7 @@ const sendSelection = (editor: Editor, to: 'margin' | 'flashcards' | 'proof'): v
         ? { to, action: 'cards.create', entity, payload: { cards: [{ q: `from “${pageTitle}” — recall`, a: sel }], deckTitle: pageTitle } }
         : { to, action: 'step.append', entity: { app: 'ink', type: 'note', id: page?.id ?? 'page', title: sel } };
   Promise.resolve(it.send(opts))
-    .then((res: any) => {
+    .then((res) => {
       st.setNotice({ message: res?.ok ? `Sent to ${label}` : `Couldn't send to ${label}` });
       if (res?.ok && res.url) {
         if (it.open) it.open(res.url); else window.open(res.url, '_blank');

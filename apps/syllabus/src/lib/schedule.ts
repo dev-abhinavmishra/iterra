@@ -10,6 +10,7 @@ import {
   daysUntil,
   diffDaysISO,
   dueDateISO,
+  localDateISO,
   fromISODate,
   toISODate,
   clamp,
@@ -119,12 +120,12 @@ export function scoreCommitment(
 
   // ── Neglect: opened commitments untouched for a while drift up.
   if (c.lastWorkedAt) {
-    const idle = diffDaysISO(c.lastWorkedAt.slice(0, 10), today);
+    const idle = diffDaysISO(localDateISO(c.lastWorkedAt), today);
     if (idle >= 4 && remain > 0) {
       factors.push({ key: 'neglect', label: `untouched ${idle}d`, points: Math.min(W.neglect, idle) });
     }
   } else if (remain > 0) {
-    const age = diffDaysISO(c.createdAt.slice(0, 10), today);
+    const age = diffDaysISO(localDateISO(c.createdAt), today);
     if (age >= 5) {
       factors.push({ key: 'neglect', label: `never started (${age}d old)`, points: Math.min(W.neglect, Math.round(age * 0.6)) });
     }
@@ -469,7 +470,7 @@ export function riskReason(c: Commitment, today: ISODate, all: Record<string, Co
   if (daysLeft <= 3) {
     return `due in ${daysLeft}d with ${fmtMinutes(remain)} left`;
   }
-  const idle = c.lastWorkedAt ? diffDaysISO(c.lastWorkedAt.slice(0, 10), today) : diffDaysISO(c.createdAt.slice(0, 10), today);
+  const idle = c.lastWorkedAt ? diffDaysISO(localDateISO(c.lastWorkedAt), today) : diffDaysISO(localDateISO(c.createdAt), today);
   if (c.weight >= 20 && idle >= 5) {
     return `weight ${c.weight} · ${c.lastWorkedAt ? `untouched ${idle}d` : 'never started'}`;
   }

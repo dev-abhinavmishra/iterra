@@ -8,7 +8,18 @@
 import { useEffect, useState } from 'react';
 import type { Note } from '../../store';
 
-const iterra = () => (window as any).iterra;
+interface IterraLinksResult {
+  out?: { to?: string }[];
+  inn?: { from?: string }[];
+}
+interface IterraSurface {
+  links?: { for: (key: string) => Promise<IterraLinksResult> };
+  store?: { get: (key: string) => Promise<{ url?: string; title?: string } | null> };
+  courses?: { byCode: (code: string) => Promise<{ key?: string; data?: { code?: string }; course?: string; id?: string } | null> };
+  open?: (url: string) => void;
+}
+
+const iterra = (): IterraSurface | undefined => (window as unknown as { iterra?: IterraSurface }).iterra;
 
 /* place names, the way the terrain calls them */
 const PLACE: Record<string, string> = { margin: 'margin', flashcards: 'deck', proof: 'attempt' };
@@ -25,32 +36,36 @@ export function TerrainChips({ note }: { note: Note }) {
 
   useEffect(() => {
     let live = true;
-    setHits([]);
-    const it = iterra();
-    if (!it?.links?.for || !it?.store?.get) return;
-    it.links
-      .for(`ink:note:${note.id}`)
-      .then(async (res: any) => {
-        const refs: { key: string; dir: 'in' | 'from' }[] = [
-          ...((res?.out ?? []) as Array<{ to?: string }>).map((l) => ({ key: String(l.to), dir: 'in' as const })),
-          ...((res?.inn ?? []) as Array<{ from?: string }>).map((l) => ({ key: String(l.from), dir: 'from' as const })),
-        ].filter((r) => /^[a-z]+:[a-z]+:.+/.test(r.key) && PLACE[r.key.split(':')[0]]);
-        if (!refs.length) return;
-        const seen = new Set<string>();
-        const out: Hit[] = [];
-        for (const r of refs.slice(0, 8)) {
-          const app = r.key.split(':')[0];
-          const label = `${r.dir} ${PLACE[app]}`;
-          if (seen.has(label)) continue;
-          const ent = await it.store.get(r.key).catch(() => null);
-          if (!live) return;
-          seen.add(label);
-          out.push({ label, url: ent?.url || `/apps/${app}/`, title: ent?.title });
-          if (out.length >= 3) break;
+    const links = iterra()?.links;
+    const store = iterra()?.store;
+    void (async () => {
+      if (links?.for && store?.get) {
+        const res = await links.for(`ink:note:${note.id}`).catch(() => null);
+        if (res) {
+          const refs: { key: string; dir: 'in' | 'from' }[] = [
+            ...(res.out ?? []).map((l) => ({ key: String(l.to), dir: 'in' as const })),
+            ...(res.inn ?? []).map((l) => ({ key: String(l.from), dir: 'from' as const })),
+          ].filter((r) => /^[a-z]+:[a-z]+:.+/.test(r.key) && PLACE[r.key.split(':')[0]]);
+          if (refs.length) {
+            const seen = new Set<string>();
+            const out: Hit[] = [];
+            for (const r of refs.slice(0, 8)) {
+              const app = r.key.split(':')[0];
+              const label = `${r.dir} ${PLACE[app]}`;
+              if (seen.has(label)) continue;
+              const ent = await store.get(r.key).catch(() => null);
+              if (!live) return;
+              seen.add(label);
+              out.push({ label, url: ent?.url || `/apps/${app}/`, title: ent?.title });
+              if (out.length >= 3) break;
+            }
+            if (live) setHits(out);
+            return;
+          }
         }
-        if (live) setHits(out);
-      })
-      .catch(() => {});
+      }
+      if (live) setHits([]);
+    })();
     return () => {
       live = false;
     };
@@ -59,19 +74,20 @@ export function TerrainChips({ note }: { note: Note }) {
   /* course binder — the page's own tags resolve against the registry */
   useEffect(() => {
     let live = true;
-    setCourse(null);
-    const it = iterra();
-    if (!it?.courses?.byCode || !note.tags?.length) return;
-    (async () => {
-      for (const tag of note.tags) {
-        const ent = await it.courses.byCode(tag).catch(() => null);
-        if (!live) return;
-        if (ent?.key) {
-          const code = ent.data?.code || ent.course || ent.id || tag;
-          setCourse(String(code));
-          return;
+    const byCode = iterra()?.courses?.byCode;
+    void (async () => {
+      if (byCode && note.tags?.length) {
+        for (const tag of note.tags) {
+          const ent = await byCode(tag).catch(() => null);
+          if (!live) return;
+          if (ent?.key) {
+            const code = ent.data?.code || ent.course || ent.id || tag;
+            setCourse(String(code));
+            return;
+          }
         }
       }
+      if (live) setCourse(null);
     })();
     return () => {
       live = false;
@@ -89,7 +105,7 @@ export function TerrainChips({ note }: { note: Note }) {
           onClick={() => {
             const it = iterra();
             try {
-              it?.open ? it.open(`#/c/${encodeURIComponent(course)}`) : undefined;
+              it?.open?.(`#/c/${encodeURIComponent(course)}`);
             } catch {
               /* standalone — nothing to open */
             }
@@ -107,7 +123,8 @@ export function TerrainChips({ note }: { note: Note }) {
           onClick={() => {
             const it = iterra();
             try {
-              it?.open ? it.open(h.url) : window.open(h.url, '_blank');
+              if (it?.open) it.open(h.url);
+              else window.open(h.url, '_blank');
             } catch {
               window.open(h.url, '_blank');
             }

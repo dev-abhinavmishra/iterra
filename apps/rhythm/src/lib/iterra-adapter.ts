@@ -20,6 +20,22 @@ import type { Entry, Routine, SuiteApp } from './types';
 
 declare const window: any;
 
+/* intake drains can race the register's persist hydration — mutations made
+   pre-hydration get stomped when the persisted state lands. Await it;
+   throw on timeout so the hub releases the claim and a later drain
+   delivers for real (pending means pending). */
+function whenHydrated(timeoutMs = 9000): Promise<void> {
+  const p: any = (useRegister as any).persist;
+  if (!p?.hasHydrated) return Promise.resolve();
+  if (p.hasHydrated()) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const done = () => { clearTimeout(t); clearInterval(poll); res(); };
+    const t = setTimeout(() => { clearInterval(poll); rej(new Error('rhythm register not hydrated')); }, timeoutMs);
+    const poll = setInterval(() => { if (p.hasHydrated()) done(); }, 150);
+    p.onFinishHydration?.(done);
+  });
+}
+
 /* ── pure helpers (contract-tested) ─────────────────────────────────────── */
 
 /** The senders' loose `kind` vocabulary, normalized onto canonical types. */
@@ -249,11 +265,25 @@ export async function planRoutine(p: RoutinePlanFields): Promise<Routine | null>
   const cid = await projectCourse(p as Record<string, unknown>);
   const due = typeof p.dueAt === 'string' ? p.dueAt.slice(0, 10) : undefined;
   const minutes = Number(p.minutes) > 0 ? Math.round(Number(p.minutes)) : undefined;
-  const routine = useRegister.getState().addRoutine({
+  const perWeek = Math.max(1, Math.min(14, Math.round(Number(p.perWeek) || 1)));
+  /* identical re-plans are a no-op — an intake retried mid-delivery or a
+     second 'plan on the register' tap returns the live routine instead
+     of stacking a twin on the register */
+  const s = useRegister.getState();
+  const existing = Object.values(s.routines).find(
+    (r) =>
+      r.status === 'active' &&
+      r.name === name &&
+      (r.courseId || '') === (cid || '') &&
+      r.target.perWeek === perWeek &&
+      (r.windowEnd || '') === (due || ''),
+  );
+  if (existing) return existing;
+  const routine = s.addRoutine({
     name,
     measure: 'count',
     unit: p.unit || (minutes ? 'min' : 'times'),
-    perWeek: Math.max(1, Math.min(14, Math.round(Number(p.perWeek) || 1))),
+    perWeek,
     weekdays: [0, 1, 2, 3, 4, 5, 6],
     minimumLabel: minutes ? `${minutes}m` : undefined,
     courseId: cid || undefined,
@@ -551,6 +581,10 @@ export function registerAdapter() {
          resolved courses get projected into local refs so mappings and the
          course filter see them (the canonical key stays on the payload). */
       'log.activity': async (rec: any) => {
+        /* a boot drain can claim the intake before zustand persist has
+           rehydrated — a write now would be stomped by hydration. Wait;
+           throw on timeout so the hub releases the claim and retries. */
+        await whenHydrated();
         const draft = logActivityDraft(rec) as Record<string, unknown> | null;
         if (draft) {
           const cid = await projectCourse(rec?.payload ?? {});
@@ -564,6 +598,7 @@ export function registerAdapter() {
          sends a commitment here so it's scheduled where marks happen.
          The canonical course key is projected into a local ref first. */
       'routine.plan': async (rec: any) => {
+        await whenHydrated();
         const p = (rec?.payload ?? {}) as Record<string, any>;
         /* same mapping the register's folio inbox uses — see planRoutine */
         const routine = await planRoutine({ ...(p as RoutinePlanFields), entityTitle: rec?.entity?.title });
@@ -571,10 +606,21 @@ export function registerAdapter() {
         return { url: `/apps/rhythm/?routine=${encodeURIComponent(routine.name)}`, toast: `${routine.name} — on the register` };
       },
     },
-    /* a keep-alive frame waking up: re-run the diff in case it missed ticks */
+    /* a keep-alive frame waking up: re-run the diff in case it missed
+       ticks AND reconcile the published snapshot against the store — an
+       external removal leaves `published` marking an entity as written,
+       so a bare diff never restores the missing mirror (a missing get
+       can resolve truthy `{}` in the hub, so check for a real key). */
     wake: () => {
       diffState();
-      queueDrain();
+      const keys = [...published.keys()];
+      Promise.all(
+        keys.map((k) =>
+          Promise.resolve(it.store.get(k))
+            .then((cur: any) => { if (!cur || cur.key !== k) published.delete(k); })
+            .catch(() => {}),
+        ),
+      ).then(queueDrain, queueDrain);
     },
   });
 }

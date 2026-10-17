@@ -9,6 +9,8 @@ import {
   stampDate,
   fmtMinutes,
   isoAtTime,
+  dueDateISO,
+  localDateISO,
 } from '../lib/utils';
 import { estimateRatio } from '../lib/schedule';
 import type { ISODate } from '../lib/types';
@@ -40,7 +42,7 @@ export function ReviewView({ today }: { today: ISODate }) {
   const completedThisWeek = useMemo(
     () =>
       Object.values(s.commitments).filter(
-        (c) => c.completedAt && c.completedAt.slice(0, 10) >= weekStart && c.completedAt.slice(0, 10) < weekEnd,
+        (c) => c.completedAt && localDateISO(c.completedAt) >= weekStart && localDateISO(c.completedAt) < weekEnd,
       ),
     [s.commitments, weekStart, weekEnd],
   );
@@ -48,7 +50,7 @@ export function ReviewView({ today }: { today: ISODate }) {
   const overdue = useMemo(
     () =>
       Object.values(s.commitments).filter(
-        (c) => c.status === 'open' && c.dueAt.slice(0, 10) < today && courses.some((co) => co.id === c.courseId),
+        (c) => c.status === 'open' && dueDateISO(c.dueAt) < today && courses.some((co) => co.id === c.courseId),
       ),
     [s.commitments, today, courses],
   );
@@ -135,7 +137,7 @@ export function ReviewView({ today }: { today: ISODate }) {
           <ul className="space-y-1.5">
             {overdue.map((c) => (
               <li key={c.id} className="flex items-center gap-3 pl-1">
-                <span className="mono text-[10.5px] text-[color:var(--color-late)] font-semibold">{stampDate(c.dueAt.slice(0, 10))}</span>
+                <span className="mono text-[10.5px] text-[color:var(--color-late)] font-semibold">{stampDate(dueDateISO(c.dueAt))}</span>
                 <span className="slab text-[14px] flex-1 truncate">
                   {courseById[c.courseId]?.code} — {c.title}
                 </span>
