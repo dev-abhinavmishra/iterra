@@ -81,9 +81,13 @@ function syncMountedStores() {
         notes: inkNow.state.notes, activeNoteId: inkNow.state.activeNoteId ?? null,
       });
     }
-    const proofNow = lsGet<{ state?: { problems?: Record<string, any> } }>(PROOF_KEY);
+    const proofNow = lsGet<{ state?: { problems?: Record<string, any>; courses?: Record<string, any> } }>(PROOF_KEY);
     if (proofNow?.state) {
-      (window as any).__proofWorkbenchStore?.setState?.({ problems: proofNow.state.problems });
+      /* courses ride along: intake mirrors canonical syllabus:course:* keys
+         into proof's local registry — removal must retract them the same way */
+      (window as any).__proofWorkbenchStore?.setState?.({
+        problems: proofNow.state.problems, courses: proofNow.state.courses,
+      });
     }
   } catch { /* unmounted or a foreign shape — the LS writes already landed */ }
 }
@@ -541,6 +545,11 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
     if (proof?.state?.problems) {
       const p = proof.state.problems;
       for (const k of Object.keys(p)) if (isDemoId(k)) delete p[k];
+      /* intake mirrors canonical courses into the local registry keyed by
+         syllabus:course:demo-* — sweep those too or the picker keeps
+         offering courses that no longer exist */
+      const cs = proof.state.courses;
+      if (cs) for (const k of Object.keys(cs)) if (isDemoKey(k)) delete cs[k];
       lsSet(PROOF_KEY, proof);
     }
 

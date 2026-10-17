@@ -17,7 +17,10 @@ type Hub = {
     list(q?: Record<string, unknown>): Promise<Array<{ key?: string; id?: string; type?: string; data?: { status?: string } }>>;
     remove(k: string): Promise<unknown>;
   };
-  courses?: { resolve(ref: unknown): Promise<{ key?: string; id?: string; course?: string; data?: { code?: string } } | null> };
+  courses?: {
+    resolve(ref: unknown): Promise<{ key?: string; id?: string; course?: string; title?: string; data?: { code?: string } } | null>;
+    list?(): Promise<Array<{ key?: string; course?: string; title?: string; data?: { code?: string } }>>;
+  };
   events?: { emit(t: string, p: Record<string, unknown>): unknown };
   send?(o: Record<string, unknown>): Promise<unknown>;
   adapter?(o: Record<string, unknown>): void;
@@ -27,7 +30,7 @@ const hub = (): Hub | undefined => (typeof window !== 'undefined' ? (window as {
 
 /* ── pure builders (contract-tested) ──────────────────────────────── */
 
-export interface BoundCourse { courseId?: string; course?: string }
+export interface BoundCourse { courseId?: string; course?: string; name?: string }
 
 export function problemEntity(p: Problem, bound: BoundCourse = {}) {
   return {
@@ -116,19 +119,63 @@ async function boundCourse(code?: string, courseId?: string): Promise<BoundCours
   if (hit) return hit;
   let bound: BoundCourse = { courseId, course: code };
   try {
-    const ref = courseId ? { courseId } : code;
-    if (ref) {
-      const c = await it.courses.resolve(ref);
-      if (c) {
-        bound = {
-          courseId: c.key ?? courseId,
-          course: c.data?.code ?? c.course ?? c.id ?? code,
-        };
-      }
+    /* try the id first — but a LOCAL (c_*) id never resolves canonically, so
+       fall through to the code when id lookup misses rather than binding a
+       made-up ref */
+    let c = null;
+    if (courseId) c = await it.courses.resolve({ courseId });
+    if (!c && code) c = await it.courses.resolve(code);
+    if (c) {
+      bound = {
+        courseId: c.key ?? courseId,
+        course: c.data?.code ?? c.course ?? c.id ?? code,
+        name: typeof c.title === 'string' ? c.title : undefined,
+      };
     }
   } catch { /* keep what we were given */ }
   courseCache.set(cacheKey, bound);
+  ensureLocalCourse(bound);
   return bound;
+}
+
+/* problems bind to CANONICAL course keys (syllabus:course:<id>) while every
+   read path looks up the local registry — so a bound course must exist in
+   s.courses under its canonical key or chips/pickups resolve to nothing.
+   Mirror in the registry entry without disturbing user-managed courses. */
+function ensureLocalCourse(bound: BoundCourse) {
+  const key = bound.courseId;
+  if (!key || !bound.course) return;
+  const s = useWorkbench.getState();
+  const existing = s.courses?.[key];
+  const name = bound.name || String(bound.course);
+  if (existing && existing.code === bound.course && existing.name === name) return;
+  useWorkbench.setState((cur) => ({
+    courses: {
+      ...cur.courses,
+      [key]: existing
+        ? { ...existing, code: String(bound.course), name }
+        : { id: key, code: String(bound.course), name, color: 'slate', createdAt: new Date().toISOString(), archived: false },
+    },
+  }));
+}
+
+/* pull the whole canonical registry at prime/wake so pickers (ImportView,
+   ProblemEditor) offer real courses without needing an intake first */
+let coursesSyncing = false;
+async function syncCourses() {
+  const it = hub();
+  if (!it?.courses?.list || coursesSyncing) return;
+  coursesSyncing = true;
+  try {
+    const rows = await it.courses.list();
+    for (const e of rows || []) {
+      const code = String(e?.data?.code ?? e?.course ?? e?.title ?? '').trim();
+      if (!e?.key || !code) continue;
+      ensureLocalCourse({ courseId: e.key, course: code, name: typeof e.title === 'string' ? e.title : undefined });
+    }
+  } catch { /* registry stays as-is */ } finally {
+    coursesSyncing = false;
+  }
 }
 
 const shadow = new Map<string, string>();
@@ -169,7 +216,10 @@ async function mirror() {
       if (!p) return {};
       const code = p.courseId ? s.courses?.[p.courseId]?.code : undefined;
       const cacheKey = p.courseId || code || '';
-      if (!boundByProblem.has(cacheKey)) boundByProblem.set(cacheKey, await boundCourse(code));
+      /* pass the id through — a canonical binding must resolve even when the
+         local mirror hasn't run yet; boundCourse falls back to code for
+         local c_* ids */
+      if (!boundByProblem.has(cacheKey)) boundByProblem.set(cacheKey, await boundCourse(code, p.courseId));
       return boundByProblem.get(cacheKey)!;
     };
 
@@ -285,6 +335,7 @@ async function prime() {
       shadow.set(e.key, entitySig(e as unknown as Record<string, unknown>));
     }
   } catch { /* shadow starts empty — first mirror publishes everything */ }
+  void syncCourses();
 }
 
 let listening = false;
@@ -360,7 +411,7 @@ export function registerAdapter() {
         return { url: `/apps/proof/?problem=${encodeURIComponent(problem.id)}` };
       },
     },
-    wake: () => { courseCache.clear(); void mirror(); },
+    wake: () => { courseCache.clear(); void syncCourses(); void mirror(); },
   });
   listen();
   void (async () => { await prime(); await mirror(); })();

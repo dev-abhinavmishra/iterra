@@ -97,6 +97,22 @@ const ok = (msg) => console.log('  ok:', msg);
     fail('proof missing intake problem: ' + JSON.stringify(proofProblems));
   } else ok('proof drained the demo intake → ' + proofProblems.filter((k) => k.includes('demo')).join(','));
 
+  /* the intake binds a CANONICAL course key — proof's local registry must
+     mirror it or every course lookup (chip, publish, picker) misses */
+  const proofCourse = await page.evaluate(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem('proof.workbench.v1') || '{}');
+      const p = Object.values(s.state?.problems || {}).find((x) => String(x.id).startsWith('p_in-demo-'));
+      const c = p?.courseId ? s.state?.courses?.[p.courseId] : null;
+      return { courseId: p?.courseId || null, code: c?.code || null, keys: Object.keys(s.state?.courses || {}) };
+    } catch (e) { return { err: String(e) }; }
+  });
+  if (!proofCourse.courseId || !proofCourse.courseId.startsWith('syllabus:course:')) {
+    fail('proof problem not bound to a canonical course: ' + JSON.stringify(proofCourse));
+  } else if (proofCourse.code !== 'STAT 220') {
+    fail('proof registry missing the canonical course mirror: ' + JSON.stringify(proofCourse));
+  } else ok('proof resolved the canonical course → ' + proofCourse.code + ' (' + proofCourse.courseId + ')');
+
   /* ── provenance — each delivered object links derivedFrom its seeded
        source commitment (resolvable, clickable in the dossier). Poll:
        proof's drain is the slowest and races a fixed sleep. ── */
@@ -170,10 +186,14 @@ const ok = (msg) => console.log('  ok:', msg);
   const proofAfter = await page.evaluate(() => {
     try {
       const s = JSON.parse(localStorage.getItem('proof.workbench.v1') || '{}');
-      return Object.keys(s.state?.problems || {});
-    } catch { return []; }
+      return {
+        problems: Object.keys(s.state?.problems || {}),
+        courses: Object.keys(s.state?.courses || {}),
+      };
+    } catch { return { problems: [], courses: [] }; }
   });
-  if (proofAfter.some((k) => String(k).includes('demo'))) fail('proof still has demo problem');
+  if (proofAfter.problems.some((k) => String(k).includes('demo'))) fail('proof still has demo problem');
+  else if (proofAfter.courses.some((k) => String(k).includes('demo'))) fail('proof still has a mirrored demo course: ' + JSON.stringify(proofAfter.courses));
   else ok('proof clean');
 
   const hubEnts = await page.evaluate(() => window.iterra.store.list().then((r) => r.map((e) => e.key)));
