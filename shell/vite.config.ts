@@ -86,6 +86,22 @@ export default defineConfig(({ mode }) => {
 
     return {
         plugins: [react(), tailwindcss(), devApiPlugin()],
+        build: {
+            rollupOptions: {
+                output: {
+                    /* keep the heavy document libs out of whatever chunk pulls
+                       them first — they only ever run inside a place bundle,
+                       so an explicit vendor split lets the entry stay lean and
+                       lets two places share one copy instead of inlining each */
+                    manualChunks(id) {
+                        if (!id.includes('node_modules')) return;
+                        if (id.includes('@tiptap') || id.includes('@tiptap/pm') || id.includes('prosemirror')) return 'vendor-tiptap';
+                        if (id.includes('pdfjs-dist') || id.includes('pdf-lib')) return 'vendor-pdf';
+                        if (id.includes('katex')) return 'vendor-katex';
+                    },
+                },
+            },
+        },
         define: {
             /* JSON.stringify(undefined) yields `undefined` — an unset key
                must inject the literal null so `if (!key)` guards behave. */
