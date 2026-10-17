@@ -129,6 +129,27 @@ export function Search({
         sub: 'Command · Planning',
         url: '#/p/syllabus',
       },
+      {
+        app: 'terrain',
+        kind: 'command',
+        label: 'Browse the Library — every object in one place',
+        sub: 'Command · Workspace',
+        url: '#/library',
+      },
+      {
+        app: 'terrain',
+        kind: 'command',
+        label: 'Open Today — the day’s plan and stirs',
+        sub: 'Command · Workspace',
+        url: '#/',
+      },
+      {
+        app: 'terrain',
+        kind: 'command',
+        label: 'Workspace settings — backup, restore, storage',
+        sub: 'Command · Workspace',
+        url: '#/settings',
+      },
       ...(onToggleContext
         ? [
             {
@@ -229,6 +250,8 @@ export function Search({
           label: f.text,
           sub: `Activity · ${PLACE_MAP[f.app]?.label || f.app}`,
           url: f.url || `#/p/${f.app}`,
+          /* feed items carry `at` — fresher stirs rank above same-rank hits */
+          uat: f.at || 0,
         }))
       : [];
 
@@ -251,7 +274,8 @@ export function Search({
     return all
       .map((h) => ({ h, r: rank(h) }))
       .filter((x) => x.r < 9)
-      .sort((a, b) => a.r - b.r || a.h.label.localeCompare(b.h.label))
+      /* same rank → most recently touched wins; alphabetical last */
+      .sort((a, b) => a.r - b.r || (b.h.uat || 0) - (a.h.uat || 0) || a.h.label.localeCompare(b.h.label))
       .map((x) => x.h);
   }, [q, indexes, entities, feed, onGo, onToggleContext, onToggleTheme]);
 
