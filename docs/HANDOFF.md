@@ -256,3 +256,24 @@ contract every app and the shell follows.
   can resolve (block.plan legitimately url:nulls on a course-less folio).
   Six scripts/appcheck-<app>.cjs (lane D) take BASE/CDP env — same spare-
   origin rule applies; they double as per-app clickpath regressions.
+- Finalization wave (2fd3d07→df176e8 era): link ghost-kill — store.remove
+  cascades link rows on both lanes and ContextPanel skips unresolved
+  edges instead of fabricating clickable ghosts (d459a5b/c7e613b);
+  proof mirrors the canonical course registry into its local one so
+  `syllabus:course:*` bindings resolve at render time (9889a38 — same
+  demo-side sweep in removeDemoData); demo seeds now carry a rhythm
+  routine and entity.key'd intakes, removal sweeps the link store +
+  mounted-store state (2b8fe4b); rhythm `routine.check` + syllabus
+  `block.done`/`block.defer` intakes drive Today's inline Log routine /
+  Mark done / Tomorrow actions — all navigate:false with honest queued/
+  delivered toasts (4cba47c/1f576b8/bd62a48); Today's review rail matches
+  course filters per-row (the whole-section `!courseFilterLow` bail hid
+  routines under any filter); today's bound-timer links carry
+  courseId/mat/commitment so sessions keep canonical bindings (244d009);
+  boot requests navigator.storage.persist + Settings → Diagnostics shows
+  pending intakes + quarantined writes (df176e8); SW caches Google Fonts
+  + cache bumped to iterra-v2; palette is a real combobox
+  (aria-activedescendant); flip-clock digits announce as one labeled row;
+  build gates on check-adapters + check-api-parity (e3332db). Verify
+  scripts: playwright browser fallback chain, store-probe polling that
+  survives mid-drain navigations, pending-queue dumps on failure.
