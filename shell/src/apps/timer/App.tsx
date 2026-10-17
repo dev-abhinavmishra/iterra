@@ -74,6 +74,11 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
     setTakeoverOwner(id);
     go(id);
   };
+  /* deep links navigate but never claim — requestView would hand the link
+     target the takeover slot forever (Ledger/Settings never release), which
+     would then block real takeovers (alarms, countdown completion). During
+     an active takeover the link waits out: the ringing view stays put. */
+  const navView = (id: View) => { if (takeoverOwner === null) go(id); };
 
   const go = (id: View) => {
     if (id === view) return;
@@ -99,7 +104,7 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
       const rest = q.toString();
       window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
     }
-    requestView(p as View);
+    navView(p as View);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
@@ -116,7 +121,7 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
       const rest = q.toString();
       window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
     }
-    requestView('settings');
+    navView('settings');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 

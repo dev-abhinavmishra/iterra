@@ -139,6 +139,13 @@ export function Search({
       {
         app: 'terrain',
         kind: 'command',
+        label: 'Open Courses — every course dossier',
+        sub: 'Command · Workspace',
+        url: '#/courses',
+      },
+      {
+        app: 'terrain',
+        kind: 'command',
         label: 'Open Today — the day’s plan and stirs',
         sub: 'Command · Workspace',
         url: '#/',
