@@ -397,18 +397,23 @@ function StorageRow() {
   const size = info.usage != null
     ? ` · ${fmt(info.usage)} used${info.quota ? ` of ~${fmt(info.quota)}` : ''}`
     : '';
+  /* writes start failing silently well before the quota reads 100% —
+     warn early enough that a backup can still download */
+  const nearFull = info.usage != null && info.quota != null && info.quota > 0 && info.usage / info.quota > 0.8;
 
   return (
     <div className="flex w-full items-center gap-3 border-t border-[var(--color-line)] px-4 py-2.5">
-      <HardDrive className="h-4 w-4 shrink-0 text-[var(--color-mute)]" />
+      <HardDrive className={`h-4 w-4 shrink-0 ${nearFull ? 'text-amber-600' : 'text-[var(--color-mute)]'}`} />
       <span className="min-w-0 flex-1">
         <span className="block text-[13px] font-medium text-[var(--color-ink)]">
-          {info.persisted ? 'Storage is protected' : 'Storage is best-effort'}
+          {nearFull ? 'Storage nearly full' : info.persisted ? 'Storage is protected' : 'Storage is best-effort'}
         </span>
         <span className="block truncate text-[12px] text-[var(--color-mute)]">
-          {info.persisted
-            ? `This browser won't clear your data automatically${size}.`
-            : `The browser may clear data under storage pressure — keep backups${size}.`}
+          {nearFull
+            ? `Export a backup, then clear space — writes may start failing${size}.`
+            : info.persisted
+              ? `This browser won't clear your data automatically${size}.`
+              : `The browser may clear data under storage pressure — keep backups${size}.`}
         </span>
       </span>
     </div>
