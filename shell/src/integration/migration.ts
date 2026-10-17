@@ -349,6 +349,9 @@ export function installCrossTabSync(onExternalUpdate?: (key: string) => void): (
         const fc = (window as any).__fcApp;
         if (fc?.state && ev.newValue) {
           fc.state.decks = JSON.parse(ev.newValue) || {};
+          /* the cardfile renders imperatively — mutating state alone leaves
+             the mounted view showing the pre-merge decks */
+          if (typeof fc.renderAll === 'function') fc.renderAll();
         }
       }
     } catch {

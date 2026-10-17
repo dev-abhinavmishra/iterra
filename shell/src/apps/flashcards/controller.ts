@@ -2524,7 +2524,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   lastQuery = query;
   rootEl.dataset.fcWired = '1';
   /* the adapter reaches these through window.__fcApp — assign before it wires */
-  (window as any).__fcApp = { state, createDeck, newCard, diacritics, saveStore, selectDeck };
+  (window as any).__fcApp = { state, createDeck, newCard, diacritics, saveStore, selectDeck, renderAll };
   boot(query);
   parseUrlDeckRef = parseUrlDeck;
   wireFlashcardsAdapter();
