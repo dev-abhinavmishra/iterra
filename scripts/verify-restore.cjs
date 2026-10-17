@@ -39,7 +39,7 @@ const fail = (m) => { console.log('FAIL:', m); process.exitCode = 1; };
   /* download the backup */
   await page.goto(`${BASE}/#/settings`, { waitUntil: 'load' });
   await page.waitForTimeout(1200);
-  const dl = page.waitForEvent('download', { timeout: 15000 });
+  const dl = page.waitForEvent('download', { timeout: 60000 }); /* collectBackup walks every IDB store — slow disks stretch it */
   await page.getByText('Download backup', { exact: false }).first().click();
   const file = await dl;
   const backupPath = path.join(OUT, file.suggestedFilename());
