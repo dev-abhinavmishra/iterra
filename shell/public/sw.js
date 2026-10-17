@@ -15,7 +15,7 @@
    Bump CACHE when the strategy changes — runtime URLs are hashed, so old
    caches only hold stale non-hashed files. */
 
-const CACHE = 'iterra-v1';
+const CACHE = 'iterra-v2';
 const PRECACHE = ['/', '/site.webmanifest', '/icon.svg', '/iterra-hub.js'];
 
 self.addEventListener('install', (e) => {
@@ -40,6 +40,44 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+
+  // Google Fonts — the terrain's type is its identity, so it survives
+  // offline too: woff2 files are immutable (cache-first), the stylesheet
+  // itself is stale-while-revalidate.
+  if (url.hostname === 'fonts.gstatic.com') {
+    e.respondWith(
+      caches.match(req).then(
+        (hit) =>
+          hit ||
+          fetch(req).then((res) => {
+            if (res.ok) {
+              const clone = res.clone();
+              caches.open(CACHE).then((c) => c.put(req, clone));
+            }
+            return res;
+          }),
+      ),
+    );
+    return;
+  }
+  if (url.hostname === 'fonts.googleapis.com') {
+    e.respondWith(
+      caches.match(req).then((hit) => {
+        const fetched = fetch(req)
+          .then((res) => {
+            if (res.ok) {
+              const clone = res.clone();
+              caches.open(CACHE).then((c) => c.put(req, clone));
+            }
+            return res;
+          })
+          .catch(() => hit);
+        return hit || fetched;
+      }),
+    );
+    return;
+  }
+
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
