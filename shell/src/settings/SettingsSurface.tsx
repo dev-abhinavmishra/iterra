@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive, Inbox, AlertTriangle } from 'lucide-react';
+import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive, Inbox, AlertTriangle, Trash2 } from 'lucide-react';
 import { PLACES } from '../places';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
 import { useWorkspaceTheme } from '../ui/theme';
@@ -9,6 +9,7 @@ import {
   parseBackup,
   restoreBackup,
   summarizeBackup,
+  wipeAll,
   type IterraBackup,
 } from '../integration/backup';
 import { demoRowCount, isDemoLoaded, removeDemoData, seedDemoSemester } from '../integration/demo';
@@ -106,6 +107,9 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
 
       {/* Integration health */}
       <DiagnosticsSection />
+
+      {/* Start over */}
+      <ResetSection />
 
       {/* Tools */}
       <section className="pt-6">
@@ -408,6 +412,76 @@ function StorageRow() {
         </span>
       </span>
     </div>
+  );
+}
+
+/* The escape hatch a local-first app owes its users — wipe every store and
+   database the terrain owns. Confirm dialog offers a backup download before
+   the point of no return; the terrain reloads into a clean boot after. */
+function ResetSection() {
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [backing, setBacking] = useState(false);
+
+  const backupFirst = async () => {
+    setBacking(true);
+    try {
+      downloadBackup(await collectBackup());
+    } finally {
+      setBacking(false);
+    }
+  };
+
+  const run = async () => {
+    setBusy(true);
+    try {
+      await wipeAll();
+      window.location.reload();
+    } catch {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="pt-6">
+      <SectionHeader title="Start over" />
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="flex w-full items-center gap-3 rounded-[6px] border border-[var(--color-bad)]/30 bg-[var(--color-sheet)] px-4 py-2.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+      >
+        <Trash2 className="h-4 w-4 shrink-0 text-[var(--color-bad)]" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+            Erase all workspace data
+          </span>
+          <span className="block truncate text-[12px] text-[var(--color-mute)]">
+            Clears every tool, course and record stored in this browser — a fresh terrain.
+          </span>
+        </span>
+      </button>
+
+      <Dialog
+        open={confirming}
+        onClose={() => !busy && setConfirming(false)}
+        title="Erase everything?"
+      >
+        <p className="text-[12.5px] leading-relaxed text-[var(--color-mute)]">
+          Every note, deck, problem, session, routine, grade and course stored
+          in this browser is permanently deleted. This can't be undone —
+          download a backup first unless you're sure.
+        </p>
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
+          <Button onClick={() => setConfirming(false)} disabled={busy}>Cancel</Button>
+          <Button onClick={backupFirst} disabled={busy || backing}>
+            {backing ? 'Gathering…' : 'Download backup first'}
+          </Button>
+          <Button variant="danger" onClick={run} disabled={busy}>
+            {busy ? 'Erasing…' : 'Erase everything'}
+          </Button>
+        </div>
+      </Dialog>
+    </section>
   );
 }
 

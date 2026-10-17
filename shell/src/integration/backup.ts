@@ -270,6 +270,35 @@ const restoreDb = (name: string, dump: BackupDb): Promise<void> =>
     });
   });
 
+/* Full reset — every localStorage key and every IndexedDB database the
+   terrain owns. The caller confirms first and offers a backup; this is the
+   "start over" escape hatch a local-first app owes its users. */
+export async function wipeAll(): Promise<void> {
+  try {
+    localStorage.clear();
+  } catch {
+    /* storage denied — idb wipe still runs */
+  }
+  if (typeof indexedDB === 'undefined') return;
+  /* only databases this app owns — indexedDB.databases() would sweep any
+     sibling project's db that shares this localhost origin in dev */
+  await Promise.all(
+    KNOWN_DBS.map(
+      (name) =>
+        new Promise<void>((res) => {
+          try {
+            const req = indexedDB.deleteDatabase(name);
+            req.onsuccess = () => res();
+            req.onerror = () => res();
+            req.onblocked = () => res();
+          } catch {
+            res();
+          }
+        }),
+    ),
+  );
+}
+
 /* Restore = full replace: current localStorage is cleared, backed-up stores
    are emptied and rewritten. Anything made since the backup is gone — the
    caller must have already told the user that. */
