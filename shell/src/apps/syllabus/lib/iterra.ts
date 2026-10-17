@@ -252,6 +252,11 @@ export async function sendCommitmentToCards(c: Commitment, courseCode?: string) 
               title: (s.commitments as any)[top.commitmentId]?.title ?? top.label ?? 'a block',
               minutes: top.plannedMinutes,
               course: (s.courses as any)[topCourseId]?.code,
+              /* a focus launched off this card must carry the full binding —
+                 commitmentId files minutes back, materialRef opens the deck */
+              commitmentId: top.commitmentId,
+              courseId: topCourseId ? `syllabus:course:${topCourseId}` : undefined,
+              materialRef: top.materialRef ?? undefined,
             }
           : null,
       };

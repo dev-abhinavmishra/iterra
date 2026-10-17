@@ -239,8 +239,13 @@ export function TodayWorkspace({
           id: nb.id || 'next',
           title: nb.title,
           course: nb.course || (shared.activeCourse?.v as any)?.code,
+          courseId: (nb as any).courseId,
           url: nb.id ? `/apps/syllabus/?block=${encodeURIComponent(nb.id)}` : '/apps/syllabus/',
-          data: { minutes: nb.minutes || 25 },
+          data: {
+            minutes: nb.minutes || 25,
+            commitmentId: (nb as any).commitmentId,
+            materialRef: (nb as any).materialRef,
+          },
         };
     }
     if (!primary && blocksAndCommitments.length > 0) {
