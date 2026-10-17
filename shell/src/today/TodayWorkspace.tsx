@@ -505,9 +505,18 @@ export function TodayWorkspace({
     const mins = (item.data?.minutes as number) || (item.data?.estimatedMinutes as number) || 25;
     const course = item.course || activeCourseFilter || '';
     const blockParam = item.type === 'block' ? `&block=${encodeURIComponent(item.id)}` : '';
+    /* canonical bindings survive onto the session record: courseId for the
+       course pin, mat for material provenance (review slips carry their
+       materialRef so the session files a practicedIn edge to the source),
+       and a commitment's own id so the session files back against it */
+    const courseIdParam = item.courseId ? `&courseId=${encodeURIComponent(item.courseId)}` : '';
+    const matRef = item.data?.materialRef as string;
+    const matParam = matRef ? `&mat=${encodeURIComponent(matRef)}` : '';
+    const commitmentParam = item.type === 'commitment' ? `&commitment=${encodeURIComponent(item.id)}` : '';
     const url =
       `/apps/timer/?intent=${encodeURIComponent(item.title)}&minutes=${mins}` +
       `${course ? `&course=${encodeURIComponent(course)}` : ''}` +
+      `${courseIdParam}${matParam}${commitmentParam}` +
       `&from=${encodeURIComponent(item.app)}${blockParam}` +
       `&return=${encodeURIComponent(`/apps/${item.app}`)}`;
     onGo(url);

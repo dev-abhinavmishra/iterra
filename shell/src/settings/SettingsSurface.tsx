@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser } from 'lucide-react';
+import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive } from 'lucide-react';
 import { PLACES } from '../places';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
 import { useWorkspaceTheme } from '../ui/theme';
@@ -238,6 +238,7 @@ function BackupSection() {
             </span>
           </span>
         </button>
+        <StorageRow />
       </div>
       <input
         ref={fileRef}
@@ -276,6 +277,48 @@ function BackupSection() {
         </div>
       </Dialog>
     </section>
+  );
+}
+
+/* Local-first means the browser owns durability — this row reports whether
+   storage is pinned against automatic eviction (we request it at boot via
+   navigator.storage.persist) and how much of the quota the terrain uses. */
+function StorageRow() {
+  const [info, setInfo] = useState<{ persisted: boolean; usage?: number; quota?: number } | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    const s = navigator.storage;
+    if (typeof s?.persisted !== 'function') return;
+    void Promise.all([s.persisted(), typeof s.estimate === 'function' ? s.estimate() : Promise.resolve(undefined)])
+      .then(([persisted, est]) => {
+        if (live) setInfo({ persisted, usage: est?.usage, quota: est?.quota });
+      })
+      .catch(() => {});
+    return () => { live = false; };
+  }, []);
+
+  if (!info) return null;
+  const fmt = (b?: number) =>
+    b == null ? '' : b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB` : b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.round(b / 1e3)} KB`;
+  const size = info.usage != null
+    ? ` · ${fmt(info.usage)} used${info.quota ? ` of ~${fmt(info.quota)}` : ''}`
+    : '';
+
+  return (
+    <div className="flex w-full items-center gap-3 border-t border-[var(--color-line)] px-4 py-2.5">
+      <HardDrive className="h-4 w-4 shrink-0 text-[var(--color-mute)]" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+          {info.persisted ? 'Storage is protected' : 'Storage is best-effort'}
+        </span>
+        <span className="block truncate text-[12px] text-[var(--color-mute)]">
+          {info.persisted
+            ? `This browser won't clear your data automatically${size}.`
+            : `The browser may clear data under storage pressure — keep backups${size}.`}
+        </span>
+      </span>
+    </div>
   );
 }
 

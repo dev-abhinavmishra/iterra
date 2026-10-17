@@ -67,6 +67,15 @@ const shim = () => {
 if ((window as any).iterra) shim();
 else window.addEventListener('load', shim, { once: true });
 
+/* Local-first durability: ask the browser to keep our storage out of its
+   automatic eviction pool — Margin's entire library lives in IndexedDB
+   and the rest in localStorage. Granted automatically for installed or
+   high-engagement origins; resolves false elsewhere and storage simply
+   stays best-effort. */
+if (typeof navigator.storage?.persist === 'function') {
+  void navigator.storage.persist().catch(() => {});
+}
+
 /* Cross-module integration: register typed commands (hub script loads
    synchronously before this module), run versioned migrations, and keep
    persisted app stores rehydrated across tabs. */
