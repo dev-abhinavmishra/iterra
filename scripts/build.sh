@@ -5,7 +5,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-rm -rf dist
+# rm -rf the dir outright; if a Windows process has a handle on it (Explorer,
+# indexer, a stale watcher), empty it in place instead — same result.
+rm -rf dist 2>/dev/null || { mkdir -p dist && rm -rf dist/* dist/.[!.]* 2>/dev/null || true; }
 mkdir -p dist
 
 echo "── building shell"
