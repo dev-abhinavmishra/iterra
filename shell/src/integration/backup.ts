@@ -59,13 +59,40 @@ export const openDatabase = (name: string, version?: number, onUpgrade?: (db: ID
   });
 
 export const storeAllKeys = (dbName: string, storeName: string): Promise<IDBValidKey[]> =>
-  openDatabase(dbName).then((db) => {
+  openExistingDatabase(dbName).then((db) => {
     if (!db || !db.objectStoreNames.contains(storeName)) { db?.close(); return []; }
     return new Promise<IDBValidKey[]>((res) => {
       const r = db.transaction(storeName, 'readonly').objectStore(storeName).getAllKeys();
       r.onsuccess = () => { db.close(); res(r.result || []); };
       r.onerror = () => { db.close(); res([]); };
     });
+  });
+
+/* A versionless indexedDB.open() CREATES an empty database when the name
+   doesn't exist — probing "is this db there" would leave phantom empty
+   databases (margin's ModularAINotesDB most visibly). onupgradeneeded
+   fires exactly when the open created the db, so detect it and delete
+   the phantom before returning null. */
+export const openExistingDatabase = (name: string): Promise<IDBDatabase | null> =>
+  new Promise((res) => {
+    let created = false;
+    let req: IDBOpenDBRequest;
+    try {
+      req = indexedDB.open(name);
+    } catch {
+      res(null);
+      return;
+    }
+    req.onupgradeneeded = () => { created = true; };
+    req.onsuccess = () => {
+      const db = req.result;
+      if (!created) { res(db); return; }
+      db.close();
+      try { indexedDB.deleteDatabase(name); } catch { /* best-effort */ }
+      res(null);
+    };
+    req.onerror = () => res(null);
+    req.onblocked = () => res(null);
   });
 
 export const listDatabases = async (): Promise<{ name: string }[]> =>
@@ -88,7 +115,7 @@ const dbNames = async (): Promise<string[]> => {
 };
 
 const dumpDb = async (name: string): Promise<BackupDb | null> => {
-  const db = await openDatabase(name);
+  const db = await openExistingDatabase(name);
   if (!db) return null;
   try {
     const stores: BackupDb['stores'] = {};
