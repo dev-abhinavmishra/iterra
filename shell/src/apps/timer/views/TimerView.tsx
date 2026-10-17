@@ -183,6 +183,14 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
      double-invoke re-applies the link rather than stomping it back to the
      preset — never clear pendingLink; this instance stays a link session. */
   const pendingLink = useRef(parseSyllabusLink(linkQuery));
+  /* a deep link refused while a session owns the face surfaces here —
+     silent drops read as a broken link */
+  const [linkNotice, setLinkNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (!linkNotice) return;
+    const t = window.setTimeout(() => setLinkNotice(null), 4200);
+    return () => window.clearTimeout(t);
+  }, [linkNotice]);
   /* captured at render time — the publish effect's first beat clears the
      live key on an idle mount, so the restore must read it before any
      effect runs (same reason pendingLink is a ref) */
@@ -196,27 +204,40 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const sessionIdRef = useRef<string | null>(null);
   useEffect(() => {
     const link = pendingLink.current;
+    /* computed up front — a resumable session outranks a pending link,
+       same ownership rule as the keep-alive relink effect */
+    const live = pendingLive.current;
+    const resumeMs = live?.running ? (live.endsAt || 0) - Date.now()
+      : live?.paused ? (live.remainingSec || 0) * 1000 : -1;
     if (link) {
-      setSetMinutes(link.minutes ?? presetMinutes);
-      setLabel(link.course ?? presetName);
-      setIsBreak(false);
-      setDone(null);
-      if (link.intent) setIntent(link.intent);
-      /* the link fully describes the session it arms — no break param
-         means no chained recess, not whatever the user last dialed */
-      setThenBreak(link.thenBreak ?? 0);
-      /* a returnUrl the file-back gate would reject stays out of state —
-         otherwise it renders a dead 'file back' button */
-      const returnUrl = link.returnUrl && syllabusReturnUrl(link, 1) ? link.returnUrl : undefined;
-      setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId, material: link.material });
-      /* strip the link params from the hash — a reload mid-session must
-         hit the live-restore path, not re-arm the original link */
-      const h = window.location.hash.replace(/\?[^#]*$/, '');
-      window.history.replaceState({}, '', window.location.pathname + window.location.search + h);
-      const ms = (link.minutes ?? presetMinutes) * 60000;
-      cd.reset(ms);
-      if (link.autostart) cd.start(ms, completeFocusLive);
-      return;
+      if (live && resumeMs > 0) {
+        /* the running session survived into this mount — refuse the link,
+           strip its params, and fall through to restore */
+        setLinkNotice('A session is already running — finish or reset it first');
+        const h = window.location.hash.replace(/\?[^#]*$/, '');
+        window.history.replaceState({}, '', window.location.pathname + window.location.search + h);
+      } else {
+        setSetMinutes(link.minutes ?? presetMinutes);
+        setLabel(link.course ?? presetName);
+        setIsBreak(false);
+        setDone(null);
+        if (link.intent) setIntent(link.intent);
+        /* the link fully describes the session it arms — no break param
+           means no chained recess, not whatever the user last dialed */
+        setThenBreak(link.thenBreak ?? 0);
+        /* a returnUrl the file-back gate would reject stays out of state —
+           otherwise it renders a dead 'file back' button */
+        const returnUrl = link.returnUrl && syllabusReturnUrl(link, 1) ? link.returnUrl : undefined;
+        setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId, material: link.material });
+        /* strip the link params from the hash — a reload mid-session must
+           hit the live-restore path, not re-arm the original link */
+        const h = window.location.hash.replace(/\?[^#]*$/, '');
+        window.history.replaceState({}, '', window.location.pathname + window.location.search + h);
+        const ms = (link.minutes ?? presetMinutes) * 60000;
+        cd.reset(ms);
+        if (link.autostart) cd.start(ms, completeFocusLive);
+        return;
+      }
     }
     /* reload survival — the publish effect mirrors the live session into
        timer.session.live.v1; re-arm it here so a mid-session reload (or a
@@ -227,9 +248,6 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       /* kept (not consumed) — StrictMode re-runs mount effects in dev, and
          re-applying an identical restore is harmless; the ref is fresh per
          mount anyway */
-      const live = pendingLive.current;
-      const resumeMs = live?.running ? (live.endsAt || 0) - Date.now()
-        : live?.paused ? (live.remainingSec || 0) * 1000 : -1;
       if (live && resumeMs > 0) {
         sessionIdRef.current = live.sessionId || null;
         setSetMinutes(Math.round((live.totalMin || 25)));
@@ -278,6 +296,15 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     lastLinkQuery.current = linkQuery;
     const link = parseSyllabusLink(linkQuery);
     if (!link) return;
+    /* a session in flight owns the face — stomping it would silently kill
+       a running session's progress. Refuse, strip the param, and say so.
+       An armed-but-idle board owns nothing; the new link may re-arm it. */
+    if (running || paused) {
+      setLinkNotice('A session is already running — finish or reset it first');
+      const h = window.location.hash.replace(/\?[^#]*$/, '');
+      window.history.replaceState({}, '', window.location.pathname + window.location.search + h);
+      return;
+    }
     pendingLink.current = link;
     setSetMinutes(link.minutes ?? presetMinutes);
     setLabel(link.course ?? presetName);
@@ -664,6 +691,11 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
 
         {/* THE BOARD */}
         <motion.div layout className="w-full max-w-2xl">
+          {linkNotice && (
+            <div role="status" className="mb-3 rounded border border-[color:var(--color-signal)]/40 bg-[color:var(--color-signal)]/10 px-3 py-1.5 text-center">
+              <span className="engraved text-[9.5px] tracking-[0.14em]" style={{ color: 'var(--color-signal-bright)' }}>{linkNotice.toUpperCase()}</span>
+            </div>
+          )}
           <Board
             screws
             label={isBreak ? 'RECESS' : secLabel(dispSec)}
