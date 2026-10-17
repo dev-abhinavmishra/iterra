@@ -325,7 +325,7 @@ function whenBooted(timeoutMs = 9000): Promise<void> {
   });
 }
 
-export async function studyPlan(rec: any): Promise<{ url: string | null }> {
+export async function studyPlan(rec: any): Promise<{ url: string | null; toast?: string }> {
   const it = window.iterra;
   if (!it?.store?.list) return { url: null };
   await whenBooted();
@@ -342,7 +342,13 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
     Object.values(s.courses).find(
       (c) => p.course && String(c.code).toLowerCase() === String(p.course).toLowerCase(),
     );
-  if (!course) return { url: null };
+  if (!course) {
+    const asked = p.course || localId;
+    return {
+      url: null,
+      toast: asked ? `No course “${asked}” in Planning — add it first` : 'study plan needs a course',
+    };
+  }
   const courseKey = `${COURSE_KEY}${course.id}`;
   const today = todayISO();
 
@@ -472,7 +478,12 @@ export async function studyPlan(rec: any): Promise<{ url: string | null }> {
     }
   } catch { /* scaffold is best-effort */ }
 
-  return { url: made.length ? '/apps/syllabus/' : null };
+  return {
+    url: made.length ? '/apps/syllabus/' : null,
+    toast: made.length
+      ? undefined
+      : 'Nothing to plan — no due cards or weak topics found for that course',
+  };
 }
 
 // ── registration ─────────────────────────────────────────────────────────────
@@ -508,7 +519,15 @@ export function registerAdapter() {
           Object.values(s.courses).find(
             (c) => p.course && String(c.code).toLowerCase() === String(p.course).toLowerCase(),
           );
-        if (!course) return { url: null };
+        /* {url:null} alone reads as silent success-with-nothing — say why
+           through the rail so a send to a missing course isn't a dead end */
+        if (!course) {
+          const asked = p.course || localId;
+          return {
+            url: null,
+            toast: asked ? `No course “${asked}” in Planning — add it first` : 'block.plan needs a course',
+          };
+        }
         const title = typeof p.title === 'string' && p.title.trim()
           ? p.title.trim()
           : `${course.code || course.name} — planned session`;

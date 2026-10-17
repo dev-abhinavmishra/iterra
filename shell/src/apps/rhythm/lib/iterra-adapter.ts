@@ -143,6 +143,10 @@ export function busEventDraft(rec: { type?: string; app?: string; payload?: any;
     register's dedup (by evidence id) catches double delivery. */
 export function logActivityDraft(rec: { id?: string; from?: string; entity?: any; payload?: any; at?: number }): Record<string, unknown> | null {
   const p = rec?.payload ?? {};
+  /* the intake contract requires kind — without it canonType falls back to
+     'session.completed' and a malformed send files a phantom session mark.
+     Null → the handler explains instead of navigating on a mark that isn't. */
+  if (typeof p.kind !== 'string' || !p.kind.trim()) return null;
   const type = canonType(p.kind);
   const occurredAt = toISO(p.at, rec?.at) ?? nowISO();
   const app: SuiteApp = KNOWN_APPS.includes(rec?.from as SuiteApp) ? (rec!.from as SuiteApp) : 'other';
@@ -586,11 +590,14 @@ export function registerAdapter() {
            throw on timeout so the hub releases the claim and retries. */
         await whenHydrated();
         const draft = logActivityDraft(rec) as Record<string, unknown> | null;
-        if (draft) {
-          const cid = await projectCourse(rec?.payload ?? {});
-          if (cid) draft.courseId = cid;
-          ingest(draft);
+        /* a draft that can't be built (no kind/type) would otherwise still
+           navigate to the register — reads like a mark landed when none did */
+        if (!draft) {
+          return { url: null, toast: 'log.activity needs a kind — nothing marked' };
         }
+        const cid = await projectCourse(rec?.payload ?? {});
+        if (cid) draft.courseId = cid;
+        ingest(draft);
         return { url: '/apps/rhythm/' };
       },
       /* {name, course?, courseId?, dueAt?, perWeek?, minutes?, unit?} →

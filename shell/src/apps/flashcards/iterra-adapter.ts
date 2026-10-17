@@ -206,11 +206,12 @@ export function wireFlashcardsAdapter() {
     const cards = intakeCards(p);
     if (!cards.length) {
       /* sender-side contract: cards need BOTH q and a. A silent drop leaves
-         the sender with no url and no clue — surface it for debugging. */
+         the sender with no url and no clue — warn for debugging AND hand the
+         rail a toast so the dead end is visible. */
       if (p && Array.isArray(p.cards) && p.cards.length) {
         console.warn(`[flashcards] ${rec.action}: dropped ${p.cards.length} card(s) missing q or a`, p.cards);
       }
-      return null;
+      return { url: null, toast: 'Cards need both a question and an answer — nothing filed' };
     }
 
     const title = String(p.deckTitle || p.course || 'Sent cards').slice(0, 200) || 'Sent cards';

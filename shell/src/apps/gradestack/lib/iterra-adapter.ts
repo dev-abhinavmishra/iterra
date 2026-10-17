@@ -227,7 +227,7 @@ const stripIntakeParam = (id?: string) => {
  *  read the registry entity, then stamp `weights` on every test whose
  *  courseName matches that course. Quiet {url:null} when there's nothing
  *  real to apply. */
-export async function weightsImport(rec: any): Promise<{ url: string | null }> {
+export async function weightsImport(rec: any): Promise<{ url: string | null; toast?: string }> {
   const it = window.iterra;
   if (!it?.store?.get) return { url: null };
   const p = rec?.payload ?? {};
@@ -240,7 +240,7 @@ export async function weightsImport(rec: any): Promise<{ url: string | null }> {
   const w = ent?.data?.categories ?? ent?.data?.weights;
   if (!w || typeof w !== 'object' || Array.isArray(w) || !Object.keys(w).length) {
     stripIntakeParam(rec?.id);
-    return { url: null };
+    return { url: null, toast: 'No category weights on that course to import' };
   }
 
   const names = new Set(
@@ -253,7 +253,9 @@ export async function weightsImport(rec: any): Promise<{ url: string | null }> {
     .tests.filter((t) => t.courseName && names.has(normName(t.courseName)));
 
   stripIntakeParam(rec?.id);
-  if (!targets.length) return { url: null };
+  if (!targets.length) {
+    return { url: null, toast: 'No GradeStack assessment is bound to that course yet' };
+  }
   await Promise.all(
     targets.map((t) =>
       useStore

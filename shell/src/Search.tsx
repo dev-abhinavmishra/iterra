@@ -20,12 +20,14 @@ interface Hit {
   run?: () => void;
 }
 
-const SEND_TARGETS: { to: string; action: string; label: string }[] = [
+const SEND_TARGETS: { to: string; action: string; label: string; payload?: Record<string, unknown> }[] = [
   { to: 'flashcards', action: 'cards.create', label: 'Flashcards — new card' },
   { to: 'margin', action: 'note.create', label: 'Study Materials — new document' },
   { to: 'ink', action: 'note.create', label: 'Notes — new page' },
   { to: 'proof', action: 'step.append', label: 'Calculations — append step' },
-  { to: 'rhythm', action: 'log.activity', label: 'Attendance — log activity' },
+  /* the intake contract requires kind — without it the register used to
+     fabricate a bare session.completed mark with no label at all */
+  { to: 'rhythm', action: 'log.activity', label: 'Attendance — log activity', payload: { kind: 'session' } },
   { to: 'timer', action: 'timer.start', label: 'Timer — 25m focus session' },
 ];
 
@@ -332,10 +334,10 @@ export function Search({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sendForKey]);
 
-  const doSend = async (h: Hit, t: { to: string; action: string; label: string }) => {
+  const doSend = async (h: Hit, t: { to: string; action: string; label: string; payload?: Record<string, unknown> }) => {
     setSendForKey(null);
     if (!h.entity) return;
-    const r = await sendTo({ to: t.to, action: t.action, entity: h.entity });
+    const r = await sendTo({ to: t.to, action: t.action, entity: h.entity, payload: t.payload });
     if (!r.ok) {
       setSentNote(`Could not send — ${r.error || 'unavailable'}`);
       return;
@@ -456,7 +458,7 @@ export function Search({
                   Promise.all(
                     batch.map((h) =>
                       h.entity
-                        ? sendTo({ to: t.to, action: t.action, entity: h.entity })
+                        ? sendTo({ to: t.to, action: t.action, entity: h.entity, payload: t.payload })
                         : Promise.resolve({ ok: false }),
                     ),
                   ).then((rs) => {

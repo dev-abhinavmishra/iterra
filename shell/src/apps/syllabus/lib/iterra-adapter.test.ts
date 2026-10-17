@@ -236,16 +236,16 @@ describe('study-plan.request intake', () => {
     expect(entities.has(`syllabus:block:${(made[0] as any).id}`)).toBe(true);
   });
 
-  it('returns {url:null} quietly when there is nothing to plan', async () => {
+  it('explains when there is nothing to plan', async () => {
     const { useFolio, adapter } = await seedAndWire({ courses: { c1: mkCourse('c1', 'MTH151') } });
     const res = await adapter.studyPlan({ id: 'in2', action: 'study-plan.request', payload: { courseId: 'syllabus:course:c1' } });
-    expect(res).toEqual({ url: null });
+    expect(res).toEqual({ url: null, toast: 'Nothing to plan — no due cards or weak topics found for that course' });
     expect(Object.keys(useFolio.getState().blocks)).toHaveLength(0);
   });
 
-  it('returns {url:null} for an unknown course', async () => {
+  it('explains when the course is unknown', async () => {
     const { adapter } = await seedAndWire({});
     const res = await adapter.studyPlan({ id: 'in3', action: 'study-plan.request', payload: { courseId: 'syllabus:course:nope' } });
-    expect(res).toEqual({ url: null });
+    expect(res).toEqual({ url: null, toast: 'No course “nope” in Planning — add it first' });
   });
 });

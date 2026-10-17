@@ -202,17 +202,17 @@ describe('weights.import intake', () => {
     expect(tests.find((t) => t.id === 't2')?.weights).toBeUndefined();
   });
 
-  it('returns {url:null} quietly when the course carries no weights', async () => {
+  it('explains when the course carries no weights', async () => {
     getImpl = () => Promise.resolve({ key: 'syllabus:course:c1', type: 'course', course: 'MTH', data: { code: 'MTH' } });
     await seedAndWire({ tests: [mkTest('t1', 'Quiz 1', 'MTH')] });
     const res = await adapterOpts.intakes['weights.import']({ id: 'w2', action: 'weights.import', payload: { courseId: 'syllabus:course:c1' } });
-    expect(res).toEqual({ url: null });
+    expect(res).toEqual({ url: null, toast: 'No category weights on that course to import' });
   });
 
-  it('returns {url:null} when no test matches the course', async () => {
+  it('explains when no test matches the course', async () => {
     getImpl = () => Promise.resolve({ key: 'syllabus:course:c1', type: 'course', course: 'BIO', data: { code: 'BIO', categories: { exam: 100 } } });
     await seedAndWire({ tests: [mkTest('t1', 'Quiz 1', 'MTH')] });
     const res = await adapterOpts.intakes['weights.import']({ id: 'w3', action: 'weights.import', payload: { courseId: 'syllabus:course:c1' } });
-    expect(res).toEqual({ url: null });
+    expect(res).toEqual({ url: null, toast: 'No GradeStack assessment is bound to that course yet' });
   });
 });
