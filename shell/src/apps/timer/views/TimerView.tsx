@@ -226,7 +226,12 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
         setIntent(live.intent || '');
         setIsBreak(!!live.break);
         setThenBreak(live.thenBreak || 0);
-        setSyllabus(live.syllabus ?? null);
+        /* command-started sessions store the binding as `materialRef` (the
+           command layer's field name); the live state field is `material` —
+           normalize here or a mid-session reload drops the practicedIn edge */
+        setSyllabus(live.syllabus
+          ? { ...live.syllabus, material: live.syllabus.material ?? live.syllabus.materialRef }
+          : null);
         const totalMs = (live.totalMin || 25) * 60000;
         if (live.running) {
           /* start() re-arms at ms as the total — restore the ORIGINAL total

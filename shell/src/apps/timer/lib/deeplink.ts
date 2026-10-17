@@ -43,7 +43,13 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
     from,
     courseId: q.get('courseId') || undefined,
     commitmentId: q.get('commitment') || undefined,
-    material: /^[a-z]{2,16}:[a-z]{2,16}:[^&\s]{1,140}$/.test(q.get('mat') || '') ? q.get('mat')! : undefined,
+    /* syllabus links emit 'mat'; the command layer's startFocusSession emits
+       'material' — accept both so command-started sessions keep their
+       practicedIn edge. */
+    material: (() => {
+      const m = q.get('mat') || q.get('material') || '';
+      return /^[a-z]{2,16}:[a-z]{2,16}:[^&\s]{1,140}$/.test(m) ? m : undefined;
+    })(),
     thenBreak: Number.isFinite(thenBreak) && thenBreak >= 1 && thenBreak <= 60 ? Math.round(thenBreak) : undefined,
     autostart: q.get('autostart') === '1',
   };

@@ -71,6 +71,12 @@ export interface TimerStartPayload {
   label?: string;
   minutes?: number;
   commitmentId?: string;
+  /** local syllabus block id — binds the session so the outcome reconciles
+      the slip and the file-back affordance appears */
+  blockId?: string;
+  /** canonical '<app>:<type>:<id>' of the material this session practices —
+      lands as the outcome's practicedIn edge */
+  material?: string;
   courseId?: string;
   course?: string;
   /** recess minutes chained after the session (the link's 'break' param) */
@@ -86,6 +92,14 @@ export function timerStartUrl(from: string | undefined, p: TimerStartPayload): s
   if (p.course) q.set('course', String(p.course));
   q.set('from', from && /^[a-z]{2,16}$/.test(from) ? from : 'terrain');
   if (p.commitmentId) q.set('commitment', String(p.commitmentId));
+  if (p.blockId) {
+    q.set('block', String(p.blockId));
+    /* file-back always returns to the folio — that's where the block lives */
+    q.set('return', '/apps/syllabus');
+  }
+  if (p.material && /^[a-z]{2,16}:[a-z]{2,16}:[^&\s]{1,140}$/.test(p.material)) {
+    q.set('mat', p.material);
+  }
   if (p.courseId) q.set('courseId', String(p.courseId));
   if (typeof p.thenBreak === 'number' && Number.isFinite(p.thenBreak) && p.thenBreak >= 1 && p.thenBreak <= 60) {
     q.set('break', String(Math.round(p.thenBreak)));
@@ -141,11 +155,13 @@ async function backfillSessions() {
 async function onTimerStart(rec: {
   from?: string;
   payload?: TimerStartPayload;
-  entity?: { id?: string; type?: string; title?: string; course?: string; courseId?: string; data?: Record<string, unknown> };
+  entity?: { id?: string; key?: string; type?: string; title?: string; course?: string; courseId?: string; data?: Record<string, unknown> };
 }) {
   const ent = rec?.entity ?? {};
   /* bind the session to whatever was sent — a commitment's id/minutes,
-     any entity's title and course — when the payload didn't spell them */
+     a block's slip binding, any entity's title/course/material key —
+     when the payload didn't spell them */
+  const entKey = typeof ent?.key === 'string' ? ent.key : undefined;
   const p: TimerStartPayload = {
     minutes: ent?.data?.estimatedMinutes as number | undefined,
     ...((rec?.payload ?? {}) as TimerStartPayload),
@@ -153,6 +169,10 @@ async function onTimerStart(rec: {
     courseId: rec?.payload?.courseId ?? ent?.courseId,
     course: rec?.payload?.course ?? ent?.course,
     commitmentId: rec?.payload?.commitmentId ?? (ent?.type === 'commitment' ? ent?.id : undefined),
+    blockId: rec?.payload?.blockId ?? (ent?.type === 'block' ? ent?.id : undefined),
+    material:
+      rec?.payload?.material ??
+      (entKey && ent?.type !== 'commitment' && ent?.type !== 'block' ? entKey : undefined),
   };
   let course = p.course;
   /* a canonical key ('app:course:id') is never a display label — resolve

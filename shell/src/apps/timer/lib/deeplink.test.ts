@@ -76,6 +76,15 @@ describe('parseSyllabusLink', () => {
     }
     expect(parseSyllabusLink('?from=syllabus')?.autostart).toBe(false);
   });
+
+  it('material arrives under either param name — mat (syllabus links) or material (command layer)', () => {
+    const key = 'proof:problem:p_9';
+    expect(parseSyllabusLink(`?from=syllabus&mat=${key}`)?.material).toBe(key);
+    expect(parseSyllabusLink(`?from=terrain&material=${key}`)?.material).toBe(key);
+    // junk/non-canonical values are dropped, and mat wins when both present
+    expect(parseSyllabusLink('?from=syllabus&material=not-a-key')?.material).toBeUndefined();
+    expect(parseSyllabusLink(`?from=syllabus&mat=${key}&material=other:note:x`)?.material).toBe(key);
+  });
 });
 
 describe('syllabusReturnUrl', () => {

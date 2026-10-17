@@ -155,4 +155,29 @@ describe('adapter wiring', () => {
     expect(q.get('commitment')).toBe('cm3');
     expect(q.get('autostart')).toBe('1');
   });
+
+  it('a sent entity binds as material (mat) — commitment and block entities bind their own fields instead', async () => {
+    await import('./iterra-adapter');
+    // a proof problem sent to the timer: the session practices that entity
+    const prob = await adapterOpts.intakes['timer.start']({
+      from: 'proof',
+      entity: { app: 'proof', type: 'problem', id: 'p7', key: 'proof:problem:p7', title: 'Quadratics' },
+    });
+    const pq = new URLSearchParams(prob.url.split('?')[1]);
+    expect(pq.get('mat')).toBe('proof:problem:p7');
+    expect(pq.get('intent')).toBe('Quadratics');
+    // …and the parsed link carries it through to the session binding
+    const { parseSyllabusLink } = await import('./deeplink');
+    expect(parseSyllabusLink(prob.url.slice('/apps/timer/'.length))?.material).toBe('proof:problem:p7');
+
+    // a block entity binds block + file-back return instead of material
+    const blk = await adapterOpts.intakes['timer.start']({
+      from: 'syllabus',
+      entity: { app: 'syllabus', type: 'block', id: 'b11', key: 'syllabus:block:b11', title: 'Revise' },
+    });
+    const bq = new URLSearchParams(blk.url.split('?')[1]);
+    expect(bq.get('block')).toBe('b11');
+    expect(bq.get('return')).toBe('/apps/syllabus');
+    expect(bq.get('mat')).toBeNull();
+  });
 });
