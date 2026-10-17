@@ -110,8 +110,11 @@ a dormant intake today: no in-suite app emits to it; the feed/index mesh is
 the shared channel instead.)
 
 Also honored:
-- **ink**: `?note=<id>` → select note (set activeNoteId) + navigate home
-- **gradestack**: `?assessment=<id>` → open that test's detail (history/analytics)
+- **ink**: `?note=<id>` → select note (set activeNoteId) + navigate home;
+  `?p=<route>` → navigate the desk router (wastebasket, review, daily…)
+- **gradestack**: `?assessment=<id>` → open that test's detail (history/analytics);
+  `?p=<route>` → navigate the book (`builder|scan|analytics|history|settings`),
+  remaining params carry into the page's own query
 - **proof**: `?problem=<id>` → open problem in the desk
 - **margin**: `?note=<id>` → open the note in the editor view; `?deck=<id>`
   → Study opens that deck (review if cards due, else editor); `?quiz=<id>`
