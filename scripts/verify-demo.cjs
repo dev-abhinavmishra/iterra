@@ -209,6 +209,32 @@ const ok = (msg) => console.log('  ok:', msg);
     else ok("Today's inline check-in landed on the register");
   }
 
+  /* ── block.done — stamp a seeded slip through the real intake queue.
+       The primary card's 'Mark done' only renders when that card is a
+       block (a commitment can outrank it), so send the same payload the
+       button sends — the button is a thin caller, this is the contract.
+       Poll the folio: syllabus may be cold and the send can queue. ── */
+  await safeEval(() => window.iterra?.send?.({
+    to: 'syllabus', action: 'block.done',
+    entity: { app: 'syllabus', type: 'block', id: 'demo-blk-stat', key: 'syllabus:block:demo-blk-stat', title: 'Problem set 6 — regression inference' },
+    payload: { blockId: 'demo-blk-stat' },
+  }));
+  let stamped = false;
+  for (let i = 0; i < 35; i++) {
+    const states = await safeEval(() => {
+      try {
+        const s = JSON.parse(localStorage.getItem('syllabus.folio.v1') || '{}');
+        return Object.values(s.state?.blocks || {})
+          .filter((b) => String(b.id).startsWith('demo-blk-'))
+          .map((b) => b.id + ':' + b.state);
+      } catch { return []; }
+    });
+    if (states?.some?.((st) => st.endsWith(':done'))) { stamped = true; break; }
+    await page.waitForTimeout(800);
+  }
+  if (!stamped) fail('block.done never stamped a demo slip — pending=' + (await dumpIntakes()));
+  else ok('block.done stamped a slip through the intake queue');
+
   /* ── provenance — each delivered object links derivedFrom its seeded
        source commitment (resolvable, clickable in the dossier). Poll:
        proof's drain is the slowest and races a fixed sleep. ── */
