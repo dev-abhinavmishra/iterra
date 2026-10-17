@@ -359,10 +359,14 @@ export function registerAdapter() {
          opens it via the margin:intake-note CustomEvent. */
       'note.create': async (rec: any) => {
         const note = intakeNote(rec);
-        /* the sent entity's course binding follows the note into the dossier */
-        if (typeof rec?.entity?.courseId === 'string') {
-          note.courseId = rec.entity.courseId;
-          note.course = rec.entity.course;
+        /* the sent entity's course binding follows the note into the
+           dossier — a bare course entity IS the course (key is canonical) */
+        const entCourseId = rec?.entity?.type === 'course'
+          ? rec.entity.courseId ?? rec.entity.key ?? rec.entity.id
+          : rec?.entity?.courseId;
+        if (typeof entCourseId === 'string') {
+          note.courseId = entCourseId;
+          note.course = rec.entity.course ?? (rec.entity.type === 'course' ? rec.entity.title : undefined);
         }
         await saveNote(note);
         /* provenance edge: the note was derived FROM the sent entity —

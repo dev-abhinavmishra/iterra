@@ -108,7 +108,10 @@ export function CoursesIndex({
       }
     }
 
-    return { courses: [...map.values()], unfiledCount: unfiled };
+    return {
+      courses: [...map.values()].sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true })),
+      unfiledCount: unfiled,
+    };
   }, [entities, indexes]);
 
   return (

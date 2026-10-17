@@ -606,9 +606,16 @@ export function registerAdapter() {
           return { url: null, toast: 'log.activity needs a kind — nothing marked' };
         }
         /* a palette 'send to → Attendance' carries course on the entity,
-           not the payload — the entity's binding stands in as fallback */
+           not the payload — the entity's binding stands in as fallback;
+           a bare course entity IS the course (its key is canonical) */
         const cid = await projectCourse(
-          { courseId: rec?.entity?.courseId, course: rec?.entity?.course, ...(rec?.payload ?? {}) },
+          {
+            courseId: rec?.entity?.type === 'course'
+              ? rec.entity.courseId ?? rec.entity.key ?? rec.entity.id
+              : rec?.entity?.courseId,
+            course: rec?.entity?.course,
+            ...(rec?.payload ?? {}),
+          },
           rec?.id,
         );
         if (cid) draft.courseId = cid;
@@ -629,8 +636,17 @@ export function registerAdapter() {
            The intake id becomes the routine id ('rtn_in-*'): a redelivery
            finds it in `existing` by name+fields anyway, and demo removal
            can sweep it by prefix */
+        /* a palette send of the course entity itself IS the binding — its
+           canonical key stands in when neither the payload nor the
+           entity's own course fields spell a course */
+        const courseId = p.courseId ??
+          (rec?.entity?.type === 'course'
+            ? rec.entity.courseId ?? rec.entity.key ?? rec.entity.id
+            : rec?.entity?.courseId);
         const routine = await planRoutine({
           ...(p as RoutinePlanFields),
+          courseId: typeof courseId === 'string' ? courseId : undefined,
+          course: p.course ?? rec?.entity?.course,
           id: typeof p.id === 'string' ? p.id : (rec?.id ? `rtn_${rec.id}` : undefined),
           entityTitle: rec?.entity?.title,
         });

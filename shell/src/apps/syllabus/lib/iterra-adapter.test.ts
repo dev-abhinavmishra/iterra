@@ -247,6 +247,20 @@ describe('study-plan.request intake', () => {
     const res = await adapter.studyPlan({ id: 'in3', action: 'study-plan.request', payload: { courseId: 'syllabus:course:nope' } });
     expect(res).toEqual({ url: null, toast: 'No course “nope” in Planning — add it first' });
   });
+
+  it('resolves a palette-send of the course entity itself (no payload)', async () => {
+    const { adapter } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+    });
+    lists = () => [];
+    const res = await adapter.studyPlan({
+      id: 'in4', action: 'study-plan.request', payload: {},
+      entity: { type: 'course', app: 'syllabus', id: 'syllabus:course:c1', title: 'MTH151' },
+    });
+    /* "Nothing to plan" (not "No course") proves the entity key resolved c1 */
+    expect(res).toEqual({ url: null, toast: 'Nothing to plan — no due cards or weak topics found for that course' });
+  });
 });
 
 describe('block.plan intake', () => {

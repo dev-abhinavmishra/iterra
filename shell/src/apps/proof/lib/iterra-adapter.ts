@@ -384,8 +384,12 @@ export function registerAdapter() {
            silent {ok:false} that reads as success-with-no-url */
         if (!prompt) return { toast: 'problem.create needs a prompt — nothing filed' };
         /* a palette send carries the course on the entity, not the payload —
-           its binding stands in when the payload doesn't spell one */
-        const bound = await boundCourse(p.course ?? rec?.entity?.course, p.courseId ?? rec?.entity?.courseId);
+           its binding stands in when the payload doesn't spell one; a bare
+           course entity IS the course (its key is canonical) */
+        const entCourseId = rec?.entity?.type === 'course'
+          ? rec.entity.courseId ?? rec.entity.key ?? rec.entity.id
+          : rec?.entity?.courseId;
+        const bound = await boundCourse(p.course ?? rec?.entity?.course, p.courseId ?? entCourseId);
         const diff = Number(p.difficulty);
         /* deterministic id from the intake record — the hub can invoke one
            delivery through several racing drains; a re-run upserts the same

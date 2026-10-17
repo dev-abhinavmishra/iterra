@@ -245,8 +245,17 @@ export function registerAdapter() {
           content: intakeDoc(rec),
           wordCount: text ? text.split(/\s+/).length : 0,
           /* the sent entity's course binding follows the note into the
-             dossier — a card made from a MTH deck lands filed under MTH */
-          ...(typeof rec?.entity?.courseId === 'string' ? { courseId: rec.entity.courseId, course: rec.entity.course } : {}),
+             dossier — a card made from a MTH deck lands filed under MTH;
+             a bare course entity IS the course (its key is canonical) */
+          ...(() => {
+            const ent = rec?.entity;
+            const cid = ent?.type === 'course'
+              ? ent.courseId ?? ent.key ?? ent.id
+              : ent?.courseId;
+            return typeof cid === 'string'
+              ? { courseId: cid, course: ent?.course ?? (ent?.type === 'course' ? ent?.title : undefined) }
+              : {};
+          })(),
         });
         /* provenance: the new page was derived FROM the sent entity — the
            relationship edge is what dossiers/search show, not just the

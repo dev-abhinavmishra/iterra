@@ -336,16 +336,22 @@ export async function studyPlan(rec: any): Promise<{ url: string | null; toast?:
 
   // courseId arrives as a canonical key ('syllabus:course:<id>'); accept a
   // bare local id or a display code too — senders aren't required to know
-  // our internal key shape beyond the canonical one.
-  const rawKey = String(p.courseId ?? '');
+  // our internal key shape beyond the canonical one. A palette send of the
+  // course ENTITY carries neither — the entity itself is the course.
+  const rawKey = String(
+    p.courseId ??
+    (rec?.entity?.type === 'course' ? (rec.entity.courseId ?? rec.entity.key ?? rec.entity.id) : rec?.entity?.courseId) ??
+    '',
+  );
+  const courseName = p.course ?? rec?.entity?.course;
   const localId = rawKey.startsWith(COURSE_KEY) ? rawKey.slice(COURSE_KEY.length) : rawKey;
   const course =
     s.courses[localId] ??
     Object.values(s.courses).find(
-      (c) => p.course && String(c.code).toLowerCase() === String(p.course).toLowerCase(),
+      (c) => courseName && String(c.code).toLowerCase() === String(courseName).toLowerCase(),
     );
   if (!course) {
-    const asked = p.course || localId;
+    const asked = courseName || localId;
     return {
       url: null,
       toast: asked ? `No course “${asked}” in Planning — add it first` : 'study plan needs a course',
@@ -517,8 +523,15 @@ export function registerAdapter() {
         const p = rec?.payload ?? {};
         /* senders that only carry an entity (palette 'send to') still land
            in the right course — the entity's own course fields stand in
-           when the payload doesn't spell one */
-        const rawKey = String(p.courseId ?? rec?.entity?.courseId ?? '');
+           when the payload doesn't spell one; a course entity sent bare
+           IS the course (its key is the canonical course key) */
+        const rawKey = String(
+          p.courseId ??
+          (rec?.entity?.type === 'course'
+            ? rec.entity.courseId ?? rec.entity.key ?? rec.entity.id
+            : rec?.entity?.courseId) ??
+          '',
+        );
         const courseName = p.course ?? rec?.entity?.course;
         const localId = rawKey.startsWith(COURSE_KEY) ? rawKey.slice(COURSE_KEY.length) : rawKey;
         const course =

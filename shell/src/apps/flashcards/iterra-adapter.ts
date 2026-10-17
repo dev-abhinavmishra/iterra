@@ -214,10 +214,15 @@ export function wireFlashcardsAdapter() {
       return { url: null, toast: 'Cards need both a question and an answer — nothing filed' };
     }
 
-    const title = String(p.deckTitle || p.course || 'Sent cards').slice(0, 200) || 'Sent cards';
+    const title = String(p.deckTitle || p.course ||
+      (rec?.entity?.type === 'course' ? rec.entity.title : '') || 'Sent cards').slice(0, 200) || 'Sent cards';
     /* a palette send carries the course on the entity, not the payload —
-       its binding stands in so cards file under the sender's course */
-    const bound = await boundCourse(p.courseId ?? rec?.entity?.courseId, p.course ?? rec?.entity?.course);
+       its binding stands in so cards file under the sender's course; a
+       bare course entity IS the course (its key is canonical) */
+    const entCourseId = rec?.entity?.type === 'course'
+      ? rec.entity.courseId ?? rec.entity.key ?? rec.entity.id
+      : rec?.entity?.courseId;
+    const bound = await boundCourse(p.courseId ?? entCourseId, p.course ?? rec?.entity?.course);
     const want = normLite(title);
     let d = Object.values(s.decks).find((x) => normLite(x && x.title) === want) || null;
 

@@ -162,17 +162,22 @@ async function onTimerStart(rec: {
      a block's slip binding, any entity's title/course/material key —
      when the payload didn't spell them */
   const entKey = typeof ent?.key === 'string' ? ent.key : undefined;
+  /* a bare course entity IS the binding — its key is canonical — and it
+     must not fall into the material slot */
+  const entCourseId = ent?.type === 'course'
+    ? ent?.courseId ?? entKey ?? ent?.id
+    : ent?.courseId;
   const p: TimerStartPayload = {
     minutes: ent?.data?.estimatedMinutes as number | undefined,
     ...((rec?.payload ?? {}) as TimerStartPayload),
     label: rec?.payload?.label ?? ent?.title,
-    courseId: rec?.payload?.courseId ?? ent?.courseId,
-    course: rec?.payload?.course ?? ent?.course,
+    courseId: rec?.payload?.courseId ?? entCourseId,
+    course: rec?.payload?.course ?? ent?.course ?? (ent?.type === 'course' ? ent?.title : undefined),
     commitmentId: rec?.payload?.commitmentId ?? (ent?.type === 'commitment' ? ent?.id : undefined),
     blockId: rec?.payload?.blockId ?? (ent?.type === 'block' ? ent?.id : undefined),
     material:
       rec?.payload?.material ??
-      (entKey && ent?.type !== 'commitment' && ent?.type !== 'block' ? entKey : undefined),
+      (entKey && !['commitment', 'block', 'course'].includes(ent?.type ?? '') ? entKey : undefined),
   };
   let course = p.course;
   /* a canonical key ('app:course:id') is never a display label — resolve
