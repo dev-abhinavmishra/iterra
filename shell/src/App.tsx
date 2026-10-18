@@ -279,18 +279,35 @@ export default function App() {
   useEffect(() => subscribeIndexes(setIndexes), []);
   useEffect(() => subscribeFeed(setFeed), []);
   useEffect(() => {
+    /* consecutive store failures mean the canonical layer is unreachable
+       (IDB blocked/private mode) — the terrain looks empty either way, so
+       say why once rather than let every surface silently show nothing */
+    let failures = 0;
     const pull = () => {
       const it = (window as any).iterra;
       if (!it?.store?.list) return;
       it.store
         .list({})
         .then((list: StoreEntity[]) => {
+          failures = 0;
           setEntities(list || []);
           setLastSavedAt(Date.now());
         })
-        .catch(() => {});
+        .catch(() => {
+          if (++failures === 2) {
+            try {
+              window.dispatchEvent(new CustomEvent('iterra:toast', {
+                detail: { text: 'Local data store is unreachable — check storage permissions', url: '#/settings' },
+              }));
+            } catch { /* no window to notify */ }
+          }
+        });
     };
     pull();
+    /* a broken store may never raise a subscribe event — the 15s sweep
+       keeps entity views fresh and gives the failure counter a second
+       observation to warn on */
+    const sweep = window.setInterval(pull, 15000);
     let t = 0;
     const debounced = () => {
       if (t) window.clearTimeout(t);
@@ -299,6 +316,7 @@ export default function App() {
     const off = subscribeStore(debounced);
     return () => {
       if (t) window.clearTimeout(t);
+      window.clearInterval(sweep);
       off();
     };
   }, []);
