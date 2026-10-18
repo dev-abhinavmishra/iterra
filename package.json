@@ -11,7 +11,8 @@
     "lint": "cd shell && npm run lint",
     "test": "cd shell && npm test",
     "verify:demo": "node scripts/verify-demo.cjs",
-    "verify:restore": "node scripts/verify-restore.cjs"
+    "verify:restore": "node scripts/verify-restore.cjs",
+    "probe:today": "node scripts/probe-today.cjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4"

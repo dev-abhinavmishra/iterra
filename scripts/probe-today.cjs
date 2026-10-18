@@ -1,4 +1,6 @@
-/* probe-today.cjs — seed, open Today, dump review-section inputs vs DOM. */
+/* probe-today.cjs — seed, open Today, dump review-section inputs vs DOM.
+   Needs a running dev server: `npm run dev` then `npm run probe:today`
+   (optional arg: base URL, default http://localhost:5173). */
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 const EXE = [
