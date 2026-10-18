@@ -43,8 +43,15 @@ export function parseHash(hash: string): ParsedRoute {
   }
   const c = h.match(/^c\/([^?#]+)(?:\?([^#]*))?/);
   if (c) {
+    /* a malformed %-escape (#/c/%E0%A4%A) throws in decodeURIComponent —
+       the whole route parse dies inside hashchange. Fall back to the raw
+       key so a hand-edited link can't take the shell down. */
+    let course = c[1];
+    try {
+      course = decodeURIComponent(c[1]);
+    } catch { /* keep the raw key */ }
     return attachMeta(
-      { place: '', course: decodeURIComponent(c[1]) },
+      { place: '', course },
       c[2] || '',
       'courses',
     );
