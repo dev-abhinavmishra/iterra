@@ -56,13 +56,17 @@ export function parseHash(hash: string): ParsedRoute {
       'courses',
     );
   }
-  const m = h.match(/^p\/([a-z]+)(\?([^#]*))?/);
-  if (m && PLACE_MAP[m[1]]) {
-    return attachMeta(
-      { place: m[1], course: '' },
-      m[3] || '',
-      'place',
-    );
+  const m = h.match(/^p\/([a-zA-Z]+)(\?([^#]*))?/);
+  if (m) {
+    /* hand-typed '#/p/Ink' should land, not silently fall to Today */
+    const name = m[1].toLowerCase();
+    if (PLACE_MAP[name]) {
+      return attachMeta(
+        { place: name, course: '' },
+        m[3] || '',
+        'place',
+      );
+    }
   }
   return attachMeta({ place: '', course: '' }, '', 'today');
 }
@@ -74,9 +78,11 @@ export function appUrl(place: string, path = '/'): string {
 /* Translate an old-style /apps/<place>/<path>?<query> URL into the hash
    route form. Returns null for URLs that don't name a place. */
 export function placeHashFromAppUrl(url: string): { place: string; query: string } | null {
-  const m = url.match(/^\/apps\/([a-z]+)(?:\/[^?#]*)?(?:\?([^#]*))?/);
-  if (!m || !PLACE_MAP[m[1]]) return null;
-  return { place: m[1], query: m[2] || '' };
+  const m = url.match(/^\/apps\/([a-zA-Z]+)(?:\/[^?#]*)?(?:\?([^#]*))?/);
+  if (!m) return null;
+  const place = m[1].toLowerCase();
+  if (!PLACE_MAP[place]) return null;
+  return { place, query: m[2] || '' };
 }
 
 export function hashFor(place: string, query = ''): string {

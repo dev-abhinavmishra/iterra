@@ -387,7 +387,7 @@ export default function App() {
       const parsed = readHash();
       /* '#/p/<name>' naming no place falls through to Today silently —
          speak, matching the dead-link contract the places keep */
-      const dead = window.location.hash.match(/^#\/?p\/([a-z]+)/);
+      const dead = window.location.hash.match(/^#\/?p\/([a-zA-Z]+)/);
       if (dead && !parsed.place) {
         try {
           window.dispatchEvent(new CustomEvent('iterra:toast', {

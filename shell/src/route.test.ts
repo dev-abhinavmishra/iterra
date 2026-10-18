@@ -29,6 +29,13 @@ describe('parseHash', () => {
     expect(r.query).toBe('');
     expect(r.section).toBe('place');
   });
+  it('place names resolve case-insensitively', () => {
+    expect(parseHash('#/p/Ink').place).toBe('ink');
+    const r = parseHash('#/p/RHYTHM?p=today');
+    expect(r.place).toBe('rhythm');
+    expect(r.query).toBe('p=today');
+    expect(r.section).toBe('place');
+  });
   it('unknown place falls back to terrain', () => {
     const r = parseHash('#/p/nope');
     expect(r.place).toBe('');

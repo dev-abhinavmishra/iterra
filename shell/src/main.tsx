@@ -15,7 +15,7 @@ import { runIntegrationMigrations, installCrossTabSync } from './integration/mig
    shared links, the old multi-app deploy): translate into the hash route
    before React mounts so deep links keep working. */
 {
-  const m = window.location.pathname.match(/^\/apps\/([a-z]+)((?:\/[^?#]*)?)/);
+  const m = window.location.pathname.match(/^\/apps\/([a-zA-Z]+)((?:\/[^?#]*)?)/);
   if (m) {
     const q = window.location.search.replace(/^\?/, '');
     /* the sub-route rides along as p= — the same param the open() shims
@@ -28,7 +28,7 @@ import { runIntegrationMigrations, installCrossTabSync } from './integration/mig
     window.history.replaceState(
       {},
       '',
-      `/#/p/${m[1]}${merged ? `?${merged}` : ''}`,
+      `/#/p/${m[1].toLowerCase()}${merged ? `?${merged}` : ''}`,
     );
   }
 }
@@ -38,7 +38,7 @@ window.open = ((url?: string | URL, target?: string, features?: string) => {
   const u = typeof url === 'string' ? url : url?.toString() || '';
   const hit = placeHashFromAppUrl(u);
   if (hit) {
-    const q = `${hit.query}${u.match(/^\/apps\/[a-z]+(\/[^?#]+)/)?.[1] ? `${hit.query ? '&' : ''}p=${encodeURIComponent(u.match(/^\/apps\/[a-z]+(\/[^?#]+)/)![1].slice(1))}` : ''}`;
+    const q = `${hit.query}${u.match(/^\/apps\/[a-zA-Z]+(\/[^?#]+)/)?.[1] ? `${hit.query ? '&' : ''}p=${encodeURIComponent(u.match(/^\/apps\/[a-zA-Z]+(\/[^?#]+)/)![1].slice(1))}` : ''}`;
     window.location.hash = `/p/${hit.place}${q ? `?${q}` : ''}`;
     return null;
   }
@@ -55,7 +55,7 @@ const shim = () => {
   it.open = (url: string) => {
     const hit = placeHashFromAppUrl(url);
     if (hit) {
-      const p = url.match(/^\/apps\/[a-z]+(\/[^?#]+)/)?.[1];
+      const p = url.match(/^\/apps\/[a-zA-Z]+(\/[^?#]+)/)?.[1];
       const q = `${hit.query}${p && p !== '/' ? `${hit.query ? '&' : ''}p=${encodeURIComponent(p.slice(1))}` : ''}`;
       window.location.hash = `/p/${hit.place}${q ? `?${q}` : ''}`;
       return;
