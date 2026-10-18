@@ -202,16 +202,7 @@ export const useFolio = create<FolioState>()(
           // hydrate. When a retry still can't consume, the ids are
           // permanently ghost — strip the dead params so deep links
           // don't linger in the address bar.
-          const stripDead = () => {
-            stripPlaceQuery();
-            /* the link named a block/commitment that isn't here — say so
-               instead of silently landing on whatever was open before */
-            try {
-              window.dispatchEvent(new CustomEvent('iterra:toast', {
-                detail: { text: 'That planned item no longer exists', url: '#/p/syllabus?p=today' },
-              }));
-            } catch { /* no window to notify */ }
-          };
+          const stripDead = () => stripPlaceQuery();
           const retry = () => { if (!consumeInbound()) stripDead(); };
           if (useFolio.persist?.hasHydrated?.()) {
             // hydration already done — an unconsumed param is a dead link;

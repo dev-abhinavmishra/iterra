@@ -222,21 +222,27 @@ export const useRegister = create<RegisterState>()(
         } catch {
           /* replaceState unavailable — still boot */
         }
-        /* a ?routine= link naming something that isn't here shouldn't
-           die quietly — the pin would no-op and the user lands wondering
-           why. Persist hydration is synchronous, so routines are already
-           readable at boot. */
-        const wantedRoutine = link.routineName;
-        if (wantedRoutine && !Object.values(get().routines).some((r) => r.name === wantedRoutine)) {
+        /* a ?event= param that didn't survive decode reaches boot as a
+           link with no payload at all — say so instead of booting quiet */
+        if (link.eventParam && link.event === undefined) {
           try {
             window.dispatchEvent(new CustomEvent('iterra:toast', {
-              detail: { text: `No routine named "${wantedRoutine}"`, url: '#/p/rhythm?p=today' },
+              detail: { text: 'That event link was malformed — nothing was logged', url: '#/p/rhythm?p=today' },
             }));
           } catch { /* no window to notify */ }
         }
         if (link.event !== undefined) {
           const res = get().intakeRaw(link.event);
           const st = get();
+          /* a decoded event that fails validation has no receipt banner —
+             toast the reason instead of dropping it silently */
+          if (res.kind === 'invalid') {
+            try {
+              window.dispatchEvent(new CustomEvent('iterra:toast', {
+                detail: { text: `That event link didn't check in — ${res.error}`, url: '#/p/rhythm?p=today' },
+              }));
+            } catch { /* no window to notify */ }
+          }
           if (res.kind === 'accepted' || res.kind === 'unmapped' || res.kind === 'duplicate') {
             const event = res.event;
             const routineNames =

@@ -120,8 +120,7 @@ Also honored:
 - **margin**: `?note=<id>` → open the note in the editor view; `?deck=<id>`
   → Study opens that deck (review if cards due, else editor); `?quiz=<id>`
   → Study opens the quiz runner (unknown ids toast the dead end and stay
-  on the browse list);
-  `?p=<view>` → open a surface directly
+  on the browse list); `?p=<view>` → open a surface directly
   (`library|bookmarks|history|study|analysis|record|settings`)
 - **rhythm**: `?experiment=<id>` → Experiments view with that card scrolled
   into view and lit (unknown ids degrade to the plain list); `?routine=<name>`

@@ -434,7 +434,12 @@ export function TodayWorkspace({
     const pendingRoutines = typeof rhythmSum?.pending === 'number' ? rhythmSum.pending : 0;
     if (pendingRoutines > 0) {
       const routines = allObjects.filter(
-        (o) => o.app === 'rhythm' && o.type === 'routine' && matchesCourseFilter(o.course, o.topic),
+        (o) =>
+          o.app === 'rhythm' &&
+          o.type === 'routine' &&
+          o.data?.status !== 'paused' &&
+          o.data?.status !== 'archived' &&
+          matchesCourseFilter(o.course, o.topic),
       );
       if (routines.length > 0) {
         for (const r of routines.slice(0, 2)) {

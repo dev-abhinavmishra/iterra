@@ -180,9 +180,11 @@ export function CourseWorkspace({
   );
   const scheduleItems = useMemo(
     () => {
-      /* 'missed' stays live: it's unresolved work asking to be rescued */
+      /* 'missed' stays live: it's unresolved work asking to be rescued.
+         paused/archived routines sink with the rest of the history */
       const closed = (o: (typeof courseObjects)[number]) =>
         o.data?.status === 'done' || o.data?.status === 'completed' || o.data?.status === 'dropped' ||
+        o.data?.status === 'paused' || o.data?.status === 'archived' ||
         o.data?.state === 'done' || o.data?.state === 'deferred';
       const live = courseObjects.filter(
         (o) => ['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type) && !closed(o),

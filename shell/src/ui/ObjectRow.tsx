@@ -155,6 +155,8 @@ export function ObjectRow({
      but dim so open work reads first */
   const closedLabel =
     item.data?.status === 'dropped' ? 'dropped'
+    : item.data?.status === 'paused' ? 'paused'
+    : item.data?.status === 'archived' ? 'archived'
     : item.data?.status === 'done' || item.data?.status === 'completed' ? 'done'
     : item.data?.state === 'done' ? 'stamped'
     : item.data?.state === 'deferred' ? 'deferred'
