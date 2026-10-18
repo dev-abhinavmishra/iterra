@@ -468,6 +468,16 @@ export function Search({
               }
               if (e.key === 'ArrowDown') {
                 e.preventDefault();
+                /* submenu open: ↓ hands focus to its first action — the
+                   buttons are unreachable by Tab (the input eats it to
+                   toggle), so without this they're mouse-only */
+                if (sendForKey) {
+                  const first = document.querySelector<HTMLButtonElement>(
+                    `#iterra-search-results [data-send-for="${sendForKey}"] button`,
+                  );
+                  first?.focus();
+                  return;
+                }
                 setSel((s) => Math.min(s + 1, hits.length - 1));
               }
               if (e.key === 'ArrowUp') {
@@ -652,7 +662,35 @@ export function Search({
                       </div>
 
                       {sendForKey === hitId(h) && (
-                        <div className="anim-pop border-y border-[var(--color-line)] bg-[var(--color-paper)] px-4 py-2.5">
+                        <div
+                          className="anim-pop border-y border-[var(--color-line)] bg-[var(--color-paper)] px-4 py-2.5"
+                          data-send-for={hitId(h)}
+                          role="group"
+                          aria-label={`Inspect or send ${h.label}`}
+                          onKeyDown={(e) => {
+                            /* roving ↑↓/←→ inside the submenu; Esc/← returns
+                               to the search input (mirrors the input-side
+                               contract that opened it) */
+                            const btns = [...e.currentTarget.querySelectorAll('button')];
+                            const idx = btns.indexOf(e.target as HTMLButtonElement);
+                            if (idx < 0) return;
+                            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                              e.preventDefault();
+                              btns[(idx + 1) % btns.length]?.focus();
+                            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                              e.preventDefault();
+                              if (idx === 0 || e.key === 'ArrowLeft') {
+                                setSendForKey(null);
+                                inputRef.current?.focus();
+                              } else btns[idx - 1]?.focus();
+                            } else if (e.key === 'Escape') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSendForKey(null);
+                              inputRef.current?.focus();
+                            }
+                          }}
+                        >
                           {h.entity && (
                             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pb-2 text-[11px] text-[var(--color-mute)]">
                               <span className="font-mono font-semibold uppercase text-[var(--color-accent)]">
