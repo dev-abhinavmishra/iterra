@@ -165,7 +165,7 @@ class PlaceBoundary extends Component<
             {wipe && (
               <button
                 type="button"
-                className="it-btn text-[var(--color-danger,#b3483a)]"
+                className="it-btn text-[var(--color-bad)]"
                 title="Corrupted saved data is the usual cause of a crash that reloads can't fix"
                 onClick={() => {
                   if (!window.confirm(
@@ -891,8 +891,15 @@ export default function App() {
                           </span>
                         </span>
                         {wait && wait.count > 0 ? (
-                          <span className="shrink-0 rounded-[4px] bg-[var(--color-warn-soft)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--color-warn)]">
-                            {wait.count}
+                          <span
+                            title={wait.stuck ? `Delivery is failing: ${wait.stuck}` : `${wait.count} waiting — opens here`}
+                            className={`shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
+                              wait.stuck
+                                ? 'bg-[var(--color-bad-soft)] text-[var(--color-bad)]'
+                                : 'bg-[var(--color-warn-soft)] text-[var(--color-warn)]'
+                            }`}
+                          >
+                            {wait.stuck ? '!' : wait.count}
                           </span>
                         ) : isWarm ? (
                           <span
