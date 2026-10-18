@@ -986,10 +986,11 @@ export function TodayWorkspace({
                                     return;
                                   }
                                   notify(
-                                    r.delivered === true
-                                      ? `Done — ${o.title}`
-                                      : 'Marked done — Planning applies it on next open.',
-                                    r.delivered === true ? undefined : r.url,
+                                    r.toast ||
+                                      (r.delivered === 'direct'
+                                        ? `Done — ${o.title}`
+                                        : 'Marked done — Planning applies it on next open.'),
+                                    r.delivered === 'direct' ? undefined : r.url,
                                   );
                                 });
                             }}
@@ -1018,10 +1019,11 @@ export function TodayWorkspace({
                                       return;
                                     }
                                     notify(
-                                      r.delivered === true
-                                        ? `Pushed to tomorrow — ${o.title}`
-                                        : 'Push queued — Planning applies it on next open.',
-                                      r.delivered === true ? undefined : r.url,
+                                      r.toast ||
+                                        (r.delivered === 'direct'
+                                          ? `Pushed to tomorrow — ${o.title}`
+                                          : 'Push queued — Planning applies it on next open.'),
+                                      r.delivered === 'direct' ? undefined : r.url,
                                     );
                                   });
                               }}
@@ -1047,10 +1049,11 @@ export function TodayWorkspace({
                                       return;
                                     }
                                     notify(
-                                      r.delivered === true
-                                        ? `Done — ${o.title}`
-                                        : 'Marked done — Planning applies it on next open.',
-                                      r.delivered === true ? undefined : r.url,
+                                      r.toast ||
+                                        (r.delivered === 'direct'
+                                          ? `Done — ${o.title}`
+                                          : 'Marked done — Planning applies it on next open.'),
+                                      r.delivered === 'direct' ? undefined : r.url,
                                     );
                                   });
                               }}
