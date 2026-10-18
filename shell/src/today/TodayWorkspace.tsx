@@ -203,6 +203,47 @@ export function TodayWorkspace({
     );
   }, [shared.noteActive, shared.deck, allObjects, now, courseFilterLow]);
 
+  /* ── This Week strip: session entities stamp createdAt at the session's
+     own end (a backfilled row lands on its study day), so bucketed minutes
+     read as a honest 7-day ledger — hidden when the week is empty. */
+  const weekStrip = useMemo(() => {
+    const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+    /* calendar dates, not 86400s offsets — a DST 23h/25h day would drift
+       an arithmetic bucket */
+    const dayStart = (back: number) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - back);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    };
+    const bounds = Array.from({ length: 7 }, (_, i) => dayStart(6 - i));
+    const days = bounds.map((b, i) => ({
+      label: DAYS[new Date(b).getDay()],
+      mins: 0,
+      today: i === 6,
+    }));
+    const day0 = bounds[0];
+    let total = 0;
+    for (const e of entities || []) {
+      if (e.type !== 'session') continue;
+      const mins = typeof e.data?.minutes === 'number' ? e.data.minutes : 0;
+      if (mins <= 0) continue;
+      const at =
+        typeof e.data?.endedAt === 'number' ? e.data.endedAt
+        : typeof e.createdAt === 'number' ? e.createdAt
+        : e.updatedAt;
+      if (typeof at !== 'number' || at < day0 || at > now + 3600_000) continue;
+      if (!matchesCourseFilter(e.course, e.topic)) continue;
+      let di = 0;
+      while (di < 6 && at >= bounds[di + 1]) di++;
+      days[di].mins += mins;
+      total += mins;
+    }
+    if (!total) return null;
+    return { days, total, max: Math.max(...days.map((d) => d.mins), 1) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entities, now, courseFilterLow]);
+
   /* ── 3. Next Up: Scheduled work blocks & commitments ── */
   const scheduledWork = useMemo(() => {
     const nb = (shared.today?.v as any)?.nextBlock as
@@ -1273,6 +1314,47 @@ export function TodayWorkspace({
                 />
               )}
             </section>
+
+            {/* ── This Week — session minutes by day (only when any logged) ── */}
+            {weekStrip && (
+              <section aria-label="Minutes logged this week">
+                <SectionHeader
+                  title="This Week"
+                  action={
+                    <span className="font-mono text-[10px] text-[var(--color-faint)]">
+                      {weekStrip.total >= 60
+                        ? `${Math.floor(weekStrip.total / 60)}h${weekStrip.total % 60 ? ` ${weekStrip.total % 60}m` : ''} logged`
+                        : `${weekStrip.total}m logged`}
+                    </span>
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => onGo('#/p/timer?p=stats')}
+                  title="Open the session ledger"
+                  className="flex w-full cursor-pointer items-end gap-1.5 rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-3.5 pb-2 pt-3 text-left hover:border-[var(--color-line-2)]"
+                >
+                  {weekStrip.days.map((d, i) => (
+                    <span key={i} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+                      <span
+                        className="w-full max-w-[18px] rounded-[2px] bg-[var(--color-accent)] transition-all"
+                        style={{
+                          height: `${Math.max(2, Math.round((d.mins / weekStrip.max) * 28))}px`,
+                          opacity: d.mins ? (d.today ? 1 : 0.45) : 0.15,
+                        }}
+                      />
+                      <span
+                        className={`font-mono text-[9px] uppercase ${
+                          d.today ? 'font-bold text-[var(--color-accent)]' : 'text-[var(--color-faint)]'
+                        }`}
+                      >
+                        {d.label}
+                      </span>
+                    </span>
+                  ))}
+                </button>
+              </section>
+            )}
 
             {/* ── Recent Activity Stream (only when real activity exists) ── */}
             {(() => {
