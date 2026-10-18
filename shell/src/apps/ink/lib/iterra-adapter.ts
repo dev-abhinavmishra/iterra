@@ -136,6 +136,10 @@ export function registerAdapter() {
   const removed = new Set<string>();
   let knownIds: Set<string> | null = null;
   const published = new Map<string, string>();
+  /* keys whose last put failed/quarantined, keyed to their rejected wire
+     shape — retried when the shape changes, never in a hot loop (margin's
+     adapter settled this contract first) */
+  const failedPublishes = new Map<string, string>();
   let chain: Promise<void> = Promise.resolve();
   let queued = false;
 
@@ -165,7 +169,12 @@ export function registerAdapter() {
       const byId = new Map(s.notes.map((n) => [n.id, n]));
       for (const key of [...removed]) {
         removed.delete(key);
-        if (published.delete(key)) await store.remove(key).catch(() => {});
+        if (published.delete(key)) {
+          /* keep the key queued on a failed remove — the next drain retries
+             instead of ghosting the entity in Search */
+          const ok = await store.remove(key).then(() => true).catch(() => false);
+          if (!ok) { published.set(key, ''); removed.add(key); }
+        }
       }
       for (const id of [...dirty]) {
         dirty.delete(id);
@@ -174,10 +183,30 @@ export function registerAdapter() {
         const { course, courseId } = await courseForNote(n);
         const ent = noteEntity(n, { course, courseId });
         const j = JSON.stringify(ent);
-        if (published.get(`ink:note:${id}`) !== j) {
-          published.set(`ink:note:${id}`, j);
-          await store.put(ent).catch(() => {});
+        /* a live note supersedes a queued removal — a trash+restore inside
+           one drain would otherwise remove the fresh entity */
+        removed.delete(`ink:note:${id}`);
+        if (published.get(`ink:note:${id}`) !== j && failedPublishes.get(`ink:note:${id}`) !== j) {
+          /* mark published only once the store takes it — a rejected put
+             that updated the marker was silently never retried. A rejected
+             wire shape pins to failedPublishes so a permanently-bad entity
+             doesn't retry every diff, but a CHANGED shape still gets its
+             second chance. */
+          const r = await store.put(ent).catch(() => null);
+          if (r && (r as { ok?: boolean }).ok !== false) {
+            published.set(`ink:note:${id}`, j);
+            failedPublishes.delete(`ink:note:${id}`);
+          } else {
+            failedPublishes.set(`ink:note:${id}`, j);
+          }
         }
+      }
+      /* a failed wire shape whose note is gone must be forgotten — a later
+         re-create with identical content should get a fresh attempt */
+      const liveIds = new Set(s.notes.filter((n) => !n.trashedAt).map((n) => n.id));
+      for (const key of [...failedPublishes.keys()]) {
+        const id = key.slice('ink:note:'.length);
+        if (!liveIds.has(id)) failedPublishes.delete(key);
       }
     }).catch(() => {}).finally(() => {
       queued = false;

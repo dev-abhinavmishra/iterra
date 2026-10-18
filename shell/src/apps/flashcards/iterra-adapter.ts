@@ -120,15 +120,26 @@ export function wireFlashcardsAdapter() {
 
   const shadow = new Map();   // entity key -> sig of last published entity
   const lastStatus = new Map(); // card id -> last published status
+  /* key -> sig of a put the store rejected — a permanently-bad shape must
+     not retry every mirror pass, but a CHANGED shape earns a fresh attempt
+     (the margin adapter's contract). */
+  const failedPublishes = new Map();
   let mirroring = false;
   let mirrorQueued = false;
 
   async function putIfChanged(ent) {
     const key = `${ent.app}:${ent.type}:${ent.id}`;
     const s = sig(ent);
-    if (shadow.get(key) === s) return false;
-    shadow.set(key, s);
-    try { await hub().store.put(ent); return true; } catch { return false; }
+    /* mark published only after the store takes it — a rejected put whose
+       marker had already moved was silently never retried */
+    if (shadow.get(key) === s || failedPublishes.get(key) === s) return false;
+    try {
+      const r = await hub().store.put(ent);
+      if (r && r.ok === false) { failedPublishes.set(key, s); return false; }
+      shadow.set(key, s);
+      failedPublishes.delete(key);
+      return true;
+    } catch { failedPublishes.set(key, s); return false; }
   }
 
   async function reviewed(c, d, bound) {
@@ -182,11 +193,17 @@ export function wireFlashcardsAdapter() {
           lastStatus.set(c.id, c.status);
         }
       }
-      /* orphans: published once, gone locally now */
+      /* orphans: published once, gone locally now. The marker drops only
+         on a landed remove — a failed remove keeps the key in shadow so
+         the next mirror pass retries instead of ghosting the entity */
       for (const key of Array.from(shadow.keys())) {
         if (live.has(key)) continue;
-        shadow.delete(key);
-        try { await it.store.remove(key); } catch {}
+        try { await it.store.remove(key); shadow.delete(key); } catch {}
+      }
+      /* a failed wire shape whose entity is gone must be forgotten — a
+         later re-create with identical content gets a fresh attempt */
+      for (const key of Array.from(failedPublishes.keys())) {
+        if (!live.has(key)) failedPublishes.delete(key);
       }
     } catch {
       /* best-effort mirror */

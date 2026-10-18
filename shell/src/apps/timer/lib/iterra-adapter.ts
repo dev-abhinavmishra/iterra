@@ -129,7 +129,9 @@ async function onSessionSaved(s?: Session) {
   const it = hub();
   if (!it?.store || !s || s.type !== 'focus') return;
   const bound = await boundCourse(s.courseId, s.course);
-  await it.store.put(sessionEntity(s, bound));
+  /* the mirror put must never gate the journal — a quota/validation
+     failure would otherwise eat the session.completed event */
+  await it.store.put(sessionEntity(s, bound)).catch(() => {});
   it.events?.emit('session.completed', sessionCompletedEvent(s, bound));
 }
 

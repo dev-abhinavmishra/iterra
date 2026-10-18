@@ -438,6 +438,10 @@ export function registerAdapter() {
 
   /* published snapshots — an entity is only put when its wire shape moved */
   const published = new Map<string, string>();
+  /* keys whose last put failed/quarantined, keyed to their rejected wire
+     shape — a permanently-bad entity must not retry every drain, but a
+     CHANGED shape earns a fresh attempt (same contract as margin/ink) */
+  const failedPublishes = new Map<string, string>();
   const queueDrain = () => {
     if (drainScheduled) return;
     drainScheduled = true;
@@ -452,7 +456,12 @@ export function registerAdapter() {
     const s = useRegister.getState();
     for (const key of [...removed]) {
       removed.delete(key);
-      if (published.delete(key)) await it.store.remove(key).catch(() => {});
+      if (published.delete(key)) {
+        /* keep the key queued on a failed remove — the next drain retries
+           instead of ghosting the entity */
+        const ok = await it.store.remove(key).then(() => true).catch(() => false);
+        if (!ok) { published.set(key, ''); removed.add(key); }
+      }
     }
     for (const id of [...dirtyRoutines]) {
       dirtyRoutines.delete(id);
@@ -467,9 +476,14 @@ export function registerAdapter() {
         todayValue: entriesOn(s.entries, r.id, todayISO()).reduce((t, e) => t + (e.value || 0), 0),
       });
       const j = JSON.stringify(ent);
-      if (published.get(`rhythm:routine:${id}`) !== j) {
-        published.set(`rhythm:routine:${id}`, j);
-        await it.store.put(ent).catch(() => {});
+      const rk = `rhythm:routine:${id}`;
+      /* a live routine supersedes a queued removal — delete+recreate in
+         one drain would otherwise remove the fresh entity */
+      removed.delete(rk);
+      if (published.get(rk) !== j && failedPublishes.get(rk) !== j) {
+        const res = await it.store.put(ent).catch(() => null);
+        if (res && (res as { ok?: boolean }).ok !== false) { published.set(rk, j); failedPublishes.delete(rk); }
+        else failedPublishes.set(rk, j);
       }
     }
     for (const id of [...dirtyEntries]) {
@@ -488,10 +502,20 @@ export function registerAdapter() {
         eventKind: e.eventId ? s.events[e.eventId]?.type.split('.').slice(1).join('.') : undefined,
       });
       const j = JSON.stringify(ent);
-      if (published.get(`rhythm:entry:${id}`) !== j) {
-        published.set(`rhythm:entry:${id}`, j);
-        await it.store.put(ent).catch(() => {});
+      const ek = `rhythm:entry:${id}`;
+      removed.delete(ek);
+      if (published.get(ek) !== j && failedPublishes.get(ek) !== j) {
+        const res = await it.store.put(ent).catch(() => null);
+        if (res && (res as { ok?: boolean }).ok !== false) { published.set(ek, j); failedPublishes.delete(ek); }
+        else failedPublishes.set(ek, j);
       }
+    }
+    /* drop failure pins for entities no longer wanted — a re-create with
+       identical content should get a fresh attempt, not a stale reject */
+    for (const key of [...failedPublishes.keys()]) {
+      const id = key.split(':').slice(2).join(':');
+      if (key.startsWith('rhythm:routine:') && !s.routines[id]) failedPublishes.delete(key);
+      if (key.startsWith('rhythm:entry:') && !s.entries[id]) failedPublishes.delete(key);
     }
   }
 

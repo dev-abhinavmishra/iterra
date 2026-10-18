@@ -103,23 +103,35 @@ export function gradeEntity(scan: Scan, test: Test | undefined, courseId?: strin
 let lastMirror: Record<string, string> | null = null;
 let lastScans: Record<string, { needsReview: boolean; pct: number | null }> | null = null;
 
-function putEntity(e: Record<string, unknown>) {
+function putEntity(e: Record<string, unknown>): Promise<boolean> {
   const it = window.iterra;
-  void Promise.resolve(it.store.put({ app: APP, ...e }))
+  return Promise.resolve(it.store.put({ app: APP, ...e }))
     .then((r: any) => {
-      if (!r?.ok) console.warn('iterra store.put rejected:', r?.error ?? r);
+      if (!r?.ok) {
+        console.warn('iterra store.put rejected:', r?.error ?? r);
+        return false;
+      }
+      return true;
     })
-    .catch(() => {});
+    .catch(() => false);
 }
 
-function removeEntity(key: string) {
+function removeEntity(key: string): Promise<boolean> {
   const it = window.iterra;
   try {
-    void Promise.resolve(it.store.remove?.(key)).catch(() => {});
+    return Promise.resolve(it.store.remove?.(key)).then(() => true).catch(() => false);
   } catch {
-    /* removal is best-effort */
+    return Promise.resolve(false);
   }
 }
+
+/* keys whose last write was rejected, keyed to their wire shape — a
+   permanently-invalid entity must not retry every mirror pass, but a
+   CHANGED shape earns a fresh attempt (the margin adapter's contract).
+   Removals retry until they land — an unreachable remove otherwise ghosts
+   the entity in Search forever. */
+const failedPublishes = new Map<string, string>();
+const failedRemovals = new Set<string>();
 
 function emitEvent(type: string, payload: Record<string, unknown>) {
   const it = window.iterra;
@@ -167,12 +179,27 @@ function mirrorGradebookInner() {
   const baseline = lastMirror === null;
   for (const [key, json] of Object.entries(next)) {
     if (lastMirror && lastMirror[key] === json) continue;
-    putEntity(JSON.parse(json));
+    if (failedPublishes.get(key) === json) continue;
+    void putEntity(JSON.parse(json)).then((ok) => {
+      if (ok) failedPublishes.delete(key);
+      else failedPublishes.set(key, json);
+    });
   }
   if (lastMirror) {
     for (const key of Object.keys(lastMirror)) {
-      if (!(key in next)) removeEntity(key);
+      if (!(key in next)) {
+        void removeEntity(key).then((ok) => { if (!ok) failedRemovals.add(key); });
+      }
     }
+  }
+  /* retry removals that failed last pass — a ghosted entity outlives the
+     mirror's memory otherwise. Once the row exists again the pin drops. */
+  for (const key of [...failedRemovals]) {
+    if (key in next) { failedRemovals.delete(key); continue; }
+    void removeEntity(key).then((ok) => { if (ok) failedRemovals.delete(key); });
+  }
+  for (const key of [...failedPublishes.keys()]) {
+    if (!(key in next)) failedPublishes.delete(key);
   }
   lastMirror = next;
 
