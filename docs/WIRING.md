@@ -395,7 +395,14 @@ Apps surface user-visible notices without owning a toast stack:
   `onTerrainTheme` and restyle under `[data-terrain='paper'|'graphite']`.
 - `iterra:update-available` — the service worker found a newer deploy;
   the ambient rail offers a refresh toast.
-- `iterra:select-object` — opens an object in the shared context panel.
+- `iterra:select-object` — puts an object in the shared context panel.
+  Detail is a WorkspaceObject-shaped record (`key`, `app`, `type`, `id`,
+  `title`, `url`, optional `course`/`courseId`/`topic`/`sub`/`data`).
+  Producers: Flashcards `selectDeck`, Ink `setActiveNote`, Proof
+  attempt/compare landings, Rhythm `openRoutine`, GradeStack suite
+  analytics, Syllabus commitment drawer. Apps only dispatch when
+  `window.__iterraIntegrated` — standalone never talks to a panel that
+  isn't there.
 
 ## 8. Dev topology
 
