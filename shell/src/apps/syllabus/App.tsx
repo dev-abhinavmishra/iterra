@@ -99,7 +99,31 @@ export default function App({ query = '' }: { query?: string }) {
   const nav = (patch: Partial<RouteState>) => setRoute((r) => ({ ...r, ...patch }));
   const goView = (view: ViewKey) => setRoute({ view });
   const openCourse = (courseId: string) => setRoute({ view: 'course', courseId });
-  const inspect = (inspectId?: string) => nav({ inspectId });
+  /* the terrain listens for 'iterra:select-object' — opening a commitment's
+     drawer puts it in the context panel like picking it in Search */
+  const inspect = (inspectId?: string) => {
+    if (inspectId && (window as any).__iterraIntegrated) {
+      try {
+        const s = useFolio.getState();
+        const c = s.commitments[inspectId];
+        if (c) {
+          const course = s.courses[c.courseId]?.code;
+          window.dispatchEvent(new CustomEvent('iterra:select-object', {
+            detail: {
+              key: `syllabus:commitment:${inspectId}`,
+              app: 'syllabus', type: 'commitment', id: inspectId,
+              title: c.title || 'Commitment',
+              sub: `${c.type} · ${c.status}`,
+              course, courseId: c.courseId ? `syllabus:course:${c.courseId}` : undefined,
+              url: `/apps/syllabus/?commitment=${encodeURIComponent(inspectId)}`,
+              data: { status: c.status },
+            },
+          }));
+        }
+      } catch { /* notice dispatch is best-effort */ }
+    }
+    nav({ inspectId });
+  };
 
   // Index-entity deep link: boot() stashes ?commitment=<id>; open its drawer,
   // then clear so a stale id can't re-fire. Only lands on a real commitment.
