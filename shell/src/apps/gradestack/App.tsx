@@ -82,7 +82,14 @@ function AppLayout({ query }: { query: string }) {
   useEffect(() => {
     const q = new URLSearchParams(query);
     const p = q.get('p');
-    if (p && GRADESTACK_ROUTES.has(p)) {
+    /* an unknown p is a dead legacy link — strip it and say so, else it
+       sits in the hash and re-fires on every query change */
+    if (p && !GRADESTACK_ROUTES.has(p)) {
+      stripPlaceQuery('p');
+      window.dispatchEvent(new CustomEvent('iterra:toast', {
+        detail: { text: `That Assessments link is stale — there's no “${p}” page` },
+      }));
+    } else if (p && GRADESTACK_ROUTES.has(p)) {
       stripPlaceQuery('p');
       q.delete('p');
       const rest = q.toString();

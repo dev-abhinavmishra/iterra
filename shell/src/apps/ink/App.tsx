@@ -31,8 +31,10 @@ function QueryBridge({ query }: { query: string }) {
   useEffect(() => {
     const p = new URLSearchParams(query).get('p');
     if (!p) return;
-    /* ?p=daily is an action, not a route — it opens today's journal page */
-    if (!INK_ROUTES.has(p) && p !== 'daily') return;
+    /* ?p=daily is an action, not a route — it opens today's journal page.
+       An unknown p is a dead legacy link — consume it like any other
+       stale param so it can't re-fire on every query change. */
+    const dead = !INK_ROUTES.has(p) && p !== 'daily';
     const h = window.location.hash;
     const qi = h.indexOf('?');
     if (qi !== -1) {
@@ -40,6 +42,12 @@ function QueryBridge({ query }: { query: string }) {
       q.delete('p');
       const rest = q.toString();
       window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    if (dead) {
+      window.dispatchEvent(new CustomEvent('iterra:toast', {
+        detail: { text: `That Notes link is stale — there's no “${p}” page` },
+      }));
+      return;
     }
     if (p === 'daily') {
       useStore.getState().ensureDailyNote();
