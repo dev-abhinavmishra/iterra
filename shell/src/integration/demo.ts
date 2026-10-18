@@ -30,6 +30,7 @@
    mounted places hold their stores in memory and only a reload
    rehydrates them from the new envelopes. */
 import { openDatabase, storeAllKeys, storeAllRecords, listDatabases } from './backup';
+import { saveFollowUpTask, writeFollowUpTasks, readFollowUpTasks } from './identity';
 
 export const DEMO_FLAG_KEY = 'iterra.v1.demo';
 export const DEMO_PREFIX = 'demo-';
@@ -414,6 +415,28 @@ async function seedHub(sessions: Array<Record<string, any>>) {
     });
   }
 
+  /* an open follow-up — the proof intake below delivers the problem this
+     points at on first mount, so the Review Queue row and its provenance
+     edge both resolve live. saveFollowUpTask writes the durable record
+     AND the canonical entity in one pass. */
+  if (!readFollowUpTasks()[`proof:followup:${DEMO_PREFIX}fu-stat`]) {
+    await saveFollowUpTask({
+      id: `${DEMO_PREFIX}fu-stat`,
+      key: `proof:followup:${DEMO_PREFIX}fu-stat`,
+      app: 'proof',
+      title: 'Retry the two-sample t-test misses',
+      detail: 'The midterm intake flagged a step-2 divergence — re-attempt the comparison problem before Friday.',
+      status: 'open',
+      courseId: `syllabus:course:${DEMO_PREFIX}stat220`,
+      course: 'STAT 220',
+      topic: 'hypothesis testing',
+      sourceRef: `proof:attempt:${DEMO_PREFIX}att-1`,
+      targetRef: `proof:problem:p_${DEMO_INTAKE_PREFIX}proof1`,
+      createdAt: now - DAY,
+      updatedAt: now - DAY,
+    });
+  }
+
   /* session entities — same shape timer's own adapter publishes */
   for (const ses of sessions) {
     const minutes = Math.round((ses.duration ?? 0) / 60);
@@ -705,6 +728,17 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
         if (isDemoId(e?.id) || isDemoKey(k)) delete ents[k];
       }
       lsSet(LS_ENTITIES_KEY, ents);
+    }
+    /* follow-up task map — keyed by '<app>:followup:<id>', id slot carries
+       the demo mark; the canonical entity twin is swept by the IDB/LS
+       entity passes above */
+    {
+      const fus = readFollowUpTasks();
+      let touched = false;
+      for (const k of Object.keys(fus)) {
+        if (isDemoKey(k)) { delete fus[k]; touched = true; }
+      }
+      if (touched) writeFollowUpTasks(fus);
     }
 
     /* push the cleaned buckets into mounted stores before the IDB deletes —

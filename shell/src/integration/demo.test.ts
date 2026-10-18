@@ -71,6 +71,13 @@ describe('seedDemoSemester', () => {
     expect(gs.state.tests.filter((t: { id: string }) => t.id.startsWith('demo-'))).toHaveLength(1);
     expect(gs.state.scans.filter((x: { id: string }) => x.id.startsWith('demo-'))).toHaveLength(2);
 
+    const fus = JSON.parse(store.get('iterra.v1.followups') ?? '{}');
+    expect(fus['proof:followup:demo-fu-stat']?.status).toBe('open');
+    expect(fus['proof:followup:demo-fu-stat']?.targetRef).toBe('proof:problem:p_in-demo-proof1');
+    /* the canonical entity twin lands via saveFollowUpTask's store.put */
+    const fuPut = puts.find((p) => p.type === 'followup' && p.id === 'demo-fu-stat');
+    expect((fuPut?.data as Record<string, unknown>)?.status).toBe('open');
+
     expect(demo.isDemoLoaded()).toBe(true);
   });
 
@@ -149,6 +156,12 @@ describe('removeDemoData', () => {
     ]));
     await demo.seedDemoSemester();
 
+    /* a user follow-up beside the seeded demo one */
+    localStorageStub.setItem('iterra.v1.followups', JSON.stringify({
+      'proof:followup:demo-fu-stat': { id: 'demo-fu-stat' },
+      'proof:followup:user-fu': { id: 'user-fu' },
+    }));
+
     /* simulate a delivered intake artifact: an ink note created from the
        demo intake carries the intake-derived demo id */
     localStorageStub.setItem('ink-notes-storage', JSON.stringify({
@@ -183,6 +196,10 @@ describe('removeDemoData', () => {
 
     const bucket = JSON.parse(store.get('iterra.v1.store.intakes') ?? '{}');
     expect(Object.keys(bucket).filter((k) => k.startsWith('in-demo-'))).toEqual([]);
+
+    /* follow-up map: demo row gone, user row preserved */
+    const fus = JSON.parse(store.get('iterra.v1.followups') ?? '{}');
+    expect(Object.keys(fus)).toEqual(['proof:followup:user-fu']);
 
     /* feed items tagged demo:true are gone too */
     const feed = JSON.parse(store.get('iterra.v1.doc.feed') ?? '{}');
