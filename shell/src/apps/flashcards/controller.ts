@@ -790,6 +790,22 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     try { localStorage.setItem(LAST_KEY, id); } catch {}
     const d = deck();
     if (d) { d.lastStudiedAt = Date.now(); saveStore(); }
+    /* the terrain listens for 'iterra:select-object' — picking a deck here
+       puts it in the context panel like picking it in Search */
+    if (d && (window as any).__iterraIntegrated) {
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:select-object', {
+          detail: {
+            key: 'flashcards:deck:' + d.id,
+            app: 'flashcards', type: 'deck', id: d.id,
+            title: d.title || 'Untitled deck',
+            course: d.course, courseId: d.courseId, topic: d.topic,
+            url: '/apps/flashcards/?deck=' + encodeURIComponent(d.id),
+            data: { count: d.cards.length, due: d.cards.filter((c) => c.status !== 'mastered').length },
+          },
+        }));
+      } catch {}
+    }
     resetSessions();
     renderAll();
   }
