@@ -420,7 +420,7 @@
     'session.started': 1, 'session.completed': 1,
     'card.created': 1, 'card.reviewed': 1,
     'attempt.made': 1, 'attempt.diverged': 1,
-    'assignment.due': 1, 'assignment.completed': 1,
+    'assignment.due': 1, 'assignment.completed': 1, 'assignment.dropped': 1,
     'grade.entered': 1, 'note.created': 1,
     'routine.logged': 1, 'routine.completed': 1, 'routine.planned': 1,
     'session.paused': 1, 'session.resumed': 1,

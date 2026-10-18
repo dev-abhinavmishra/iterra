@@ -236,6 +236,16 @@ function mirrorFolioInner() {
           title: c.title,
           url: `/apps/syllabus/?commitment=${encodeURIComponent(c.id)}`,
         });
+      } else if (prior.status !== c.status && c.status === 'dropped') {
+        /* a drop is a deliberate close — journal it like a completion so
+           the audit trail shows why the work left the live surfaces */
+        emitEvent('assignment.dropped', {
+          commitmentId: c.id,
+          courseId: `${COURSE_KEY}${c.courseId}`,
+          course: code,
+          title: c.title,
+          url: `/apps/syllabus/?commitment=${encodeURIComponent(c.id)}`,
+        });
       }
     }
   }

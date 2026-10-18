@@ -41,8 +41,22 @@ for (const a of APPS) {
     fail++;
   }
 }
+/* Hub drift gate — shell/public/iterra-hub.js is the dev-server copy and
+   must be byte-identical to packages/hub/iterra-hub.js (prod gets a fresh
+   copy in build.sh, so a stale public file only lies in dev). Run
+   `npm run sync:hub` to fix. */
+const hubSrc = join(root, 'packages/hub/iterra-hub.js');
+const hubDev = join(root, 'shell/public/iterra-hub.js');
+if (!existsSync(hubDev)) {
+  console.error('[check-adapters] MISSING shell/public/iterra-hub.js — run npm run sync:hub');
+  fail++;
+} else if (readFileSync(hubSrc, 'utf8') !== readFileSync(hubDev, 'utf8')) {
+  console.error('[check-adapters] shell/public/iterra-hub.js differs from packages/hub/iterra-hub.js — run npm run sync:hub');
+  fail++;
+}
+
 if (fail) {
   console.error(`[check-adapters] ${fail} problem(s) — every app needs one adapter file per docs/ADAPTER.md`);
   process.exit(1);
 }
-console.log(`[check-adapters] ${APPS.length} adapters present`);
+console.log(`[check-adapters] ${APPS.length} adapters present, hub copies in sync`);

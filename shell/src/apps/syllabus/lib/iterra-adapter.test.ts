@@ -180,6 +180,19 @@ describe('syllabus canonical-store mirror', () => {
     expect(done[0].payload).toMatchObject({ commitmentId: 'k1', courseId: 'syllabus:course:c1', course: 'MTH151', title: 'Midterm' });
   });
 
+  it('emits assignment.dropped on an open → dropped transition', async () => {
+    const { useFolio } = await seedAndWire({
+      courses: { c1: mkCourse('c1', 'MTH151') },
+      commitments: { k1: mkCommitment('k1', 'c1') },
+    });
+    useFolio.getState().setCommitmentStatus('k1', 'dropped');
+    const dropped = events.filter((e) => e.type === 'assignment.dropped');
+    expect(dropped).toHaveLength(1);
+    expect(dropped[0].payload).toMatchObject({ commitmentId: 'k1', course: 'MTH151', title: 'Midterm' });
+    /* a drop must NOT journal as a completion — the audit trail stays honest */
+    expect(events.filter((e) => e.type === 'assignment.completed')).toEqual([]);
+  });
+
   it('emits assignment.due when a commitment moves inside the 24h window, once', async () => {
     const soon = new Date(Date.now() + 6 * 3600_000).toISOString();
     const later = new Date(Date.now() + 72 * 3600_000).toISOString();

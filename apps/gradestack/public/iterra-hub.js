@@ -420,7 +420,7 @@
     'session.started': 1, 'session.completed': 1,
     'card.created': 1, 'card.reviewed': 1,
     'attempt.made': 1, 'attempt.diverged': 1,
-    'assignment.due': 1, 'assignment.completed': 1,
+    'assignment.due': 1, 'assignment.completed': 1, 'assignment.dropped': 1,
     'grade.entered': 1, 'note.created': 1,
     'routine.logged': 1, 'routine.completed': 1, 'routine.planned': 1,
     'session.paused': 1, 'session.resumed': 1,
@@ -1618,7 +1618,14 @@
           return {
             ok: true,
             delivered: 'direct',
-            url: declined ? (res && res.url) || undefined : (res && res.url) || ('/apps/' + to + '/'),
+            /* navigate:false means "don't take the user anywhere" — the
+               handler's url is a record of where the work landed (journaled
+               on send.delivered as resultUrl), not a landing for the
+               caller. Handing it back as `url` made every sender navigate
+               anyway — File-done yanked the user into Planning off-clock. */
+            url: res && res.navigate === false ? undefined
+               : declined ? (res && res.url) || undefined
+               : (res && res.url) || ('/apps/' + to + '/'),
             toast: res && typeof res.toast === 'string' ? res.toast : undefined,
             id: rec.id,
           };
