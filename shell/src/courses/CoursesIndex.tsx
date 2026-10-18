@@ -54,6 +54,17 @@ export function CoursesIndex({
     let unfiled = 0;
     const seenSigs = new Set<string>();
 
+    /* card entities carry their parent deck id — a deck whose cards are
+       mirrored reports due per-card (line below); a deck entity with no
+       mirrored children falls back to its data.due count. Without this
+       split the same cards count twice. */
+    const decksWithCards = new Set<string>();
+    for (const e of entities || []) {
+      if (e?.type === 'card' && typeof e.data?.deckId === 'string') {
+        decksWithCards.add(e.data.deckId);
+      }
+    }
+
     for (const e of entities || []) {
       if (e.type === 'course') {
         const code = (e.data?.code as string) || e.course || e.title || '';
@@ -75,8 +86,8 @@ export function CoursesIndex({
       if (e.type === 'note' || e.type === 'source') g.materials++;
       else if (['deck', 'quiz', 'problem', 'attempt'].includes(e.type)) {
         g.practice++;
-        if (e.type === 'deck' && typeof e.data?.due === 'number') {
-          g.dueCards = Math.max(g.dueCards, e.data.due);
+        if (e.type === 'deck' && typeof e.data?.due === 'number' && !decksWithCards.has(e.id)) {
+          g.dueCards += e.data.due;
         }
       } else if (e.type === 'card') {
         if (typeof e.data?.dueAt === 'number' && e.data.dueAt <= Date.now()) g.dueCards++;
