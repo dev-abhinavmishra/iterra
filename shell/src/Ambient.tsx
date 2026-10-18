@@ -5,6 +5,14 @@ import type { StoreEntity } from './hub';
    resolved cross-module intakes. Live focus controls now live directly in
    the global workspace header so they never occlude bottom module docks. */
 
+interface Toast {
+  id: number;
+  text: string;
+  url?: string;
+  refresh?: boolean;
+  ms: number;
+}
+
 export function Ambient({
   entities,
   onGo,
@@ -18,7 +26,30 @@ export function Ambient({
   /* details panel is a 320px rail at lg+ — slide the toast clear of it */
   panelOpen?: boolean;
 }) {
-  const [toast, setToast] = useState<{ text: string; url?: string; refresh?: boolean } | null>(null);
+  /* a short queue, not a single slot — a quota warning landing while a
+     session-logged toast is up must not vaporize it. Cap 3: a burst
+     shows the newest three rather than stacking forever. */
+  const [queue, setQueue] = useState<Toast[]>([]);
+  const counter = useRef(0);
+  const push = (t: Omit<Toast, 'id' | 'ms'> & { ms?: number }) => {
+    setQueue((q) => {
+      /* same text back-to-back is noise (quota warnings can repeat) —
+         collapse to one line */
+      if (q.some((x) => x.text === t.text)) return q;
+      return [...q, { ...t, ms: t.ms ?? 6500, id: ++counter.current }].slice(-3);
+    });
+  };
+  const pushRef = useRef(push);
+  pushRef.current = push;
+
+  /* the head toast lives for its ms, then makes way for the next */
+  const head = queue[0];
+  useEffect(() => {
+    if (!head) return;
+    const t = window.setTimeout(() => setQueue((q) => q.slice(1)), head.ms);
+    return () => window.clearTimeout(t);
+  }, [head]);
+
   const seenSessions = useRef<Set<string> | null>(null);
 
   useEffect(() => {
@@ -31,12 +62,10 @@ export function Ambient({
     seenSessions.current = keys;
     if (fresh) {
       const mins = (fresh.data?.minutes as number) || null;
-      setToast({
+      pushRef.current({
         text: `${fresh.title || 'Focus session'}${mins ? ` · ${mins}m` : ''} logged`,
         url: fresh.url || '/apps/timer/',
       });
-      const t = window.setTimeout(() => setToast(null), 6500);
-      return () => window.clearTimeout(t);
     }
   }, [entities]);
 
@@ -46,17 +75,16 @@ export function Ambient({
     const off = it.events.on('intake.resolved', (rec: any) => {
       const p = rec?.payload || {};
       if (typeof p.toast !== 'string') return;
-      setToast({ text: p.toast, url: typeof p.url === 'string' ? p.url : undefined });
-      const t = window.setTimeout(() => setToast(null), 6000);
-      void t;
+      pushRef.current({ text: p.toast, url: typeof p.url === 'string' ? p.url : undefined, ms: 6000 });
     });
     return off;
   }, []);
 
   /* deployed while this tab is open — the new SW is installed and about to
-     take control; offer the refresh instead of quietly stranding the tab */
+     take control; offer the refresh instead of quietly stranding the tab.
+     refresh toasts don't expire — the user must choose. */
   useEffect(() => {
-    const onUpdate = () => setToast({ text: 'A new version of Iterra is ready', refresh: true });
+    const onUpdate = () => pushRef.current({ text: 'A new version of Iterra is ready', refresh: true, ms: 24 * 3600 * 1000 });
     window.addEventListener('iterra:update-available', onUpdate);
     return () => window.removeEventListener('iterra:update-available', onUpdate);
   }, []);
@@ -64,11 +92,7 @@ export function Ambient({
   /* a guarded persist write hit the quota — surface it in chrome so the
      warning reaches the user even while the failing app is hidden */
   useEffect(() => {
-    const onFull = () => {
-      setToast({ text: 'Storage is full — export a backup, then clear room', url: '#/settings' });
-      const t = window.setTimeout(() => setToast(null), 8000);
-      void t;
-    };
+    const onFull = () => pushRef.current({ text: 'Storage is full — export a backup, then clear room', url: '#/settings', ms: 8000 });
     window.addEventListener('iterra:storage-full', onFull);
     return () => window.removeEventListener('iterra:storage-full', onFull);
   }, []);
@@ -80,15 +104,13 @@ export function Ambient({
     const onToast = (e: Event) => {
       const d = (e as CustomEvent).detail as { text?: string; url?: string } | undefined;
       if (!d?.text) return;
-      setToast({ text: d.text, url: typeof d.url === 'string' ? d.url : undefined });
-      const t = window.setTimeout(() => setToast(null), 7000);
-      void t;
+      pushRef.current({ text: d.text, url: typeof d.url === 'string' ? d.url : undefined, ms: 7000 });
     };
     window.addEventListener('iterra:toast', onToast);
     return () => window.removeEventListener('iterra:toast', onToast);
   }, []);
 
-  if (!toast) return null;
+  if (!head) return null;
 
   return (
     <div
@@ -100,19 +122,20 @@ export function Ambient({
       <button
         type="button"
         onClick={() => {
-          if (toast.refresh) {
+          if (head.refresh) {
             window.location.reload();
             return;
           }
-          if (toast.url) onGo(toast.url);
-          setToast(null);
+          if (head.url) onGo(head.url);
+          setQueue((q) => q.slice(1));
         }}
         className="anim-rise pointer-events-auto flex items-center gap-2.5 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-sheet)] px-3.5 py-2 text-[12.5px] font-medium text-[var(--color-ink)] shadow-lg cursor-pointer"
       >
         <span className="live-dot inline-block h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-        <span>{toast.text}</span>
-        {toast.refresh && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Refresh</span>}
-        {!toast.refresh && toast.url && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Open →</span>}
+        <span>{head.text}</span>
+        {queue.length > 1 && <span className="text-[11px] text-[var(--color-mute)]">+{queue.length - 1}</span>}
+        {head.refresh && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Refresh</span>}
+        {!head.refresh && head.url && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Open →</span>}
       </button>
     </div>
   );
