@@ -11,18 +11,29 @@
      live network, and non-GET requests don't belong in a cache anyway.
    - Everything else (manifest, icons, iterra-hub.js) is
      stale-while-revalidate.
+   - sw-manifest.json (emitted by build.sh) lists this build's hashed
+     assets; precaching them at install keeps an offline reload working
+     even when the deploy changed every chunk's hash.
 
    Bump CACHE when the strategy changes — runtime URLs are hashed, so old
    caches only hold stale non-hashed files. */
 
-const CACHE = 'iterra-v2';
+const CACHE = 'iterra-v3';
 const PRECACHE = ['/', '/site.webmanifest', '/icon.svg', '/iterra-hub.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches
       .open(CACHE)
-      .then((c) => c.addAll(PRECACHE))
+      .then(async (c) => {
+        await c.addAll(PRECACHE);
+        try {
+          const res = await fetch('/sw-manifest.json', { cache: 'no-store' });
+          if (res.ok) await c.addAll(await res.json());
+        } catch {
+          /* no manifest in dev — runtime caching still covers assets */
+        }
+      })
       .then(() => self.skipWaiting()),
   );
 });

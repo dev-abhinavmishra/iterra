@@ -29,4 +29,8 @@ cp -r shell/dist/. dist/
 # the hub must exist at the root — index.html loads '/iterra-hub.js'
 cp packages/hub/iterra-hub.js dist/iterra-hub.js
 
+# precache manifest for the service worker — hashed assets it caches at
+# install so an offline reload after a deploy still boots
+node scripts/emit-sw-manifest.mjs
+
 echo "── terrain built → dist/"
