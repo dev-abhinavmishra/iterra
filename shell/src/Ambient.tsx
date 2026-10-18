@@ -73,6 +73,21 @@ export function Ambient({
     return () => window.removeEventListener('iterra:storage-full', onFull);
   }, []);
 
+  /* generic notice channel — any module can surface a toast through the
+     shell without owning a toast stack of its own:
+     dispatchEvent(new CustomEvent('iterra:toast', {detail:{text, url}})) */
+  useEffect(() => {
+    const onToast = (e: Event) => {
+      const d = (e as CustomEvent).detail as { text?: string; url?: string } | undefined;
+      if (!d?.text) return;
+      setToast({ text: d.text, url: typeof d.url === 'string' ? d.url : undefined });
+      const t = window.setTimeout(() => setToast(null), 7000);
+      void t;
+    };
+    window.addEventListener('iterra:toast', onToast);
+    return () => window.removeEventListener('iterra:toast', onToast);
+  }, []);
+
   if (!toast) return null;
 
   return (

@@ -49,7 +49,19 @@ export default function App({ query = '' }: { query?: string }) {
     const raw = q.get('import');
     if (!raw) return;
     const res = parseImportPayload(raw);
-    if (res.ok && res.payload) setImportPayload(res.payload);
+    if (res.ok && res.payload) {
+      setImportPayload(res.payload);
+    } else {
+      /* a malformed/stale staging link used to vanish silently — say why
+         instead of landing on an empty desk with no explanation */
+      try {
+        window.dispatchEvent(
+          new CustomEvent('iterra:toast', {
+            detail: { text: `Import couldn't be staged: ${res.error || 'unreadable payload'}` },
+          }),
+        );
+      } catch { /* no window to notify */ }
+    }
     const h = window.location.hash;
     if (h.includes('?')) window.location.hash = h.slice(0, h.indexOf('?'));
   }, [query]);
