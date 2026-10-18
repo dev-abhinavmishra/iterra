@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            shell/package-lock.json
+
+      - name: install root deps
+        run: npm ci --no-audit --no-fund
+
+      - name: install shell deps
+        working-directory: shell
+        run: npm ci --no-audit --no-fund
+
+      - name: shell test suite
+        working-directory: shell
+        run: npm test
+
+      # contract checks + typecheck + vite build (build.sh installs
+      # shell deps again — already satisfied, npm ci is a fast no-op)
+      - name: build terrain
+        run: npm run build
