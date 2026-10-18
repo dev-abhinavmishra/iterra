@@ -350,9 +350,14 @@ export function ObjectRow({
             <div>
               {/* syllabus-owned rows can file done in place — off-clock
                   work shouldn't have to open the folio to complete */}
+              {/* file-done only on states the intake can stamp — a missed
+                  or deferred slip must be pushed (reopened) first, so the
+                  menu doesn't offer an action that can only explain 'no' */}
               {(item.type === 'commitment' || item.type === 'block') &&
                 item.app === 'syllabus' &&
-                !(item.data?.state === 'done' || item.data?.status === 'done' || item.data?.status === 'dropped') && (
+                (item.type === 'commitment'
+                  ? !(item.data?.status === 'done' || item.data?.status === 'dropped')
+                  : !(item.data?.state === 'done' || item.data?.state === 'missed' || item.data?.state === 'deferred')) && (
                 <button
                   type="button"
                   onClick={() => {
@@ -372,6 +377,29 @@ export function ObjectRow({
                 >
                   <CheckSquare className="h-3.5 w-3.5" />
                   File {item.type === 'commitment' ? 'commitment' : 'slip'} done
+                </button>
+              )}
+              {/* a slipped or deferred block's rescue is a date push —
+                  surface it beside file-done on the same rows */}
+              {item.type === 'block' &&
+                item.app === 'syllabus' &&
+                (item.data?.state === 'planned' || item.data?.state === 'missed' || item.data?.state === 'deferred') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    void sendTo({
+                      to: 'syllabus',
+                      action: 'block.defer',
+                      payload: { blockId: item.id },
+                    }).then((r) => {
+                      if (onNotify) onNotify(r.toast || (r.ok ? 'Pushed to tomorrow' : `Could not push: ${r.error || 'unavailable'}`));
+                    });
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  Push slip to tomorrow
                 </button>
               )}
               {item.type === 'commitment' &&
