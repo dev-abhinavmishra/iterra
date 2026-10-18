@@ -53,10 +53,39 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
   const [pinnedName, setPinnedName] = useState<string | null>(focusedRoutineName);
   useEffect(() => {
     if (!focusedRoutineName) return;
-    setPinnedName(focusedRoutineName);
     useRegister.setState({ focusedRoutineName: null });
+    /* the link names a routine — if nothing on the register answers, the
+       link is stale: say so instead of landing on a plain Today view */
+    const all = Object.values(useRegister.getState().routines);
+    if (!all.some((r) => r.status !== 'archived' && r.name.toLowerCase() === focusedRoutineName.toLowerCase())) {
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: `No routine named “${focusedRoutineName}” on the register — the link may be stale` },
+        }));
+      } catch { /* notice is best-effort */ }
+      setPinnedName(null);
+      return;
+    }
+    setPinnedName(focusedRoutineName);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusedRoutineName]);
+
+  /* the flag can land before mount — useState's initializer picks it up
+     without the dead-name check, so re-validate once against the store */
+  useEffect(() => {
+    if (!pinnedName) return;
+    const all = Object.values(useRegister.getState().routines);
+    if (all.length === 0) return; /* hydration may lag the first paint */
+    if (!all.some((r) => r.status !== 'archived' && r.name.toLowerCase() === pinnedName.toLowerCase())) {
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: `No routine named “${pinnedName}” on the register — the link may be stale` },
+        }));
+      } catch { /* notice is best-effort */ }
+      setPinnedName(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const list = useMemo(() => {
     const all = Object.values(routines).filter((r) => r.status !== 'archived');
@@ -64,8 +93,14 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
     const open = all.filter((r) => r.status === 'active' && !isScheduled(r, today));
     const paused = all.filter((r) => r.status === 'paused');
     if (pinnedName) {
+      /* a pinned routine that isn't scheduled today still leads — pin it
+         in whichever lane holds it */
       const i = scheduled.findIndex((r) => r.name.toLowerCase() === pinnedName.toLowerCase());
       if (i > 0) scheduled.unshift(scheduled.splice(i, 1)[0]);
+      const j = open.findIndex((r) => r.name.toLowerCase() === pinnedName.toLowerCase());
+      if (j > 0) open.unshift(open.splice(j, 1)[0]);
+      const k = paused.findIndex((r) => r.name.toLowerCase() === pinnedName.toLowerCase());
+      if (k > 0) paused.unshift(paused.splice(k, 1)[0]);
     }
     return { scheduled, open, paused };
   }, [routines, today, pinnedName]);
