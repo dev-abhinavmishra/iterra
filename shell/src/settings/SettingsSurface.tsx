@@ -65,6 +65,9 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
         <button
           type="button"
           onClick={() => setTheme()}
+          role="switch"
+          aria-checked={dark}
+          aria-label="Dark theme"
           className="flex w-full items-center justify-between gap-4 rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-4 py-3 text-left hover:border-[var(--color-accent)] cursor-pointer"
         >
           <div className="flex items-center gap-3">
@@ -85,11 +88,10 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
             </div>
           </div>
           <span
+            aria-hidden="true"
             className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors ${
               dark ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-line)]'
             }`}
-            role="switch"
-            aria-checked={dark}
           >
             <span
               className={`absolute top-0.5 h-4 w-4 rounded-full bg-[var(--color-sheet)] shadow transition-transform ${

@@ -28,6 +28,9 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
     const [pop, setPop] = useState<PopState>(HIDDEN);
     const [mode, setMode] = useState<Mode>('idle');
     const [sentUrl, setSentUrl] = useState<string | null>(null);
+    /* a declined delivery carries the handler's reason (res.toast) —
+       'Sent' alone would lie about what happened */
+    const [sentNote, setSentNote] = useState<string | null>(null);
     const selecting = useRef(false);
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -230,6 +233,13 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                 return;
             }
             setSentUrl(res.url ?? null);
+            /* cleared per-send — a stale url from an earlier success would
+               hang an 'open deck' link on a declined send */
+            setSentNote(
+                typeof res.toast === 'string' ? res.toast
+                : res.delivered === 'queued' ? 'Queued — lands on next open'
+                : null,
+            );
             flash('sent', true);
             window.getSelection()?.removeAllRanges();
         } catch {
@@ -309,7 +319,9 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                                     </button>
                                 ) : (
                                     <span className="font-mono text-[11px] text-ink-2">
-                                        {mode === 'saved' ? 'Deck saved' : mode === 'sent' ? 'Sent' : mode === 'copied' ? 'Copied' : 'Couldn’t make cards'}
+                                        {mode === 'saved' ? 'Deck saved'
+                                          : mode === 'sent' ? (sentNote || 'Sent')
+                                          : mode === 'copied' ? 'Copied' : 'Couldn’t make cards'}
                                     </span>
                                 )}
                             </span>

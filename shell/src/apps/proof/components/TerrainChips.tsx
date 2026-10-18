@@ -97,8 +97,18 @@ export function ToMarginButton({ attempt, problem }: { attempt: Attempt; problem
       })
       .catch(() => null);
     if (res && res.ok !== false) {
+      /* a declined delivery (url:null) lands nothing — say so instead of
+         opening margin on an empty hand */
+      if (!res.url) {
+        try {
+          window.dispatchEvent(new CustomEvent('iterra:toast', {
+            detail: { text: res.toast || 'Notes didn’t take the attempt' },
+          }));
+        } catch { /* ambient listener absent */ }
+        return;
+      }
       setSent(true);
-      openDeep(res.url || '/apps/margin/');
+      openDeep(res.url);
     }
   };
 

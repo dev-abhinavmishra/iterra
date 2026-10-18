@@ -571,7 +571,7 @@ interface SendOpts {
   entity: { app: string; type: string; id: string; title: string };
   payload?: Record<string, unknown>;
 }
-interface SendResult { ok?: boolean; url?: string }
+interface SendResult { ok?: boolean; url?: string; delivered?: 'direct' | 'queued'; toast?: string }
 interface IterraSendSurface {
   send?: (opts: SendOpts) => Promise<SendResult>;
   open?: (url: string) => void;
@@ -596,7 +596,15 @@ const sendSelection = (editor: Editor, to: 'margin' | 'flashcards' | 'proof'): v
         : { to, action: 'step.append', entity: { app: 'ink', type: 'note', id: page?.id ?? 'page', title: sel } };
   Promise.resolve(it.send(opts))
     .then((res) => {
-      st.setNotice({ message: res?.ok ? `Sent to ${label}` : `Couldn't send to ${label}` });
+      /* a declined delivery (ok:true, url:null) carries the handler's
+         reason in res.toast — 'Sent to X' would lie about what happened;
+         queued sends haven't landed yet either */
+      st.setNotice({
+        message: !res?.ok
+          ? `Couldn't send to ${label}`
+          : res.toast ||
+            (res.delivered === 'queued' ? `Queued for ${label} — lands on next open` : `Sent to ${label}`),
+      });
       if (res?.ok && res.url) {
         if (it.open) it.open(res.url); else window.open(res.url, '_blank');
       }

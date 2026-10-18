@@ -1024,7 +1024,23 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         : { to: 'rhythm', action: 'log.activity', payload: { kind: 'review', label: `reviewed ${d.title}`, course: d.course, courseId: d.courseId } };
       it.send(req).then(res => {
         if (act === 'session') { try { it.open ? it.open((res && res.url) || '/apps/timer/') : window.open('/apps/timer/', '_blank'); } catch {} }
-        else { _bridgeLogged = true; renderDeckBridge(d); toast('Logged on the register'); }
+        else if (res && res.ok) {
+          if (res.delivered === 'queued') {
+            /* not landed yet — say so instead of claiming the mark */
+            toast('Queued for the register — stamps on next open');
+          } else if (res.url) {
+            _bridgeLogged = true;
+            renderDeckBridge(d);
+            toast(res.toast || 'Logged on the register');
+          } else {
+            /* direct decline — the handler's reason is the honest answer */
+            toast(res.toast || 'The register didn’t take the mark');
+            btn.disabled = false;
+          }
+        } else {
+          toast('Couldn’t reach the register — try again in a moment');
+          btn.disabled = false;
+        }
       }).catch(() => { btn.disabled = false; });
     }));
   }
@@ -1052,6 +1068,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
           to: 'margin', action: 'note.create',
           entity: { app: 'flashcards', type: 'card', id: c.id, course: d.course, courseId: d.courseId, title: String(c.q || '').slice(0, 160), sub: String(c.a || '').slice(0, 200), url: deckUrl(d) },
         }).then(res => {
+          if (!res || !res.ok) { toast('Couldn’t reach Notes — try again'); b.disabled = false; return; }
           try { it.open ? it.open((res && res.url) || '/apps/margin/') : window.open('/apps/margin/', '_blank'); } catch {}
         }).catch(() => { b.disabled = false; });
       });

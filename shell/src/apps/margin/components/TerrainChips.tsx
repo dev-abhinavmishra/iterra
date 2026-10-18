@@ -50,8 +50,18 @@ const TerrainChips: React.FC<{ note: Note; getText: () => string }> = ({ note, g
             })
             .catch(() => null);
         if (res && res.ok !== false) {
+            /* a declined delivery (url:null) lands nothing — say so instead
+               of opening ink on an empty hand */
+            if (!res.url) {
+                try {
+                    window.dispatchEvent(new CustomEvent('iterra:toast', {
+                        detail: { text: res.toast || 'Ink didn’t take the selection' },
+                    }));
+                } catch { /* ambient listener absent */ }
+                return;
+            }
             setSent(true);
-            const url = res.url || '/apps/ink/';
+            const url = res.url;
             try {
                 it.open ? it.open(url) : window.open(url, '_blank');
             } catch {

@@ -365,10 +365,21 @@ function RowSends({ c, code }: { c: Commitment; code?: string }) {
       if (res?.ok && res.delivered === 'direct' && res.url) {
         try { if (it.open) it.open(res.url); else openDeep(res.url); } catch { /* nav is best-effort */ }
         setState('idle');
-      } else if (res?.ok) {
+      } else if (res?.ok && res.delivered === 'queued') {
         setState('queued');
         window.setTimeout(() => setState('idle'), 4000);
       } else {
+        /* direct decline (ok but url:null) or send failure — 'QUEUED'
+           would claim work that never landed; say what happened */
+        try {
+          window.dispatchEvent(new CustomEvent('iterra:toast', {
+            detail: {
+              text: res?.toast ||
+                (res?.ok ? (kind === 'plan' ? 'The register didn’t take it' : 'The cardfile didn’t take it')
+                         : `Couldn’t reach ${kind === 'plan' ? 'the register' : 'the cardfile'}`),
+            },
+          }));
+        } catch { /* ambient listener absent */ }
         setState('idle');
       }
     } catch {

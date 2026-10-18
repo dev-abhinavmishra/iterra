@@ -90,7 +90,16 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
       },
     });
     const url = res?.ok ? res.url : null;
-    if (!url) return;
+    if (!url) {
+      /* declined (SESSION_ACTIVE) or send failed — silent return reads as
+         a dead button; the handler's reason is the honest answer */
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: res?.toast || (res?.ok ? 'Timer didn’t take the session' : 'Couldn’t reach the timer') },
+        }));
+      } catch { /* ambient listener absent */ }
+      return;
+    }
     try {
       if (it.open) it.open(url);
       else openDeep(url);
@@ -106,7 +115,14 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
     const it = (window as any).iterra;
     const res = await sendCommitmentToRegister(commitment, course?.code);
     const url = res?.ok ? res.url : null;
-    if (!url) return;
+    if (!url) {
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: res?.toast || (res?.ok ? 'The register didn’t take the commitment' : 'Couldn’t reach the register') },
+        }));
+      } catch { /* ambient listener absent */ }
+      return;
+    }
     try {
       if (it?.open) it.open(url);
       else openDeep(url);
