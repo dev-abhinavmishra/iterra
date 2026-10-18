@@ -46,11 +46,26 @@ export function ScanSheets() {
   const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
   const [confirmSheetDelete, setConfirmSheetDelete] = useState(false);
 
-  // Once tests load (or the deep-linked one resolves), pick the first by default
+  // Once tests load (or the deep-linked one resolves), pick the first by
+  // default. A deep-linked id that names no known test would otherwise hold
+  // the picker on a ghost selection forever — fall back and say why.
+  const warnedTestIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!selectedTestId && tests.length > 0) {
+    if (!tests.length) return;
+    if (!selectedTestId) {
       setSelectedTestId(tests[0].id);
+      return;
     }
+    if (tests.some(t => t.id === selectedTestId)) return;
+    if (warnedTestIdRef.current !== selectedTestId) {
+      warnedTestIdRef.current = selectedTestId;
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: 'That assessment is gone — opened the latest suite instead' },
+        }));
+      } catch { /* ambient listener absent */ }
+    }
+    setSelectedTestId(tests[0].id);
   }, [tests, selectedTestId]);
 
   // Keep the deep-linked test honored when tests arrive after mount

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { Icon, Button, Chip, EmptyState, PageHeader } from '../components/ui';
@@ -40,6 +40,19 @@ export function ScoreAnalytics() {
   }, [reviewOpen, reviewBusy]);
 
   const test = tests.find(t => t.id === testId) || tests[0];
+  /* a ?testId= naming no known test falls back to tests[0] — say so once,
+     or the user reads another suite's scores thinking they're the link's */
+  const warnedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!testId || !tests.length || tests.some(t => t.id === testId)) return;
+    if (warnedRef.current === testId) return;
+    warnedRef.current = testId;
+    try {
+      window.dispatchEvent(new CustomEvent('iterra:toast', {
+        detail: { text: 'That assessment is gone — showing the latest suite instead' },
+      }));
+    } catch { /* ambient listener absent */ }
+  }, [testId, tests]);
   /* the terrain listens for 'iterra:select-object' — landing on a suite's
      analytics puts it in the context panel like picking it in Search */
   useEffect(() => {

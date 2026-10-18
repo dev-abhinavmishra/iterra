@@ -141,12 +141,19 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
   });
 
   // ?routine=<name> intake — scroll + ring the named routine; unknown names
-  // degrade to a plain open (silent, per the intake contract). Hooks must live
-  // above the running/finished early-return below.
+  // get an honest toast, same contract as the register's dead links. Hooks
+  // must live above the running/finished early-return below.
   useEffect(() => {
     if (!focusRoutine) return;
     const match = [...BUILT_INS, ...custom].find(r => r.name.toLowerCase() === focusRoutine.toLowerCase());
-    if (!match) return;
+    if (!match) {
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: `No routine named “${focusRoutine}” here` },
+        }));
+      } catch { /* ambient listener absent */ }
+      return;
+    }
     setFocusedId(match.id);
     cardRefs.current.get(match.id)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [focusRoutine]); // eslint-disable-line react-hooks/exhaustive-deps

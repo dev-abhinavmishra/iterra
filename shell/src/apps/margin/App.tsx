@@ -186,7 +186,17 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                 settings: View.SETTINGS,
             };
             const v = PV[params.get('p')!.toLowerCase()];
+            /* unknown p names a view that isn't here — strip it and say
+               so instead of letting it re-fire on every query change */
             if (v) { strip(); setCurrentView(v); }
+            else {
+                strip();
+                try {
+                    window.dispatchEvent(new CustomEvent('iterra:toast', {
+                        detail: { text: `That Study Materials link is stale — no “${params.get('p')}” view` },
+                    }));
+                } catch { /* no window to notify */ }
+            }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded, query]);

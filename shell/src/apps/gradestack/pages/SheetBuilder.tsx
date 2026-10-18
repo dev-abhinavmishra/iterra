@@ -63,6 +63,19 @@ export function SheetBuilder() {
   // test actually exists, otherwise "Save changes" would updateTest a ghost
   // and the sheet the user just built would vanish silently.
   const editingTest = editingTestId ? tests.find(t => t.id === editingTestId) : undefined;
+  // …and a dead edit link shouldn't land in create mode unexplained
+  const warnedEditIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!editingTestId || !tests.length || editingTest) return;
+    if (warnedEditIdRef.current === editingTestId) return;
+    warnedEditIdRef.current = editingTestId;
+    try {
+      window.dispatchEvent(new CustomEvent('iterra:toast', {
+        detail: { text: 'That assessment is gone — building a fresh sheet instead' },
+      }));
+    } catch { /* ambient listener absent */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingTestId, tests, editingTest]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isImporting, setIsImporting] = useState(initialImportPdf || false);
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
