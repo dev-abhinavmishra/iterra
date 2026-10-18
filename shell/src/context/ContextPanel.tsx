@@ -775,7 +775,7 @@ export function ContextPanel({
             </div>
 
             {feedback && (
-              <div className="anim-fade flex items-center justify-between gap-2 rounded-[5px] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] px-2.5 py-1.5 text-[12px] text-[var(--color-accent)]">
+              <div role="status" className="anim-fade flex items-center justify-between gap-2 rounded-[5px] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] px-2.5 py-1.5 text-[12px] text-[var(--color-accent)]">
                 <span className="truncate font-medium">{feedback.text}</span>
                 {feedback.url && (
                   <button

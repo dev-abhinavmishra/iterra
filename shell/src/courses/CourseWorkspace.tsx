@@ -918,7 +918,7 @@ export function CourseWorkspace({
           )}
 
           {sent && (
-            <div className="anim-fade mt-3 flex items-center justify-between gap-2 rounded-[5px] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] px-3 py-1.5 text-[12px] text-[var(--color-accent)]">
+            <div role="status" className="anim-fade mt-3 flex items-center justify-between gap-2 rounded-[5px] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] px-3 py-1.5 text-[12px] text-[var(--color-accent)]">
               <span>{sent.t}</span>
               {sent.url && (
                 <button
