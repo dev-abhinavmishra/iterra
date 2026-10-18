@@ -516,6 +516,51 @@ export function CourseWorkspace({
     );
   };
 
+  /* Per-type primary action for schedule rows — routines check in on the
+     register (inline, no navigation), everything else starts a bound
+     focus session. Shared by the overview preview + the schedule tab so
+     they can't drift apart again. */
+  const scheduleRowAction = (item: WorkspaceObject) => {
+    if (item.type === 'routine') {
+      return {
+        label: item.data?.todayDone === true ? 'Logged ✓' : 'Log check-in',
+        run: () => {
+          if (item.data?.todayDone === true) return;
+          void sendTo({ to: 'rhythm', action: 'routine.check', payload: { routineId: item.id } }).then(
+            (r) =>
+              showToast(
+                r.toast ||
+                  (r.delivered === 'queued'
+                    ? 'Check-in queued — Attendance applies it on next open'
+                    : r.ok
+                      ? 'Checked in'
+                      : `Could not check in: ${r.error || 'unavailable'}`),
+                r.delivered === 'queued' ? r.url || undefined : undefined,
+              ),
+          );
+        },
+      };
+    }
+    return {
+      label: 'Start Focus',
+      run: () => {
+        void sendTo({
+          to: 'timer',
+          action: 'timer.start',
+          payload: {
+            label: item.title,
+            minutes: (item.data?.minutes as number) || 25,
+            course: display,
+            courseId,
+            commitmentId: item.type === 'commitment' ? item.id : undefined,
+          },
+        }).then((r) => {
+          if (r.url) onGo(r.url);
+        });
+      },
+    };
+  };
+
   const renderObjectWithRelationships = (item: WorkspaceObject, primaryActionLabel?: string, onPrimaryAction?: (w: WorkspaceObject) => void) => {
     const rels = relationshipsByKey.get(item.key) || [];
     return (
@@ -918,23 +963,10 @@ export function CourseWorkspace({
                 />
                 {scheduleItems.length > 0 ? (
                   <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                    {scheduleItems.slice(0, 5).map((item) =>
-                      renderObjectWithRelationships(item, 'Focus', () => {
-                        void sendTo({
-                          to: 'timer',
-                          action: 'timer.start',
-                          payload: {
-                            label: item.title,
-                            minutes: (item.data?.minutes as number) || 25,
-                            course: display,
-                            courseId,
-                            commitmentId: item.type === 'commitment' ? item.id : undefined,
-                          },
-                        }).then((r) => {
-                          if (r.url) onGo(r.url);
-                        });
-                      }),
-                    )}
+                    {scheduleItems.slice(0, 5).map((item) => {
+                      const a = scheduleRowAction(item);
+                      return renderObjectWithRelationships(item, a.label === 'Start Focus' ? 'Focus' : a.label, a.run);
+                    })}
                   </div>
                 ) : (
                   <EmptyState
@@ -1298,48 +1330,10 @@ export function CourseWorkspace({
             </div>
             {scheduleItems.length > 0 ? (
               <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                {scheduleItems.map((item) =>
-                  item.type === 'routine'
-                    ? /* a routine's action is a check-in, not a focus
-                         session — the register intake marks it inline */
-                      renderObjectWithRelationships(
-                        item,
-                        item.data?.todayDone === true ? 'Logged ✓' : 'Log check-in',
-                        () => {
-                          if (item.data?.todayDone === true) return;
-                          void sendTo({
-                            to: 'rhythm',
-                            action: 'routine.check',
-                            payload: { routineId: item.id },
-                          }).then((r) => {
-                            showToast(
-                              r.toast ||
-                                (r.delivered === 'queued'
-                                  ? 'Check-in queued — Attendance applies it on next open'
-                                  : r.ok
-                                    ? 'Checked in'
-                                    : `Could not check in: ${r.error || 'unavailable'}`),
-                              r.delivered === 'queued' ? r.url || undefined : undefined,
-                            );
-                          });
-                        },
-                      )
-                    : renderObjectWithRelationships(item, 'Start Focus', () => {
-                        void sendTo({
-                          to: 'timer',
-                          action: 'timer.start',
-                          payload: {
-                            label: item.title,
-                            minutes: (item.data?.minutes as number) || 25,
-                            course: display,
-                            courseId,
-                            commitmentId: item.type === 'commitment' ? item.id : undefined,
-                          },
-                        }).then((r) => {
-                          if (r.url) onGo(r.url);
-                        });
-                      }),
-                )}
+                {scheduleItems.map((item) => {
+                  const a = scheduleRowAction(item);
+                  return renderObjectWithRelationships(item, a.label, a.run);
+                })}
               </div>
             ) : (
               <EmptyState
