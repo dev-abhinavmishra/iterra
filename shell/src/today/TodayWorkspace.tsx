@@ -494,6 +494,27 @@ export function TodayWorkspace({
       });
     }
 
+    /* open follow-up tasks — a diverged attempt or flagged assessment that
+       spawned "retry this" work sits invisible until scheduled. Surface
+       open ones so triage happens from Today, not by remembering. */
+    for (const e of entities) {
+      if (e.type !== 'followup' || e.data?.status !== 'open') continue;
+      if (!matchesCourseFilter(e.course, e.topic)) continue;
+      const w = toWorkspaceObject(e);
+      items.push({
+        id: `followup:${e.id}`,
+        app: e.app,
+        typeLabel: PLACE_MAP[e.app]?.label || 'Follow-up',
+        title: w.title,
+        detail: 'Follow-up created — not yet scheduled',
+        course: w.course,
+        actionLabel: 'Review',
+        url: w.url,
+        object: w,
+      });
+      if (items.filter((i) => i.id.startsWith('followup:')).length >= 3) break;
+    }
+
     return items;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allObjects, entities, presences, shared.register, now, courseFilterLow]);
@@ -1212,8 +1233,13 @@ export function TodayWorkspace({
                                     notify('Couldn’t log it — Rhythm may still be starting.');
                                     return;
                                   }
-                                  if (r.delivered !== true) {
+                                  /* handler toasts beat generics; queued is
+                                     honest about landing later */
+                                  if (r.toast) { notify(r.toast, r.url); return; }
+                                  if (r.delivered === 'queued') {
                                     notify('Log queued — Rhythm applies it on next open.', r.url);
+                                  } else {
+                                    notify('Logged to the register.', r.url);
                                   }
                                 });
                               return;
