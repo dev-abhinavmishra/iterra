@@ -369,6 +369,29 @@ for an already-delivered record still navigates once to the stored
 **Wake** — the shell posts `{type:'iterra:wake'}` to a keep-alive frame on
 focus; adapters' `wake` re-reads the store. No stale views.
 
+### Window events the shell owns
+
+Apps surface user-visible notices without owning a toast stack:
+
+- `iterra:toast` — `dispatchEvent(new CustomEvent('iterra:toast',
+  { detail: { text, url? } }))`. The ambient rail shows `text` for ~7s;
+  `url` adds an "Open →" action through the normal deep-link router
+  (`#/p/…`, `#/c/…`, `/apps/…` all resolve). Use it for dead-link misses,
+  refused actions, anything the user should hear about while your place
+  may be the one mounted.
+- `iterra:storage-full` — dispatched by `src/apps/guardedStorage.ts` (the
+  shared zustand-persist storage) and a few raw writers when a
+  `localStorage` write hits quota. Throttled to once per 30s; the shell
+  toasts a backup-first pointer to `#/settings`. New stores should persist
+  through `createJSONStorage(() => guardedStorage)` rather than bare
+  `localStorage` so quota failures report instead of silently dropping
+  the write.
+- `iterra:theme` — the terrain pushes theme changes; apps subscribe via
+  `onTerrainTheme` and restyle under `[data-terrain='paper'|‘graphite']`.
+- `iterra:update-available` — the service worker found a newer deploy;
+  the ambient rail offers a refresh toast.
+- `iterra:select-object` — opens an object in the shared context panel.
+
 ## 8. Dev topology
 
 Shell dev proxy maps `/apps/<name>` → `localhost:<port>`:
