@@ -83,7 +83,13 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   }
   
   function saveStore() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state.decks)); } catch {}
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state.decks));
+    } catch {
+      /* quota'd — a swallowed write silently loses the deck; the shared
+         notice surfaces it once via the shell's ambient toast */
+      try { window.dispatchEvent(new CustomEvent('iterra:storage-full')); } catch {}
+    }
     (window as any).__fcSaveNotify?.();
   }
   

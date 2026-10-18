@@ -27,7 +27,13 @@ export function saveSession(session: Omit<Session, 'id' | 'timestamp'> & { id?: 
     timestamp: Date.now(),
   };
   sessions.push(newSession);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  } catch {
+    /* quota'd — the ledger keeps growing every session; surface it via the
+       shared notice instead of silently dropping the log */
+    try { window.dispatchEvent(new CustomEvent('iterra:storage-full')); } catch {}
+  }
   // the iterra adapter mirrors this record into the canonical store — the
   // event keeps the write-point here instead of iterra calls in the views
   try { window.dispatchEvent(new CustomEvent('timer:session', { detail: newSession })); } catch {}
@@ -71,7 +77,11 @@ export function deleteSession(id: string): boolean {
   const sessions = getSessions();
   const next = sessions.filter((s) => s.id !== id);
   if (next.length === sessions.length) return false;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    try { window.dispatchEvent(new CustomEvent('iterra:storage-full')); } catch {}
+  }
   try { window.dispatchEvent(new CustomEvent('timer:session-removed', { detail: { id } })); } catch {}
   return true;
 }

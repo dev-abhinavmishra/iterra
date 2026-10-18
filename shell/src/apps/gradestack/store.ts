@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { guardedStorage } from '../guardedStorage';
 import { db, auth } from './lib/firebase';
 import { doc, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { gradeResponses, GradingScale, DEFAULT_SCALE } from './lib/grading';
@@ -457,6 +458,7 @@ export const useStore = create<AppState>()(
     }),
     {
       name: 'gradestack-storage',
+      storage: createJSONStorage(() => guardedStorage),
       partialize: (state) => ({
         tests: state.tests,
         scans: state.scans,
