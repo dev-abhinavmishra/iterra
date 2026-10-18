@@ -20,7 +20,7 @@ beforeEach(() => { for (const k of Object.keys(store)) delete store[k]; });
 describe('shared commons doc', () => {
   it('reads stamped {v,by,at} fields', () => {
     store['iterra.v1.doc.shared'] = JSON.stringify({
-      focus: { v: { running: true, label: 'ps4 drill', blockId: 'b1', course: 'MTH', endsInMin: 25 }, by: 'timer', at: 1 },
+      focus: { v: { running: true, label: 'ps4 drill', blockId: 'b1', course: 'MTH', endsAt: Date.now() + 25 * 60000 }, by: 'timer', at: 1 },
       activeCourse: { v: { code: 'MTH', name: 'Math' }, by: 'syllabus', at: 2 },
     });
     const m = readShared();

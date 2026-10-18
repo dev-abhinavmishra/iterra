@@ -194,7 +194,9 @@ describe('recordSessionOutcome', () => {
   it('a foreign session outcome never touches another live session\'s restore blob', async () => {
     /* a live focus countdown's blob carries its own sessionId — an interval
        finish or manual backfill must not wipe it (or reload-restore dies) */
-    store.set('timer.session.live.v1', JSON.stringify({ sessionId: 'live_A', endsAt: Date.now() + 60000 }));
+    /* a live blob always carries running:true — a flag-less blob is a
+       corpse both TimerView's mount-restore and the context revive sweep */
+    store.set('timer.session.live.v1', JSON.stringify({ sessionId: 'live_A', running: true, endsAt: Date.now() + 60000 }));
     await handleRecordSessionOutcome({ sessionId: 's_other', outcome: 'completed', elapsedMinutes: 10 });
     expect(store.get('timer.session.live.v1')).toContain('live_A');
     /* ...but finishing the live session itself does clear it */
