@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { MemoryRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { MotionConfig } from 'motion/react';
 import type { InitialEntry } from 'react-router-dom';
 import { Sidebar } from './components/Sidebar';
 import { MobileHeader } from './components/MobileHeader';
@@ -173,7 +174,9 @@ export default function App({ query = '' }: { query?: string }) {
   return (
     <Router initialEntries={[initialEntry]}>
       <FirebaseProvider>
-        <AppLayout query={query} />
+        <MotionConfig reducedMotion="user">
+          <AppLayout query={query} />
+        </MotionConfig>
       </FirebaseProvider>
     </Router>
   );
