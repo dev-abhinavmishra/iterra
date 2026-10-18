@@ -200,7 +200,10 @@ const ok = (msg) => console.log('  ok:', msg);
   await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
   const logBtn = page.getByRole('button', { name: 'Log routine' }).first();
   let btnFound = false;
-  for (let i = 0; i < 30; i++) {
+  /* the routine row lags the intake drain — the adapter's mirror/index write
+     is a second async pass, and on a loaded disk it lands tens of seconds
+     after 'drained' is reported. ~42s covers the observed worst case. */
+  for (let i = 0; i < 60; i++) {
     if (await logBtn.count()) { btnFound = true; break; }
     await page.waitForTimeout(700);
   }
