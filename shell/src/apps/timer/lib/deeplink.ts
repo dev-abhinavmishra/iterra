@@ -34,15 +34,21 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
   if (!from || !/^[a-z]{2,16}$/.test(from)) return null;
   const minutes = Number(q.get('minutes'));
   const thenBreak = Number(q.get('break'));
+  /* labels ride into session records + feed rows — cap them so a hostile
+     or hand-mangled link can't file a megabyte as the session's name */
+  const clip = (v: string | null, n = 160) => {
+    const t = (v || '').trim();
+    return t ? t.slice(0, n) : undefined;
+  };
   return {
-    intent: q.get('intent') || undefined,
+    intent: clip(q.get('intent')),
     minutes: Number.isFinite(minutes) && minutes >= 1 && minutes <= 720 ? Math.round(minutes) : undefined,
-    course: q.get('course') || undefined,
-    block: q.get('block') || undefined,
+    course: clip(q.get('course'), 60),
+    block: clip(q.get('block'), 100),
     returnUrl: q.get('return') || undefined,
     from,
-    courseId: q.get('courseId') || undefined,
-    commitmentId: q.get('commitment') || undefined,
+    courseId: clip(q.get('courseId'), 140),
+    commitmentId: clip(q.get('commitment'), 100),
     /* syllabus links emit 'mat'; the command layer's startFocusSession emits
        'material' — accept both so command-started sessions keep their
        practicedIn edge. */
