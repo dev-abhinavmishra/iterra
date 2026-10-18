@@ -26,6 +26,16 @@ const errors = [];
   const page = await ctx.newPage();
   page.on('pageerror', (e) => errors.push(String(e).slice(0, 200)));
 
+  /* fail fast on the wrong server — a shared localhost port can belong
+     to another project's dev server */
+  await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  const iterraTitle = await page.title().catch(() => '');
+  if (!/iterra/i.test(iterraTitle)) {
+    console.log(`FAIL: ${BASE} isn't serving Iterra (title: "${iterraTitle || 'n/a'}") — pass the right port`);
+    await browser.close();
+    process.exit(1);
+  }
+
   /* seed + drain the ink intake so the backup has delivered rows too */
   await page.goto(`${BASE}/#/settings`, { waitUntil: 'load' });
   await page.waitForTimeout(2200);

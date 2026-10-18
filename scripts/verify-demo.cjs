@@ -21,6 +21,16 @@ const ok = (msg) => console.log('  ok:', msg);
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
 
+  /* fail fast on the wrong server — localhost:5173 can belong to another
+     project's dev server, and every subsequent locator just times out */
+  await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  const title = await page.title().catch(() => '');
+  if (!/iterra/i.test(title)) {
+    fail(`${BASE} isn't serving Iterra (title: "${title || 'n/a'}") — pass the right port`);
+    await browser.close();
+    process.exit(1);
+  }
+
   /* ── seed via the real UI ── */
   await page.goto(`${BASE}/#/settings`, { waitUntil: 'load' });
   await page.getByText('Load a sample semester', { exact: false }).first().click();

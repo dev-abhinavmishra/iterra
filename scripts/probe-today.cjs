@@ -15,6 +15,16 @@ const BASE = process.argv[2] || 'http://localhost:5173';
   page.on('pageerror', (e) => errors.push(String(e)));
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console:' + m.text()); });
 
+  /* fail fast on the wrong server — a shared localhost port can belong
+     to another project's dev server */
+  await page.goto(BASE, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  const iterraTitle = await page.title().catch(() => '');
+  if (!/iterra/i.test(iterraTitle)) {
+    console.log(`FAIL: ${BASE} isn't serving Iterra (title: "${iterraTitle || 'n/a'}") — pass the right port`);
+    await browser.close();
+    process.exit(1);
+  }
+
   await page.goto(`${BASE}/#/settings`, { waitUntil: 'load', timeout: 60000 });
   await page.getByText('Load a sample semester', { exact: false }).first().click();
   await page.getByRole('button', { name: 'Load sample' }).click();
