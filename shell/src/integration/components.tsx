@@ -7,7 +7,7 @@
      - SessionOutcomeBar (Explicit completed / partial / interrupted / canceled confirmation)
      - WorkspaceChainView (Course workspace connected chain visualization) */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type {
   CandidateCard,
   ObjectRef,
@@ -45,6 +45,47 @@ function useEscapeClose(open: boolean, onClose: () => void) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
+}
+
+/* Focus discipline for the raw-dialog workflows in this file — mirrors the
+   ui/primitives Dialog contract: focus lands inside the dialog on open, Tab
+   cycles within it, and focus returns to the invoker on close. The panel
+   element needs ref + tabIndex={-1} so it can take the fallback focus. */
+function useModalA11y(open: boolean, panelRef: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !panelRef.current) return;
+      const items = Array.from(
+        panelRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !panelRef.current.contains(document.activeElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    requestAnimationFrame(() => {
+      const first =
+        panelRef.current?.querySelector<HTMLElement>(
+          'input, select, textarea, [autofocus], button',
+        ) ?? panelRef.current;
+      first?.focus?.();
+    });
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      prev?.focus?.();
+    };
+  }, [open, panelRef]);
 }
 
 function navigateTo(url: string, onGo?: (u: string) => void) {
@@ -109,8 +150,10 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdResult, setCreatedResult] = useState<{ deckId: string; deckRef: string; url: string; count: number } | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEscapeClose(open, onClose);
+  useModalA11y(open, panelRef);
 
   useEffect(() => {
     if (!open) return;
@@ -220,6 +263,8 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
       aria-label="Create flashcards deck from selection"
     >
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className="w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-lg border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 text-[var(--color-ink)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -465,8 +510,10 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEscapeClose(open, onClose);
+  useModalA11y(open, panelRef);
 
   useEffect(() => {
     if (!open) return;
@@ -526,6 +573,8 @@ export const AttachToInkModal: React.FC<AttachToInkModalProps> = ({
       aria-label="Review and attach to Ink note"
     >
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className="w-full max-w-xl rounded-lg border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 text-[var(--color-ink)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -684,8 +733,10 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scheduled, setScheduled] = useState<{ blockId: string; blockRef: string; url: string; course: string } | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEscapeClose(open, onClose);
+  useModalA11y(open, panelRef);
 
   useEffect(() => {
     if (!open) return;
@@ -774,6 +825,8 @@ export const ScheduleReviewModal: React.FC<ScheduleReviewModalProps> = ({
       aria-label="Schedule review block in Syllabus"
     >
       <div
+        ref={panelRef}
+        tabIndex={-1}
         className="w-full max-w-lg rounded-lg border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 text-[var(--color-ink)] shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -952,8 +1005,10 @@ export const SourceChangedBanner: React.FC<{
   const [reviewing, setReviewing] = useState<SourceFreshnessReport | null>(null);
   const [selectedCards, setSelectedCards] = useState<CandidateCard[]>([]);
   const [busy, setBusy] = useState(false);
+  const reviewPanelRef = useRef<HTMLDivElement>(null);
 
   useEscapeClose(reviewing !== null, () => setReviewing(null));
+  useModalA11y(reviewing !== null, reviewPanelRef);
 
   const refresh = () => {
     if (!deckId) {
@@ -1071,6 +1126,8 @@ export const SourceChangedBanner: React.FC<{
           aria-label="Review source note changes"
         >
           <div
+            ref={reviewPanelRef}
+            tabIndex={-1}
             className="w-full max-w-xl max-h-[85vh] overflow-y-auto rounded-lg border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 text-[var(--color-ink)] shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
