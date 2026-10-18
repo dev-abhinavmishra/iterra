@@ -387,7 +387,7 @@ Apps surface user-visible notices without owning a toast stack:
   `localStorage` so quota failures report instead of silently dropping
   the write.
 - `iterra:theme` — the terrain pushes theme changes; apps subscribe via
-  `onTerrainTheme` and restyle under `[data-terrain='paper'|‘graphite']`.
+  `onTerrainTheme` and restyle under `[data-terrain='paper'|'graphite']`.
 - `iterra:update-available` — the service worker found a newer deploy;
   the ambient rail offers a refresh toast.
 - `iterra:select-object` — opens an object in the shared context panel.
