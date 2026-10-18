@@ -61,6 +61,18 @@ export function Ambient({
     return () => window.removeEventListener('iterra:update-available', onUpdate);
   }, []);
 
+  /* a guarded persist write hit the quota — surface it in chrome so the
+     warning reaches the user even while the failing app is hidden */
+  useEffect(() => {
+    const onFull = () => {
+      setToast({ text: 'Storage is full — export a backup, then clear room', url: '#/settings' });
+      const t = window.setTimeout(() => setToast(null), 8000);
+      void t;
+    };
+    window.addEventListener('iterra:storage-full', onFull);
+    return () => window.removeEventListener('iterra:storage-full', onFull);
+  }, []);
+
   if (!toast) return null;
 
   return (

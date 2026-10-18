@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { guardedStorage } from '../../guardedStorage';
 import type {
   AppSettings,
   CourseRef,
@@ -580,6 +581,7 @@ export const useRegister = create<RegisterState>()(
     }),
     {
       name: 'rhythm.register.v1',
+      storage: createJSONStorage(() => guardedStorage),
       version: 2,
       /* v2: vendored sibling apps always live under /apps/<name> — an
          absolute http(s) baseUrl persisted before vendoring (the old

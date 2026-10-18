@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { guardedStorage } from '../../guardedStorage';
 import type {
   AppSettings,
   Commitment,
@@ -651,6 +652,7 @@ export const useFolio = create<FolioState>()(
     }),
     {
       name: 'syllabus.folio.v1',
+      storage: createJSONStorage(() => guardedStorage),
       version: 1,
       // Blobs written before array fields existed boot-crash on bare
       // iteration (c.dependencies is not iterable → white screen).

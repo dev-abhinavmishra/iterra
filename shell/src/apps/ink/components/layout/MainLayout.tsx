@@ -55,8 +55,8 @@ export const MainLayout: React.FC = () => {
   // The desk is only so big — when storage refuses a write, say so plainly.
   React.useEffect(() => {
     const warn = () => setNotice({ message: 'The desk is full — export a copy, then clear room.' });
-    window.addEventListener('ink:storage-full', warn);
-    return () => window.removeEventListener('ink:storage-full', warn);
+    window.addEventListener('iterra:storage-full', warn);
+    return () => window.removeEventListener('iterra:storage-full', warn);
   }, [setNotice]);
 
   return (

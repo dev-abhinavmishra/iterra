@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { format } from 'date-fns';
+import { guardedStorage } from '../../guardedStorage';
 import { todayKey, sanitizeDoc } from '../lib/notes';
 import { PENS } from '../lib/pens';
 import type { PenId } from '../lib/pens';
@@ -57,25 +58,7 @@ export type Draft = {
 const DRAFT_GAP = 30 * 60 * 1000;
 const DRAFT_LIMIT = 12;
 
-/* localStorage fills up quietly — browsers give ~5MB and a heavy
- * library can reach it. When a write fails, surface it once instead
- * of silently losing keystrokes. */
-let lastStorageWarning = 0;
-const guardedStorage = {
-  getItem: (key: string) => localStorage.getItem(key),
-  setItem: (key: string, value: string) => {
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      const now = Date.now();
-      if (now - lastStorageWarning > 30_000) {
-        lastStorageWarning = now;
-        window.dispatchEvent(new CustomEvent('ink:storage-full'));
-      }
-    }
-  },
-  removeItem: (key: string) => localStorage.removeItem(key),
-};
+
 
 type AppState = {
   notes: Note[];

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { guardedStorage } from '../../guardedStorage';
 import type {
   AppSettings,
   Attempt,
@@ -526,6 +527,7 @@ export const useWorkbench = create<WorkbenchState>()(
     }),
     {
       name: 'proof.workbench.v1',
+      storage: createJSONStorage(() => guardedStorage),
       version: 1,
       /* old/partial blobs: array fields readers iterate unguarded
          (p.tags crashed LibraryView + selectAllTags — same class as the
