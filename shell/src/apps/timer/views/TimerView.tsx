@@ -202,6 +202,60 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
      session shares the id, so completion can dedupe instead of logging
      the session once per tab */
   const sessionIdRef = useRef<string | null>(null);
+  /* re-arms this view's clock from a live-session blob — used by the mount
+     restore and by 'timer:bind-session' (a navigate:false bind lands while
+     the view stays mounted, so it must poke rather than remount). Returns
+     true when the blob described a resumable session. */
+  const applyLiveBlob = (live: any): boolean => {
+    const resumeMs = live?.running ? (live.endsAt || 0) - Date.now()
+      : live?.paused ? (live.remainingSec || 0) * 1000 : -1;
+    if (!live || resumeMs <= 0) return false;
+    sessionIdRef.current = live.sessionId || null;
+    setSetMinutes(Math.round((live.totalMin || 25)));
+    setLabel(live.label ?? presetName);
+    setIntent(live.intent || '');
+    setIsBreak(!!live.break);
+    setThenBreak(live.thenBreak || 0);
+    /* command-started sessions store the binding as `materialRef` (the
+       command layer's field name); the live state field is `material` —
+       normalize here or a mid-session reload drops the practicedIn edge */
+    setSyllabus(live.syllabus
+      ? { ...live.syllabus, material: live.syllabus.material ?? live.syllabus.materialRef }
+      : null);
+    const totalMs = (live.totalMin || 25) * 60000;
+    if (live.running) {
+      /* start() re-arms at ms as the total — restore the ORIGINAL total
+         after so progress, paused-derivation and the completion log all
+         stay honest about the session's real size */
+      cd.start(resumeMs, live.break ? completeBreakLive : completeFocusLive);
+      cd.setTotalMs(totalMs);
+    } else {
+      /* paused restores to the paused board: arm at the original total,
+         then bank the saved remainder so paused === true */
+      cd.reset(totalMs);
+      cd.setRemainingMs(resumeMs);
+    }
+    return true;
+  };
+  const applyLiveBlobRef = useRef(applyLiveBlob);
+  applyLiveBlobRef.current = applyLiveBlob;
+  /* keep the view's own clock state reachable from the event listener —
+     a bind must never stomp a session that's visibly running here */
+  const busyRef = useRef(false);
+  busyRef.current = cd.running || !!done;
+  /* 'timer:bind-session' — the command layer wrote a fresh live blob
+     (navigate:false send, or a bind while this place stayed mounted).
+     Arm from it unless this view's own session is mid-run. */
+  useEffect(() => {
+    const onBind = () => {
+      if (busyRef.current) return;
+      let live: any = null;
+      try { live = JSON.parse(localStorage.getItem(LIVE_SESSION_KEY) || 'null'); } catch { /* ignore */ }
+      applyLiveBlobRef.current(live);
+    };
+    window.addEventListener('timer:bind-session', onBind);
+    return () => window.removeEventListener('timer:bind-session', onBind);
+  }, []);
   useEffect(() => {
     const link = pendingLink.current;
     /* computed up front — a resumable session outranks a pending link,
@@ -248,34 +302,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       /* kept (not consumed) — StrictMode re-runs mount effects in dev, and
          re-applying an identical restore is harmless; the ref is fresh per
          mount anyway */
-      if (live && resumeMs > 0) {
-        sessionIdRef.current = live.sessionId || null;
-        setSetMinutes(Math.round((live.totalMin || 25)));
-        setLabel(live.label ?? presetName);
-        setIntent(live.intent || '');
-        setIsBreak(!!live.break);
-        setThenBreak(live.thenBreak || 0);
-        /* command-started sessions store the binding as `materialRef` (the
-           command layer's field name); the live state field is `material` —
-           normalize here or a mid-session reload drops the practicedIn edge */
-        setSyllabus(live.syllabus
-          ? { ...live.syllabus, material: live.syllabus.material ?? live.syllabus.materialRef }
-          : null);
-        const totalMs = (live.totalMin || 25) * 60000;
-        if (live.running) {
-          /* start() re-arms at ms as the total — restore the ORIGINAL total
-             after so progress, paused-derivation and the completion log all
-             stay honest about the session's real size */
-          cd.start(resumeMs, live.break ? completeBreakLive : completeFocusLive);
-          cd.setTotalMs(totalMs);
-        } else {
-          /* paused restores to the paused board: arm at the original total,
-             then bank the saved remainder so paused === true */
-          cd.reset(totalMs);
-          cd.setRemainingMs(resumeMs);
-        }
-        return;
-      }
+      if (applyLiveBlobRef.current(live)) return;
       if (live) { try { localStorage.removeItem(LIVE_SESSION_KEY); } catch { /* ignore */ } }
     }
     setSetMinutes(presetMinutes);
