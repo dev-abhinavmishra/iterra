@@ -52,9 +52,33 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
 
   const nav = (patch: Partial<RouteState>) => setRoute((r) => ({ ...r, ...patch }));
   const goView = (view: ViewKey) => { setOnboardingSeen(true); setRoute({ view }); };
-  const startAttempt = (attemptId: string, sessionId?: string) =>
+  /* the terrain listens for 'iterra:select-object' — a desk/compare landing
+     puts the problem in the context panel like picking it in Search */
+  const selectProblemFor = (attemptId: string) => {
+    try {
+      const a = useWorkbench.getState().attempts[attemptId];
+      const p = a ? useWorkbench.getState().problems[a.problemId] : undefined;
+      if (!p || !(window as any).__iterraIntegrated) return;
+      const course = p.courseId ? useWorkbench.getState().courses[p.courseId]?.code : undefined;
+      window.dispatchEvent(new CustomEvent('iterra:select-object', {
+        detail: {
+          key: `proof:problem:${p.id}`,
+          app: 'proof', type: 'problem', id: p.id,
+          title: p.topic || 'untitled problem',
+          course, courseId: p.courseId, topic: p.topic,
+          url: `/apps/proof/?problem=${encodeURIComponent(p.id)}`,
+        },
+      }));
+    } catch { /* notice dispatch is best-effort */ }
+  };
+  const startAttempt = (attemptId: string, sessionId?: string) => {
+    selectProblemFor(attemptId);
     setRoute({ view: 'attempt', attemptId, sessionId });
-  const openCompare = (attemptId: string) => setRoute({ view: 'compare', compareAttemptId: attemptId });
+  };
+  const openCompare = (attemptId: string) => {
+    selectProblemFor(attemptId);
+    setRoute({ view: 'compare', compareAttemptId: attemptId });
+  };
 
   /* ?settings — the terrain's central settings surface deep-links here;
      consumed params strip so the same link fires again later */

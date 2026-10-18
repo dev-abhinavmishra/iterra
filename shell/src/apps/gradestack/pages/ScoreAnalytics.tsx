@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import { Icon, Button, Chip, EmptyState, PageHeader } from '../components/ui';
 import { normalizeAnswer, optionsFor, formatsForTest, csvEscape, downloadFile } from '../lib/grading';
 import { feed } from '../lib/iterra';
-import { useCourseLoggedMinutes, fmtLoggedMinutes, folioUrlFor } from '../lib/iterra-adapter';
+import { useCourseLoggedMinutes, fmtLoggedMinutes, folioUrlFor, courseKeyFor } from '../lib/iterra-adapter';
 import { openTerrain } from '../components/terrain';
 import { placeActive } from '../../active';
 import { PlacePortal } from '../../portal';
@@ -40,6 +40,23 @@ export function ScoreAnalytics() {
   }, [reviewOpen, reviewBusy]);
 
   const test = tests.find(t => t.id === testId) || tests[0];
+  /* the terrain listens for 'iterra:select-object' — landing on a suite's
+     analytics puts it in the context panel like picking it in Search */
+  useEffect(() => {
+    if (!test || !(window as any).__iterraIntegrated) return;
+    try {
+      window.dispatchEvent(new CustomEvent('iterra:select-object', {
+        detail: {
+          key: `gradestack:assessment:${test.id}`,
+          app: 'gradestack', type: 'assessment', id: test.id,
+          title: test.name || 'Assessment',
+          sub: `${test.numQuestions || 0} questions`,
+          course: test.courseName, courseId: courseKeyFor(test.courseName) || undefined,
+          url: `/apps/gradestack/?assessment=${encodeURIComponent(test.id)}`,
+        },
+      }));
+    } catch { /* notice dispatch is best-effort */ }
+  }, [test?.id]);
   const loggedMinutes = useCourseLoggedMinutes(test?.courseName);
   const allTestScans = test ? scans.filter(s => s.testId === test.id) : [];
   const batches = Array.from(new Set(allTestScans.map(s => s.batchName).filter(Boolean))) as string[];

@@ -82,6 +82,25 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
         return () => window.removeEventListener('keydown', onKey);
     }, []);
 
+    /* the terrain listens for 'iterra:select-object' — opening a note in the
+       editor puts it in the context panel like picking it in Search */
+    useEffect(() => {
+        if (!activeNote?.id || !(window as any).__iterraIntegrated) return;
+        try {
+            window.dispatchEvent(new CustomEvent('iterra:select-object', {
+                detail: {
+                    key: `margin:note:${activeNote.id}`,
+                    app: 'margin', type: 'note', id: activeNote.id,
+                    title: activeNote.title || 'Untitled note',
+                    sub: activeNote.type?.toLowerCase(),
+                    course: activeNote.course, courseId: activeNote.courseId,
+                    topic: activeNote.tags?.[0],
+                    url: `/apps/margin/?note=${encodeURIComponent(activeNote.id)}`,
+                },
+            }));
+        } catch { /* notice dispatch is best-effort */ }
+    }, [activeNote?.id]);
+
     const refreshNotes = async () => {
         const storedNotes = await getAllNotes();
         setNotesState(storedNotes);

@@ -129,6 +129,24 @@ function Rhythm({ query = '' }: { query?: string }) {
   }
 
   const openRoutine = (id: string) => {
+    /* the terrain listens for 'iterra:select-object' — opening a routine
+       puts it in the context panel like picking it in Search */
+    try {
+      const r = useRegister.getState().routines[id];
+      if (r && (window as any).__iterraIntegrated) {
+        const cr = r.courseId ? useRegister.getState().courses[r.courseId] : undefined;
+        const course = cr?.code || cr?.name || undefined;
+        window.dispatchEvent(new CustomEvent('iterra:select-object', {
+          detail: {
+            key: `rhythm:routine:${id}`,
+            app: 'rhythm', type: 'routine', id,
+            title: r.name || 'Routine',
+            course, courseId: r.courseId,
+            url: `/apps/rhythm/?routine=${encodeURIComponent(r.name || id)}`,
+          },
+        }));
+      }
+    } catch { /* notice dispatch is best-effort */ }
     setRoutineId(id);
     setView('routine');
   };
