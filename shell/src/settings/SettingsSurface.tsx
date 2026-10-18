@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive, Inbox, AlertTriangle, Trash2 } from 'lucide-react';
 import { PLACES } from '../places';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
@@ -391,15 +391,30 @@ function StorageRow() {
     return () => { live = false; };
   }, []);
 
+  /* when space runs out the useful question is 'which tool is heavy' —
+     weigh each localStorage key and name the top three. Hook stays above
+     the !info early return so the order never shifts. */
+  const nearFull =
+    info?.usage != null && info?.quota != null && info.quota > 0 && info.usage / info.quota > 0.8;
+  const heaviest = useMemo(() => {
+    if (!nearFull) return [] as { key: string; bytes: number }[];
+    const rows: { key: string; bytes: number }[] = [];
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k) continue;
+        rows.push({ key: k, bytes: (localStorage.getItem(k) || '').length * 2 });
+      }
+    } catch { /* unreadable — skip the breakdown */ }
+    return rows.sort((a, b) => b.bytes - a.bytes).slice(0, 3);
+  }, [nearFull]);
+
   if (!info) return null;
   const fmt = (b?: number) =>
     b == null ? '' : b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB` : b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.round(b / 1e3)} KB`;
   const size = info.usage != null
     ? ` · ${fmt(info.usage)} used${info.quota ? ` of ~${fmt(info.quota)}` : ''}`
     : '';
-  /* writes start failing silently well before the quota reads 100% —
-     warn early enough that a backup can still download */
-  const nearFull = info.usage != null && info.quota != null && info.quota > 0 && info.usage / info.quota > 0.8;
 
   return (
     <div className="flex w-full items-center gap-3 border-t border-[var(--color-line)] px-4 py-2.5">
@@ -415,6 +430,11 @@ function StorageRow() {
               ? `This browser won't clear your data automatically${size}.`
               : `The browser may clear data under storage pressure — keep backups${size}.`}
         </span>
+        {heaviest.length > 0 && (
+          <span className="block truncate text-[11px] text-[var(--color-faint)]">
+            Largest: {heaviest.map((r) => `${r.key.split('.')[0]} ${fmt(r.bytes)}`).join(' · ')}
+          </span>
+        )}
       </span>
     </div>
   );
