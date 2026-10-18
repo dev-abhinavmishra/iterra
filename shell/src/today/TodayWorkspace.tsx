@@ -964,8 +964,39 @@ export function TodayWorkspace({
                             onGo(scheduledWork.primary!.url);
                           }}
                         >
-                          Open Block
+                          {scheduledWork.primary.type === 'commitment' ? 'Open Commitment' : 'Open Block'}
                         </Button>
+                        {scheduledWork.primary.type === 'commitment' && (
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            title="File this commitment done — off-clock work, no timer"
+                            onClick={() => {
+                              const o = scheduledWork.primary!;
+                              void (window as any).iterra
+                                ?.send?.({
+                                  to: 'syllabus',
+                                  action: 'commitment.done',
+                                  entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                  payload: { commitmentId: o.id },
+                                })
+                                .then((r: any) => {
+                                  if (!r?.ok) {
+                                    notify('Couldn’t file it — Planning may still be starting.');
+                                    return;
+                                  }
+                                  notify(
+                                    r.delivered === true
+                                      ? `Done — ${o.title}`
+                                      : 'Marked done — Planning applies it on next open.',
+                                    r.delivered === true ? undefined : r.url,
+                                  );
+                                });
+                            }}
+                          >
+                            Mark done
+                          </Button>
+                        )}
                         {scheduledWork.primary.type === 'block' && (
                           <>
                             <Button
