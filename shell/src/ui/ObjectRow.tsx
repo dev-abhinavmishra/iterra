@@ -318,14 +318,14 @@ export function ObjectRow({
             e.stopPropagation();
             onPrimaryAction(item);
           }}
-          className="shrink-0 rounded-[4px] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] px-2.5 py-1 text-[11.5px] font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-fg)] transition-colors cursor-pointer"
+          className="shrink-0 rounded-[4px] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] px-2.5 py-1 text-[11.5px] font-medium text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-[var(--color-accent-fg)] transition-colors cursor-pointer print:hidden"
         >
           {primaryActionLabel}
         </button>
       )}
 
       {/* Actions: Send-to, Pin, Details (the row itself opens the object) */}
-      <div className="flex items-center gap-0.5 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity">
+      <div className="flex items-center gap-0.5 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity print:hidden">
         <DropdownMenu
           trigger={(_open, toggle) => (
             <IconButton label={`Send "${item.title}" to another tool`} onClick={toggle}>

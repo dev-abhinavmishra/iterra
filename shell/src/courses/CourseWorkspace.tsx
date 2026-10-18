@@ -557,7 +557,16 @@ export function CourseWorkspace({
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 print:hidden">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                aria-label="Print this course workspace"
+                title="Print this course workspace"
+                className="rounded-[4px] border border-[var(--color-line)] px-2 py-0.5 text-[11.5px] font-medium text-[var(--color-mute)] hover:border-[var(--color-line-2)] hover:text-[var(--color-ink)] cursor-pointer"
+              >
+                Print
+              </button>
               <button
                 type="button"
                 onClick={() =>
@@ -645,7 +654,7 @@ export function CourseWorkspace({
               stay inline; create-in-other-tool actions fold into one menu so
               the bar doesn't compete with the content for attention */}
           {!unfiled && (
-            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--color-line)] pt-3.5">
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--color-line)] pt-3.5 print:hidden">
               <Button
                 variant="primary"
                 size="sm"
