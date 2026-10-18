@@ -165,6 +165,20 @@ export function Search({
         url: '#/',
       },
       {
+        app: 'rhythm',
+        kind: 'command',
+        label: 'Check in a routine — today’s register',
+        sub: 'Command · Attendance',
+        url: '#/p/rhythm?p=today',
+      },
+      {
+        app: 'timer',
+        kind: 'command',
+        label: 'Open the session ledger',
+        sub: 'Command · Timer — logged sessions and CSV',
+        url: '#/p/timer?p=stats',
+      },
+      {
         app: 'terrain',
         kind: 'command',
         label: 'Workspace settings — backup, restore, storage',
