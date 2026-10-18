@@ -796,6 +796,33 @@ export function ContextPanel({
                 <Clock className="h-3 w-3 text-[var(--color-faint)]" />
               </button>
 
+              {/* File done in place — open syllabus commitments/slips can
+                  complete without opening the folio; the handler's toast
+                  reports already-filed/dropped/missed instead of lying */}
+              {object.app === 'syllabus' &&
+                (object.type === 'commitment' || object.type === 'block') &&
+                !(object.data?.status === 'done' || object.data?.status === 'dropped' ||
+                  object.data?.state === 'done') && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void triggerAction({
+                      to: 'syllabus',
+                      action: object.type === 'commitment' ? 'commitment.done' : 'block.done',
+                      payload:
+                        object.type === 'commitment'
+                          ? { commitmentId: object.id }
+                          : { blockId: object.id },
+                      successLabel: 'Filed done',
+                    })
+                  }
+                  className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
+                >
+                  <CheckSquare className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />
+                  <span className="flex-1">File {object.type === 'commitment' ? 'commitment' : 'slip'} done</span>
+                </button>
+              )}
+
               {/* Open Source Material (when inbound link exists) */}
               {sourceEdges[0] && (
                 <button
