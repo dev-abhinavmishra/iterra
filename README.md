@@ -60,7 +60,8 @@ docs/WIRING.md     the integration contract every place follows
   by course/topic in browse mode.
 - **Switcher** — "in this place" + "linked across the terrain" + dossier
   links; ⌘1–8 places, ⌘0 home.
-- **Stirrings** — the last 12h of cross-app activity, deep-linked.
+- **Stirrings** — the 30 newest cross-app stirs, deep-linked; the rail
+  expands to show the full log.
 - **Local-first durability** — every byte lives in this browser
   (localStorage + IndexedDB, persistent-storage requested at boot).
   Settings ships a full JSON backup/restore, a one-pass sample semester,
