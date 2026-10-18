@@ -1013,6 +1013,29 @@ export async function handleStartFocusSession(
     topic: string | null;
   }>
 > {
+  /* a live session owns the face — writing a second blob would zombie it
+     (the timer refuses the link, but the blob + shared.focus would already
+     claim a session that never started). Decline up front; the caller can
+     navigate to the existing session. */
+  try {
+    const live = JSON.parse(localStorage.getItem(LIVE_SESSION_KEY) || 'null');
+    const liveMs = live?.running
+      ? (live.endsAt || 0) - Date.now()
+      : live?.paused
+        ? (live.remainingSec || 0) * 1000
+        : -1;
+    if (live && liveMs > 0) {
+      return {
+        ok: false,
+        commandId: '',
+        code: 'SESSION_ACTIVE',
+        error: `A focus session is already running${live.label ? ` — ${live.label}` : ''}.`,
+      };
+    }
+  } catch {
+    /* unreadable blob — proceed; the timer's own guards still apply */
+  }
+
   const bKey = input.blockRef
     ? formatRefKey(input.blockRef)
     : input.blockId
