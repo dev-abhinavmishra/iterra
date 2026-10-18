@@ -68,7 +68,7 @@ function useModalA11y(open: boolean, panelRef: React.RefObject<HTMLElement | nul
       if (e.shiftKey && (document.activeElement === first || !panelRef.current.contains(document.activeElement))) {
         e.preventDefault();
         last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
+      } else if (!e.shiftKey && (document.activeElement === last || !panelRef.current.contains(document.activeElement))) {
         e.preventDefault();
         first.focus();
       }
