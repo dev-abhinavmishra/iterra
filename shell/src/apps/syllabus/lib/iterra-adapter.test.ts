@@ -499,7 +499,7 @@ describe('commitment.done intake', () => {
   });
 
   it('is idempotent — a repeat send reports already-filed', async () => {
-    const useFolio = await seedCommitment();
+    await seedCommitment();
     await adapterOpts.intakes['commitment.done']({ id: 'cd3', action: 'commitment.done', payload: { commitmentId: 'k1' } });
     const res = await adapterOpts.intakes['commitment.done']({ id: 'cd4', action: 'commitment.done', payload: { commitmentId: 'k1' } });
     expect(res.toast).toContain('already filed done');

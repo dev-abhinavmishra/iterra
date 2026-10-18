@@ -179,10 +179,26 @@ export function CourseWorkspace({
     [courseEnts],
   );
   const scheduleItems = useMemo(
-    () =>
-      courseObjects.filter((o) =>
-        ['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type),
-      ),
+    () => {
+      /* 'missed' stays live: it's unresolved work asking to be rescued */
+      const closed = (o: (typeof courseObjects)[number]) =>
+        o.data?.status === 'done' || o.data?.status === 'completed' || o.data?.status === 'dropped' ||
+        o.data?.state === 'done' || o.data?.state === 'deferred';
+      const live = courseObjects.filter(
+        (o) => ['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type) && !closed(o),
+      );
+      const done = courseObjects.filter(
+        (o) => ['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type) && closed(o),
+      );
+      /* open work first (soonest-due first), history sinks to the bottom */
+      const dueMs = (o: (typeof courseObjects)[number]) => {
+        const raw = o.dueAt ?? (o.data?.dueAt as number | string | undefined) ?? (o.data?.plannedDate as string | undefined);
+        const ms = typeof raw === 'number' ? raw : typeof raw === 'string' ? Date.parse(raw) : NaN;
+        return Number.isFinite(ms) ? ms : Infinity;
+      };
+      live.sort((a, b) => dueMs(a) - dueMs(b));
+      return [...live, ...done];
+    },
     [courseObjects],
   );
   const resultItems = useMemo(
