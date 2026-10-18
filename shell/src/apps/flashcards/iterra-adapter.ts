@@ -310,6 +310,11 @@ export function wireFlashcardsAdapter() {
       const rows = await it.store.list({ app: 'flashcards' });
       for (const e of rows || []) {
         if (!e || !e.key) continue;
+        /* only shadow the types this mirror owns — a flashcards:followup:*
+           or other parked row isn't a stale deck/card, and pruning it in
+           mirror() would retract an entity another flow is tracking (the
+           same bug class proof's prime had) */
+        if (e.type !== 'deck' && e.type !== 'card') continue;
         shadow.set(e.key, sig(e));
         if (e.type === 'card' && e.data && e.data.status) lastStatus.set(e.id, e.data.status);
       }
