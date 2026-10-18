@@ -119,7 +119,9 @@ Also honored:
   open a tab directly (`library|session|ledger|progress|import|settings`)
 - **margin**: `?note=<id>` → open the note in the editor view; `?deck=<id>`
   → Study opens that deck (review if cards due, else editor); `?quiz=<id>`
-  → Study opens the quiz runner (unknown ids stay on the browse list)
+  → Study opens the quiz runner (unknown ids stay on the browse list);
+  `?p=<view>` → open a surface directly
+  (`library|bookmarks|history|study|analysis|record|settings`)
 - **rhythm**: `?experiment=<id>` → Experiments view with that card scrolled
   into view and lit (unknown ids degrade to the plain list); `?routine=<name>`
   → that routine's channel; `?p=<view>` → open a tab directly

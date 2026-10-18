@@ -147,6 +147,18 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
             /* the terrain's central settings surface deep-links here */
             strip();
             setCurrentView(View.SETTINGS);
+        } else if (params.get('p')) {
+            /* ?p=<view> — the cross-app tab-link convention every other
+               place already answers */
+            const PV: Record<string, View> = {
+                library: View.LIBRARY, notes: View.LIBRARY,
+                bookmarks: View.BOOKMARKS, history: View.HISTORY,
+                study: View.STUDY, analysis: View.ANALYSIS, ask: View.ANALYSIS,
+                record: View.RECORDER, recorder: View.RECORDER,
+                settings: View.SETTINGS,
+            };
+            const v = PV[params.get('p')!.toLowerCase()];
+            if (v) { strip(); setCurrentView(v); }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoaded, query]);
