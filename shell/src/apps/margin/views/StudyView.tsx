@@ -46,16 +46,24 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
 
     useEffect(() => { refresh().catch(e => console.error('Failed to load study data', e)); }, [refresh]);
 
-    /* terrain intake: consume a ?deck=/?quiz= request once the lists resolve;
-       unknown ids fall through to browse silently. */
+    /* terrain intake: consume a ?deck=/?quiz= request once the lists
+       resolve; unknown ids say so instead of landing on browse with no
+       explanation */
     useEffect(() => {
         if (!request || decks === null || quizzes === null) return;
-        if (request.kind === 'deck') {
-            const deck = decks.find(d => d.id === request.id);
-            if (deck) openDeck(deck);
+        const hit =
+            request.kind === 'deck'
+                ? decks.find(d => d.id === request.id)
+                : quizzes.find(q => q.id === request.id);
+        if (hit) {
+            if (request.kind === 'deck') openDeck(hit as Deck);
+            else setScreen({ kind: 'quiz', quiz: hit as Quiz });
         } else {
-            const quiz = quizzes.find(q => q.id === request.id);
-            if (quiz) setScreen({ kind: 'quiz', quiz });
+            try {
+                window.dispatchEvent(new CustomEvent('iterra:toast', {
+                    detail: { text: `That ${request.kind} no longer exists` },
+                }));
+            } catch { /* no window to notify */ }
         }
         onRequestConsumed?.();
         // eslint-disable-next-line react-hooks/exhaustive-deps
