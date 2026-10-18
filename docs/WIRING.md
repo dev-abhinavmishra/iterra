@@ -119,7 +119,8 @@ Also honored:
   open a tab directly (`library|session|ledger|progress|import|settings`)
 - **margin**: `?note=<id>` → open the note in the editor view; `?deck=<id>`
   → Study opens that deck (review if cards due, else editor); `?quiz=<id>`
-  → Study opens the quiz runner (unknown ids stay on the browse list);
+  → Study opens the quiz runner (unknown ids toast the dead end and stay
+  on the browse list);
   `?p=<view>` → open a surface directly
   (`library|bookmarks|history|study|analysis|record|settings`)
 - **rhythm**: `?experiment=<id>` → Experiments view with that card scrolled
@@ -131,11 +132,16 @@ Also honored:
 - **syllabus**: `?block=<id>` → select that work slip on Today (stashed at
   boot, consumed once blocks hydrate — the subscribe-retry guards the
   persist-hydration race); `?commitment=<id>` → open that commitment's
-  drawer (index entities for uncovered commitments link here; ghost ids
-  degrade silently); `?p=<view>` → open a tab directly
+  drawer (index entities for uncovered commitments link here); ghost ids
+  strip the dead params and toast what couldn't be found
+  (`iterra:toast`); `?p=<view>` → open a tab directly
   (`today|semester|calendar|review`)
 - **gradestack**: `?scanId=<id>` → open that sheet's review modal
-  (one-shot, strips; `testId` stays as the working filter)
+  (one-shot, strips; `testId` stays as the working filter). Dead
+  `assessment`/`scanId` ids strip and toast via `iterra:toast` — every
+  app's link surface now answers dead ends aloud (rhythm toasts a missing
+  `?routine=` name, proof toasts missing `?problem=`/`?attempt=` ids,
+  ink restores a trashed note or notices a deleted one).
 - **flashcards**: `?p=<surface>` → `decks|library` deselect to the shelves;
   `review|learn|quiz|write|cards` switch the current deck's mode —
   `?deck=<id>&p=<mode>` lands a deck ON the named mode in one link
