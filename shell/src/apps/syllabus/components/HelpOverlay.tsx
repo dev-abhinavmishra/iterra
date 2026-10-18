@@ -21,7 +21,9 @@ const SHORTCUTS: { keys: string; action: string }[] = [
 export function HelpOverlay({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
+    return () => prev?.focus?.();
   }, []);
   return (
     <div

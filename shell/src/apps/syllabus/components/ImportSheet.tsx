@@ -29,7 +29,9 @@ export function ImportSheet({ initial, onClose }: { initial?: ImportPayload; onC
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
+    return () => prev?.focus?.();
   }, []);
 
   useEffect(() => {

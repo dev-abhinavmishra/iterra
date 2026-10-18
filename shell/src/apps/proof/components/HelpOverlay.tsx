@@ -11,7 +11,26 @@ const KEYS: [string, string][] = [
   ['⏎', 'Submit answer (attempt desk)'],
 ];
 
+import { useEffect } from 'react';
+import { placeActive } from '../../active';
+
 export function HelpOverlay({ onClose }: { onClose: () => void }) {
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      /* the place keeps rendering under keep-alive — a hidden overlay
+         must not eat keys meant for the visible surface */
+      if (!placeActive('proof')) return;
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      /* modal contract — close returns focus to the invoker, not <body> */
+      prev?.focus?.();
+    };
+  }, [onClose]);
+
   return (
     <div
       className="absolute inset-0 z-50 flex items-center justify-center bg-[rgb(22_24_27/0.6)] p-6"

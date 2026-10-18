@@ -35,7 +35,11 @@ export function CommitmentDrawer({ commitment, onClose }: { commitment: Commitme
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
     ref.current?.focus();
+    /* modal contract — closing hands focus back to whatever opened the
+       drawer (the commitment row), not to <body> */
+    return () => prev?.focus?.();
   }, []);
 
   useEffect(() => {

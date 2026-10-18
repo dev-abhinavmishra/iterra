@@ -44,14 +44,19 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, notes, o
     const inputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLDivElement>(null);
 
+    const invokerRef = useRef<HTMLElement | null>(null);
     // Reset state every time the palette opens.
     useEffect(() => {
         if (open) {
+            invokerRef.current = document.activeElement as HTMLElement | null;
             setQuery('');
             setActive(0);
             const t = setTimeout(() => inputRef.current?.focus(), 30);
             return () => clearTimeout(t);
         }
+        /* modal contract — close returns focus to the invoker, not <body> */
+        invokerRef.current?.focus?.();
+        invokerRef.current = null;
     }, [open]);
 
     const actions: ActionItem[] = useMemo(() => ([

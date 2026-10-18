@@ -33,12 +33,18 @@ export const CommandPalette: React.FC<{ isOpen: boolean; onClose: () => void }> 
   const listRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const invokerRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (isOpen) {
+      invokerRef.current = document.activeElement as HTMLElement | null;
       setQuery('');
       setMode('search');
       setIndex(0);
       requestAnimationFrame(() => inputRef.current?.focus());
+    } else {
+      /* modal contract — close returns focus to the invoker, not <body> */
+      invokerRef.current?.focus?.();
+      invokerRef.current = null;
     }
   }, [isOpen]);
 
