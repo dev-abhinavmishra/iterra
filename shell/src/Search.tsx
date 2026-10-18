@@ -300,7 +300,9 @@ export function Search({
     if (!needle) {
       const recent = ents.filter((e) => e.uat).sort((a, b) => (b.uat || 0) - (a.uat || 0));
       const rest = ents.filter((e) => !recent.includes(e));
-      return [...commands.slice(0, 4), ...courseHits, ...places, ...recent, ...rest].slice(0, 64);
+      /* places before courses — the browse list is a launcher first;
+         a full course catalogue would push the eight tools off-screen */
+      return [...commands.slice(0, 4), ...places, ...courseHits, ...recent, ...rest].slice(0, 64);
     }
 
     const all = [...commands, ...courseHits, ...places, ...ents, ...stirs];
