@@ -385,6 +385,16 @@ export default function App() {
   useEffect(() => {
     const onHash = () => {
       const parsed = readHash();
+      /* '#/p/<name>' naming no place falls through to Today silently —
+         speak, matching the dead-link contract the places keep */
+      const dead = window.location.hash.match(/^#\/?p\/([a-z]+)/);
+      if (dead && !parsed.place) {
+        try {
+          window.dispatchEvent(new CustomEvent('iterra:toast', {
+            detail: { text: `No place called '${dead[1]}' on the terrain`, url: '#/' },
+          }));
+        } catch { /* no window to notify */ }
+      }
       setRouteState(parsed);
       const id = parsed.place;
       const query = parsed.query;
