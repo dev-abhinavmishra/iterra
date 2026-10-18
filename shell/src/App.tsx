@@ -883,6 +883,7 @@ export default function App() {
                           close();
                           enter(p.id);
                         }}
+                        aria-current={isCurrent ? 'page' : undefined}
                         title={`${p.app} — ${p.tagline}`}
                         className={`flex w-full items-center gap-2.5 rounded-[5px] px-2.5 py-2 text-left transition-colors cursor-pointer ${
                           isCurrent
