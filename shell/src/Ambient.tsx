@@ -9,7 +9,6 @@ interface Toast {
   id: number;
   text: string;
   url?: string;
-  refresh?: boolean;
   ms: number;
 }
 
@@ -82,9 +81,11 @@ export function Ambient({
 
   /* deployed while this tab is open — the new SW is installed and about to
      take control; offer the refresh instead of quietly stranding the tab.
-     refresh toasts don't expire — the user must choose. */
+     Its own lane — a never-expiring toast at the queue's head would starve
+     every notice behind it. */
+  const [updateReady, setUpdateReady] = useState(false);
   useEffect(() => {
-    const onUpdate = () => pushRef.current({ text: 'A new version of Iterra is ready', refresh: true, ms: 24 * 3600 * 1000 });
+    const onUpdate = () => setUpdateReady(true);
     window.addEventListener('iterra:update-available', onUpdate);
     return () => window.removeEventListener('iterra:update-available', onUpdate);
   }, []);
@@ -110,7 +111,7 @@ export function Ambient({
     return () => window.removeEventListener('iterra:toast', onToast);
   }, []);
 
-  if (!head) return null;
+  if (!head && !updateReady) return null;
 
   return (
     <div
@@ -119,24 +120,32 @@ export function Ambient({
         panelOpen ? 'right-4 lg:right-[336px]' : 'right-4'
       }`}
     >
-      <button
-        type="button"
-        onClick={() => {
-          if (head.refresh) {
-            window.location.reload();
-            return;
-          }
-          if (head.url) onGo(head.url);
-          setQueue((q) => q.slice(1));
-        }}
-        className="anim-rise pointer-events-auto flex items-center gap-2.5 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-sheet)] px-3.5 py-2 text-[12.5px] font-medium text-[var(--color-ink)] shadow-lg cursor-pointer"
-      >
-        <span className="live-dot inline-block h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-        <span>{head.text}</span>
-        {queue.length > 1 && <span className="text-[11px] text-[var(--color-mute)]">+{queue.length - 1}</span>}
-        {head.refresh && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Refresh</span>}
-        {!head.refresh && head.url && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Open →</span>}
-      </button>
+      {updateReady && (
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="anim-rise pointer-events-auto flex items-center gap-2.5 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-accent)] px-3.5 py-2 text-[12.5px] font-semibold text-[var(--color-accent-fg)] shadow-lg cursor-pointer"
+        >
+          <span className="inline-block h-2 w-2 rounded-full bg-[var(--color-accent-fg)]" />
+          <span>A new version of Iterra is ready</span>
+          <span className="text-[11px] underline underline-offset-2">Refresh</span>
+        </button>
+      )}
+      {head && (
+        <button
+          type="button"
+          onClick={() => {
+            if (head.url) onGo(head.url);
+            setQueue((q) => q.slice(1));
+          }}
+          className="anim-rise pointer-events-auto flex items-center gap-2.5 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-sheet)] px-3.5 py-2 text-[12.5px] font-medium text-[var(--color-ink)] shadow-lg cursor-pointer"
+        >
+          <span className="live-dot inline-block h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+          <span>{head.text}</span>
+          {queue.length > 1 && <span className="text-[11px] text-[var(--color-mute)]">+{queue.length - 1}</span>}
+          {head.url && <span className="text-[11px] font-semibold text-[var(--color-accent)]">Open →</span>}
+        </button>
+      )}
     </div>
   );
 }
