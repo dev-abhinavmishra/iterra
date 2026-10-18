@@ -349,11 +349,14 @@ export function CourseWorkspace({
     return [...seen.values()].slice(0, 4);
   }, [courseEnts, entities, key, display]);
 
-  // Live focus matching this course
+  // Live focus matching this course — running sessions self-expire via
+  // endsAt (the writer publishes once, so `at` aging is normal); paused
+  // needs the 3-min heartbeat freshness
   const fv = shared.focus?.v as any;
   const focusLive =
-    (fv?.running === true || fv?.paused === true) &&
-    Date.now() - (shared.focus?.at || 0) < 3 * 60 * 1000;
+    fv?.running === true
+      ? typeof fv.endsAt === 'number' && fv.endsAt > Date.now()
+      : fv?.paused === true && Date.now() - (shared.focus?.at || 0) < 3 * 60 * 1000;
   const courseItemIds = useMemo(() => new Set(courseObjects.map((o) => o.id)), [courseObjects]);
   const focusMatchesCourse =
     focusLive &&

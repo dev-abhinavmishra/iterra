@@ -145,11 +145,15 @@ export function resolveActiveWorkspaceObject({
 
     if (activePlace === 'timer') {
       const fv = shared.focus?.v as any;
-      /* same staleness gate as the header chip — the timer heartbeats
-         shared.focus while running; a dead writer's last write is older
-         than 3 minutes and must not pose as a live session */
-      const focusFresh = !!shared.focus?.at && Date.now() - shared.focus.at < 3 * 60 * 1000;
-      if (focusFresh && fv && (fv.running || fv.paused)) {
+      /* same rule as the header chip: a running session is live while its
+         endsAt is in the future (the writer publishes once — `at` aging is
+         normal mid-run); paused has no endsAt so it needs the 3-min
+         heartbeat freshness a dead writer can't fake */
+      const focusLive =
+        fv?.running === true
+          ? typeof fv.endsAt === 'number' && fv.endsAt > Date.now()
+          : fv?.paused === true && !!shared.focus?.at && Date.now() - shared.focus.at < 3 * 60 * 1000;
+      if (focusLive) {
         if (fv.blockId) {
           const bound = entities.find((e) => e.id === fv.blockId);
           if (bound) return toWorkspaceObject(bound);

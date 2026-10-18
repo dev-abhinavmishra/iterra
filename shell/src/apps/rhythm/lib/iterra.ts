@@ -136,11 +136,12 @@ export function wireIterra() {
 
 wireIterra();
 
-/* commons read: shared.focus — the Instruments' running block. It is written
-   once when the countdown starts, so it stays 'fresh' for the block's own
-   span (endsInMin) plus a small grace; a stopped focus reads stale instantly. */
+/* commons read: shared.focus — the Instruments' running block. The writer
+   publishes once when the countdown starts and carries `endsAt` (ms epoch),
+   so a running session stays live for its own span and a stopped/crashed
+   focus reads dead the moment its clock would have run out. */
 interface FocusEntry {
-  v: { label?: string; running?: boolean; endsInMin?: number } | null;
+  v: { label?: string; running?: boolean; endsAt?: number } | null;
   by: string;
   at: number;
 }
@@ -155,11 +156,19 @@ export function useSharedFocus(): FocusEntry | null {
       setEntry(e && typeof e === 'object' ? e : null);
     };
     read(shared.get());
-    return shared.subscribe(read);
+    const unsub = shared.subscribe(read);
+    /* endsAt expiry needs a tick to fire — without a doc write the hook
+       never re-evaluates Date.now() and a run-out clock stays 'live' */
+    const iv = setInterval(() => read(shared.get()), 15_000);
+    return () => { unsub?.(); clearInterval(iv); };
   }, []);
   if (!entry?.v?.running) return null;
-  const spanMs = (entry.v.endsInMin ?? 0) * 60_000 + 60_000;
-  if (Date.now() - entry.at > spanMs) return null;
+  if (typeof entry.v.endsAt === 'number') {
+    if (entry.v.endsAt <= Date.now()) return null;
+  } else if (Date.now() - entry.at > 60_000) {
+    /* writer shape predates endsAt — one-minute grace then stale */
+    return null;
+  }
   return entry;
 }
 

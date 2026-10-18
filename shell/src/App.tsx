@@ -587,10 +587,14 @@ export default function App() {
     remainingSec?: number;
     totalMin?: number;
   };
+  /* running sessions self-expire via endsAt — the writer publishes once
+     and frames tick locally, so `at` legitimately ages during a real run.
+     Paused has no self-expiry (frozen remainingSec), so it still needs the
+     3-min heartbeat freshness — a dead page stops beating on schedule. */
   const focusLive =
-    !!focusField?.at &&
-    now - focusField.at < 3 * 60 * 1000 &&
-    (fv.running === true || fv.paused === true);
+    fv.running === true
+      ? !!fv.endsAt && fv.endsAt > now
+      : fv.paused === true && !!focusField?.at && now - focusField.at < 3 * 60 * 1000;
   const focusSecLeft =
     fv.running && fv.endsAt
       ? Math.max(0, (fv.endsAt - now) / 1000)

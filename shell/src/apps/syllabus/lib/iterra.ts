@@ -63,10 +63,17 @@ function summary(): FolioSummary | null {
 
 const FOCUS_FRESH_MS = 60_000;
 
-function readFocus(doc: any): { running: boolean; blockId?: string } | null {
+function readFocus(doc: any): { running: boolean; blockId?: string; endsAt?: number; paused?: boolean } | null {
   const f = doc?.get?.()?.focus;
-  if (!f || !f.v || Date.now() - (f.at ?? 0) > FOCUS_FRESH_MS) return null;
-  return f.v;
+  const v = f?.v;
+  if (!v) return null;
+  /* running sessions publish once and self-expire via endsAt — `at` aging
+     mid-run is normal, so a write-timestamp gate would kill the indicator
+     a minute into every real session. Paused/dead writers still need the
+     freshness gate. */
+  if (v.running === true) return typeof v.endsAt === 'number' && v.endsAt > Date.now() ? v : null;
+  if (Date.now() - (f.at ?? 0) > FOCUS_FRESH_MS) return null;
+  return v;
 }
 
 /**

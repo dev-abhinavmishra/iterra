@@ -113,10 +113,13 @@ export function TodayWorkspace({
     remainingSec?: number;
     totalMin?: number;
   };
+  /* running self-expires via endsAt — the timer publishes shared.focus
+     once at start and ticks locally, so `at` aging mid-run is normal;
+     paused keeps the 3-min heartbeat gate (a dead page stops beating) */
   const focusLive =
-    !!focusField?.at &&
-    now - focusField.at < 3 * 60 * 1000 &&
-    (fv.running === true || fv.paused === true);
+    fv.running === true
+      ? !!fv.endsAt && fv.endsAt > now
+      : fv.paused === true && !!focusField?.at && now - focusField.at < 3 * 60 * 1000;
   const focusSecLeft =
     fv.running && fv.endsAt
       ? Math.max(0, (fv.endsAt - now) / 1000)
