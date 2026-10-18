@@ -67,12 +67,20 @@ function normalize(detail: unknown): ModalRequest | null {
 export default function IntegrationModals() {
   const [req, setReq] = useState<ModalRequest | null>(null);
   const resultSent = useRef(false);
+  /* the listener's closure can't see current req state — keep a ref so a
+     second request knows whether it's interrupting a live modal */
+  const reqRef = useRef<ModalRequest | null>(null);
 
   useEffect(() => {
     const on = (ev: Event) => {
       const detail = normalize((ev as CustomEvent).detail);
       if (detail) {
+        /* callers are promised a terminal signal — a modal displaced by a
+           newer request still owes its listener a canceled result */
+        const prev = reqRef.current;
+        if (prev && !resultSent.current) done(prev.kind, undefined, true);
         resultSent.current = false;
+        reqRef.current = detail;
         setReq(detail);
       }
     };
@@ -83,6 +91,7 @@ export default function IntegrationModals() {
   if (!req) return null;
   const close = () => {
     const r = req;
+    reqRef.current = null;
     setReq(null);
     if (!resultSent.current) done(r.kind, undefined, true);
     resultSent.current = false;
