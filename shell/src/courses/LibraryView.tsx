@@ -124,6 +124,12 @@ export function LibraryView({
     [contextObjects, filter],
   );
 
+  /* pages of rows — a multi-semester workspace can carry thousands of
+     entities; render the first page and expand on demand */
+  const PAGE = 150;
+  const [shown, setShown] = useState(PAGE);
+  useEffect(() => setShown(PAGE), [query, coursePick, filter]);
+
   return (
     <div className="terrain-map min-h-full">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-5">
@@ -230,16 +236,27 @@ export function LibraryView({
 
         {/* Results List */}
         {filtered.length > 0 ? (
-          <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-            {filtered.map((item) => (
-              <ObjectRow
-                key={item.key}
-                item={item}
-                selected={selectedObject?.key === item.key}
-                onOpen={onGo}
-                onSelectContext={onSelectObject}
-              />
-            ))}
+          <div>
+            <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
+              {filtered.slice(0, shown).map((item) => (
+                <ObjectRow
+                  key={item.key}
+                  item={item}
+                  selected={selectedObject?.key === item.key}
+                  onOpen={onGo}
+                  onSelectContext={onSelectObject}
+                />
+              ))}
+            </div>
+            {filtered.length > shown && (
+              <button
+                type="button"
+                onClick={() => setShown(filtered.length)}
+                className="mt-2 w-full rounded-[6px] border border-dashed border-[var(--color-line)] py-2 text-[12px] font-medium text-[var(--color-mute)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+              >
+                Show all {filtered.length} objects ({filtered.length - shown} more)
+              </button>
+            )}
           </div>
         ) : (
           <EmptyState
