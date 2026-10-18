@@ -7,7 +7,7 @@ import { CornerDownLeft } from 'lucide-react';
 
 /**
  * Quick intake — one line files a commitment without leaving the keyboard.
- * Tokens: @code course · #type · due:YYYY-MM-DD|today|tomorrow|+Nd · ~90m · !pin
+ * Tokens: @code course · #type · due:YYYY-MM-DD|today|tomorrow|+Nd|weekday · ~90m · !pin
  *   “PS4 problem set @math211 #assignment due:+7 ~120m”
  */
 export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFocusKey?: string }) {
@@ -121,7 +121,7 @@ interface Parsed {
   pinned: boolean;
 }
 
-function parseQuick(raw: string, courses: Course[]): Parsed {
+export function parseQuick(raw: string, courses: Course[]): Parsed {
   let rest = raw.trim();
   let course: Course | undefined;
   let type: CommitmentType = 'assignment';
@@ -151,10 +151,23 @@ function parseQuick(raw: string, courses: Course[]): Parsed {
   const dueMatch = rest.match(/due:(\S+)/i);
   if (dueMatch) {
     const d = dueMatch[1].toLowerCase();
-    if (d === 'today') due = todayISO();
-    else if (d === 'tomorrow') due = addDays(todayISO(), 1);
-    else if (/^\+(\d+)d?$/.test(d)) due = addDays(todayISO(), Number(d.slice(1).replace('d', '')));
-    else if (/^\d{4}-\d{2}-\d{2}$/.test(d) && isRealDate(d)) due = d;
+    let dueParsed = false;
+    const setDue = (iso: string) => { due = iso; dueParsed = true; };
+    /* weekday names land on the next occurrence — 'due:fri' on a Tuesday
+       is the coming Friday, not a silent title token */
+    const DOW: Record<string, number> = {
+      sun: 0, sunday: 0, mon: 1, monday: 1, tue: 2, tues: 2, tuesday: 2,
+      wed: 3, wednesday: 3, thu: 4, thur: 4, thurs: 4, thursday: 4,
+      fri: 5, friday: 5, sat: 6, saturday: 6,
+    };
+    if (d === 'today') setDue(todayISO());
+    else if (d === 'tomorrow') setDue(addDays(todayISO(), 1));
+    else if (/^\+(\d+)d?$/.test(d)) setDue(addDays(todayISO(), Number(d.slice(1).replace('d', ''))));
+    else if (d in DOW) {
+      const delta = (DOW[d] - new Date().getDay() + 7) % 7 || 7;
+      setDue(addDays(todayISO(), delta));
+    }
+    else if (/^\d{4}-\d{2}-\d{2}$/.test(d) && isRealDate(d)) setDue(d);
     else if (/^(\d{1,2})\/(\d{1,2})$/.test(d)) {
       const [m, dd] = d.split('/').map(Number);
       // m/d means this year if it hasn't passed, else next — but only
@@ -162,10 +175,13 @@ function parseQuick(raw: string, courses: Course[]): Parsed {
       const y = new Date().getFullYear();
       for (const yy of [y, y + 1]) {
         const cand = `${yy}-${String(m).padStart(2, '0')}-${String(dd).padStart(2, '0')}`;
-        if (isRealDate(cand) && cand >= todayISO()) { due = cand; break; }
+        if (isRealDate(cand) && cand >= todayISO()) { setDue(cand); break; }
       }
     }
-    rest = rest.replace(dueMatch[0], ' ');
+    /* only consume the token when a branch actually parsed it — an
+       unrecognized 'due:xyz' in the raw text stays in the title where the
+       user can see it, not silently eaten with the default date kept */
+    if (dueParsed) rest = rest.replace(dueMatch[0], ' ');
   }
   const minMatch = rest.match(/~(\d+)\s*m?(?:in)?/i);
   if (minMatch) {

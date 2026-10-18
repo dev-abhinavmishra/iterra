@@ -40,10 +40,23 @@ export const MainLayout: React.FC = () => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setIsPaletteOpen(open => !open);
+        return;
+      }
+      /* bare 'n' → new page (the getting-started guide promises it) —
+         gated on not-typing so it can't steal letters mid-sentence */
+      if (e.key === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const el = document.activeElement as HTMLElement | null;
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+        const id = useStore.getState().addNote();
+        if (id) {
+          useStore.getState().setActiveNote(id);
+          navigate('/');
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   React.useEffect(() => {

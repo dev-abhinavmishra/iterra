@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search as SearchIcon, ArrowUpRight, Share2, Terminal, BookOpen } from 'lucide-react';
 import { PLACES, PLACE_MAP, formatEntityType } from './places';
 import type { Entity, StoreEntity } from './hub';
-import { sendTo, readFeed, subscribeFeed, type FeedItem } from './hub';
+import { sendTo, readFeed, subscribeFeed, type FeedItem, type SendResult } from './hub';
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 import { iconForObjectType } from './ui/ObjectRow';
 
@@ -542,12 +542,22 @@ export function Search({
                     batch.map((h) =>
                       h.entity
                         ? sendTo({ to: t.to, action: t.action, entity: h.entity, payload: t.payload })
-                        : Promise.resolve({ ok: false }),
+                        : Promise.resolve<SendResult>({ ok: false }),
                     ),
                   ).then((rs) => {
-                    const ok = rs.filter((r) => r.ok).length;
-                    setSentNote(`${ok}/${batch.length} sent to ${PLACE_MAP[t.to]?.label || t.to}`);
-                    window.setTimeout(() => setSentNote((n) => (n ? null : n)), 4000);
+                    /* a declined delivery reports ok:true + url:null — it
+                       landed but the handler refused it; counting it as
+                       sent would lie about the batch */
+                    const landed = rs.filter(
+                      (r) => r.ok && (r.delivered === 'queued' || r.url != null),
+                    ).length;
+                    const label = PLACE_MAP[t.to]?.label || t.to;
+                    setSentNote(
+                      landed === batch.length
+                        ? `${landed}/${batch.length} sent to ${label}`
+                        : `${landed}/${batch.length} sent to ${label} — the rest were declined or unavailable`,
+                    );
+                    window.setTimeout(() => setSentNote((n) => (n ? null : n)), 5000);
                   });
                 }}
               >
