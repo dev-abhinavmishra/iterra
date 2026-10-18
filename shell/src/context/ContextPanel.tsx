@@ -248,6 +248,17 @@ export function ContextPanel({
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
 
+  /* narrow screens render the panel as an aria-modal drawer — Esc must
+     back out of it like every other modal in the workspace */
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
   // Query canonical links (both inbound source & outbound connected work)
   useEffect(() => {
     setFeedback(null);

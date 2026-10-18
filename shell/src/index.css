@@ -441,6 +441,75 @@ body {
 /* Companion to the body-scoped base tokens above: in graphite mode the
    same vars must land on <body> (nearer ancestor than <html>) so app-level
    :root vars can't win inside shell chrome. */
+/* ── Print — the document is the workspace surface, not the furniture ── */
+@media print {
+  /* shell chrome is screen furniture: global header, compact tab bar,
+     context drawer, palette overlay, ambient rail — none belong on paper */
+  header,
+  nav[aria-label^='Primary navigation'],
+  aside[aria-label='Details panel'],
+  /* the drawer's backdrop wrapper (fixed overlay around the mobile aside) —
+     must not print a dark page over the document */
+  .fixed:has(> aside[aria-label='Details panel']),
+  .it-ambient,
+  [role='dialog'][aria-modal='true'] {
+    display: none !important;
+  }
+
+  /* places mount in absolute-pinned keep-alive frames and workspaces scroll
+     inside overflow-hidden mains — both clip content to one page on paper.
+     Release them to normal flow so the full document prints. */
+  .it-workspace-mode,
+  .it-workspace-mode > div,
+  main {
+    position: static !important;
+    inset: auto !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  /* the flex wrapper itself clips (h-full overflow-hidden, no stable
+     class) — release whatever directly parents the document surface */
+  div:has(> main),
+  div:has(> .it-workspace-mode),
+  #iterra-workspace,
+  #root > div {
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+  }
+  html, body, #root { height: auto !important; }
+
+  body {
+    background: #fff !important;
+    color: #1c2621 !important;
+    /* paper tokens win in print even under graphite — ink on paper, not
+       silver on slate */
+    --color-paper:       #f4f1e8 !important;
+    --color-sheet:       #fbf9f4 !important;
+    --color-sheet-2:     #efebe0 !important;
+    --color-sheet-hover: #efebe0 !important;
+    --color-line:        #d8d0bc !important;
+    --color-line-2:      #b8ad93 !important;
+    --color-ink:         #1c2621 !important;
+    --color-mute:        #4c5951 !important;
+    --color-faint:       #766c56 !important;
+    --color-accent:      #2b5440 !important;
+    --color-accent-soft: #e3ede7 !important;
+    --color-warn-soft:   #f6ead8 !important;
+    --color-bad-soft:    #f6e2e0 !important;
+  }
+
+  /* motion has no medium on paper */
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+}
+
 html[data-theme='graphite'] body {
   --color-atlas-50:  #1c2026;
   --color-atlas-100: #14171c;
