@@ -32,7 +32,10 @@ const hub = (): Hub | undefined => (typeof window !== 'undefined' ? (window as {
 
 export interface BoundCourse { courseId?: string; course?: string; name?: string }
 
-export function problemEntity(p: Problem, bound: BoundCourse = {}) {
+export function problemEntity(p: Problem, bound: BoundCourse = {}, review?: { dueAt?: string }) {
+  /* dueAt is ms — Today's due-items rail and the hub's store.due() both
+     read numbers; the ReviewState stores ISO strings */
+  const dueMs = review?.dueAt ? Date.parse(review.dueAt) : NaN;
   return {
     app: 'proof',
     type: 'problem',
@@ -44,7 +47,10 @@ export function problemEntity(p: Problem, bound: BoundCourse = {}) {
     sub: p.topic || undefined,
     url: `/apps/proof/?problem=${encodeURIComponent(p.id)}`,
     createdAt: p.createdAt,
-    data: { topic: p.topic },
+    data: {
+      topic: p.topic,
+      ...(Number.isFinite(dueMs) ? { dueAt: dueMs } : {}),
+    },
   };
 }
 
@@ -226,7 +232,7 @@ async function mirror() {
     for (const p of problems) {
       if (p.archived) continue;
       live.add(`proof:problem:${p.id}`);
-      await putIfChanged(problemEntity(p, await boundFor(p)) as unknown as Record<string, unknown>);
+      await putIfChanged(problemEntity(p, await boundFor(p), s.reviews?.[p.id]) as unknown as Record<string, unknown>);
     }
     for (const a of attempts) {
       const p = s.problems?.[a.problemId];
