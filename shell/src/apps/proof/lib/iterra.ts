@@ -48,7 +48,7 @@ export function wireIterra() {
          store re-syncs via the persist storage event and would feed the same
          transition again — same text within 15s is one event, not two. */
       if (iterra.feed) {
-        const feedOnce = (text: string, course?: string) => {
+        const feedOnce = (text: string, course?: string, feedUrl = '/apps/proof/') => {
           const items = (iterra.doc?.('feed')?.get() as { items?: unknown[] } | null)?.items;
           if (
             Array.isArray(items) &&
@@ -59,7 +59,7 @@ export function wireIterra() {
             )
           )
             return;
-          iterra.feed?.({ app: 'proof', text, url: '/apps/proof/', course });
+          iterra.feed?.({ app: 'proof', text, url: feedUrl, course });
         };
         for (const sess of sessions) {
           const had = seen.get(sess.id);
@@ -70,8 +70,8 @@ export function wireIterra() {
             .map((pid) => s.problems?.[pid]?.courseId)
             .find(Boolean);
           const course = cid ? s.courses?.[cid]?.code : undefined;
-          if (seeded && had === undefined) feedOnce(`session started · ${label}`, course);
-          else if (seeded && had === ACTIVE && sess.completedAt) feedOnce(`session completed · ${label}`, course);
+          if (seeded && had === undefined) feedOnce(`session started · ${label}`, course, '/apps/proof/?p=session');
+          else if (seeded && had === ACTIVE && sess.completedAt) feedOnce(`session completed · ${label}`, course, '/apps/proof/?p=ledger');
           seen.set(sess.id, sess.completedAt ?? ACTIVE);
         }
         seeded = true;
@@ -104,7 +104,7 @@ export function wireIterra() {
             id: active.id,
             title: active.intent ?? 'practice session',
             sub: active.rules?.minutes != null ? `${active.rules.minutes}m` : undefined,
-            url: '/apps/proof/',
+            url: '/apps/proof/?p=session',
             at: Date.now(),
           });
         for (const p of Object.values(s.problems || {})

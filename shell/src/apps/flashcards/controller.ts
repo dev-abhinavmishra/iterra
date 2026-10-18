@@ -554,7 +554,12 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
          Legacy links used ?deck=<localStorage-key holding {title,cards}> —
          keep that path as fallback when the id isn't a known deck. */
       if (state.decks[deckKey]) {
-        selectDeck(deckKey);
+        /* ?deck=x&p=quiz lands on the deck in the named mode, not just
+           review — the p param is part of the same consumed link */
+        const mode = ['review', 'learn', 'quiz', 'write', 'cards'].includes(p.get('p'))
+          ? p.get('p')
+          : 'review';
+        selectDeck(deckKey, mode);
         applyShuffle();
         stripPlaceQuery();
         return true;
@@ -598,6 +603,21 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     if (p.has('settings')) {
       stripPlaceQuery();
       openShortcuts();
+      return true;
+    }
+    /* ?p=<surface> — the cross-app tab-link convention. Modes need a deck;
+       'decks'/'library' deselect back to the shelves. */
+    const pView = p.get('p');
+    if (pView) {
+      if (pView === 'decks' || pView === 'library') {
+        state.currentId = null;
+        state.mode = 'review';
+        renderAll();
+      } else if (['review', 'learn', 'quiz', 'write', 'cards'].includes(pView) && deck()) {
+        state.mode = pView;
+        renderAll();
+      }
+      stripPlaceQuery();
       return true;
     }
     return false;

@@ -115,7 +115,8 @@ Also honored:
 - **gradestack**: `?assessment=<id>` → open that test's detail (history/analytics);
   `?p=<route>` → navigate the book (`builder|scan|analytics|history|settings`),
   remaining params carry into the page's own query
-- **proof**: `?problem=<id>` → open problem in the desk
+- **proof**: `?problem=<id>` → open problem in the desk; `?p=<view>` →
+  open a tab directly (`library|session|ledger|progress|import|settings`)
 - **margin**: `?note=<id>` → open the note in the editor view; `?deck=<id>`
   → Study opens that deck (review if cards due, else editor); `?quiz=<id>`
   → Study opens the quiz runner (unknown ids stay on the browse list)
@@ -133,6 +134,9 @@ Also honored:
   (`today|semester|calendar|review`)
 - **gradestack**: `?scanId=<id>` → open that sheet's review modal
   (one-shot, strips; `testId` stays as the working filter)
+- **flashcards**: `?p=<surface>` → `decks|library` deselect to the shelves;
+  `review|learn|quiz|write|cards` switch the current deck's mode —
+  `?deck=<id>&p=<mode>` lands a deck ON the named mode in one link
 
 Match each app's existing param-stripping style (`history.replaceState`).
 

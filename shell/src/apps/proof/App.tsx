@@ -72,6 +72,29 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
+  /* ?p=<view> — the cross-app tab-link convention (syllabus/rhythm/timer/
+     ink/gradestack already answer it): a stir or entity url can land on a
+     specific bench surface instead of wherever the user last stood */
+  useEffect(() => {
+    const p = new URLSearchParams(query).get('p');
+    const VIEWS: Record<string, ViewKey> = {
+      library: 'library', session: 'session', ledger: 'ledger',
+      progress: 'progress', import: 'import', settings: 'settings',
+    };
+    const view = p && VIEWS[p];
+    if (!view) return;
+    const h = window.location.hash;
+    const qi = h.indexOf('?');
+    if (qi !== -1) {
+      const q = new URLSearchParams(h.slice(qi + 1));
+      q.delete('p');
+      const rest = q.toString();
+      window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
+    }
+    goView(view);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
   // inbound deep links (Syllabus session requests, ?problem=<id>) — once, after boot
   useEffect(() => {
     if (!booted) return;
