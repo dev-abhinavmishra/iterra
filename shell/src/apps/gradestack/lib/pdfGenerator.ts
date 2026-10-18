@@ -1,4 +1,6 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+/* pdf-lib lives in the shared vendor-pdf chunk (~800KB with pdf.js) —
+   lazy-import inside the async body so opening the mark book doesn't pay
+   for a generator that only runs on 'Download sheet' */
 import { Test, QuestionFormat } from '../store';
 
 const getOptions = (f: QuestionFormat) => 
@@ -6,6 +8,7 @@ const getOptions = (f: QuestionFormat) =>
 
 export const generatePDF = async (test: Partial<Test>, onComplete?: () => void, onError?: (err: any) => void) => {
   try {
+    const { PDFDocument, rgb, StandardFonts } = await import('pdf-lib');
     const pdfDoc = await PDFDocument.create();
     const form = pdfDoc.getForm();
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);

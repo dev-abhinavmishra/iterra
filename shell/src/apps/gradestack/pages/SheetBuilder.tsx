@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore, QuestionFormat, TestSection } from '../store';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PDFDocument } from 'pdf-lib';
+/* pdf-lib lazy-loads inside the PDF-import path (see vendor-pdf split) */
 import { uid } from '../lib/uid';
 import { generatePDF } from '../lib/pdfGenerator';
 import { Reorder, motion } from 'motion/react';
@@ -122,6 +122,7 @@ export function SheetBuilder() {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
+      const { PDFDocument } = await import('pdf-lib');
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       const form = pdfDoc.getForm();
       const fields = form.getFields();

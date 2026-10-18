@@ -1,9 +1,9 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import * as mammoth from 'mammoth';
 import { Note } from '../../types';
 import { generateNoteFromTranscript, processDocument, transcribeAudio } from '../../services/aiService';
-import { extractPdfText } from '../../services/pdfService';
+/* pdfService (pdf.js, ~800KB vendor chunk) is lazy-loaded inside the PDF
+   branch — an import overlay that never sees a .pdf never pays for it */
 import { Btn, Icon, ProgressBar, Spinner } from '../ui/primitives';
 import { PlacePortal } from '../../../portal';
 
@@ -97,6 +97,7 @@ const processFile = async (file: File, onPhase: (phase: ImportPhase, progress?: 
     if (isPdf) {
         const base64Data = await readFileAsBase64(file, p => onPhase('reading', p));
         onPhase('extracting');
+        const { extractPdfText } = await import('../../services/pdfService');
         const extractedText = await extractPdfText(file);
         if (!extractedText || extractedText.length < 20) {
             throw new Error('This PDF looks scanned or image-only — try exporting a page as an image.');
@@ -159,6 +160,9 @@ const processFile = async (file: File, onPhase: (phase: ImportPhase, progress?: 
     if (isDocx) {
         const arrayBuffer = await file.arrayBuffer();
         onPhase('extracting');
+        /* mammoth+jszip (~350KB) only earns its bytes when a .docx lands —
+           lazy-import keeps the margin place chunk honest */
+        const mammoth = await import('mammoth');
         const text = (await mammoth.extractRawText({ arrayBuffer })).value;
         onPhase('structuring');
         const { content } = await structureOrVerbatim(text.substring(0, 20000), file.name);

@@ -2,8 +2,11 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useStore, Scan } from '../store';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { PDFDocument } from 'pdf-lib';
-import { GoogleGenAI, Type } from "@google/genai";
+/* pdf-lib loads lazily inside gradePDFProgrammatically — it shares the
+   vendor-pdf chunk with margin's pdf.js, so a static import would force
+   ~800KB onto every mark-book visit for a path only PDF scans hit */
+/* @google/genai loads lazily inside gradeWithAI — ~600KB of SDK shouldn't
+   ship in the place chunk when the AI path is env-gated off anyway */
 import ReactCrop, { type Crop, centerCrop, makeAspectCrop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { Icon, Button, Input, Select, Chip, Modal, BubbleMark, Field } from '../components/ui';
@@ -204,6 +207,7 @@ export function ScanSheets() {
     setError(null);
 
     try {
+      const { GoogleGenAI, Type } = await import('@google/genai');
       const ai = new GoogleGenAI({ apiKey });
 
       const prompt = `You are an expert grading assistant.
@@ -378,6 +382,7 @@ export function ScanSheets() {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
+      const { PDFDocument } = await import('pdf-lib');
       const pdfDoc = await PDFDocument.load(arrayBuffer);
       const form = pdfDoc.getForm();
       const fields = form.getFields();
