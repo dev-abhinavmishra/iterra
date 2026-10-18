@@ -145,7 +145,11 @@ export function resolveActiveWorkspaceObject({
 
     if (activePlace === 'timer') {
       const fv = shared.focus?.v as any;
-      if (fv && (fv.running || fv.paused)) {
+      /* same staleness gate as the header chip — the timer heartbeats
+         shared.focus while running; a dead writer's last write is older
+         than 3 minutes and must not pose as a live session */
+      const focusFresh = !!shared.focus?.at && Date.now() - shared.focus.at < 3 * 60 * 1000;
+      if (focusFresh && fv && (fv.running || fv.paused)) {
         if (fv.blockId) {
           const bound = entities.find((e) => e.id === fv.blockId);
           if (bound) return toWorkspaceObject(bound);
