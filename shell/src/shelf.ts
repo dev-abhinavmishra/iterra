@@ -17,7 +17,16 @@ const CAP = 24;
 export function readShelf(): ShelfPin[] {
   try {
     const d = JSON.parse(localStorage.getItem(KEY) || 'null');
-    return Array.isArray(d?.pins) ? d.pins : [];
+    if (!Array.isArray(d?.pins)) return [];
+    /* a hand-edited or version-stale pin missing url/title renders as
+       garbage or navigates nowhere — drop malformed entries at read */
+    return d.pins.filter(
+      (p: unknown): p is ShelfPin =>
+        !!p && typeof p === 'object' &&
+        typeof (p as ShelfPin).url === 'string' && (p as ShelfPin).url.length > 0 &&
+        typeof (p as ShelfPin).title === 'string' &&
+        typeof (p as ShelfPin).app === 'string',
+    );
   } catch {
     return [];
   }
