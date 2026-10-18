@@ -222,6 +222,18 @@ export const useRegister = create<RegisterState>()(
         } catch {
           /* replaceState unavailable — still boot */
         }
+        /* a ?routine= link naming something that isn't here shouldn't
+           die quietly — the pin would no-op and the user lands wondering
+           why. Persist hydration is synchronous, so routines are already
+           readable at boot. */
+        const wantedRoutine = link.routineName;
+        if (wantedRoutine && !Object.values(get().routines).some((r) => r.name === wantedRoutine)) {
+          try {
+            window.dispatchEvent(new CustomEvent('iterra:toast', {
+              detail: { text: `No routine named "${wantedRoutine}"`, url: '#/p/rhythm?p=register' },
+            }));
+          } catch { /* no window to notify */ }
+        }
         if (link.event !== undefined) {
           const res = get().intakeRaw(link.event);
           const st = get();
