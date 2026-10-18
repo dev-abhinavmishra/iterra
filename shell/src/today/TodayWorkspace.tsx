@@ -652,7 +652,7 @@ export function TodayWorkspace({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 print:hidden">
                 <div className="rounded-[5px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] px-3 py-1 font-mono text-[16px] font-semibold tabular-nums text-[var(--color-ink)]">
                   {fmtClock(focusSecLeft)}
                   {typeof fv.totalMin === 'number' && (

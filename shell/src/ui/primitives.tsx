@@ -266,7 +266,8 @@ export function SectionHeader({
           <span className="font-mono text-[11px] text-[var(--color-faint)]">({count})</span>
         )}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {/* header actions are navigation/CTA — dead weight on paper */}
+      {action && <div className="shrink-0 print:hidden">{action}</div>}
     </div>
   );
 }
@@ -305,7 +306,7 @@ export function EmptyState({
               {description}
             </p>
           )}
-          {actions && <div className="mt-3 flex flex-wrap items-center gap-2">{actions}</div>}
+          {actions && <div className="mt-3 flex flex-wrap items-center gap-2 print:hidden">{actions}</div>}
         </div>
       </div>
     </div>
