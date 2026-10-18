@@ -163,10 +163,16 @@ export const useFolio = create<FolioState>()(
           const done = q.get('completedBlock') || q.get('block') || q.get('commitment');
           let consumed = false;
           // Inbound Timer completion: ?completedBlock=<id>&actual=<minutes>
-          const actual = Number(q.get('actual'));
+          const rawActual = Number(q.get('actual'));
+          /* a single session can't exceed a day — a corrupt or hand-edited
+             link shouldn't stamp a multi-week slip */
+          const actual =
+            Number.isFinite(rawActual) && rawActual > 0
+              ? Math.min(rawActual, 24 * 60)
+              : undefined;
           if (blockId && st.blocks[blockId]) {
             const wasDone = st.blocks[blockId].state === 'done';
-            st.completeBlock(blockId, Number.isFinite(actual) && actual > 0 ? actual : undefined);
+            st.completeBlock(blockId, actual);
             const stamped = get().blocks[blockId];
             const c = stamped ? get().commitments[stamped.commitmentId] : undefined;
             if (!wasDone) {
