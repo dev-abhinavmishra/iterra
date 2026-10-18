@@ -12,6 +12,7 @@ import {
   PanelRightOpen,
   Share2,
   XCircle,
+  Flag,
 } from 'lucide-react';
 import { PLACE_MAP, formatEntityType } from '../places';
 import type { StoreEntity } from '../hub';
@@ -91,6 +92,8 @@ export function iconForObjectType(type: string, app?: string): React.ReactNode {
       return <Calendar className={cls} />;
     case 'goal':
       return <Award className={cls} />;
+    case 'followup':
+      return <Flag className={cls} />;
     default:
       if (app && PLACE_MAP[app]) {
         return <span className="h-3.5 w-3.5 block [&>svg]:h-full [&>svg]:w-full">{PLACE_MAP[app].glyph}</span>;

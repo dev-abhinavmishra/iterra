@@ -18,6 +18,7 @@ import { PLACES, PLACE_MAP, formatEntityType } from '../places';
 import type { Presence, SharedField, FeedItem, Entity, StoreEntity, IntakeWait } from '../hub';
 import { sendTo } from '../hub';
 import { isDemoLoaded, seedDemoSemester } from '../integration/demo';
+import { readFollowUpTasks, saveFollowUpTask } from '../integration/identity';
 import { subscribeShelf, togglePin, type ShelfPin } from '../shelf';
 import { Badge, Button, EmptyState, SectionHeader } from '../ui/primitives';
 import {
@@ -1205,6 +1206,25 @@ export function TodayWorkspace({
                         <div className="text-[11.5px] text-[var(--color-mute)]">{rev.detail}</div>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
+                        {rev.id.startsWith('followup:') && rev.object && (
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            title="Dismiss this follow-up — the source stays untouched"
+                            onClick={() => {
+                              const t = readFollowUpTasks()[rev.object!.key];
+                              if (!t) {
+                                notify('That follow-up record is gone.');
+                                return;
+                              }
+                              void saveFollowUpTask({ ...t, status: 'dismissed', updatedAt: Date.now() })
+                                .then(() => notify('Follow-up dismissed.'))
+                                .catch(() => notify('Couldn’t dismiss it — try again.'));
+                            }}
+                          >
+                            Dismiss
+                          </Button>
+                        )}
                         {rev.object && onSelectObject && (
                           <Button
                             variant="ghost"

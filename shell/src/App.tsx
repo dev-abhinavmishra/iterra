@@ -60,6 +60,7 @@ import {
 import { parseHash, placeHashFromAppUrl, type WorkspaceSection } from './route';
 import { PLACE_COMPONENTS } from './apps';
 import IntegrationModals from './integration/ModalsHost';
+import { reconcileFollowUps } from './integration/identity';
 import { useWorkspaceTheme } from './ui/theme';
 import { Dialog, DropdownMenu, IconButton } from './ui/primitives';
 import { type WorkspaceObject } from './ui/ObjectRow';
@@ -304,6 +305,9 @@ export default function App() {
           failures = 0;
           setEntities(list || []);
           setLastSavedAt(Date.now());
+          /* a stamped slip should close the follow-up parked on it —
+             reconcile on the same refresh so 'scheduled' never goes stale */
+          void reconcileFollowUps(list || []).catch(() => {});
         })
         .catch(() => {
           if (++failures === 2) {

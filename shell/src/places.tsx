@@ -243,6 +243,7 @@ export const ENTITY_TYPE_LABELS: Record<string, string> = {
   event: 'Activity',
   scan: 'Scanned Sheet',
   entry: 'Attendance Log',
+  followup: 'Follow-up',
 };
 
 export function formatEntityType(type?: string): string {

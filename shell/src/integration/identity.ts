@@ -372,6 +372,36 @@ export async function saveFollowUpTask(task: FollowUpTask): Promise<FollowUpTask
   return task;
 }
 
+/* A follow-up that was parked on a syllabus block must move when the block
+   does — 'scheduled' forever is the failure mode: the slip gets stamped
+   done (folio, Today check-off, or intake) and the follow-up still reads
+   as outstanding. Run this whenever the entity list refreshes: a done
+   block completes the follow-up, a vanished block returns it to 'open'
+   so the Review Queue re-surfaces it instead of silently dropping it. */
+export async function reconcileFollowUps(entities: { app: string; type: string; id: string; data?: Record<string, unknown> }[]): Promise<void> {
+  const map = readFollowUpTasks();
+  const blocks = new Map<string, string | undefined>();
+  for (const e of entities) {
+    if (e.app === 'syllabus' && e.type === 'block') {
+      blocks.set(e.id, typeof e.data?.state === 'string' ? e.data.state : undefined);
+    }
+  }
+  for (const task of Object.values(map)) {
+    if (task.status !== 'scheduled' || !task.scheduledBlockRef) continue;
+    const blockId = task.scheduledBlockRef.split(':').slice(2).join(':');
+    const state = blocks.get(blockId);
+    if (state === 'done') {
+      await saveFollowUpTask({ ...task, status: 'completed', updatedAt: Date.now() });
+    } else if (!blocks.has(blockId) && blocks.size > 0 && Date.now() - task.updatedAt > 60_000) {
+      /* the block vanished — but only trust that once a mirror pass has
+         had time to run; a just-created task would otherwise flap open
+         during publish lag and lose its scheduledBlockRef. blocks.size>0
+         proves syllabus has mirrored at all. */
+      await saveFollowUpTask({ ...task, status: 'open', scheduledBlockRef: undefined, updatedAt: Date.now() });
+    }
+  }
+}
+
 /* ── Authoritative Local Store Readers ─────────────────────────────────── */
 
 function readZustandState<T = Record<string, any>>(storageKey: string): T | null {
