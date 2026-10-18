@@ -1618,7 +1618,14 @@
           return {
             ok: true,
             delivered: 'direct',
-            url: declined ? (res && res.url) || undefined : (res && res.url) || ('/apps/' + to + '/'),
+            /* navigate:false means "don't take the user anywhere" — the
+               handler's url is a record of where the work landed (journaled
+               on send.delivered as resultUrl), not a landing for the
+               caller. Handing it back as `url` made every sender navigate
+               anyway — File-done yanked the user into Planning off-clock. */
+            url: res && res.navigate === false ? undefined
+               : declined ? (res && res.url) || undefined
+               : (res && res.url) || ('/apps/' + to + '/'),
             toast: res && typeof res.toast === 'string' ? res.toast : undefined,
             id: rec.id,
           };
