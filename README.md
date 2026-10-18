@@ -76,6 +76,7 @@ npm run dev                       # the whole terrain on :5173 → http://localh
 cd shell && npm test              # the suite (vitest)
 node scripts/verify-demo.cjs      # headless seed→use→remove pass (needs a dev server)
 node scripts/verify-restore.cjs   # backup round-trip pass
+npm run probe:today               # seed → dump Today's review-queue inputs vs DOM
 ```
 
 The vendored `apps/` tree is upstream reference only — `npm run dev:apps`
