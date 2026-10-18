@@ -71,8 +71,67 @@ function fmtClock(sec: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+/* Per-place persisted-state prefixes — a module that crashes on every
+   mount is almost always choking on its own saved blob. The boundary's
+   wipe escape clears exactly these keys so a broken place is recoverable
+   without touching anything else. */
+const PLACE_STORAGE: Record<string, { lsPrefixes: string[]; idbNames?: string[] }> = {
+  rhythm: { lsPrefixes: ['rhythm.'] },
+  proof: { lsPrefixes: ['proof.'] },
+  syllabus: { lsPrefixes: ['syllabus.'] },
+  gradestack: { lsPrefixes: ['gradestack'] },
+  ink: { lsPrefixes: ['ink'] },
+  timer: { lsPrefixes: ['timer.', 'platform.'] },
+  flashcards: { lsPrefixes: ['cardfile'] },
+  margin: { lsPrefixes: ['margin.'], idbNames: ['ModularAINotesDB'] },
+};
+
+async function wipePlaceStorage(placeId: string) {
+  const spec = PLACE_STORAGE[placeId];
+  if (!spec) return;
+  try {
+    const doomed: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && spec.lsPrefixes.some((p) => k.startsWith(p))) doomed.push(k);
+    }
+    /* the app's entity index doc — a wiped place that can't boot again to
+       republish would otherwise leave its entities ghosted in Search */
+    doomed.push(`iterra.v1.doc.index.${placeId}`);
+    for (const k of doomed) localStorage.removeItem(k);
+    /* presence + shared fields are JSON blobs keyed inside — surgically
+       drop the app's entries (fields stamp `by`, so ownership is known) */
+    try {
+      const apps = JSON.parse(localStorage.getItem('iterra.v1.apps') || '{}');
+      if (apps[placeId]) {
+        delete apps[placeId];
+        localStorage.setItem('iterra.v1.apps', JSON.stringify(apps));
+      }
+    } catch { /* best-effort */ }
+    try {
+      const shared = JSON.parse(localStorage.getItem('iterra.v1.doc.shared') || '{}');
+      let touched = false;
+      for (const [k, f] of Object.entries(shared)) {
+        if ((f as { by?: string })?.by === placeId) { delete shared[k]; touched = true; }
+      }
+      if (touched) localStorage.setItem('iterra.v1.doc.shared', JSON.stringify(shared));
+    } catch { /* best-effort */ }
+  } catch { /* storage unreadable — the crash probably says why */ }
+  for (const name of spec.idbNames ?? []) {
+    try { indexedDB.deleteDatabase(name); } catch { /* best-effort */ }
+  }
+  /* canonical store entities published under this app's key prefix — the
+     same ghost problem as the index doc, one layer deeper */
+  try {
+    const ents = (await (window as any).iterra?.store?.list?.({ app: placeId })) ?? [];
+    for (const e of ents) {
+      try { await (window as any).iterra.store.remove(e.key); } catch { /* keep going */ }
+    }
+  } catch { /* store unreachable — entities linger until next publish */ }
+}
+
 class PlaceBoundary extends Component<
-  { name: string; onReset: () => void; children: ReactNode },
+  { name: string; placeId?: string; onReset: () => void; children: ReactNode },
   { err: Error | null }
 > {
   state = { err: null as Error | null };
@@ -84,6 +143,7 @@ class PlaceBoundary extends Component<
   }
   render() {
     if (!this.state.err) return this.props.children;
+    const wipe = this.props.placeId ? PLACE_STORAGE[this.props.placeId] : undefined;
     return (
       <div className="flex h-full items-center justify-center bg-[var(--color-paper)] p-6">
         <div className="it-card-in anim-rise max-w-sm text-center">
@@ -91,16 +151,43 @@ class PlaceBoundary extends Component<
           <p className="mt-1.5 text-[12.5px] text-[var(--color-mute)]">
             {String(this.state.err?.message || this.state.err)}
           </p>
-          <button
-            type="button"
-            className="it-btn mt-4"
-            onClick={() => {
-              this.setState({ err: null });
-              this.props.onReset();
-            }}
-          >
-            Reload {this.props.name}
-          </button>
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              className="it-btn"
+              onClick={() => {
+                this.setState({ err: null });
+                this.props.onReset();
+              }}
+            >
+              Reload {this.props.name}
+            </button>
+            {wipe && (
+              <button
+                type="button"
+                className="it-btn text-[var(--color-danger,#b3483a)]"
+                title="Corrupted saved data is the usual cause of a crash that reloads can't fix"
+                onClick={() => {
+                  if (!window.confirm(
+                    `Clear ${this.props.name}'s saved data and reload? ` +
+                    `This cannot be undone — other tools and your courses keep their data.`
+                  )) return;
+                  /* a full reload, not a remount — the module's zustand
+                     singletons keep the corrupt state in memory across a
+                     React remount, so only a fresh module graph boots
+                     clean. The wipe's IDB removes are awaited (bounded)
+                     so the reload doesn't race them. */
+                  const pid = this.props.placeId;
+                  const wipe = pid ? wipePlaceStorage(pid) : Promise.resolve();
+                  Promise.race([wipe, new Promise((r) => setTimeout(r, 1500))])
+                    .catch(() => {})
+                    .finally(() => window.location.reload());
+                }}
+              >
+                Clear data &amp; reload
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -1125,6 +1212,7 @@ export default function App() {
                 >
                   <PlaceBoundary
                     name={p.label}
+                    placeId={p.id}
                     onReset={() => setRestarts((r) => ({ ...r, [p.id]: (r[p.id] || 0) + 1 }))}
                   >
                     <Suspense
