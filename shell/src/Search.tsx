@@ -79,14 +79,21 @@ export function Search({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const invokerRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     if (open) {
+      invokerRef.current = document.activeElement as HTMLElement | null;
       setQ('');
       setSel(0);
       setSendForKey(null);
       setStaged([]);
       setSentNote(null);
       requestAnimationFrame(() => inputRef.current?.focus());
+    } else {
+      /* modal contract: Esc/close returns focus to whatever invoked the
+         palette — otherwise keyboard users land on <body> each dismiss */
+      invokerRef.current?.focus?.();
+      invokerRef.current = null;
     }
   }, [open]);
 
