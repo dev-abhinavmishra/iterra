@@ -45,16 +45,24 @@ const BASE = process.argv[2] || 'http://localhost:5173';
   });
   console.log('STATE', JSON.stringify(state, null, 1));
 
-  const review = await page.evaluate(() => {
-    const btns = [...document.querySelectorAll('button')].map((b) => b.textContent?.trim()).filter(Boolean);
-    const txt = document.body.innerText;
-    return {
-      hasReview: txt.includes('Retry the two-sample'),
-      hasLogRoutine: btns.some((b) => b.includes('Log routine')),
-      reviewSection: txt.includes('Review') ? txt.slice(Math.max(0, txt.indexOf('Review') - 50), txt.indexOf('Review') + 800) : '<none>',
-      buttons: btns.slice(0, 40),
-    };
-  });
+  /* entity→subscription→render takes longer than a fixed settle (mirror
+     passes, index writes, keep-alive wakes) — poll like verify-demo does */
+  let review = null;
+  for (let i = 0; i < 15; i++) {
+    review = await page.evaluate(() => {
+      const vis = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+      const btns = [...document.querySelectorAll('button')].filter(vis).map((b) => b.textContent?.trim()).filter(Boolean);
+      const txt = document.body.innerText;
+      return {
+        hasReview: txt.includes('Retry the two-sample'),
+        hasLogRoutine: btns.some((b) => b.includes('Log routine')),
+        reviewSection: txt.includes('Review') ? txt.slice(Math.max(0, txt.indexOf('Review') - 50), txt.indexOf('Review') + 800) : '<none>',
+        buttons: btns.slice(0, 40),
+      };
+    });
+    if (review.hasReview && review.hasLogRoutine) break;
+    await page.waitForTimeout(1500);
+  }
   console.log('REVIEW', JSON.stringify(review, null, 1));
   console.log('ERRORS', JSON.stringify(errors.slice(0, 10), null, 1));
   await browser.close();
