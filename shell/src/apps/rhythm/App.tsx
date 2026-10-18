@@ -74,7 +74,7 @@ function Rhythm({ query = '' }: { query?: string }) {
      rather than Today. Consumed params strip so a reload can't re-nav. */
   useEffect(() => {
     const p = new URLSearchParams(query).get('p');
-    if (!p || !TABS.some((t) => t.key === p)) return;
+    if (!p) return;
     const h = window.location.hash;
     const qi = h.indexOf('?');
     if (qi !== -1) {
@@ -83,7 +83,17 @@ function Rhythm({ query = '' }: { query?: string }) {
       const rest = q.toString();
       window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
     }
-    setView(p as View);
+    if (TABS.some((t) => t.key === p)) {
+      setView(p as View);
+    } else {
+      /* dead p consumed above — say what it meant instead of re-firing
+         the unstripped param on every keep-alive remount */
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: `That Rhythm link is stale — no “${p}” view` },
+        }));
+      } catch { /* ambient listener absent */ }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 

@@ -95,7 +95,7 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
     if (query === lastViewQuery.current) return;
     lastViewQuery.current = query;
     const p = new URLSearchParams(query).get('p');
-    if (!p || !NAV.some((n) => n.id === p)) return;
+    if (!p) return;
     const h = window.location.hash;
     const qi = h.indexOf('?');
     if (qi !== -1) {
@@ -104,7 +104,17 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
       const rest = q.toString();
       window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
     }
-    navView(p as View);
+    if (NAV.some((n) => n.id === p)) {
+      navView(p as View);
+    } else {
+      /* dead p consumed above — say what it meant instead of re-firing
+         the unstripped param on every keep-alive remount */
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: `That Timer link is stale — no “${p}” view` },
+        }));
+      } catch { /* ambient listener absent */ }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 

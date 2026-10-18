@@ -619,9 +619,14 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         state.currentId = null;
         state.mode = 'review';
         renderAll();
-      } else if (['review', 'learn', 'quiz', 'write', 'cards'].includes(pView) && deck()) {
-        state.mode = pView;
-        renderAll();
+      } else if (['review', 'learn', 'quiz', 'write', 'cards'].includes(pView)) {
+        if (deck()) { state.mode = pView; renderAll(); }
+        /* a mode p with no open deck is a valid link with an unmet
+           precondition — the shelves are the honest landing */
+        else { state.currentId = null; renderAll(); }
+      } else {
+        /* unknown p names no surface here — consumed below; say so */
+        toast(`That flashcards link is stale — no “${pView}” surface`);
       }
       stripPlaceQuery();
       return true;

@@ -106,7 +106,7 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
       progress: 'progress', import: 'import', settings: 'settings',
     };
     const view = p && VIEWS[p];
-    if (!view) return;
+    if (!p) return;
     const h = window.location.hash;
     const qi = h.indexOf('?');
     if (qi !== -1) {
@@ -115,7 +115,17 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
       const rest = q.toString();
       window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
     }
-    goView(view);
+    if (view) {
+      goView(view);
+    } else {
+      /* dead p consumed above — say what it meant instead of re-firing
+         the unstripped param on every keep-alive remount */
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: `That Calculations link is stale — no “${p}” view` },
+        }));
+      } catch { /* ambient listener absent */ }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 

@@ -70,14 +70,24 @@ export default function App({ query = '' }: { query?: string }) {
      instead of the folio default. Consumed params strip. */
   useEffect(() => {
     const p = new URLSearchParams(query).get('p');
-    if (!p || !['today', 'semester', 'calendar', 'review'].includes(p)) return;
-    setRoute({ view: p as ViewKey });
+    if (!p) return;
     const h = window.location.hash;
     if (h.includes('?')) {
       const q = new URLSearchParams(h.slice(h.indexOf('?') + 1));
       q.delete('p');
       const rest = q.toString();
       window.location.hash = h.slice(0, h.indexOf('?')) + (rest ? '?' + rest : '');
+    }
+    if (['today', 'semester', 'calendar', 'review'].includes(p)) {
+      setRoute({ view: p as ViewKey });
+    } else {
+      /* dead p consumed above — say what it meant instead of re-firing
+         the unstripped param on every keep-alive remount */
+      try {
+        window.dispatchEvent(new CustomEvent('iterra:toast', {
+          detail: { text: `That Planner link is stale — no “${p}” view` },
+        }));
+      } catch { /* ambient listener absent */ }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
