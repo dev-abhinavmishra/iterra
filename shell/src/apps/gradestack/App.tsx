@@ -34,6 +34,14 @@ function AppLayout({ query }: { query: string }) {
     window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
   };
 
+  /* a link naming something that isn't here strips silently — surface the
+     dead end through the terrain's toast rail instead */
+  const deadLink = (text: string, url: string) => {
+    try {
+      window.dispatchEvent(new CustomEvent('iterra:toast', { detail: { text, url } }));
+    } catch { /* no window to notify */ }
+  };
+
   // Inbound suite link: ?assessment=<id> → open that test's analytics page,
   // then strip the param so it can't re-fire. Unknown ids are ignored.
   useEffect(() => {
@@ -41,6 +49,8 @@ function AppLayout({ query }: { query: string }) {
     if (!id) return;
     if (useStore.getState().tests.some((t) => t.id === id)) {
       navigate(`/analytics?testId=${id}`);
+    } else {
+      deadLink('That assessment no longer exists', '#/p/gradestack?p=history');
     }
     /* hit or miss the param is consumed — a dead id lingering in the hash
        re-fires on every keep-alive remount */
@@ -59,6 +69,8 @@ function AppLayout({ query }: { query: string }) {
     stripPlaceQuery('scanId');
     if (scan) {
       navigate(`/scan?testId=${encodeURIComponent(scan.testId)}&scanId=${encodeURIComponent(scan.id)}`);
+    } else {
+      deadLink('That scan no longer exists', '#/p/gradestack?p=history');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, navigate]);

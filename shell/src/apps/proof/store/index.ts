@@ -205,6 +205,15 @@ export const useWorkbench = create<WorkbenchState>()(
               get().fileTimerReturn(inbound.sessionId, inbound.actualMinutes);
               inbound = null;
             }
+            /* a link naming a problem/attempt that isn't here drops
+               silently — toast the dead end so the click isn't a shrug */
+            const deadLink = (text: string) => {
+              try {
+                window.dispatchEvent(new CustomEvent('iterra:toast', {
+                  detail: { text, url: '#/p/proof?p=library' },
+                }));
+              } catch { /* no window to notify */ }
+            };
             if (inbound?.kind === 'problem' && inbound.problemId) {
               const problem = get().problems[inbound.problemId];
               if (problem) {
@@ -212,11 +221,15 @@ export const useWorkbench = create<WorkbenchState>()(
                 inbound = { ...inbound, attemptId: attempt.id };
               } else {
                 inbound = null;
+                deadLink('That problem is gone');
               }
             }
             if (inbound?.kind === 'attempt' && inbound.attemptId) {
               /* ?attempt=<id> must name a real attempt — else drop the link */
-              if (!get().attempts[inbound.attemptId]) inbound = null;
+              if (!get().attempts[inbound.attemptId]) {
+                inbound = null;
+                deadLink('That attempt is gone');
+              }
             }
             if (query !== undefined) {
               window.history.replaceState({}, '', '#/p/proof');
