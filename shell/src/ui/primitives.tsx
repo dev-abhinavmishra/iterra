@@ -207,7 +207,7 @@ export function Tabs<K extends string = string>({
       aria-label={ariaLabel}
       className="scrollbar-none flex items-center gap-1 overflow-x-auto border-b border-[var(--color-line)]"
     >
-      {items.map((item) => {
+      {items.map((item, i) => {
         const isOn = item.key === active;
         return (
           <button
@@ -215,6 +215,20 @@ export function Tabs<K extends string = string>({
             role="tab"
             type="button"
             aria-selected={isOn}
+            /* roving tabindex: one tab stop for the list, arrows move it.
+               Automatic activation (select on focus) matches the pattern
+               APG recommends when panels swap cheaply — which ours do. */
+            tabIndex={isOn ? 0 : -1}
+            onKeyDown={(e) => {
+              const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+              if (!dir) return;
+              e.preventDefault();
+              const next = items[(i + dir + items.length) % items.length];
+              if (!next) return;
+              onChange(next.key);
+              const host = (e.currentTarget.parentElement)?.querySelectorAll<HTMLElement>('[role="tab"]');
+              host?.[items.indexOf(next)]?.focus();
+            }}
             onClick={() => onChange(item.key)}
             className={`relative flex items-center gap-1.5 whitespace-nowrap px-3 py-2 text-[13px] font-medium transition-colors cursor-pointer ${
               isOn
