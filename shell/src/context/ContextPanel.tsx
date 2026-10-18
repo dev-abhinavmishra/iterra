@@ -384,13 +384,17 @@ export function ContextPanel({
 
   // Open commitments/blocks we can attach this object to via iterra.links.add
   const openCommitments = useMemo(() => {
+    /* commitments carry status, blocks carry state — a dropped commitment
+       or a stamped/deferred slip is a dead attach target */
+    const closed = (e: (typeof entities)[number]) =>
+      e.data?.status === 'done' || e.data?.status === 'completed' || e.data?.status === 'dropped' ||
+      e.data?.state === 'done' || e.data?.state === 'deferred';
     return entities
       .filter(
         (e) =>
           (e.type === 'commitment' || e.type === 'block') &&
           e.title &&
-          e.data?.status !== 'done' &&
-          e.data?.status !== 'completed',
+          !closed(e),
       )
       .slice(0, 12);
   }, [entities]);
