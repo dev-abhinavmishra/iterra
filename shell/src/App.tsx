@@ -251,7 +251,19 @@ export default function App() {
   }, []);
 
   const [manualObject, setManualObject] = useState<WorkspaceObject | null>(null);
-  const [courseFilter, setCourseFilter] = useState<string>('');
+  /* the course lens rides sessionStorage — a mid-session reload keeps the
+     filter, a fresh tab starts unscoped (a week-old persisted filter hiding
+     rows is the failure mode this avoids) */
+  const [courseFilter, setCourseFilterState] = useState<string>(() => {
+    try { return sessionStorage.getItem('iterra.courseFilter') || ''; } catch { return ''; }
+  });
+  const setCourseFilter = useCallback((code: string) => {
+    setCourseFilterState(code);
+    try {
+      if (code) sessionStorage.setItem('iterra.courseFilter', code);
+      else sessionStorage.removeItem('iterra.courseFilter');
+    } catch { /* best-effort */ }
+  }, []);
   const [lastSavedAt, setLastSavedAt] = useState<number>(() => Date.now());
 
   // Tick for live focus countdown in global top bar
