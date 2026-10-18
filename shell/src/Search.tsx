@@ -721,6 +721,27 @@ export function Search({
                                 {t.label}
                               </button>
                             ))}
+                            {/* open syllabus work can file done straight from the
+                                palette — completion is a send like any other */}
+                            {h.entity?.app === 'syllabus' &&
+                              (h.entity.type === 'commitment' || h.entity.type === 'block') &&
+                              !(h.entity.data?.status === 'done' || h.entity.data?.status === 'dropped' ||
+                                h.entity.data?.state === 'done') && (
+                              <button
+                                type="button"
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  void doSend(h, {
+                                    to: 'syllabus',
+                                    action: h.entity!.type === 'commitment' ? 'commitment.done' : 'block.done',
+                                    label: `File ${h.entity!.type === 'commitment' ? 'commitment' : 'slip'} done`,
+                                  });
+                                }}
+                                className="rounded-[4px] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] px-2.5 py-1 text-[11.5px] font-medium text-[var(--color-accent)] hover:border-[var(--color-accent)] cursor-pointer"
+                              >
+                                File {h.entity.type === 'commitment' ? 'commitment' : 'slip'} done
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}
