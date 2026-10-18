@@ -47,18 +47,28 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
   const [exceptionOpen, setExceptionOpen] = useState(false);
   const [justStamped, setJustStamped] = useState<string | null>(null);
 
+  /* a deep-linked routine pins to the top — ONCE. Snapshot the consumed
+     name into mount state and clear the store flag: otherwise a stale link
+     keeps re-pinning itself over the day's real order on every revisit */
+  const [pinnedName, setPinnedName] = useState<string | null>(focusedRoutineName);
+  useEffect(() => {
+    if (!focusedRoutineName) return;
+    setPinnedName(focusedRoutineName);
+    useRegister.setState({ focusedRoutineName: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusedRoutineName]);
+
   const list = useMemo(() => {
     const all = Object.values(routines).filter((r) => r.status !== 'archived');
     const scheduled = all.filter((r) => r.status === 'active' && isScheduled(r, today));
     const open = all.filter((r) => r.status === 'active' && !isScheduled(r, today));
     const paused = all.filter((r) => r.status === 'paused');
-    // A deep-linked routine (from a suite app) pins to the top once.
-    if (focusedRoutineName) {
-      const i = scheduled.findIndex((r) => r.name.toLowerCase() === focusedRoutineName.toLowerCase());
+    if (pinnedName) {
+      const i = scheduled.findIndex((r) => r.name.toLowerCase() === pinnedName.toLowerCase());
       if (i > 0) scheduled.unshift(scheduled.splice(i, 1)[0]);
     }
     return { scheduled, open, paused };
-  }, [routines, today, focusedRoutineName]);
+  }, [routines, today, pinnedName]);
 
   /* Unhit clears every entry the day carries for that channel — the step
      returns to un-programmed. The triggering event stays in the ledger, so
