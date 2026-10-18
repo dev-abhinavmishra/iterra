@@ -350,7 +350,7 @@ export const useStore = create<AppState>()(
                   sub: n.folder,
                   course: n.course, courseId: n.courseId,
                   topic: n.tags?.[0],
-                  url: `/apps/ink/?note=${n.id}`,
+                  url: `/apps/ink/?note=${encodeURIComponent(n.id)}`,
                   updatedAt: n.lastModified,
                 },
               }));
