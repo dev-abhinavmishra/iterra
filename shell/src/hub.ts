@@ -363,7 +363,14 @@ export interface FeedItem {
 export function readFeed(): FeedItem[] {
   try {
     const d = JSON.parse(localStorage.getItem('iterra.v1.doc.feed') || 'null');
-    return Array.isArray(d?.items) ? d.items : [];
+    if (!Array.isArray(d?.items)) return [];
+    /* drop rows missing the fields the rail renders — a corrupt item
+       shouldn't produce a blank row with 'NaN ago' beside it */
+    return d.items.filter(
+      (f: FeedItem | null) =>
+        !!f && typeof f === 'object' && typeof f.text === 'string' &&
+        typeof f.app === 'string' && typeof f.at === 'number',
+    );
   } catch {
     return [];
   }
