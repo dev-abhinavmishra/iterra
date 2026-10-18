@@ -16,29 +16,30 @@ const OUT = path.join(__dirname, '.verify-downloads');
 
 const ok = (m) => console.log('  ok:', m);
 const fail = (m) => { console.log('FAIL:', m); process.exitCode = 1; };
+/* page errors collected at module scope so the FATAL catch can print them */
+const errors = [];
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch({ executablePath: EXE, headless: true });
   const ctx = await browser.newContext({ acceptDownloads: true });
   const page = await ctx.newPage();
-  const errors = [];
   page.on('pageerror', (e) => errors.push(String(e).slice(0, 200)));
 
   /* seed + drain the ink intake so the backup has delivered rows too */
   await page.goto(`${BASE}/#/settings`, { waitUntil: 'load' });
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(2200);
   await page.getByText('Load a sample semester', { exact: false }).first().click();
   await page.getByRole('button', { name: 'Load sample' }).click();
   await page.waitForLoadState('load');
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(2200);
   await page.goto(`${BASE}/#/p/ink`, { waitUntil: 'load' });
   await page.waitForTimeout(3000); // let the ink intake drain + mirror
   ok('seeded + ink drained');
 
   /* download the backup */
   await page.goto(`${BASE}/#/settings`, { waitUntil: 'load' });
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(2200);
   const dl = page.waitForEvent('download', { timeout: 60000 }); /* collectBackup walks every IDB store — slow disks stretch it */
   await page.getByText('Download backup', { exact: false }).first().click();
   const file = await dl;
@@ -94,4 +95,10 @@ const fail = (m) => { console.log('FAIL:', m); process.exitCode = 1; };
   if (errors.length) console.log('page errors:', errors.slice(0, 5));
   await browser.close();
   console.log(process.exitCode ? 'DONE — failures above' : 'DONE — restore round-trip verified');
-})().catch((e) => { console.log('FATAL', e.message || e); process.exit(1); });
+})().catch((e) => {
+  console.log('FATAL', e.message || e);
+  /* the collected page errors are the diagnosis — a FATAL without them
+     reports a missing locator and hides the render crash behind it */
+  console.log('page errors:', errors.slice(0, 5));
+  process.exit(1);
+});
