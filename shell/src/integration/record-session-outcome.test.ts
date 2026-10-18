@@ -190,4 +190,24 @@ describe('recordSessionOutcome', () => {
     expect(res.ok).toBe(true);
     expect(sessions()[0].courseId).toBe('syllabus:course:bio201');
   });
+
+  it('a foreign session outcome never touches another live session\'s restore blob', async () => {
+    /* a live focus countdown's blob carries its own sessionId — an interval
+       finish or manual backfill must not wipe it (or reload-restore dies) */
+    store.set('timer.session.live.v1', JSON.stringify({ sessionId: 'live_A', endsAt: Date.now() + 60000 }));
+    await handleRecordSessionOutcome({ sessionId: 's_other', outcome: 'completed', elapsedMinutes: 10 });
+    expect(store.get('timer.session.live.v1')).toContain('live_A');
+    /* ...but finishing the live session itself does clear it */
+    await handleRecordSessionOutcome({ sessionId: 'live_A', outcome: 'completed', elapsedMinutes: 25 });
+    expect(store.get('timer.session.live.v1')).toBeUndefined();
+  });
+
+  it('sessionKind stamps interval/stopwatch rows honestly', async () => {
+    await handleRecordSessionOutcome({
+      sessionId: 's_int', outcome: 'completed', elapsedSeconds: 600, sessionKind: 'interval',
+    });
+    expect(sessions()[0].type).toBe('interval');
+    const ent = puts.find((e) => e.type === 'session' && e.id === 's_int');
+    expect(ent?.data?.sessionKind).toBe('interval');
+  });
 });

@@ -1256,6 +1256,9 @@ export interface RecordSessionOutcomeInput {
   /* when the session happened — manual/backfilled entries need a date the
      stats can file under; defaults to now for live-timed runs */
   at?: number;
+  /* what produced the row — focus countdowns are the default; interval
+     routes and stopwatch runs pass their own so the ledger stays honest */
+  sessionKind?: 'focus' | 'break' | 'interval' | 'stopwatch';
   workflowId?: string;
   idempotencyKey?: string;
 }
@@ -1389,11 +1392,15 @@ export async function handleRecordSessionOutcome(
   } catch {
     sessions = [];
   }
+  const sessionKind =
+    input.sessionKind === 'break' || input.sessionKind === 'interval' || input.sessionKind === 'stopwatch'
+      ? input.sessionKind
+      : 'focus';
   if (input.outcome !== 'canceled' && !sessions.some((s) => s && s.id === sessionId)) {
     const newSession = {
       id: sessionId,
       duration: elapsedSeconds,
-      type: 'focus',
+      type: sessionKind,
       timestamp: at,
       label,
       preset: label,
@@ -1435,6 +1442,7 @@ export async function handleRecordSessionOutcome(
       minutes: elapsedMinutes,
       elapsedSeconds,
       plannedMinutes,
+      sessionKind,
       outcome: input.outcome,
       confirmedByUser,
       label,
@@ -1633,18 +1641,26 @@ export async function handleRecordSessionOutcome(
     if (relMat.relationship) relationships.push(relMat.relationship);
   }
 
-  // 5. Clear live session state
+  // 5. Clear live session state — but only OURS. A backfilled log entry or
+  //    an interval-route finish runs this command while a focus countdown
+  //    keeps ticking elsewhere: wiping its blob would break reload-restore
+  //    and drop the terrain's "focusing" chip mid-session.
   try {
-    localStorage.removeItem(LIVE_SESSION_KEY);
-    (window as any).iterra?.doc?.('shared')?.setField?.('focus', {
-      v: null,
-      by: 'timer',
-      at: now,
-    });
+    const live = JSON.parse(localStorage.getItem(LIVE_SESSION_KEY) || 'null');
+    /* only when no session is live, or the live one IS this session — a
+       live blob missing sessionId belongs to someone else, not us */
+    if (!live || live.sessionId === sessionId) {
+      localStorage.removeItem(LIVE_SESSION_KEY);
+      (window as any).iterra?.doc?.('shared')?.setField?.('focus', {
+        v: null,
+        by: 'timer',
+        at: now,
+      });
+      setActiveSessionInContext(null);
+    }
   } catch {
     /* ignore */
   }
-  setActiveSessionInContext(null);
 
   // 6. Emit outcome events
   const eventPayload = {

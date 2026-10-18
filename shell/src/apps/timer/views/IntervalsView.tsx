@@ -3,6 +3,7 @@ import { Play, Pause, Plus, X, Trash2, ArrowRight, RotateCcw } from 'lucide-reac
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, vibrate } from '../lib/utils';
 import { saveSession } from '../lib/stats';
+import { execCommand } from '../../../integration/commands';
 import { useRoutineRunner, Routine, Phase } from '../hooks/useTimer';
 import { BUILT_INS, loadRoutines, ROUTINES_KEY } from '../lib/routines';
 import { publishRoutineIndex } from '../lib/iterra';
@@ -74,7 +75,19 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
       stationChime();
       vibrate([120, 80, 120, 80, 300]);
       if (run.routine) {
-        saveSession({ duration: routineWork(run.routine), type: 'interval', preset: run.routine.name });
+        const sess = saveSession({ duration: routineWork(run.routine), type: 'interval', preset: run.routine.name });
+        /* canonical layer too — the route is study time: session entity,
+           session.completed event (rhythm maps it), dossier rollups */
+        if (sess) void execCommand('recordSessionOutcome', {
+          sessionId: sess.id,
+          outcome: 'completed',
+          elapsedSeconds: routineWork(run.routine),
+          plannedMinutes: Math.round(routineWork(run.routine) / 60),
+          sessionKind: 'interval',
+          label: `route · ${run.routine.name}`,
+          confirmedByUser: true,
+          idempotencyKey: `timer:${sess.id}`,
+        }).catch(() => {});
         /* real completion → stir; deep-links back onto this card via ?routine= */
         (window as any).iterra?.feed?.({
           text: `route complete · ${run.routine.name}`,

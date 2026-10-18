@@ -3,6 +3,7 @@ import { Play, Pause, RotateCcw, Flag, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, vibrate } from '../lib/utils';
 import { saveSession } from '../lib/stats';
+import { execCommand } from '../../../integration/commands';
 import { useStopwatch } from '../hooks/useTimer';
 import { useViewport } from '../hooks/useViewport';
 import { FlipRow, RollDigit } from '../components/Flip';
@@ -65,7 +66,21 @@ export default function StopwatchView({ active = true }: { active?: boolean }) {
 
   const resetAll = () => {
     vibrate([25, 40, 25]);
-    if (time > 30000) saveSession({ duration: Math.round(time / 1000), type: 'stopwatch' });
+    if (time > 30000) {
+      const sess = saveSession({ duration: Math.round(time / 1000), type: 'stopwatch' });
+      /* stopwatch time is study time — the canonical session entity +
+         session.completed event (rhythm's register maps it) */
+      if (sess) void execCommand('recordSessionOutcome', {
+        sessionId: sess.id,
+        outcome: 'completed',
+        elapsedSeconds: sess.duration,
+        plannedMinutes: Math.max(1, Math.round(sess.duration / 60)),
+        sessionKind: 'stopwatch',
+        label: 'stopwatch',
+        confirmedByUser: true,
+        idempotencyKey: `timer:${sess.id}`,
+      }).catch(() => {});
+    }
     sw.reset();
     setLaps([]);
   };
