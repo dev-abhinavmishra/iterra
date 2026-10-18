@@ -14,6 +14,11 @@ echo "── contract checks"
 node scripts/check-adapters.mjs
 node scripts/check-api-parity.mjs
 
+# vite's esbuild strips types without checking them — a broken import can
+# ship inside a "successful" build. typecheck gates that class of error.
+echo "── typecheck"
+(cd shell && npx tsc --noEmit -p .)
+
 echo "── building shell"
 # npm ci is the hermetic path; on Windows a running dev server (or antivirus)
 # can hold a .node/.exe handle and wedge ci mid-delete, leaving a broken
