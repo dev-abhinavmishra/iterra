@@ -11,6 +11,7 @@ import {
   Activity,
   PanelRightOpen,
   Share2,
+  XCircle,
 } from 'lucide-react';
 import { PLACE_MAP, formatEntityType } from '../places';
 import type { StoreEntity } from '../hub';
@@ -446,7 +447,7 @@ export function ObjectRow({
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-bad)] hover:bg-[var(--color-bad-soft)] cursor-pointer"
                 >
-                  <CheckSquare className="h-3.5 w-3.5" />
+                  <XCircle className="h-3.5 w-3.5" />
                   Drop commitment
                 </button>
               )}

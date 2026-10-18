@@ -435,10 +435,33 @@ export function DropdownMenu({
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
+  /* focus management: keyboard users open the menu and their next Tab
+     should land inside it, not on whatever follows the trigger in DOM
+     order. On open, focus the first actionable item; on Escape, return
+     focus to the trigger so the dismissing keystroke doesn't strand the
+     user mid-list. */
   useEffect(() => {
     if (!open) return;
+    const panel = wrapRef.current?.querySelector<HTMLElement>('[role="menu"]');
+    const first = panel?.querySelector<HTMLElement>('button:not([disabled])');
+    first?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        const trig = wrapRef.current?.querySelector<HTMLElement>('button');
+        trig?.focus();
+      }
+      /* ArrowUp/Down walk the menu — standard menu semantics */
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        const items = Array.from(panel?.querySelectorAll<HTMLElement>('button:not([disabled])') ?? []);
+        if (!items.length) return;
+        e.preventDefault();
+        const idx = items.indexOf(document.activeElement as HTMLElement);
+        const next = e.key === 'ArrowDown'
+          ? (idx < 0 ? 0 : (idx + 1) % items.length)
+          : (idx <= 0 ? items.length - 1 : idx - 1);
+        items[next]?.focus();
+      }
     };
     const onClickOutside = (e: MouseEvent) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
@@ -461,6 +484,7 @@ export function DropdownMenu({
       })}
       {open && (
         <div
+          role="menu"
           className={`anim-pop absolute z-50 min-w-[190px] rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-1 shadow-xl ${
             side === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
           } ${align === 'right' ? 'right-0' : 'left-0'}`}
