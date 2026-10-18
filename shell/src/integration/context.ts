@@ -58,7 +58,16 @@ function syncActiveSessionIntoContext(ctx: WorkflowContext): WorkflowContext {
     const liveRaw = localStorage.getItem(LIVE_SESSION_KEY);
     if (liveRaw) {
       const live = JSON.parse(liveRaw);
-      if (live && (live.running || live.paused)) {
+      /* same resume gate TimerView applies on mount — a running blob whose
+         endsAt already passed is a crashed session, not a live one, and
+         projecting it into the context would resurrect a phantom clock on
+         every read. Sweep it so the revive path stops finding a corpse. */
+      const resumeMs = live?.running
+        ? (live.endsAt || 0) - Date.now()
+        : live?.paused
+          ? (live.remainingSec || 0) * 1000
+          : -1;
+      if (live && resumeMs > 0) {
         const blockId = live.syllabus?.block || live.blockId || null;
         return {
           ...ctx,
@@ -84,6 +93,9 @@ function syncActiveSessionIntoContext(ctx: WorkflowContext): WorkflowContext {
             returnUrl: live.syllabus?.returnUrl,
           },
         };
+      }
+      if (live) {
+        try { localStorage.removeItem(LIVE_SESSION_KEY); } catch { /* ignore */ }
       }
     }
   } catch {
