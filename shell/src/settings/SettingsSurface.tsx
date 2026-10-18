@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive, Inbox, AlertTriangle, Trash2 } from 'lucide-react';
 import { PLACES } from '../places';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
+import { formatRelativeTime } from '../ui/ObjectRow';
 import { useWorkspaceTheme } from '../ui/theme';
 import {
   collectBackup,
@@ -293,6 +294,8 @@ function BackupSection() {
    their tool, and writes the hub quarantined as malformed. */
 function DiagnosticsSection() {
   const [diag, setDiag] = useState<{ pending: number; quarantined: number; stuck: number } | null>(null);
+  const [journal, setJournal] = useState<{ type: string; app: string; at: number; text?: string }[]>([]);
+  const [journalOpen, setJournalOpen] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -341,11 +344,46 @@ function DiagnosticsSection() {
     return () => { live = false; window.clearInterval(t); };
   }, []);
 
-  if (!diag || (diag.pending === 0 && diag.quarantined === 0 && diag.stuck === 0)) return null;
+  /* the typed event journal — distinct from stirs (which are human-authored
+     feed lines). Every intake resolution, lifecycle transition and entity
+     mutation lands here; surfacing it turns "did that send land?" into a
+     glance instead of a DevTools session. */
+  useEffect(() => {
+    let live = true;
+    const read = async () => {
+      try {
+        const rows = await (window as any).iterra?.events?.list?.({ limit: 24 });
+        if (!live || !Array.isArray(rows)) return;
+        setJournal(
+          rows
+            .filter((r: any) => r && r.type && r.at)
+            .map((r: any) => ({
+              type: String(r.type),
+              app: String(r.app || r.payload?.app || '?'),
+              at: r.at,
+              text:
+                typeof r.payload?.title === 'string' ? r.payload.title
+                : typeof r.payload?.text === 'string' ? r.payload.text
+                : typeof r.payload?.toast === 'string' ? r.payload.toast
+                : typeof r.payload?.to === 'string' ? `→ ${r.payload.to} · ${r.payload.action ?? ''}`
+                : undefined,
+            })),
+        );
+      } catch { /* journal optional */ }
+    };
+    void read();
+    const t = window.setInterval(read, 12000);
+    const off = (window as any).iterra?.events?.on?.('*', read);
+    return () => { live = false; window.clearInterval(t); try { off?.(); } catch { /* */ } };
+  }, []);
+
+  const hasIssues = diag && (diag.pending > 0 || diag.quarantined > 0 || diag.stuck > 0);
+  if (!hasIssues && journal.length === 0) return null;
 
   return (
     <section className="pt-6">
       <SectionHeader title="Diagnostics" />
+      {hasIssues && (
       <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
         {diag.pending > 0 && (
           <div className="flex items-center gap-3 px-4 py-2.5">
@@ -389,6 +427,34 @@ function DiagnosticsSection() {
           </div>
         )}
       </div>
+      )}
+      {journal.length > 0 && (
+        <div className={`overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] ${hasIssues ? 'mt-2.5' : ''}`}>
+          <button
+            type="button"
+            onClick={() => setJournalOpen((x) => !x)}
+            aria-expanded={journalOpen}
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+          >
+            <ChevronRight className={`h-4 w-4 shrink-0 text-[var(--color-faint)] transition-transform ${journalOpen ? 'rotate-90' : ''}`} />
+            <span className="min-w-0 flex-1 text-[13px] font-medium text-[var(--color-ink)]">
+              Journal — {journal.length} recent event{journal.length === 1 ? '' : 's'}
+            </span>
+          </button>
+          {journalOpen && (
+            <div className="border-t border-[var(--color-line)]">
+              {journal.map((r, i) => (
+                <div key={`${r.at}:${i}`} className="flex items-baseline gap-3 px-4 py-1.5 text-[12px]">
+                  <span className="w-20 shrink-0 font-mono text-[10px] uppercase tracking-wider text-[var(--color-accent)] truncate">{r.app}</span>
+                  <span className="shrink-0 font-mono text-[10px] text-[var(--color-faint)]">{r.type}</span>
+                  <span className="min-w-0 flex-1 truncate text-[var(--color-mute)]">{r.text || '—'}</span>
+                  <span className="shrink-0 font-mono text-[10px] text-[var(--color-faint)]">{formatRelativeTime(r.at)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }
