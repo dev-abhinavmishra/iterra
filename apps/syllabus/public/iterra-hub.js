@@ -237,8 +237,11 @@
         try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
       },
       set: function (v) {
-        try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {}
-        emit(v);
+        var ok = true;
+        try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) { ok = false; }
+        /* emit only what persisted — a swallowed quota error would otherwise
+           broadcast a doc value that reloads can never see */
+        if (ok) emit(v);
       },
       /* convenience: merge a single field into the doc's object value */
       setField: function (field, v) {
@@ -246,8 +249,9 @@
         try { cur = JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { cur = null; }
         if (!cur || typeof cur !== 'object' || Array.isArray(cur)) cur = {};
         cur[field] = v;
-        try { localStorage.setItem(key, JSON.stringify(cur)); } catch (e) {}
-        emit(cur);
+        var ok = true;
+        try { localStorage.setItem(key, JSON.stringify(cur)); } catch (e) { ok = false; }
+        if (ok) emit(cur);
       },
       subscribe: function (cb) {
         var h = function (ev) { if (ev.key === key) { try { cb(ev.newValue ? JSON.parse(ev.newValue) : null); } catch (e) {} } };
