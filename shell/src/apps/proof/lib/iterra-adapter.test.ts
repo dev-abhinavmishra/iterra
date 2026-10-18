@@ -10,6 +10,8 @@ let emits: { t: string; p: any }[];
 let sends: any[];
 let links: { from: string; to: string; kind: string }[];
 let adapterOpts: any;
+let listRows: Ent[];
+let removes: string[];
 
 const installStubs = () => {
   puts = [];
@@ -17,6 +19,8 @@ const installStubs = () => {
   sends = [];
   links = [];
   adapterOpts = null;
+  listRows = [];
+  removes = [];
   const mem = new Map<string, string>();
   const localStorageStub = {
     getItem: (k: string) => mem.get(k) ?? null,
@@ -31,8 +35,8 @@ const installStubs = () => {
       adapter: (o: any) => { adapterOpts = o; },
       store: {
         put: async (e: Ent) => { puts.push(e); return { ok: true }; },
-        list: async () => [],
-        remove: async () => ({ ok: true }),
+        list: async () => listRows,
+        remove: async (k: string) => { removes.push(k); return { ok: true }; },
       },
       events: { emit: (t: string, p: any) => emits.push({ t, p }) },
       links: { add: async (from: string, to: string, kind: string) => { links.push({ from, to, kind }); return { ok: true }; } },
@@ -220,5 +224,23 @@ describe('adapter wiring', () => {
     expect(puts.find((e) => e.type === 'attempt' && e.id === 'a1')).toMatchObject({
       url: '/apps/proof/?attempt=a1', data: { diverged: false, problemId: 'p1' },
     });
+  });
+
+  it('prime-prune keeps proof:followup entities — only stale problems/attempts retract', async () => {
+    /* the shadow seed used to list EVERY proof:* entity — a follow-up task
+       parked under proof:followup:* was then mirror-pruned the moment the
+       workbench mounted (observed live: the demo seed's follow-up vanished
+       from the canonical store and Today's Review Queue). */
+    listRows = [
+      { key: 'proof:followup:fu1', app: 'proof', type: 'followup', id: 'fu1', data: { status: 'open' } },
+      { key: 'proof:problem:gone', app: 'proof', type: 'problem', id: 'gone', data: {} },
+    ];
+    const store = await seed();
+    await import('./iterra-adapter');
+    await tick();
+    store.setState((s: any) => ({ problems: { ...s.problems } })); // nudge mirror
+    await tick();
+    expect(removes).toContain('proof:problem:gone');
+    expect(removes).not.toContain('proof:followup:fu1');
   });
 });

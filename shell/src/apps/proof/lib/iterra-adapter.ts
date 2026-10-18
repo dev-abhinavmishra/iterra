@@ -338,6 +338,10 @@ async function prime() {
     const rows = await it.store.list({ app: 'proof' });
     for (const e of rows || []) {
       if (!e?.key) continue;
+      /* only shadow the types this mirror owns — a proof:followup:* row
+         parked by the follow-up lane isn't a stale problem/attempt, and
+         pruning it below would retract an entity another flow is tracking */
+      if (e.type !== 'problem' && e.type !== 'attempt') continue;
       shadow.set(e.key, entitySig(e as unknown as Record<string, unknown>));
     }
   } catch { /* shadow starts empty — first mirror publishes everything */ }

@@ -228,7 +228,7 @@ const ok = (msg) => console.log('  ok:', msg);
       } catch (e) { out.idxRoutine = String(e); }
       try {
         out.routineEnts = await new Promise((res) => {
-          const rq = indexedDB.open('iterra.core.v1');
+          const rq = indexedDB.open('iterra');
           rq.onerror = () => res('idb-open-fail');
           rq.onsuccess = () => {
             try {
@@ -259,6 +259,40 @@ const ok = (msg) => console.log('  ok:', msg);
     }
     if (checked < 1) fail('inline Log routine wrote no entry');
     else ok("Today's inline check-in landed on the register");
+  }
+
+  /* The seeded follow-up surfaces in Today's Review Queue — same publish
+     lag as the routine row: the canonical entity write trails the seed's
+     own LS write by an async mirror pass. */
+  const fuRow = page.getByText('Retry the two-sample t-test misses').first();
+  let fuFound = false;
+  for (let i = 0; i < 60; i++) {
+    if (await fuRow.count()) { fuFound = true; break; }
+    await page.waitForTimeout(700);
+  }
+  if (!fuFound) {
+    const diag = await page.evaluate(async () => {
+      const out = { ls: null, idb: [] };
+      try { out.ls = Object.keys(JSON.parse(localStorage.getItem('iterra.v1.followups') || '{}')); }
+      catch (e) { out.ls = String(e); }
+      try {
+        out.idb = await new Promise((res) => {
+          const rq = indexedDB.open('iterra');
+          rq.onerror = () => res('idb-open-fail');
+          rq.onsuccess = () => {
+            try {
+              const all = rq.result.transaction('entities', 'readonly').objectStore('entities').getAll();
+              all.onsuccess = () => res((all.result || []).filter((v) => v?.type === 'followup').map((v) => v.key));
+              all.onerror = () => res('idb-read-fail');
+            } catch (e) { res(String(e)); }
+          };
+        });
+      } catch (e) { out.idb = String(e); }
+      return out;
+    }).catch((e) => ({ evalErr: String(e) }));
+    fail('Today shows no follow-up review row: ' + JSON.stringify(diag));
+  } else {
+    ok('follow-up task surfaces in the Review Queue');
   }
 
   /* ── block.done — stamp a seeded slip through the real intake queue.
@@ -400,6 +434,13 @@ const ok = (msg) => console.log('  ok:', msg);
   const hubEnts = await page.evaluate(() => window.iterra.store.list().then((r) => r.map((e) => e.key)));
   if (hubEnts.some((k) => String(k).includes('demo'))) fail('hub entities still carry demo rows: ' + JSON.stringify(hubEnts.filter((k) => String(k).includes('demo'))));
   else ok('hub entity store clean');
+
+  const fusLeft = await page.evaluate(() => {
+    try { return Object.keys(JSON.parse(localStorage.getItem('iterra.v1.followups') || '{}')); }
+    catch { return ['<parse-fail>']; }
+  });
+  if (fusLeft.some((k) => String(k).includes('demo'))) fail('demo follow-ups still queued: ' + JSON.stringify(fusLeft));
+  else ok('follow-up map clean');
 
   const intakesLeft = await page.evaluate(() => new Promise((res) => {
     const req = indexedDB.open('iterra');
