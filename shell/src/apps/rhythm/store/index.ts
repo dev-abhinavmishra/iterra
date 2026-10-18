@@ -230,7 +230,7 @@ export const useRegister = create<RegisterState>()(
         if (wantedRoutine && !Object.values(get().routines).some((r) => r.name === wantedRoutine)) {
           try {
             window.dispatchEvent(new CustomEvent('iterra:toast', {
-              detail: { text: `No routine named "${wantedRoutine}"`, url: '#/p/rhythm?p=register' },
+              detail: { text: `No routine named "${wantedRoutine}"`, url: '#/p/rhythm?p=today' },
             }));
           } catch { /* no window to notify */ }
         }
