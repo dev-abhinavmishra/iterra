@@ -292,16 +292,19 @@ function BackupSection() {
    This surfaces the two honest diagnostics: deliveries still waiting on
    their tool, and writes the hub quarantined as malformed. */
 function DiagnosticsSection() {
-  const [diag, setDiag] = useState<{ pending: number; quarantined: number } | null>(null);
+  const [diag, setDiag] = useState<{ pending: number; quarantined: number; stuck: number } | null>(null);
 
   useEffect(() => {
     let live = true;
     const read = async () => {
       let pending = 0;
+      let stuck = 0;
       let quarantined = 0;
       try {
         const ls = JSON.parse(localStorage.getItem('iterra.v1.store.intakes') || '{}');
-        pending += Object.values(ls).filter((r: any) => !r?.delivered).length;
+        const rows = Object.values(ls).filter((r: any) => !r?.delivered);
+        pending += rows.length;
+        stuck += rows.filter((r: any) => (r?.attempts || 0) >= 3).length;
       } catch { /* ignore */ }
       try {
         const q = JSON.parse(localStorage.getItem('iterra.v1.quarantine') || '[]');
@@ -312,31 +315,33 @@ function DiagnosticsSection() {
       try {
         const names = (await indexedDB.databases?.())?.map((d) => d.name) ?? [];
         if (names.includes('iterra')) {
-          const idbPending = await new Promise<number>((res) => {
+          const idbRows = await new Promise<{ pending: number; stuck: number }>((res) => {
             const req = indexedDB.open('iterra');
             req.onsuccess = () => {
               const db = req.result;
-              if (!db.objectStoreNames.contains('intakes')) { db.close(); res(0); return; }
+              if (!db.objectStoreNames.contains('intakes')) { db.close(); res({ pending: 0, stuck: 0 }); return; }
               const r = db.transaction('intakes', 'readonly').objectStore('intakes').getAll();
               r.onsuccess = () => {
                 db.close();
-                res((r.result as any[]).filter((x) => !x?.delivered).length);
+                const rows = (r.result as any[]).filter((x) => !x?.delivered);
+                res({ pending: rows.length, stuck: rows.filter((x) => (x?.attempts || 0) >= 3).length });
               };
-              r.onerror = () => { db.close(); res(0); };
+              r.onerror = () => { db.close(); res({ pending: 0, stuck: 0 }); };
             };
-            req.onerror = () => res(0);
+            req.onerror = () => res({ pending: 0, stuck: 0 });
           });
-          pending += idbPending;
+          pending += idbRows.pending;
+          stuck += idbRows.stuck;
         }
       } catch { /* IDB optional */ }
-      if (live) setDiag({ pending, quarantined });
+      if (live) setDiag({ pending, quarantined, stuck });
     };
     void read();
     const t = window.setInterval(read, 8000);
     return () => { live = false; window.clearInterval(t); };
   }, []);
 
-  if (!diag || (diag.pending === 0 && diag.quarantined === 0)) return null;
+  if (!diag || (diag.pending === 0 && diag.quarantined === 0 && diag.stuck === 0)) return null;
 
   return (
     <section className="pt-6">
@@ -351,6 +356,21 @@ function DiagnosticsSection() {
               </span>
               <span className="block truncate text-[12px] text-[var(--color-mute)]">
                 Send-to deliveries queue until their tool next opens — they land automatically.
+              </span>
+            </span>
+          </div>
+        )}
+        {/* a stuck delivery has failed >=3 times — the badge rail says the
+            same thing; settings is where the detail belongs */}
+        {diag.stuck > 0 && (
+          <div className={`flex items-center gap-3 px-4 py-2.5 ${diag.pending > 0 ? 'border-t border-[var(--color-line)]' : ''}`}>
+            <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--color-bad)]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13px] font-medium text-[var(--color-ink)]">
+                {diag.stuck} deliver{diag.stuck === 1 ? 'y is' : 'ies are'} stuck retrying
+              </span>
+              <span className="block truncate text-[12px] text-[var(--color-mute)]">
+                Their tool keeps declining — open it and check for a malformed or stale send.
               </span>
             </span>
           </div>
