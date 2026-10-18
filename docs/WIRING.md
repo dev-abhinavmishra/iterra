@@ -1,7 +1,13 @@
 # iterra app wiring contract
 
-Every app under `apps/<name>/` keeps its own design and internals. To live inside
-the iterra environment it needs exactly these changes — nothing more.
+Every app keeps its own design and internals. To live inside the iterra
+environment it needs exactly these changes — nothing more.
+
+The live integrated tree is `shell/src/apps/<name>/` — the shell mounts each
+place directly as a React subtree (`#/p/<name>`), no iframes. The vendored
+`apps/<name>/` copies are upstream reference only; §§1–5 describe the
+standalone wiring contract they keep so they stay deployable on their own,
+and what the shell integration re-implements in-process.
 
 ## 1. Vite base path
 
@@ -31,7 +37,10 @@ it before the module entry:
 ```
 
 It sets `window.iterra`. It no-ops standalone (not framed), so apps stay
-deployable on their own.
+deployable on their own. Inside the integrated shell `index.html` sets
+`window.__iterraIntegrated = true` before the script — the hub treats that
+as "framed" and routes its frame-bound messages through postMessage-to-self
+on the same window.
 
 ## 3. The bridge module
 
@@ -145,7 +154,10 @@ Also honored:
   `review|learn|quiz|write|cards` switch the current deck's mode —
   `?deck=<id>&p=<mode>` lands a deck ON the named mode in one link
 
-Match each app's existing param-stripping style (`history.replaceState`).
+Inside the shell, intake params ride on the hash query (`#/p/<app>?…`) —
+consumers strip them by rewriting `window.location.hash` (a `replaceState`
+would fight the hash router). Dead params that can't resolve strip the same
+way and announce via `iterra:toast`.
 
 **Outbound bound-drill links** (emit the timer's intake contract above —
 `?intent=<label>&minutes=<n>&course=<code>&from=<app>`; `?block=`/`?return=`
@@ -167,8 +179,10 @@ binding lives on `timer.session.live.v1` so a mid-session reload keeps it.
 `iterra.doc(ns)` is a per-namespace JSON store backed by the deployment's
 localStorage: `get()`, `set(v)`, `setField(k, v)` (merge one field),
 `subscribe(cb)` (fires for same-window writes and cross-frame storage events;
-returns an unsubscribe). `iterra.presence(name?)` reads sibling presence
-entries with a `stale` flag; `iterra.onPresence(cb)` subscribes to changes.
+returns an unsubscribe). `set`/`setField` only emit to subscribers **after**
+the write lands — a failed persist never announces state it didn't store.
+`iterra.presence(name?)` reads sibling presence entries with a `stale` flag;
+`iterra.onPresence(cb)` subscribes to changes.
 
 **The commons** is `iterra.doc('shared')` — an object every app may read and
 write namespaced fields on. Writers stamp `{ v, by, at }` so readers can tell
@@ -177,7 +191,7 @@ missing, stale, or written by an app that isn't running — always check `at`.
 
 | field | writer | readers | shape |
 |---|---|---|---|
-| `shared.focus` | timer | all | `{ v: { running, label, blockId, course, endsInMin } \| null, by:'timer', at }` — `course` is the bound link's `?course=` |
+| `shared.focus` | timer | all | `{ v: { label, blockId, course, totalMin, break?, … } \| null, by:'timer', at }` — running sessions add `{ running:true, endsAt }` (published once; readers tick locally and the entry self-expires at `endsAt`), paused add `{ paused:true, remainingSec }` and re-stamp `at` every 60s so they read fresh while live (<3m since `at`). `course` is the bound link's `?course=` |
 | `shared.today` | syllabus | all | `{ v: { slips, overdue, next } \| null, by:'syllabus', at }` |
 | `shared.activeCourse` | syllabus | all | `{ v: { code, name } \| null, by:'syllabus', at }` |
 | `shared.noteActive` | ink, margin | all | `{ v: { app, id, title, at } \| null, by, at }` — last opened note; `v.at` = the note's own write/access time, `at` = publish time. Readers show the line only when the sibling's `v.at` (fallback `at`) is newer than their own note's write time |
@@ -195,7 +209,7 @@ For cross-app search and "related" surfacing, every app publishes its
 top-level entities to `iterra.doc('index.<app>')` as
 
 ```json
-{ "entities": [ { "t": "note|deck|quiz|problem|block|routine|experiment|assessment|session",
+{ "entities": [ { "t": "note|deck|quiz|problem|block|commitment|routine|experiment|assessment|session|followup|task",
                   "id": "<stable id>",
                   "title": "<display title>",
                   "sub": "<optional context: course code, topic>",
@@ -283,7 +297,8 @@ best-effort — a standalone build always misses and keeps native behavior.
   whose `course` or bound `blockId` resolves under the key), stirrings
   mentioning it.
 - **Next up / in session**: `shared.today.v.nextBlock` → bound timer URL;
-  `shared.focus` supersedes while a session runs (<3m fresh).
+  `shared.focus` supersedes while a session is live — running self-expires
+  at `endsAt`, paused stays live while its `at` heartbeat is <3m old.
 - **Palette** (`⌘K`/`/`): places + every entity; browse groups by course/topic,
   group headers open the dossier.
 - **Switcher**: "in this place" (own entities) + "linked across the terrain"
@@ -322,9 +337,17 @@ fails the build when an app's adapter is missing).
 title?,sub?,url?,data?,createdAt,updatedAt,v}`. Types:
 `course,term,assignment,source,note,card,deck,quiz,problem,attempt,
 session,goal,grade,routine,experiment,assessment,block,commitment,link,
-event,scan,entry`. `store.put` validates — bad writes return
-`{ok:false,error}` and land in `iterra.v1.quarantine`, never in the store.
-`createdAt` survives re-puts; `updatedAt` bumps.
+event,scan,entry,topic,material,followup,task,workflow`. `store.put`
+validates — bad writes return `{ok:false,error}` and land in
+`iterra.v1.quarantine`, never in the store. `createdAt` survives re-puts;
+`updatedAt` bumps.
+
+Adapters mirror their local entities into this store: an entity only counts
+as published **after** its `put` lands — a failed write/remove is retried
+(on subscribe or the next prime), and a permanently malformed wire shape is
+quarantined until the shape changes. Mirror shadow-cleanup is scoped to the
+types each app owns, so a parked `followup:*` row survives another app's
+prime.
 
 **Course registry** — `course` is a first-class entity owned by Syllabus.
 Other apps resolve `courseId` via `iterra.courses.byCode(code)` →
@@ -333,8 +356,9 @@ remain display/linkage labels. Never fabricate a `courseId`.
 
 **Events** — `iterra.events.emit(type, payload)` with the catalogue in
 `it.core.eventTypes` (session.completed, card.reviewed, attempt.diverged,
-assignment.due, grade.entered, note.created, routine.logged, …). Payloads
-carry entity ids, not copies. `feed(item)` remains as the compat path and
+assignment.due, assignment.completed, assignment.dropped, grade.entered,
+note.created, routine.logged, …). Payloads carry entity ids, not copies.
+`feed(item)` remains as the compat path and
 journals a `stir` event; emit with a `text` payload mirrors into the feed
 doc so existing readers keep working.
 
@@ -348,11 +372,18 @@ practice links session → material/block with `practicedIn` via
 `links` API must never fail the local write that triggered it.
 
 **Send-to** — `iterra.send({to,action,entity,payload})` resolves
-`{ok,delivered:'direct'|'queued',url}`: direct postMessage when the target
-is mounted, else a pending intake the target's adapter drains on boot
-(returned `url` is `/apps/<to>/?intake=<id>` — open it to deliver).
-Targets register handlers through `iterra.adapter({name,title,summary,
-intakes:{action:handler},wake})`.
+`{ok, delivered:'direct'|'queued', url?, toast?, id}`. `delivered:'direct'`
+means the target's handler ran (mounted apps respond in-process within a
+short grace); `delivered:'queued'` means a pending intake record the
+target's adapter drains on boot (the returned `url` is
+`/apps/<to>/?intake=<id>` — open it to deliver). Handler results shape the
+direct reply: `result.url` is handed back as `url` (falling back to
+`/apps/<to>/`), `result.toast` as `toast` so senders can phrase what
+happened honestly, and `{navigate:false}` or a null/absent url means the
+handler declined a landing — `url` comes back `undefined` rather than a
+fabricated place link, since the handler's `url` is only a record of where
+the work landed. Targets register handlers through
+`iterra.adapter({name,title,summary,intakes:{action:handler},wake})`.
 
 Entity-field convention: when a send carries `entity` but the payload omits
 `course`/`courseId`/`title`, handlers read the entity's own fields as the
@@ -367,12 +398,25 @@ each record is atomically claimed before its handler runs, thrown /
 records with no registered handler stay `pending` forever rather than
 silently resolving. The shell mounts a cold app at `?intake=<first-pending
 id>` (hash nav, `iterra:open`, and slot-migration all honor it) so the
-frame lands on the delivered `result.url`; a frame launched at `?intake=`
+place lands on the delivered `result.url`; a place launched at `?intake=`
 for an already-delivered record still navigates once to the stored
 `result.url`. Handler contracts live in docs/ADAPTER.md.
 
-**Wake** — the shell posts `{type:'iterra:wake'}` to a keep-alive frame on
-focus; adapters' `wake` re-reads the store. No stale views.
+**Follow-ups** — `followup` entities (`<app>:followup:<id>`) are the
+canonical "revisit this" record: created by send-to outcomes and command
+workflows, mirrored from the `iterra.v1.followups` task map
+(`{status:'open'|'scheduled'|'completed', sourceRef, targetRef,
+scheduledBlockRef}`). Open ones surface in Today's Review Queue (with
+dismiss) and in Library's schedule filter. `reconcileFollowUps` runs on
+each entity refresh — a scheduled follow-up whose syllabus block finishes
+completes, and one whose block vanished re-opens (with a publish-lag grace
+so a just-created task doesn't flap while the mirror catches up).
+
+**Wake** — when a mounted place regains activation the shell bumps its
+`wakeTick` prop and posts `{type:'iterra:wake', app}` to the same window
+(the hub dispatches it to adapters' `wake` handlers); tab re-visibility
+wakes the active place the same way. Adapters re-read the store. No stale
+views.
 
 ### Window events the shell owns
 
@@ -398,24 +442,28 @@ Apps surface user-visible notices without owning a toast stack:
 - `iterra:select-object` — puts an object in the shared context panel.
   Detail is a WorkspaceObject-shaped record (`key`, `app`, `type`, `id`,
   `title`, `url`, optional `course`/`courseId`/`topic`/`sub`/`data`).
-  Producers: Flashcards `selectDeck`, Ink `setActiveNote`, Proof
-  attempt/compare landings, Rhythm `openRoutine`, GradeStack suite
-  analytics, Syllabus commitment drawer. Apps only dispatch when
+  Producers: Flashcards `selectDeck`, Ink `setActiveNote`, Margin note
+  open, Proof attempt/compare landings, Rhythm `openRoutine`, GradeStack
+  suite analytics, Syllabus commitment drawer. Apps only dispatch when
   `window.__iterraIntegrated` — standalone never talks to a panel that
   isn't there.
 
 ## 8. Dev topology
 
-Shell dev proxy maps `/apps/<name>` → `localhost:<port>`:
+`npm run dev` (root → `cd shell && npm run dev`) serves the whole
+integrated terrain on one Vite server — places mount in-process, and a
+dev plugin serves the repo-root `api/` handlers. `npm run dev:apps`
+starts the vendored standalone apps on their own ports for upstream work:
 
 ```
 rhythm 3001 · proof 3002 · syllabus 3003 · gradestack 3004
 timer 3005 · ink 3006 · flashcards 3007 · margin 3008
 ```
 
-`npm run dev:apps` at the root starts every app on its port.
-
 ## 9. Verification
 
-Per app: `npm ci && npm run lint && npm run build` must pass.
-No new dependencies in apps. No design changes — same look, same motion.
+From the repo root: `npm test` (shell vitest), `npm run lint`
+(`tsc --noEmit`), and `npm run build` — the build gates on the adapter +
+API-parity contract checks, typecheck, the Vite build, hub-copy drift,
+and the service-worker precache manifest. No new dependencies in places.
+No design changes — same look, same motion.

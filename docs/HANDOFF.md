@@ -3,37 +3,35 @@
 Living doc — update as the terrain changes. Read WIRING.md first: it is the
 contract every app and the shell follows.
 
-## State of the terrain (as of 27a0974)
+## State of the terrain (as of 568105d)
 
-- Branch `devin/iterra-canonical-store`, PR #3 open (Abhinav decides).
+- Branch `main` — the integrated shell is the whole app: eight places mount
+  as React subtrees under `shell/src/apps/` (no iframes). `apps/` is vendored
+  upstream reference only.
 - Canonical entity store lives in `packages/hub/iterra-hub.js` — typed,
   versioned entities, write validation + quarantine, IndexedDB `iterra` db +
-  localStorage fallback, BroadcastChannel cross-frame propagation. Every app
+  localStorage fallback, BroadcastChannel + same-window propagation. Every app
   writes through ONE adapter file (docs/ADAPTER.md is the contract;
-  scripts/check-adapters gates the build on all 8).
+  scripts/check-adapters gates the build on all 8 + hub-copy drift).
 - Course registry: `course` is a first-class entity, syllabus owns writes,
   siblings resolve by code via `courses.byCode` — never fabricated ids.
 - Event bus: `iterra.events.emit/on/list` with a documented catalogue
   (ADAPTER.md § events); `feed()` stays as a compat shim.
 - Links: `it.links.add/for(key)` backlinks ({out,inn} shape — NOT a flat
   array, the lanes' docs lied). Send-to: `it.send({to,action,entity,payload})`
-  — direct postMessage when mounted, durable queued intake otherwise;
-  `?intake=<id>` frames navigate to the resolved url.
+  — direct delivery when mounted, durable queued intake otherwise;
+  `?intake=<id>` places navigate to the resolved url.
 - Sync: margin attaches the whole-store Supabase mirror at boot when its env
   vars exist (docs/SYNC.md — wired, table `iterra_entities`, LWW).
 - Ambient rail: `shell/src/Ambient.tsx` — live session pill (reads
   shared.focus endsAt, pause/resume/finish via timer.control), due-cards →
   review, next commitment, register/note chips, "+focus", toasts.
-- UX-TRACKER.md: all 105 wave-1 items shipped. Section F is the wave-2
-  proposal pool; three lanes currently running wave-2 (verify own surfaces
-  live vs seeded store, fix hollows, audit + implement top-3 each):
-  - `devin-9baa5461ace240f2b3da6933f305cfc5` — syllabus+gradestack
-  - `devin-ab66d5e2322242778dcd7d9ef387c556` — rhythm+timer
-  - `devin-88ff261202b24d12961b78e75a27bd42` — flashcards+margin+ink+proof
-- Verify recipe: `./scripts/build.sh` → `python3 -m http.server 8090 -d dist`
-  → drive Chrome (CDP :29229, playwright-core at /tmp/terra-e2e/node_modules).
-  Seed the store via `window.iterra.store.put` on the top page — no app
-  internals needed for shell surfaces. Live pass: 14/14 (wave2.cjs).
+- UX-TRACKER.md: all 106 items shipped — every wave closed.
+- Verify recipe: `npm run build` (contract checks + typecheck + vite +
+  sw-manifest) → `npm test` (304 vitest) → serve `dist/` and drive Chrome;
+  `scripts/probe-today.cjs` + the `scripts/*-check.cjs` suites do live
+  passes. Seed the store via `window.iterra.store.put` on the top page —
+  no app internals needed for shell surfaces.
 - Per-app bridges landed: syllabus Today/commitment-row sends, gradestack
   DueCardsChip/DossierChip/folio chips, flashcards deck-bridge + card
   backlinks + → note + due badge, margin/ink TerrainChips, proof
@@ -43,16 +41,24 @@ contract every app and the shell follows.
 ## Architecture quick map
 
 - `packages/hub/iterra-hub.js` — THE shared file. Synced to
-  `apps/*/public/` + `apps/flashcards/` by `scripts/sync-hub.sh`; build copies
-  it to `dist/iterra-hub.js` (apps load `/iterra-hub.js` root-absolute).
-  APIs: register/open/openApp/selfBase/interceptNav/doc/presence/onPresence/
-  feed/feedItems/onFeed/index/indexes/onIndex/apps/isFramed.
-- `shell/src/` — App.tsx (hash routes `#/` `#/p/<id>` `#/c/<course>`, frames
-  keep-alive map, iterra:open/hello handlers incl. `#/` route pass-through,
-  watchdog, ⌘ keys, switcher), Terrain.tsx (commons strip, shelf, desks chips,
-  next-up/in-session, stirrings, the ledger), Search.tsx (palette + course
-  groups + stir search + ⌘P pins), Dossier.tsx (course + 'unfiled' pages w/
-  per-row pins, url-resolved stirs, live-focus join), shelf.ts, hub.ts.
+  `apps/*/public/` + `apps/flashcards/` + `shell/public/` by
+  `scripts/sync-hub.sh`; build copies it to `dist/iterra-hub.js` (`index.html`
+  loads `/iterra-hub.js` root-absolute after setting
+  `window.__iterraIntegrated`). APIs: register/open/openApp/selfBase/
+  interceptNav/doc/presence/onPresence/feed/feedItems/onFeed/index/indexes/
+  onIndex/apps/isFramed + store/events/links/send/adapter (§7b).
+- `shell/src/` — App.tsx (hash routes `#/` `#/p/<id>` `#/c/<course>` +
+  `#/courses|library|settings`, mounted keep-alive map, iterra:open/select-
+  object handlers, ⌘ keys, switcher), route.ts (parseHash/appUrl/
+  placeHashFromAppUrl), places.tsx + apps/index.ts (place registry + lazy
+  mounts), Terrain.tsx (commons strip, shelf, desks chips, next-up/in-session,
+  stirrings, the ledger), Search.tsx (palette + course groups + stir search +
+  ⌘P pins), Dossier.tsx (course + 'unfiled' pages w/ per-row pins, url-
+  resolved stirs, live-focus join), today/TodayWorkspace.tsx, courses/
+  (CourseWorkspace, CoursesIndex, LibraryView), context/ContextPanel.tsx,
+  settings/SettingsSurface.tsx, integration/ (identity, commands, demo,
+  components, migration, types, workspace), Ambient.tsx (toasts + ambient
+  rail), shelf.ts, hub.ts (typed iterra surface + toast listener).
 - Dossier sentinel: `#/c/unfiled` groups every entity with no course AND no
   topic — keyless notes have a home; no drill button, no text-key stirs.
 - Commons `iterra.doc('shared')` fields — see WIRING §7 table.
@@ -75,12 +81,14 @@ contract every app and the shell follows.
 - `/iterra-hub.js` is root-absolute → build MUST copy hub to `dist/` root
   or the mesh 404s in prod (was silently broken until cfda7c6).
 - Solo (unframed) writers can't overwrite a fresh framed presence (35s TTL).
-- `shared.focus` freshness is 3min everywhere (terrain now-strip, commons,
-  dossier live-focus, rail) — running sessions re-stamp every tick; PAUSED
-  sessions heartbeat every 60s (a paused countdown never ticks, its stamp
-  would otherwise age out live). It carries `course` (the bound link's
-  ?course=) + `blockId` — dossiers join on either. `shared.session` (proof)
-  heartbeats every 2min; rail gates it at 5min.
+- `shared.focus` freshness is split: a RUNNING session publishes once with
+  `endsAt` — readers tick locally and the entry self-expires at `endsAt`
+  (its `at` stamp legitimately ages; never gate a running entry on `at`).
+  PAUSED sessions carry `{paused, remainingSec}` and heartbeat `at` every
+  60s — a dead page stops beating and expires on the 3min gate. It carries
+  `course` (the bound link's ?course=) + `blockId` — dossiers join on
+  either. `shared.session` (proof) heartbeats every 2min; rail gates it at
+  5min.
 - Dedupe JSONs MUST serialize every linkage field (course+topic) — a
   linkage-only change otherwise never republishes (fixed in proof, was
   already right in cardfile; full-entity stringifiers are fine).
