@@ -83,6 +83,8 @@ export function TodayWorkspace({
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
 
+  const [feedExpanded, setFeedExpanded] = useState(false);
+
   const [notice, setNotice] = useState<{ text: string; url?: string } | null>(null);
   const notify = (text: string, url?: string) => {
     setNotice({ text, url });
@@ -1279,7 +1281,7 @@ export function TodayWorkspace({
               <section aria-label="Recent workspace activity">
                 <SectionHeader title="Recent Activity" />
                 <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                  {visible.slice(0, 5).map((f, idx) => (
+                  {visible.slice(0, feedExpanded ? 30 : 5).map((f, idx) => (
                     <button
                       key={`${f.at}:${f.app}:${idx}`}
                       type="button"
@@ -1296,6 +1298,15 @@ export function TodayWorkspace({
                       </span>
                     </button>
                   ))}
+                  {visible.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setFeedExpanded((x) => !x)}
+                      className="w-full px-3.5 py-1.5 text-left font-mono text-[10px] uppercase tracking-wider text-[var(--color-faint)] hover:text-[var(--color-accent)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                    >
+                      {feedExpanded ? 'show less' : `${visible.length - 5} more stirs`}
+                    </button>
+                  )}
                 </div>
               </section>
               );
