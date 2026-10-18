@@ -441,8 +441,15 @@ export function ContextPanel({
       return;
     }
     /* a declined delivery carries the handler's reason in r.toast — 'sent'
-       would lie about what happened */
-    showMsg(r.toast || opts.successLabel, r.url || `/apps/${opts.to}/`);
+       would lie about what happened. A queued send hasn't happened yet —
+       say it applies on open instead of claiming it already did. */
+    showMsg(
+      r.toast ||
+        ((r as any).delivered === 'queued'
+          ? `${opts.successLabel} — queued, applies on next open`
+          : opts.successLabel),
+      r.url || `/apps/${opts.to}/`,
+    );
   };
 
   const handleAttachToBlock = async () => {

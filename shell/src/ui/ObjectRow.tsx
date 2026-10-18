@@ -370,7 +370,17 @@ export function ObjectRow({
                           ? { commitmentId: item.id }
                           : { blockId: item.id },
                     }).then((r) => {
-                      if (onNotify) onNotify(r.toast || (r.ok ? 'Filed done' : `Could not file: ${r.error || 'unavailable'}`));
+                      if (!onNotify) return;
+                      /* a queued send hasn't happened yet — say so, don't
+                         claim the filing landed */
+                      onNotify(
+                        r.toast ||
+                          (r.delivered === 'queued'
+                            ? 'Queued — Planning applies it on next open'
+                            : r.ok
+                              ? 'Filed done'
+                              : `Could not file: ${r.error || 'unavailable'}`),
+                      );
                     });
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-accent)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
@@ -393,7 +403,15 @@ export function ObjectRow({
                       action: 'block.defer',
                       payload: { blockId: item.id },
                     }).then((r) => {
-                      if (onNotify) onNotify(r.toast || (r.ok ? 'Pushed to tomorrow' : `Could not push: ${r.error || 'unavailable'}`));
+                      if (!onNotify) return;
+                      onNotify(
+                        r.toast ||
+                          (r.delivered === 'queued'
+                            ? 'Queued — Planning applies it on next open'
+                            : r.ok
+                              ? 'Pushed to tomorrow'
+                              : `Could not push: ${r.error || 'unavailable'}`),
+                      );
                     });
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
@@ -415,7 +433,15 @@ export function ObjectRow({
                       action: 'commitment.drop',
                       payload: { commitmentId: item.id },
                     }).then((r) => {
-                      if (onNotify) onNotify(r.toast || (r.ok ? 'Dropped' : `Could not drop: ${r.error || 'unavailable'}`));
+                      if (!onNotify) return;
+                      onNotify(
+                        r.toast ||
+                          (r.delivered === 'queued'
+                            ? 'Queued — Planning applies it on next open'
+                            : r.ok
+                              ? 'Dropped'
+                              : `Could not drop: ${r.error || 'unavailable'}`),
+                      );
                     });
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-bad)] hover:bg-[var(--color-bad-soft)] cursor-pointer"
