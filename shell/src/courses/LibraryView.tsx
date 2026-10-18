@@ -117,7 +117,7 @@ export function LibraryView({
       contextObjects.filter((o) => {
         if (filter === 'materials' && !['note', 'source'].includes(o.type)) return false;
         if (filter === 'practice' && !['deck', 'quiz', 'problem', 'attempt'].includes(o.type)) return false;
-        if (filter === 'schedule' && !['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type)) return false;
+        if (filter === 'schedule' && !['block', 'commitment', 'assignment', 'routine', 'experiment', 'followup'].includes(o.type)) return false;
         if (filter === 'results' && !['assessment', 'grade', 'scan', 'session'].includes(o.type)) return false;
         return true;
       }),
@@ -222,7 +222,7 @@ export function LibraryView({
                 {
                   key: 'schedule',
                   label: 'Schedule & Routines',
-                  count: contextObjects.filter((o) => ['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(o.type)).length,
+                  count: contextObjects.filter((o) => ['block', 'commitment', 'assignment', 'routine', 'experiment', 'followup'].includes(o.type)).length,
                 },
                 {
                   key: 'results',

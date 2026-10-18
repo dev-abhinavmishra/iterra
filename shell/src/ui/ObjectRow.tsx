@@ -161,6 +161,7 @@ export function ObjectRow({
     item.data?.status === 'dropped' ? 'dropped'
     : item.data?.status === 'paused' ? 'paused'
     : item.data?.status === 'archived' ? 'archived'
+    : item.data?.status === 'dismissed' ? 'dismissed'
     : item.data?.status === 'done' || item.data?.status === 'completed' ? 'done'
     : item.data?.state === 'done' ? 'stamped'
     : item.data?.state === 'deferred' ? 'deferred'
