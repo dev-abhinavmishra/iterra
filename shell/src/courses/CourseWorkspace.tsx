@@ -404,7 +404,14 @@ export function CourseWorkspace({
       onGo(r.url);
       return;
     }
-    showToast(r.ok ? 'Focus session queued in Timer' : `Could not start: ${r.error || 'unavailable'}`);
+    showToast(
+      r.toast ||
+        (r.delivered === 'queued'
+          ? 'Focus session queued in Timer'
+          : r.ok
+            ? 'Focus session started in Timer'
+            : `Could not start: ${r.error || 'unavailable'}`),
+    );
   };
 
   const planRegister = async () => {
@@ -425,8 +432,13 @@ export function CourseWorkspace({
       return;
     }
     showToast(
-      r.ok ? 'Routine scheduled in Attendance' : `Could not schedule: ${r.error || 'unavailable'}`,
-      r.ok ? '/apps/rhythm/' : undefined,
+      r.toast ||
+        (r.delivered === 'queued'
+          ? 'Routine queued — Attendance applies it on next open'
+          : r.ok
+            ? 'Routine scheduled in Attendance'
+            : `Could not schedule: ${r.error || 'unavailable'}`),
+      r.delivered === 'queued' ? '/apps/rhythm/' : undefined,
     );
   };
 
@@ -447,8 +459,13 @@ export function CourseWorkspace({
       return;
     }
     showToast(
-      r.ok ? 'Weekly routine scheduled in Attendance' : `Could not schedule: ${r.error || 'unavailable'}`,
-      r.ok ? '/apps/rhythm/' : undefined,
+      r.toast ||
+        (r.delivered === 'queued'
+          ? 'Weekly routine queued — Attendance applies it on next open'
+          : r.ok
+            ? 'Weekly routine scheduled in Attendance'
+            : `Could not schedule: ${r.error || 'unavailable'}`),
+      r.delivered === 'queued' ? '/apps/rhythm/' : undefined,
     );
   };
 
@@ -468,8 +485,13 @@ export function CourseWorkspace({
       return;
     }
     showToast(
-      r.ok ? `Created note in ${PLACE_MAP[target]?.label || target}` : 'Could not create note',
-      `/apps/${target}/`,
+      r.toast ||
+        (r.delivered === 'queued'
+          ? `Note queued — ${PLACE_MAP[target]?.label || target} creates it on next open`
+          : r.ok
+            ? `Created note in ${PLACE_MAP[target]?.label || target}`
+            : 'Could not create note'),
+      r.delivered === 'queued' ? `/apps/${target}/` : undefined,
     );
   };
 
@@ -490,8 +512,13 @@ export function CourseWorkspace({
       return;
     }
     showToast(
-      r.ok ? 'Created problem in Calculations' : 'Could not create problem',
-      '/apps/proof/',
+      r.toast ||
+        (r.delivered === 'queued'
+          ? 'Problem queued — Calculations files it on next open'
+          : r.ok
+            ? 'Created problem in Calculations'
+            : 'Could not create problem'),
+      r.delivered === 'queued' ? '/apps/proof/' : undefined,
     );
   };
 
@@ -511,8 +538,13 @@ export function CourseWorkspace({
       return;
     }
     showToast(
-      r.ok ? 'Planned study block in Planning' : 'Open Planning to add a course block',
-      '/apps/syllabus/',
+      r.toast ||
+        (r.delivered === 'queued'
+          ? 'Study block queued — Planning files it on next open'
+          : r.ok
+            ? 'Planned study block in Planning'
+            : 'Open Planning to add a course block'),
+      r.delivered === 'queued' ? '/apps/syllabus/' : undefined,
     );
   };
 
