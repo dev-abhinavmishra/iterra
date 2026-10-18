@@ -334,7 +334,30 @@ export const useStore = create<AppState>()(
         ),
       })),
 
-      setActiveNote: (id) => set({ activeNoteId: id }),
+      setActiveNote: (id) => {
+        set({ activeNoteId: id });
+        /* the terrain listens for 'iterra:select-object' — picking a page
+           here puts it in the context panel like picking it in Search */
+        if (id && (window as any).__iterraIntegrated) {
+          const n = get().notes.find((x) => x.id === id);
+          if (n && !n.trashedAt) {
+            try {
+              window.dispatchEvent(new CustomEvent('iterra:select-object', {
+                detail: {
+                  key: `ink:note:${n.id}`,
+                  app: 'ink', type: 'note', id: n.id,
+                  title: n.title || 'untitled',
+                  sub: n.folder,
+                  course: n.course, courseId: n.courseId,
+                  topic: n.tags?.[0],
+                  url: `/apps/ink/?note=${n.id}`,
+                  updatedAt: n.lastModified,
+                },
+              }));
+            } catch { /* notice dispatch is best-effort */ }
+          }
+        }
+      },
       setSearchQuery: (query) => set({ searchQuery: query }),
       setActiveFolder: (folder) => set({ activeFolder: folder }),
       setSortOrder: (order) => set({ sortOrder: order }),
