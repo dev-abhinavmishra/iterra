@@ -514,12 +514,8 @@ export default function App() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
-      const t = e.target as HTMLElement | null;
-      if (
-        t &&
-        (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)
-      )
-        return;
+      /* no typing guard — a meta-chord never inserts text, and ⌘K already
+         works mid-edit; ⌘3 doing nothing inside a note reads as broken */
       if (e.key === '0' || e.key === '`') {
         e.preventDefault();
         goHome();
