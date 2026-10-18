@@ -1299,21 +1299,46 @@ export function CourseWorkspace({
             {scheduleItems.length > 0 ? (
               <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
                 {scheduleItems.map((item) =>
-                  renderObjectWithRelationships(item, 'Start Focus', () => {
-                    void sendTo({
-                      to: 'timer',
-                      action: 'timer.start',
-                      payload: {
-                        label: item.title,
-                        minutes: (item.data?.minutes as number) || 25,
-                        course: display,
-                        courseId,
-                        commitmentId: item.type === 'commitment' ? item.id : undefined,
-                      },
-                    }).then((r) => {
-                      if (r.url) onGo(r.url);
-                    });
-                  }),
+                  item.type === 'routine'
+                    ? /* a routine's action is a check-in, not a focus
+                         session — the register intake marks it inline */
+                      renderObjectWithRelationships(
+                        item,
+                        item.data?.todayDone === true ? 'Logged ✓' : 'Log check-in',
+                        () => {
+                          if (item.data?.todayDone === true) return;
+                          void sendTo({
+                            to: 'rhythm',
+                            action: 'routine.check',
+                            payload: { routineId: item.id },
+                          }).then((r) => {
+                            showToast(
+                              r.toast ||
+                                (r.delivered === 'queued'
+                                  ? 'Check-in queued — Attendance applies it on next open'
+                                  : r.ok
+                                    ? 'Checked in'
+                                    : `Could not check in: ${r.error || 'unavailable'}`),
+                              r.delivered === 'queued' ? r.url || undefined : undefined,
+                            );
+                          });
+                        },
+                      )
+                    : renderObjectWithRelationships(item, 'Start Focus', () => {
+                        void sendTo({
+                          to: 'timer',
+                          action: 'timer.start',
+                          payload: {
+                            label: item.title,
+                            minutes: (item.data?.minutes as number) || 25,
+                            course: display,
+                            courseId,
+                            commitmentId: item.type === 'commitment' ? item.id : undefined,
+                          },
+                        }).then((r) => {
+                          if (r.url) onGo(r.url);
+                        });
+                      }),
                 )}
               </div>
             ) : (
