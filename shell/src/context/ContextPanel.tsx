@@ -440,7 +440,9 @@ export function ContextPanel({
       onGo(r.url);
       return;
     }
-    showMsg(opts.successLabel, r.url || `/apps/${opts.to}/`);
+    /* a declined delivery carries the handler's reason in r.toast — 'sent'
+       would lie about what happened */
+    showMsg(r.toast || opts.successLabel, r.url || `/apps/${opts.to}/`);
   };
 
   const handleAttachToBlock = async () => {

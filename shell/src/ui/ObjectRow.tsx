@@ -223,7 +223,9 @@ export function ObjectRow({
     if (r.url) {
       onOpen(r.url);
     } else if (onNotify) {
-      onNotify(r.ok ? `Sent to ${PLACE_MAP[target.to]?.label || target.to}` : `Could not send: ${r.error || 'unavailable'}`);
+      /* a declined send carries the handler's reason in r.toast — phrase
+         that before the generic fallback so the row says *why* */
+      onNotify(r.toast || (r.ok ? `Sent to ${PLACE_MAP[target.to]?.label || target.to}` : `Could not send: ${r.error || 'unavailable'}`));
     }
   };
 
