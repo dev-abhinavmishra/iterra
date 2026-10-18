@@ -40,19 +40,38 @@ export function saveSession(session: Omit<Session, 'id' | 'timestamp'> & { id?: 
   return newSession;
 }
 
+/* a session row is only useful if id/duration/timestamp/type are sane —
+   hand-edited or version-stale rows used to flow straight into stats as
+   NaN totals and into the CSV export as "undefined" cells */
+const SESSION_TYPES = new Set(['focus', 'break', 'interval', 'stopwatch']);
+function validSession(s: unknown): s is Session {
+  const r = s as Session;
+  return !!r && typeof r === 'object'
+    && typeof r.id === 'string' && r.id.length > 0
+    && typeof r.duration === 'number' && Number.isFinite(r.duration) && r.duration > 0
+    && typeof r.timestamp === 'number' && Number.isFinite(r.timestamp)
+    && SESSION_TYPES.has(r.type);
+}
+
 export function getSessions(): Session[] {
   if (typeof window === 'undefined') return [];
   try {
     const data = localStorage.getItem(STORAGE_KEY);
-    if (data) return JSON.parse(data);
+    if (data) {
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed.filter(validSession) : [];
+    }
     // one-time migration from previous builds
     for (const legacyKey of LEGACY_KEYS) {
       const legacy = localStorage.getItem(legacyKey);
       if (legacy) {
         const parsed = JSON.parse(legacy);
-        localStorage.setItem(STORAGE_KEY, legacy);
+        const rows = Array.isArray(parsed) ? parsed.filter(validSession) : [];
+        /* migrate the filtered set, not the raw blob — stale legacy rows
+           shouldn't live past the move */
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
         localStorage.removeItem(legacyKey);
-        return parsed;
+        return rows;
       }
     }
     return [];
