@@ -335,6 +335,32 @@ export function ObjectRow({
         >
           {(close) => (
             <div>
+              {/* syllabus-owned rows can file done in place — off-clock
+                  work shouldn't have to open the folio to complete */}
+              {(item.type === 'commitment' || item.type === 'block') &&
+                item.app === 'syllabus' &&
+                !(item.data?.state === 'done' || item.data?.status === 'done') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    void sendTo({
+                      to: 'syllabus',
+                      action: item.type === 'commitment' ? 'commitment.done' : 'block.done',
+                      payload:
+                        item.type === 'commitment'
+                          ? { commitmentId: item.id }
+                          : { blockId: item.id },
+                    }).then((r) => {
+                      if (onNotify) onNotify(r.toast || (r.ok ? 'Filed done' : `Could not file: ${r.error || 'unavailable'}`));
+                    });
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-accent)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
+                >
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  File {item.type === 'commitment' ? 'commitment' : 'slip'} done
+                </button>
+              )}
               <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
                 Use with another tool
               </div>

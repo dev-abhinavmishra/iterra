@@ -669,6 +669,23 @@ export function registerAdapter() {
          'planned' on the new date (deferBlock with toDate reschedules
          rather than marking 'deferred'). Today's 'Push to tomorrow' —
          a slip you can't start shouldn't have to go 'missed'. */
+      /* {commitmentId} → file a commitment done without opening the folio —
+         dossier rows + Today check-offs send this. Weekly commitments spawn
+         their next instance inside setCommitmentStatus (the recurrence
+         chain rides along). navigate:false, same contract as block.done. */
+      'commitment.done': async (rec: any) => {
+        await whenBooted();
+        const s = useFolio.getState();
+        const p = (rec?.payload ?? {}) as Record<string, any>;
+        const cid = typeof p.commitmentId === 'string' ? p.commitmentId
+          : (rec?.entity?.type === 'commitment' && typeof rec.entity.id === 'string' ? rec.entity.id : '');
+        const c = cid ? s.commitments[cid] : undefined;
+        if (!c) return { url: null, toast: 'that commitment no longer exists' };
+        const deep = `/apps/syllabus/?commitment=${encodeURIComponent(c.id)}`;
+        if (c.status === 'done') return { url: deep, navigate: false, toast: `${c.title} — already filed done` };
+        s.setCommitmentStatus(c.id, 'done');
+        return { url: deep, navigate: false, toast: `${c.title} — filed done` };
+      },
       'block.defer': async (rec: any) => {
         await whenBooted();
         const s = useFolio.getState();
