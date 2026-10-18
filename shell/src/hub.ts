@@ -213,7 +213,12 @@ export async function pendingIntakes(): Promise<Record<string, IntakeWait>> {
   const it = (window as any).iterra;
   const out: Record<string, IntakeWait> = {};
   if (!it?.intakes?.pending) return out;
-  for (const p of ['syllabus', 'rhythm', 'flashcards', 'ink', 'margin', 'gradestack', 'timer', 'proof']) {
+  /* union of known places + live presence — a queued send to an app the
+     roster doesn't list (new module, renamed place) still badges rather
+     than vanishing from the switcher */
+  const apps = new Set(['syllabus', 'rhythm', 'flashcards', 'ink', 'margin', 'gradestack', 'timer', 'proof']);
+  try { Object.keys(it.apps?.() ?? {}).forEach((a) => apps.add(a)); } catch { /* optional */ }
+  for (const p of apps) {
     try {
       const rows = await it.intakes.pending(p);
       if (!rows?.length) continue;
