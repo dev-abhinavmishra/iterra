@@ -21,6 +21,9 @@ import { parseEventParam } from './import';
 
 export interface InboundLink {
   event?: unknown;
+  /* raw ?event= param, kept so a failed decode is distinguishable from
+     no event at all */
+  eventParam?: string;
   routineName?: string;
   experimentId?: string;
   from?: string;
@@ -35,6 +38,7 @@ export function parseInboundLink(search: string): InboundLink | null {
   if (!eventParam && !from && !routineName && !experimentId) return null;
   const link: InboundLink = { from, routineName, experimentId };
   if (eventParam) {
+    link.eventParam = eventParam;
     const parsed = parseEventParam(eventParam);
     if (parsed !== null) link.event = parsed;
   }
