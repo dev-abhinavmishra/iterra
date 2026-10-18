@@ -329,13 +329,27 @@ export function Dialog({
   children: React.ReactNode;
   maxWidth?: string;
 }) {
+  const panelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
+    /* modal contract — focus lands inside the dialog on open and returns
+       to the invoker on close; Esc backs out */
+    const prev = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    requestAnimationFrame(() => {
+      const first =
+        panelRef.current?.querySelector<HTMLElement>(
+          'input, select, textarea, [autofocus], button:not([aria-label="Close dialog"])'
+        ) ?? panelRef.current;
+      first?.focus?.();
+    });
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      prev?.focus?.();
+    };
   }, [open, onClose]);
 
   if (!open) return null;
@@ -349,7 +363,9 @@ export function Dialog({
       aria-label={title}
     >
       <div
-        className={`anim-rise w-full ${maxWidth} rounded-[8px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-2xl overflow-hidden`}
+        ref={panelRef}
+        tabIndex={-1}
+        className={`anim-rise w-full ${maxWidth} rounded-[8px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-2xl overflow-hidden outline-none`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 border-b border-[var(--color-line)] px-4 py-3">
