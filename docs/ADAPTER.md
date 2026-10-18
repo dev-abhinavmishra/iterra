@@ -105,6 +105,7 @@ Emit only types in the catalogue — others are rejected.
 | `block.plan` | syllabus | `{payload:{title, courseId?, course?, date?, start?, minutes?, phase?, label?}}` → a slip on the folio |
 | `block.done` | syllabus | `{entity|payload:{blockId}}` → stamps the slip done off-clock; idempotent; `{url:'…?block=<id>',navigate:false}` |
 | `commitment.done` | syllabus | `{entity|payload:{commitmentId}}` → files the commitment done (weekly ones spawn their next instance); idempotent; `{url:'…?commitment=<id>',navigate:false}` |
+| `commitment.drop` | syllabus | `{entity|payload:{commitmentId}}` → retires an open commitment without a grade (recurrence does not spawn); idempotent |
 | `block.defer` | syllabus | `{entity|payload:{blockId, date?}}` → pushes the slip (default tomorrow), stays planned; rescues missed slips |
 | `problem.create` | proof | `{payload:{topic?, prompt?, course?, courseId?, difficulty?, tags?, source?}}` → a problem on the bench |
 | `weights.import` | gradestack | `{payload:{courseId}}` → pull categories/weights from syllabus |

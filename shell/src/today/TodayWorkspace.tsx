@@ -256,6 +256,7 @@ export function TodayWorkspace({
     const isLive = (o: WorkspaceObject) =>
       o.data?.status !== 'done' &&
       o.data?.status !== 'completed' &&
+      o.data?.status !== 'dropped' &&
       o.data?.state !== 'done' &&
       o.data?.state !== 'deferred';
     const blocksAndCommitments = allBC.filter(isLive);
@@ -543,7 +544,13 @@ export function TodayWorkspace({
       const g = ensure(code);
       if (!g) continue;
       if (o.type === 'block' || o.type === 'commitment') {
-        if (o.data?.status !== 'done' && o.data?.status !== 'completed') {
+        /* blocks carry data.state, commitments data.status — check both so
+           stamped/dropped/deferred work doesn't count as an open task.
+           'missed' stays counted: it's unresolved and needs rescuing. */
+        const closed =
+          o.data?.status === 'done' || o.data?.status === 'completed' || o.data?.status === 'dropped' ||
+          o.data?.state === 'done' || o.data?.state === 'deferred';
+        if (!closed) {
           g.tasks++;
           if (!g.nextItem) g.nextItem = o;
         }

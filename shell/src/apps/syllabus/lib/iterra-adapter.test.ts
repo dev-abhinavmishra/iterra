@@ -462,3 +462,109 @@ describe('block.defer intake', () => {
     expect(res).toEqual({ url: null, toast: 'that slip no longer exists' });
   });
 });
+
+describe('commitment.done intake', () => {
+  const seedCommitment = async (over: Record<string, any> = {}) => {
+    const { useFolio } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+      commitments: { k1: mkCommitment('k1', 'c1', { title: 'Problem set 4', ...over }) },
+    });
+    return useFolio;
+  };
+
+  it('files an open commitment done and returns its deep link without navigating', async () => {
+    const useFolio = await seedCommitment();
+    const res = await adapterOpts.intakes['commitment.done']({
+      id: 'cd1', action: 'commitment.done', payload: { commitmentId: 'k1' },
+    });
+    expect((useFolio.getState().commitments.k1 as any).status).toBe('done');
+    expect(res).toEqual({
+      url: '/apps/syllabus/?commitment=k1',
+      navigate: false,
+      toast: 'Problem set 4 — filed done',
+    });
+    expect(entities.get('syllabus:commitment:k1')?.data?.status).toBe('done');
+  });
+
+  it('resolves the commitment from the sent entity when payload.commitmentId is absent', async () => {
+    const useFolio = await seedCommitment();
+    const res = await adapterOpts.intakes['commitment.done']({
+      id: 'cd2', action: 'commitment.done',
+      entity: { key: 'syllabus:commitment:k1', app: 'syllabus', type: 'commitment', id: 'k1' },
+      payload: {},
+    });
+    expect((useFolio.getState().commitments.k1 as any).status).toBe('done');
+    expect(res.url).toBe('/apps/syllabus/?commitment=k1');
+  });
+
+  it('is idempotent — a repeat send reports already-filed', async () => {
+    const useFolio = await seedCommitment();
+    await adapterOpts.intakes['commitment.done']({ id: 'cd3', action: 'commitment.done', payload: { commitmentId: 'k1' } });
+    const res = await adapterOpts.intakes['commitment.done']({ id: 'cd4', action: 'commitment.done', payload: { commitmentId: 'k1' } });
+    expect(res.toast).toContain('already filed done');
+  });
+
+  it('a weekly commitment spawns its next instance', async () => {
+    const useFolio = await seedCommitment({ recurrence: 'weekly', dueAt: '2026-11-01T23:59:00' });
+    await adapterOpts.intakes['commitment.done']({ id: 'cd5', action: 'commitment.done', payload: { commitmentId: 'k1' } });
+    const all = Object.values(useFolio.getState().commitments) as any[];
+    const spawned = all.find((c) => c.id !== 'k1');
+    expect(spawned).toBeTruthy();
+    expect(spawned.status).toBe('open');
+    /* +7 days from the original — compare dates, not literals, so the
+       assertion is timezone-proof */
+    const orig = new Date('2026-11-01T23:59:00');
+    const next = new Date(spawned.dueAt);
+    expect(Math.round((next.getTime() - orig.getTime()) / 86400000)).toBe(7);
+  });
+
+  it('explains when the commitment is gone', async () => {
+    await seedCommitment();
+    const res = await adapterOpts.intakes['commitment.done']({ id: 'cd6', action: 'commitment.done', payload: { commitmentId: 'ghost' } });
+    expect(res).toEqual({ url: null, toast: 'that commitment no longer exists' });
+  });
+});
+
+describe('commitment.drop intake', () => {
+  const seedCommitment = async (over: Record<string, any> = {}) => {
+    const { useFolio } = await seedAndWire({
+      terms: { t1: mkTerm() },
+      courses: { c1: mkCourse('c1', 'MTH151') },
+      commitments: { k1: mkCommitment('k1', 'c1', { title: 'Extra credit draft', ...over }) },
+    });
+    return useFolio;
+  };
+
+  it('retires an open commitment without a grade', async () => {
+    const useFolio = await seedCommitment();
+    const res = await adapterOpts.intakes['commitment.drop']({
+      id: 'cx1', action: 'commitment.drop', payload: { commitmentId: 'k1' },
+    });
+    expect((useFolio.getState().commitments.k1 as any).status).toBe('dropped');
+    expect(res).toMatchObject({ url: '/apps/syllabus/?commitment=k1', navigate: false });
+    expect(res.toast).toContain('dropped');
+  });
+
+  it('does not spawn a weekly recurrence on drop', async () => {
+    const useFolio = await seedCommitment({ recurrence: 'weekly', dueAt: '2026-11-01T23:59:00' });
+    await adapterOpts.intakes['commitment.drop']({ id: 'cx2', action: 'commitment.drop', payload: { commitmentId: 'k1' } });
+    expect(Object.values(useFolio.getState().commitments)).toHaveLength(1);
+  });
+
+  it('is idempotent and refuses a done commitment', async () => {
+    const useFolio = await seedCommitment();
+    await adapterOpts.intakes['commitment.drop']({ id: 'cx3', action: 'commitment.drop', payload: { commitmentId: 'k1' } });
+    const again = await adapterOpts.intakes['commitment.drop']({ id: 'cx4', action: 'commitment.drop', payload: { commitmentId: 'k1' } });
+    expect(again.toast).toContain('already dropped');
+    useFolio.getState().setCommitmentStatus('k1', 'done');
+    const afterDone = await adapterOpts.intakes['commitment.drop']({ id: 'cx5', action: 'commitment.drop', payload: { commitmentId: 'k1' } });
+    expect(afterDone.toast).toContain('already filed done');
+  });
+
+  it('explains when the commitment is gone', async () => {
+    await seedCommitment();
+    const res = await adapterOpts.intakes['commitment.drop']({ id: 'cx6', action: 'commitment.drop', payload: { commitmentId: 'ghost' } });
+    expect(res).toEqual({ url: null, toast: 'that commitment no longer exists' });
+  });
+});

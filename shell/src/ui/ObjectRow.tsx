@@ -151,7 +151,18 @@ export function ObjectRow({
   const typeLabel = formatEntityType(item.type);
   const pinned = isPinned(item.url);
 
+  /* closed work wears its state — dropped/done rows stay listed (history)
+     but dim so open work reads first */
+  const closedLabel =
+    item.data?.status === 'dropped' ? 'dropped'
+    : item.data?.status === 'done' || item.data?.status === 'completed' ? 'done'
+    : item.data?.state === 'done' ? 'stamped'
+    : item.data?.state === 'deferred' ? 'deferred'
+    : item.data?.state === 'missed' ? 'missed'
+    : null;
+
   const dueInfo = (() => {
+    if (closedLabel) return { text: closedLabel, warn: item.data?.state === 'missed' };
     if (item.type === 'deck' && typeof item.data?.due === 'number' && item.data.due > 0) {
       return { text: `${item.data.due} due`, warn: true };
     }
@@ -262,7 +273,7 @@ export function ObjectRow({
         className="min-w-0 flex-1 text-left cursor-pointer focus:outline-none"
       >
         <div className="flex items-center gap-2">
-          <span className="truncate text-[13.5px] font-medium text-[var(--color-ink)] group-hover:text-[var(--color-accent)]">
+          <span className={`truncate text-[13.5px] font-medium text-[var(--color-ink)] group-hover:text-[var(--color-accent)]${closedLabel ? ' opacity-55 line-through' : ''}`}>
             {item.title}
           </span>
           {dueInfo && (
@@ -339,7 +350,7 @@ export function ObjectRow({
                   work shouldn't have to open the folio to complete */}
               {(item.type === 'commitment' || item.type === 'block') &&
                 item.app === 'syllabus' &&
-                !(item.data?.state === 'done' || item.data?.status === 'done') && (
+                !(item.data?.state === 'done' || item.data?.status === 'done' || item.data?.status === 'dropped') && (
                 <button
                   type="button"
                   onClick={() => {
@@ -359,6 +370,28 @@ export function ObjectRow({
                 >
                   <CheckSquare className="h-3.5 w-3.5" />
                   File {item.type === 'commitment' ? 'commitment' : 'slip'} done
+                </button>
+              )}
+              {item.type === 'commitment' &&
+                item.app === 'syllabus' &&
+                item.data?.status !== 'dropped' &&
+                item.data?.status !== 'done' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    void sendTo({
+                      to: 'syllabus',
+                      action: 'commitment.drop',
+                      payload: { commitmentId: item.id },
+                    }).then((r) => {
+                      if (onNotify) onNotify(r.toast || (r.ok ? 'Dropped' : `Could not drop: ${r.error || 'unavailable'}`));
+                    });
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-bad)] hover:bg-[var(--color-bad-soft)] cursor-pointer"
+                >
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  Drop commitment
                 </button>
               )}
               <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">

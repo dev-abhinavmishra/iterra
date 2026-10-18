@@ -210,6 +210,7 @@ export function CourseWorkspace({
             /* commitments close via status; blocks close via state */
             e.data.status !== 'done' &&
             e.data.status !== 'completed' &&
+            e.data.status !== 'dropped' &&
             e.data.state !== 'done' &&
             e.data.state !== 'deferred',
         )

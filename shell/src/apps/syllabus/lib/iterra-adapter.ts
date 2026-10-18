@@ -686,6 +686,23 @@ export function registerAdapter() {
         s.setCommitmentStatus(c.id, 'done');
         return { url: deep, navigate: false, toast: `${c.title} — filed done` };
       },
+      /* overdue work the student won't do shouldn't haunt Today — drop
+         retires it without touching the grade ledger. Recurrence does NOT
+         spawn on drop (done-only), matching the store semantics. */
+      'commitment.drop': async (rec: any) => {
+        await whenBooted();
+        const s = useFolio.getState();
+        const p = (rec?.payload ?? {}) as Record<string, any>;
+        const cid = typeof p.commitmentId === 'string' ? p.commitmentId
+          : (rec?.entity?.type === 'commitment' && typeof rec.entity.id === 'string' ? rec.entity.id : '');
+        const c = cid ? s.commitments[cid] : undefined;
+        if (!c) return { url: null, toast: 'that commitment no longer exists' };
+        const deep = `/apps/syllabus/?commitment=${encodeURIComponent(c.id)}`;
+        if (c.status === 'dropped') return { url: deep, navigate: false, toast: `${c.title} — already dropped` };
+        if (c.status === 'done') return { url: deep, navigate: false, toast: `${c.title} — already filed done` };
+        s.setCommitmentStatus(c.id, 'dropped');
+        return { url: deep, navigate: false, toast: `${c.title} — dropped` };
+      },
       'block.defer': async (rec: any) => {
         await whenBooted();
         const s = useFolio.getState();
