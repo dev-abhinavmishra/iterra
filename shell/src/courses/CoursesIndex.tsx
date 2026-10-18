@@ -81,7 +81,13 @@ export function CoursesIndex({
       } else if (e.type === 'card') {
         if (typeof e.data?.dueAt === 'number' && e.data.dueAt <= Date.now()) g.dueCards++;
       } else if (['block', 'commitment', 'assignment', 'routine', 'experiment'].includes(e.type)) {
-        g.schedule++;
+        /* the card's Schedule figure means live work — a dropped
+           commitment or stamped/deferred slip still exists but isn't
+           scheduled anything */
+        const st = (e.data?.status ?? e.data?.state) as string | undefined;
+        if (st !== 'done' && st !== 'dropped' && st !== 'deferred' && st !== 'completed' && st !== 'archived' && st !== 'paused') {
+          g.schedule++;
+        }
       } else if (['assessment', 'grade', 'scan', 'session'].includes(e.type)) {
         g.results++;
       }
