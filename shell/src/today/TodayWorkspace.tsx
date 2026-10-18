@@ -973,8 +973,7 @@ export function TodayWorkspace({
                             title="File this commitment done — off-clock work, no timer"
                             onClick={() => {
                               const o = scheduledWork.primary!;
-                              void (window as any).iterra
-                                ?.send?.({
+                              void sendTo({
                                   to: 'syllabus',
                                   action: 'commitment.done',
                                   entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
@@ -1006,8 +1005,7 @@ export function TodayWorkspace({
                               title="Push this slip to tomorrow — stays planned, not missed"
                               onClick={() => {
                                 const o = scheduledWork.primary!;
-                                void (window as any).iterra
-                                  ?.send?.({
+                                void sendTo({
                                     to: 'syllabus',
                                     action: 'block.defer',
                                     entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
@@ -1036,8 +1034,7 @@ export function TodayWorkspace({
                               title="Stamp this slip done — off-clock work, no timer"
                               onClick={() => {
                                 const o = scheduledWork.primary!;
-                                void (window as any).iterra
-                                  ?.send?.({
+                                void sendTo({
                                     to: 'syllabus',
                                     action: 'block.done',
                                     entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
@@ -1204,8 +1201,7 @@ export function TodayWorkspace({
                           onClick={() => {
                             if (rev.inlineCheck && rev.object) {
                               const o = rev.object;
-                              void (window as any).iterra
-                                ?.send?.({
+                              void sendTo({
                                   to: 'rhythm',
                                   action: 'routine.check',
                                   entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
