@@ -598,7 +598,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
           importSharedDeck(titleParam || 'Shared deck', cards,
             p.get('course') || undefined);
           applyShuffle();
-        }
+        } else toast('That link had no usable cards in it.');
       } catch { toast('Bad card data in link.'); }
       stripPlaceQuery();
       return true;
