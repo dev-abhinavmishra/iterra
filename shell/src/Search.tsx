@@ -137,6 +137,13 @@ export function Search({
         url: '#/p/syllabus',
       },
       {
+        app: 'ink',
+        kind: 'command',
+        label: "Write in today's journal",
+        sub: 'Command · Notes — opens the daily page',
+        url: '#/p/ink?p=daily',
+      },
+      {
         app: 'terrain',
         kind: 'command',
         label: 'Browse the Library — every object in one place',

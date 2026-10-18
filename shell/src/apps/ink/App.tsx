@@ -11,6 +11,7 @@ import { TagsView } from './components/organization/TagsView';
 import { FocusView } from './components/editor/FocusView';
 import { OrganizationInsights } from './components/organization/OrganizationInsights';
 import { wireIterra, applyInboundLink } from './lib/iterra';
+import { useStore } from './store';
 import './index.css';
 
 let wired = false;
@@ -29,7 +30,9 @@ function QueryBridge({ query }: { query: string }) {
   const navigate = useNavigate();
   useEffect(() => {
     const p = new URLSearchParams(query).get('p');
-    if (!p || !INK_ROUTES.has(p)) return;
+    if (!p) return;
+    /* ?p=daily is an action, not a route — it opens today's journal page */
+    if (!INK_ROUTES.has(p) && p !== 'daily') return;
     const h = window.location.hash;
     const qi = h.indexOf('?');
     if (qi !== -1) {
@@ -38,7 +41,12 @@ function QueryBridge({ query }: { query: string }) {
       const rest = q.toString();
       window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
     }
-    navigate(`/${p}`);
+    if (p === 'daily') {
+      useStore.getState().ensureDailyNote();
+      navigate('/');
+    } else {
+      navigate(`/${p}`);
+    }
   }, [query, navigate]);
   return null;
 }
