@@ -958,6 +958,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   
   let _bridgeDeckId = null;   // which deck the 'logged' ack belongs to
   let _bridgeLogged = false;
+  let _planModalPending = false;
   
   function renderDeckBridge(d) {
     const host = $('deck-bridge');
@@ -985,9 +986,14 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
            student schedules or closes — matching kind only, so an unrelated
            modal finishing can't strand the listener (or this chip). The chip
            stays enabled: dispatching is fire-and-forget, a re-click just
-           re-opens the dialog. */
+           re-opens the dialog. _planModalPending stops re-clicks stacking
+           duplicate done-listeners (two pending → double toast + double
+           navigate when the dialog finally resolves). */
+        if (_planModalPending) return;
+        _planModalPending = true;
         const onDone = (e) => {
           if (!e.detail || e.detail.kind !== 'schedule-review') return;
+          _planModalPending = false;
           window.removeEventListener('iterra:modal:done', onDone);
           if (e.detail.canceled) return;
           toast('Review block planned');
