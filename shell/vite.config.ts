@@ -89,6 +89,9 @@ export default defineConfig(({ mode }) => {
         build: {
             rollupOptions: {
                 output: {
+                    // Keep dependencies of manual chunks out of app entries,
+                    // so tool-only libraries stay off the cold workspace path.
+                    onlyExplicitManualChunks: true,
                     /* keep the heavy document libs out of whatever chunk pulls
                        them first — they only ever run inside a place bundle,
                        so an explicit vendor split lets the entry stay lean and

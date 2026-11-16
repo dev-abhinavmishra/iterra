@@ -11,7 +11,7 @@ import { timerSummary, publishRoutineIndex } from './iterra';
 type Hub = {
   ready?: Promise<unknown>;
   store?: {
-    put(e: Record<string, unknown>): Promise<unknown>;
+    put(e: Record<string, unknown>, opts?: { base: null }): Promise<{ raced?: boolean } | undefined>;
     get(k: string): Promise<unknown>;
     list(q?: Record<string, unknown>): Promise<Array<{ id?: string }>>;
     remove?(key: string): Promise<unknown>;
@@ -50,6 +50,16 @@ export function sessionEntity(s: Session, bound: BoundCourse = {}) {
       commitmentId: s.commitmentId,
       startedAt: s.timestamp - Math.round(s.duration * 1000),
       endedAt: s.timestamp,
+      ...(s.outcome && {
+        outcome: s.outcome,
+        elapsedSeconds: s.duration,
+        sessionKind: s.type,
+        blockId: s.blockId,
+        blockRef: s.blockId ? `syllabus:block:${s.blockId}` : undefined,
+        materialRef: s.materialRef,
+        plannedMinutes: s.plannedMinutes,
+        confirmedByUser: s.confirmedByUser,
+      }),
     },
   };
 }
@@ -128,11 +138,13 @@ async function boundCourse(courseId?: string, course?: string): Promise<BoundCou
 async function onSessionSaved(s?: Session) {
   const it = hub();
   if (!it?.store || !s || s.type !== 'focus') return;
+  // Structured sessions are published with their journal entry by recordSessionOutcome.
+  if (s.outcome) return;
   const bound = await boundCourse(s.courseId, s.course);
   /* the mirror put must never gate the journal — a quota/validation
      failure would otherwise eat the session.completed event */
-  await it.store.put(sessionEntity(s, bound)).catch(() => {});
-  it.events?.emit('session.completed', sessionCompletedEvent(s, bound));
+  const put = await it.store.put(sessionEntity(s, bound), { base: null }).catch(() => undefined);
+  if (!put?.raced) it.events?.emit('session.completed', sessionCompletedEvent(s, bound));
 }
 
 /* sweep: mirror focus sessions the event didn't catch (saved while the hub
@@ -147,7 +159,8 @@ async function backfillSessions() {
       .slice(-100);
     for (const s of missing) {
       const bound = await boundCourse(s.courseId, s.course);
-      await it.store.put(sessionEntity(s, bound));
+      // The snapshot above may be stale by the time a command files its session.
+      await it.store.put(sessionEntity(s, bound), { base: null });
     }
   } catch {
     /* best-effort mirror — never block the app */

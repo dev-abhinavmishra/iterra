@@ -144,6 +144,38 @@ describe('adapter wiring', () => {
     expect(emits).toHaveLength(0);
   });
 
+  it('leaves live structured focus publishing to the outcome command', async () => {
+    await import('./iterra-adapter');
+    const { saveSession } = await import('./stats');
+    saveSession({ duration: 300, type: 'focus', blockId: 'b1', outcome: 'completed' });
+    await tick();
+    expect(puts).toHaveLength(0);
+    expect(emits).toHaveLength(0);
+  });
+
+  it('backfills missing rows without replacing an outcome written after its scan', async () => {
+    const { saveSession } = await import('./stats');
+    saveSession({
+      id: 's1', duration: 300, type: 'focus', outcome: 'completed',
+      blockId: 'b1', commitmentId: 'c1', plannedMinutes: 5,
+    });
+    const hubStore = (window as any).iterra.store;
+    const canonical = { id: 's1', data: { outcome: 'completed', blockId: 'b1', notes: 'Kept' } };
+    const put = vi.spyOn(hubStore, 'put').mockImplementation(async (...args: unknown[]) => {
+      if ((args[1] as { base?: null } | undefined)?.base === null) return { raced: true };
+      Object.assign(canonical, args[0]);
+      return { ok: true };
+    });
+
+    await import('./iterra-adapter');
+    await tick();
+    expect(put).toHaveBeenCalledWith(expect.objectContaining({
+      id: 's1',
+      data: expect.objectContaining({ outcome: 'completed', blockId: 'b1', commitmentId: 'c1' }),
+    }), { base: null });
+    expect(canonical.data.notes).toBe('Kept');
+  });
+
   it('timer.start intake returns a deep link', async () => {
     await import('./iterra-adapter');
     const res = await adapterOpts.intakes['timer.start']({

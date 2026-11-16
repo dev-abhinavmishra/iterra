@@ -345,13 +345,18 @@ export function Dialog({
   maxWidth?: string;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
     /* modal contract — focus lands inside the dialog on open and returns
        to the invoker on close; Esc backs out */
     const prev = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') closeRef.current();
       /* focus trap — Tab at the last focusable wraps to the first so the
          modal can't be tabbed out from under itself */
       if (e.key === 'Tab' && panelRef.current) {
@@ -373,18 +378,19 @@ export function Dialog({
       }
     };
     window.addEventListener('keydown', onKey);
-    requestAnimationFrame(() => {
+    const initialFocusFrame = requestAnimationFrame(() => {
       const first =
         panelRef.current?.querySelector<HTMLElement>(
-          'input, select, textarea, [autofocus], button:not([aria-label="Close dialog"])'
-        ) ?? panelRef.current;
+          'input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [autofocus]:not([disabled]), button:not([aria-label="Close dialog"]):not([disabled])'
+        ) ?? panelRef.current?.querySelector<HTMLElement>('button:not([disabled])') ?? panelRef.current;
       first?.focus?.();
     });
     return () => {
+      cancelAnimationFrame(initialFocusFrame);
       window.removeEventListener('keydown', onKey);
       prev?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -463,67 +469,67 @@ export function DropdownMenu({
   /* 'top' opens upward — used by the bottom tab bar on small screens */
   side?: 'bottom' | 'top';
   className?: string;
-  children: (close: () => void) => React.ReactNode;
+  children: (close: (options?: { restoreFocus?: boolean }) => void) => React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement>(null);
 
-  /* focus management: keyboard users open the menu and their next Tab
-     should land inside it, not on whatever follows the trigger in DOM
-     order. On open, focus the first actionable item; on Escape, return
-     focus to the trigger so the dismissing keystroke doesn't strand the
-     user mid-list. */
+  function close({ restoreFocus = false }: { restoreFocus?: boolean } = {}) {
+    setOpen(false);
+    if (restoreFocus) triggerRef.current?.focus();
+  }
+
   useEffect(() => {
     if (!open) return;
-    const panel = wrapRef.current?.querySelector<HTMLElement>('[role="menu"]');
-    const first = panel?.querySelector<HTMLElement>('button:not([disabled])');
-    first?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        const trig = wrapRef.current?.querySelector<HTMLElement>('button');
-        trig?.focus();
-      }
-      /* ArrowUp/Down walk the menu — standard menu semantics */
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        const items = Array.from(panel?.querySelectorAll<HTMLElement>('button:not([disabled])') ?? []);
-        if (!items.length) return;
-        e.preventDefault();
-        const idx = items.indexOf(document.activeElement as HTMLElement);
-        const next = e.key === 'ArrowDown'
-          ? (idx < 0 ? 0 : (idx + 1) % items.length)
-          : (idx <= 0 ? items.length - 1 : idx - 1);
-        items[next]?.focus();
-      }
-    };
+    panelRef.current?.querySelector<HTMLElement>('button:not([disabled]), a[href]')?.focus();
     const onClickOutside = (e: MouseEvent) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
-    window.addEventListener('keydown', onKey);
     document.addEventListener('mousedown', onClickOutside);
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.removeEventListener('mousedown', onClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', onClickOutside);
   }, [open]);
 
   return (
-    <div ref={wrapRef} className={`relative inline-block ${className}`}>
+    <div
+      ref={wrapRef}
+      className={`relative inline-block ${className}`}
+      onBlur={(e) => {
+        if (open && !e.currentTarget.contains(e.relatedTarget)) setOpen(false);
+      }}
+      onKeyDown={(e) => {
+        if (!open || e.key !== 'Escape') return;
+        e.preventDefault();
+        e.stopPropagation();
+        close({ restoreFocus: true });
+      }}
+    >
       {trigger(open, (e) => {
         e.stopPropagation();
+        if (e.currentTarget instanceof HTMLElement) triggerRef.current = e.currentTarget;
         setOpen((v) => !v);
       })}
       {open && (
         <div
-          role="menu"
+          ref={panelRef}
           className={`anim-pop absolute z-50 min-w-[190px] rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-1 shadow-xl ${
             side === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
           } ${align === 'right' ? 'right-0' : 'left-0'}`}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+            const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]), a[href]'));
+            const index = items.indexOf(document.activeElement as HTMLElement);
+            if (index < 0) return;
+            e.preventDefault();
+            const offset = e.key === 'ArrowDown' ? 1 : -1;
+            items[(index + offset + items.length) % items.length]?.focus();
+          }}
         >
-          {children(() => setOpen(false))}
+          {children(close)}
         </div>
       )}
     </div>

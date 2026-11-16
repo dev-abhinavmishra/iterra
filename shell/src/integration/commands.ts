@@ -106,6 +106,18 @@ async function putHubEntity(entity: Record<string, unknown>): Promise<Record<str
   return entity;
 }
 
+async function putHubEntityRequired(entity: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  const it = (window as any).iterra;
+  if (!it?.store?.put) return entity; // standalone mode has no canonical store
+  try {
+    const result = await it.store.put(entity);
+    if (!result || result.ok === false) return null;
+    return result.entity || entity;
+  } catch {
+    return null;
+  }
+}
+
 function todayLocalISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -1294,20 +1306,65 @@ function readRecordedOutcomes(): Record<string, any> {
   }
 }
 
-function writeRecordedOutcomes(map: Record<string, any>): void {
+function writeRecordedOutcomes(map: Record<string, any>): boolean {
   try {
     /* bound the ledger — entries exist only to catch immediate retries, so
        keeping the most recent few hundred (insertion order) is plenty */
     const keys = Object.keys(map);
     for (const k of keys.slice(0, Math.max(0, keys.length - 500))) delete map[k];
     localStorage.setItem(SESSION_OUTCOMES_KEY, JSON.stringify(map));
+    return true;
   } catch {
-    /* ignore */
+    return false;
   }
 }
 
-export async function handleRecordSessionOutcome(
+function getRecordedSessionOutcome(record: Record<string, any>, sessionId: string): string | undefined {
+  const outcomes = record.recordedSessionOutcomes;
+  return outcomes && typeof outcomes === 'object' && typeof outcomes[sessionId] === 'string'
+    ? outcomes[sessionId]
+    : undefined;
+}
+
+function markSessionOutcome(record: Record<string, any>, sessionId: string, outcome: SessionOutcomeKind): Record<string, any> {
+  const previous = record.recordedSessionOutcomes && typeof record.recordedSessionOutcomes === 'object'
+    ? record.recordedSessionOutcomes
+    : {};
+  const outcomes = { ...previous, [sessionId]: outcome };
+  for (const oldId of Object.keys(outcomes).slice(0, Math.max(0, Object.keys(outcomes).length - 500))) delete outcomes[oldId];
+  return { ...record, recordedSessionOutcomes: outcomes };
+}
+
+// Serialize this handler's read/update/write sequence in this workspace.
+// Hub command deduplication covers identical incoming idempotency keys, but
+// different keys and direct callers share the same outcome and Timer ledgers.
+let sessionOutcomeQueue: Promise<void> = Promise.resolve();
+
+export function handleRecordSessionOutcome(input: RecordSessionOutcomeInput) {
+  // Capture the binding before a queued request can outlive Timer resetting
+  // this session or starting a different one.
+  const active = getWorkflowContext().activeSession;
+  const run = () => recordSessionOutcome(input, active);
+  // The module queue protects callers in this tab. Web Locks extends that
+  // protection across tabs, where localStorage's read/modify/write ledgers
+  // and the Syllabus wrapper would otherwise allow lost updates or duplicate
+  // credit for the same session.
+  type SessionOutcomeLockManager = {
+    request<T>(name: string, callback: () => T | PromiseLike<T>): Promise<T>;
+  };
+  const lockManager = typeof navigator !== 'undefined'
+    ? (navigator as Navigator & { locks?: SessionOutcomeLockManager }).locks
+    : undefined;
+  const outcome = lockManager
+    ? (async () => await (await lockManager.request('iterra:record-session-outcome', run)))()
+    : sessionOutcomeQueue.then(run);
+  sessionOutcomeQueue = outcome.then(() => {}, () => {});
+  return outcome;
+}
+
+async function recordSessionOutcome(
   input: RecordSessionOutcomeInput,
+  activeAtRequest: ReturnType<typeof getWorkflowContext>['activeSession'],
 ): Promise<
   CommandResult<{
     sessionId: string;
@@ -1332,21 +1389,52 @@ export async function handleRecordSessionOutcome(
   }
 
   // Pull active session context as fallback for fields not explicitly repeated
-  const wfCtx = getWorkflowContext();
-  const active = wfCtx.activeSession;
-  const sessionId = input.sessionId || active?.sessionId || uid('sess_');
+  const active = !input.sessionId || activeAtRequest?.sessionId === input.sessionId
+    ? activeAtRequest
+    : null;
+  let sessionId = input.sessionId || active?.sessionId || uid('sess_');
 
   // Duplicate recording protection — by sessionId, and by the caller's
   // idempotencyKey when given (file-back retries must not double-log)
   const outcomesLedger = readRecordedOutcomes();
-  const prior =
-    outcomesLedger[sessionId] ??
-    (input.idempotencyKey ? outcomesLedger[`idem:${input.idempotencyKey}`] : undefined);
+  const priorBySession = outcomesLedger[sessionId];
+  const priorByIdempotency = input.idempotencyKey ? outcomesLedger[`idem:${input.idempotencyKey}`] : undefined;
+  const prior = priorBySession ?? priorByIdempotency;
+  if (!input.sessionId && !active?.sessionId && !priorBySession && priorByIdempotency) {
+    sessionId = priorByIdempotency.data?.sessionId ?? priorByIdempotency.event?.sessionId ?? sessionId;
+  }
   if (prior) {
+    const priorOutcome = prior.data?.outcome ?? prior.event?.outcome;
+    if (priorOutcome && priorOutcome !== input.outcome) {
+      return {
+        ok: false,
+        commandId: '',
+        code: 'OUTCOME_CONFLICT',
+        error: `Session ${sessionId} already has a different recorded outcome.`,
+      };
+    }
     return {
       ...prior,
       deduplicated: true,
     };
+  }
+
+  // Timer's authoritative row is written before the workspace command starts.
+  // It also lets a retry detect conflicting outcomes when a crash interrupted
+  // the command before its receipt could be saved.
+  try {
+    const existing = (JSON.parse(localStorage.getItem('timer.sessions.v1') || '[]') as any[])
+      .find((row) => row?.id === sessionId);
+    if (existing?.outcome && existing.outcome !== input.outcome) {
+      return {
+        ok: false,
+        commandId: '',
+        code: 'OUTCOME_CONFLICT',
+        error: `Session ${sessionId} already has a different Timer outcome.`,
+      };
+    }
+  } catch {
+    /* the regular Timer write below remains the authority if this read fails */
   }
 
   const blockId =
@@ -1448,7 +1536,7 @@ export async function handleRecordSessionOutcome(
   //    shouldn't surface in Recent Work or gather practicedIn edges. The
   //    canceled event + outcome ledger still carry the audit signal.
   const sessionKey = `timer:session:${sessionId}`;
-  const sessionEnt = input.outcome === 'canceled' ? undefined : await putHubEntity({
+  const sessionEntityInput = input.outcome === 'canceled' ? null : {
     app: 'timer',
     type: 'session',
     id: sessionId,
@@ -1477,63 +1565,89 @@ export async function handleRecordSessionOutcome(
       endedAt: at,
       notes: input.notes,
     },
-  });
+  };
+  const sessionEnt = sessionEntityInput ? await putHubEntityRequired(sessionEntityInput) : undefined;
+  if (sessionEntityInput && !sessionEnt) {
+    return {
+      ok: false,
+      commandId: '',
+      code: 'SESSION_ENTITY_WRITE_FAILED',
+      error: 'Timer saved this session locally, but could not write it to the workspace yet.',
+    };
+  }
 
   // 3. Update Syllabus block & commitment according to outcome semantics (§4.D):
   //    - 'completed': mark block 'done' and record actualMinutes
   //    - 'partial' / 'interrupted': record actualMinutes on block & commitment, keep block 'planned' (not 'done')
   //    - 'canceled': revert 'in-progress' to 'planned' without inflating minutes
+  let directCommitmentUrl: string | null = null;
   let finalBlockState: string | null = null;
   if (blockId) {
     const wrapper = readZustandWrapper('syllabus.folio.v1');
     const st = wrapper.state;
     const blk = st.blocks?.[blockId];
     if (blk) {
-      const prevActual = typeof blk.actualMinutes === 'number' ? blk.actualMinutes : 0;
       const comm = st.commitments?.[blk.commitmentId];
-      if (input.outcome === 'completed' && confirmedByUser) {
-        const nextActual = prevActual + Math.max(1, elapsedMinutes || blk.plannedMinutes || 25);
-        st.blocks[blockId] = {
-          ...blk,
-          state: 'done',
-          actualMinutes: nextActual,
-          completedAt: new Date(now).toISOString(),
-          lastOutcome: 'completed',
+      const recordedOutcome = getRecordedSessionOutcome(blk, sessionId);
+      if (recordedOutcome && recordedOutcome !== input.outcome) {
+        return {
+          ok: false,
+          commandId: '',
+          code: 'OUTCOME_CONFLICT',
+          error: `Session ${sessionId} already credited a different outcome to its block.`,
         };
-        finalBlockState = 'done';
-        if (comm) {
-          st.commitments[comm.id] = {
-            ...comm,
-            loggedMinutes: (comm.loggedMinutes || 0) + Math.max(1, elapsedMinutes || blk.plannedMinutes || 25),
-            lastWorkedAt: new Date(now).toISOString(),
-          };
-        }
-      } else if (input.outcome === 'partial' || input.outcome === 'interrupted') {
-        const nextActual = prevActual + elapsedMinutes;
-        st.blocks[blockId] = {
-          ...blk,
-          state: 'planned',
-          actualMinutes: nextActual > 0 ? nextActual : blk.actualMinutes,
-          lastOutcome: input.outcome,
-        };
-        finalBlockState = 'planned';
-        if (comm && elapsedMinutes > 0) {
-          st.commitments[comm.id] = {
-            ...comm,
-            loggedMinutes: (comm.loggedMinutes || 0) + elapsedMinutes,
-            lastWorkedAt: new Date(now).toISOString(),
-          };
-        }
-      } else if (input.outcome === 'canceled') {
-        st.blocks[blockId] = {
-          ...blk,
-          state: blk.state === 'in-progress' ? 'planned' : blk.state,
-          lastOutcome: 'canceled',
-        };
-        finalBlockState = st.blocks[blockId].state;
       }
-
-      writeZustandWrapper('syllabus.folio.v1', st, wrapper.version);
+      if (recordedOutcome) {
+        finalBlockState = blk.state;
+      } else {
+        const prevActual = typeof blk.actualMinutes === 'number' ? blk.actualMinutes : 0;
+        if (input.outcome === 'completed' && confirmedByUser) {
+          const credit = Math.max(1, elapsedMinutes || blk.plannedMinutes || 25);
+          const nextActual = prevActual + credit;
+          st.blocks[blockId] = {
+            ...blk,
+            state: 'done',
+            actualMinutes: nextActual,
+            completedAt: new Date(now).toISOString(),
+            lastOutcome: 'completed',
+          };
+          finalBlockState = 'done';
+          if (comm) {
+            st.commitments[comm.id] = {
+              ...comm,
+              loggedMinutes: (comm.loggedMinutes || 0) + credit,
+              lastWorkedAt: new Date(now).toISOString(),
+            };
+          }
+        } else if (input.outcome === 'partial' || input.outcome === 'interrupted') {
+          const nextActual = prevActual + elapsedMinutes;
+          st.blocks[blockId] = {
+            ...blk,
+            state: 'planned',
+            actualMinutes: nextActual > 0 ? nextActual : blk.actualMinutes,
+            lastOutcome: input.outcome,
+          };
+          finalBlockState = 'planned';
+          if (comm && elapsedMinutes > 0) {
+            st.commitments[comm.id] = {
+              ...comm,
+              loggedMinutes: (comm.loggedMinutes || 0) + elapsedMinutes,
+              lastWorkedAt: new Date(now).toISOString(),
+            };
+          }
+        } else if (input.outcome === 'canceled') {
+          st.blocks[blockId] = {
+            ...blk,
+            state: blk.state === 'in-progress' ? 'planned' : blk.state,
+            lastOutcome: 'canceled',
+          };
+          finalBlockState = st.blocks[blockId].state;
+        }
+        // Persist the dedupe marker in the same wrapper write as the minute
+        // credit, so an outbox retry after a crash cannot credit twice.
+        st.blocks[blockId] = markSessionOutcome(st.blocks[blockId] || blk, sessionId, input.outcome);
+        writeZustandWrapper('syllabus.folio.v1', st, wrapper.version);
+      }
       try {
         (window as any).__syllabusFolioStore?.setState?.({
           blocks: { ...st.blocks },
@@ -1544,7 +1658,7 @@ export async function handleRecordSessionOutcome(
       }
 
       const updatedBlk = st.blocks[blockId];
-      await putHubEntity({
+      const updatedBlockEntity = await putHubEntityRequired({
         app: 'syllabus',
         type: 'block',
         id: blockId,
@@ -1567,6 +1681,73 @@ export async function handleRecordSessionOutcome(
           materialRef: updatedBlk.materialRef || resolvedMaterialKey,
         },
       });
+      if (!updatedBlockEntity) {
+        return {
+          ok: false,
+          commandId: '',
+          code: 'BLOCK_ENTITY_WRITE_FAILED',
+          error: 'Planning saved the session credit locally, but could not sync its block yet.',
+        };
+      }
+      notifyStoreChange('syllabus');
+    }
+  } else if (commitmentId && elapsedMinutes > 0 && input.outcome !== 'canceled') {
+    // A focus session can bind directly to an assignment without booking a block.
+    // Credit time on that assignment without treating study time as task completion.
+    const { state, version } = readZustandWrapper('syllabus.folio.v1');
+    const commitment = state.commitments?.[commitmentId];
+    if (commitment?.id === commitmentId) {
+      const recordedOutcome = getRecordedSessionOutcome(commitment, sessionId);
+      if (recordedOutcome && recordedOutcome !== input.outcome) {
+        return {
+          ok: false,
+          commandId: '',
+          code: 'OUTCOME_CONFLICT',
+          error: `Session ${sessionId} already credited a different outcome to its assignment.`,
+        };
+      }
+      const alreadyCredited = !!recordedOutcome;
+      const loggedMinutes = alreadyCredited
+        ? (commitment.loggedMinutes || 0)
+        : (commitment.loggedMinutes || 0) + elapsedMinutes;
+      if (!alreadyCredited) {
+        const lastWorkedAt = new Date(Math.max(at, Date.parse(commitment.lastWorkedAt) || 0)).toISOString();
+        state.commitments[commitmentId] = markSessionOutcome({ ...commitment, loggedMinutes, lastWorkedAt }, sessionId, input.outcome);
+        writeZustandWrapper('syllabus.folio.v1', state, version);
+      }
+      syncLiveStore('__syllabusFolioStore', { commitments: { ...state.commitments } });
+
+      directCommitmentUrl = `/apps/syllabus/?commitment=${encodeURIComponent(commitmentId)}`;
+      const updatedCommitmentEntity = await putHubEntityRequired({
+        app: 'syllabus',
+        type: 'commitment',
+        id: commitmentId,
+        // The session keeps its original course. The assignment mirror
+        // belongs to the assignment's current course if it moved.
+        courseId: commitment.courseId ? `syllabus:course:${commitment.courseId}` : undefined,
+        course: state.courses?.[commitment.courseId]?.code,
+        title: commitment.title,
+        sub: commitment.type,
+        url: directCommitmentUrl,
+        data: {
+          type: commitment.type,
+          dueAt: commitment.dueAt,
+          weight: commitment.weight,
+          status: commitment.status,
+          estimatedMinutes: commitment.estimatedMinutes,
+          loggedMinutes,
+          grade: commitment.grade,
+          pinned: commitment.pinned || undefined,
+        },
+      });
+      if (!updatedCommitmentEntity) {
+        return {
+          ok: false,
+          commandId: '',
+          code: 'COMMITMENT_ENTITY_WRITE_FAILED',
+          error: 'Planning saved the session credit locally, but could not sync its assignment yet.',
+        };
+      }
       notifyStoreChange('syllabus');
     }
   }
@@ -1686,6 +1867,9 @@ export async function handleRecordSessionOutcome(
   }
 
   // 6. Emit outcome events
+  const outcomeUrl = blockKey
+    ? `/apps/syllabus/?block=${encodeURIComponent(blockId!)}`
+    : directCommitmentUrl ?? '/apps/timer/';
   const eventPayload = {
     sessionId,
     sessionKey,
@@ -1696,25 +1880,14 @@ export async function handleRecordSessionOutcome(
     confirmedByUser,
     blockId,
     blockKey,
+    commitmentId,
     materialRef: resolvedMaterialKey,
     courseId,
     course,
     topic,
     text: `session ${input.outcome}: ${label} (${elapsedMinutes}m)`,
-    url: blockKey ? `/apps/syllabus/?block=${encodeURIComponent(blockId!)}` : '/apps/timer/',
+    url: outcomeUrl,
   };
-
-  if (input.outcome === 'completed') {
-    await emitHubEvent('focusSessionCompleted', eventPayload);
-    await emitHubEvent('session.completed', eventPayload);
-  } else if (input.outcome === 'partial') {
-    await emitHubEvent('focusSessionCompleted', eventPayload);
-    if (elapsedMinutes > 0) await emitHubEvent('session.completed', eventPayload);
-  } else if (input.outcome === 'interrupted') {
-    await emitHubEvent('focusSessionInterrupted', eventPayload);
-  } else if (input.outcome === 'canceled') {
-    await emitHubEvent('focusSessionCanceled', eventPayload);
-  }
 
   const finalResult: CommandResult<{
     sessionId: string;
@@ -1730,10 +1903,10 @@ export async function handleRecordSessionOutcome(
     ok: true,
     commandId: '',
     ref: sessionKey,
-    entity: sessionEnt,
+    entity: sessionEnt || undefined,
     relationships,
     event: eventPayload,
-    url: blockKey ? `/apps/syllabus/?block=${encodeURIComponent(blockId!)}` : '/apps/timer/',
+    url: outcomeUrl,
     data: {
       sessionId,
       outcome: input.outcome,
@@ -1749,7 +1922,29 @@ export async function handleRecordSessionOutcome(
 
   outcomesLedger[sessionId] = finalResult;
   if (input.idempotencyKey) outcomesLedger[`idem:${input.idempotencyKey}`] = finalResult;
-  writeRecordedOutcomes(outcomesLedger);
+  if (!writeRecordedOutcomes(outcomesLedger)) {
+    return {
+      ok: false,
+      commandId: '',
+      code: 'OUTCOME_LEDGER_WRITE_FAILED',
+      error: 'The session was saved, but its retry receipt could not be persisted. Timer will retry safely.',
+    };
+  }
+
+  // Emit only after the retry receipt is durable. If the browser loses the
+  // response, the outbox retry will return the saved result without replaying
+  // these events.
+  if (input.outcome === 'completed') {
+    await emitHubEvent('focusSessionCompleted', eventPayload);
+    await emitHubEvent('session.completed', eventPayload);
+  } else if (input.outcome === 'partial') {
+    await emitHubEvent('focusSessionCompleted', eventPayload);
+    if (elapsedMinutes > 0) await emitHubEvent('session.completed', eventPayload);
+  } else if (input.outcome === 'interrupted') {
+    await emitHubEvent('focusSessionInterrupted', eventPayload);
+  } else if (input.outcome === 'canceled') {
+    await emitHubEvent('focusSessionCanceled', eventPayload);
+  }
   return finalResult;
 }
 

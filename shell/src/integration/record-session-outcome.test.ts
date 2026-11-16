@@ -13,10 +13,15 @@ let store: Map<string, string>;
 let puts: any[];
 let linkAdds: any[];
 let events: { type: string; payload: any }[];
+let failOutcomeLedgerWrite: boolean;
+let failSessionEntityPut: boolean;
 
 const localStorageStub = {
   getItem: (k: string) => store.get(k) ?? null,
-  setItem: (k: string, v: string) => void store.set(k, String(v)),
+  setItem: (k: string, v: string) => {
+    if (failOutcomeLedgerWrite && k === 'iterra.v1.sessionOutcomes') throw new Error('quota');
+    store.set(k, String(v));
+  },
   removeItem: (k: string) => void store.delete(k),
   clear: () => store.clear(),
 };
@@ -26,6 +31,8 @@ const installStubs = () => {
   puts = [];
   linkAdds = [];
   events = [];
+  failOutcomeLedgerWrite = false;
+  failSessionEntityPut = false;
   (globalThis as Record<string, unknown>).localStorage = localStorageStub;
   (globalThis as Record<string, unknown>).window = {
     iterra: {
@@ -39,6 +46,9 @@ const installStubs = () => {
       store: {
         put: (e: any) => {
           puts.push(e);
+          if (failSessionEntityPut && e.app === 'timer' && e.type === 'session') {
+            return Promise.resolve({ ok: false, error: 'offline' });
+          }
           return Promise.resolve({ ok: true, entity: e });
         },
         get: () => Promise.resolve(null),
@@ -75,7 +85,11 @@ const seedBlock = (over: Record<string, any> = {}) => {
             ...over,
           },
         },
-        commitments: { c1: { id: 'c1', title: 'Deck prep', loggedMinutes: 5 } },
+        courses: { course1: { id: 'course1', code: 'BIO 201' } },
+        commitments: {
+          c1: { id: 'c1', title: 'Deck prep', type: 'assignment', status: 'open', courseId: 'course1', loggedMinutes: 5 },
+          c2: { id: 'c2', title: 'Deck prep', type: 'assignment', status: 'open', courseId: 'course1', loggedMinutes: 3 },
+        },
       },
       version: 1,
     }),
@@ -84,6 +98,7 @@ const seedBlock = (over: Record<string, any> = {}) => {
 
 const sessions = () => JSON.parse(store.get('timer.sessions.v1') || '[]');
 const folioBlock = () => JSON.parse(store.get('syllabus.folio.v1')!).state.blocks.b1;
+const folioCommitments = () => JSON.parse(store.get('syllabus.folio.v1')!).state.commitments;
 
 let handleRecordSessionOutcome: (input: any) => Promise<any>;
 
@@ -115,7 +130,157 @@ describe('recordSessionOutcome', () => {
     expect(linkAdds[0].to).toBe('syllabus:block:b1');
     expect(linkAdds[0].kind).toMatch(/practiced/i);
     expect(folioBlock().state).toBe('done');
+    expect(folioCommitments().c1.loggedMinutes).toBe(30);
     expect(events.map((e) => e.type)).toContain('session.completed');
+  });
+
+  it('credits a direct focus session to the bound assignment without changing its status', async () => {
+    seedBlock();
+    const at = Date.UTC(2026, 0, 11);
+    const input = {
+      sessionId: 's_direct',
+      idempotencyKey: 'timer:s_direct',
+      outcome: 'completed',
+      commitmentId: 'c1',
+      elapsedSeconds: 420,
+      plannedMinutes: 25,
+      at,
+    };
+    const result = await handleRecordSessionOutcome(input);
+    const retry = await handleRecordSessionOutcome(input);
+
+    expect(result.ok).toBe(true);
+    expect(result.url).toBe('/apps/syllabus/?commitment=c1');
+    expect(retry.deduplicated).toBe(true);
+    expect(sessions()).toHaveLength(1);
+    expect(folioCommitments().c1).toMatchObject({
+      loggedMinutes: 12,
+      status: 'open',
+      lastWorkedAt: new Date(at).toISOString(),
+    });
+    expect(folioCommitments().c2.loggedMinutes).toBe(3);
+    expect(folioBlock()).toMatchObject({ state: 'in-progress', actualMinutes: 5 });
+    expect(puts).toContainEqual(expect.objectContaining({
+      app: 'syllabus',
+      type: 'commitment',
+      id: 'c1',
+      courseId: 'syllabus:course:course1',
+      course: 'BIO 201',
+      data: expect.objectContaining({ loggedMinutes: 12, status: 'open' }),
+    }));
+  });
+
+  it('credits partial time and ignores a canceled or empty direct session', async () => {
+    seedBlock();
+    const commitmentId = 'c1';
+    await handleRecordSessionOutcome({ sessionId: 'partial', outcome: 'partial', commitmentId, elapsedSeconds: 180 });
+    await handleRecordSessionOutcome({ sessionId: 'canceled', outcome: 'canceled', commitmentId, elapsedSeconds: 45 });
+    await handleRecordSessionOutcome({ sessionId: 'empty', outcome: 'partial', commitmentId, elapsedSeconds: 0 });
+    expect(folioCommitments().c1).toMatchObject({ loggedMinutes: 8, status: 'open' });
+    expect(puts.filter((row) => row.type === 'commitment')).toHaveLength(1);
+  });
+
+  it('credits concurrent outcomes for one session once even when delivery keys differ', async () => {
+    seedBlock();
+    const input = {
+      sessionId: 'same-session',
+      outcome: 'completed',
+      commitmentId: 'c1',
+      elapsedMinutes: 7,
+    };
+    const [first, retry] = await Promise.all([
+      handleRecordSessionOutcome({ ...input, idempotencyKey: 'timer:same-session' }),
+      handleRecordSessionOutcome({ ...input, idempotencyKey: 'retry:same-session' }),
+    ]);
+    expect(first.ok).toBe(true);
+    expect(retry.deduplicated).toBe(true);
+    expect(folioCommitments().c1.loggedMinutes).toBe(12);
+    expect(sessions()).toHaveLength(1);
+  });
+
+  it('does not double-credit when the outcome receipt write fails after the folio commit', async () => {
+    seedBlock();
+    failOutcomeLedgerWrite = true;
+    const input = {
+      sessionId: 'receipt-retry',
+      outcome: 'completed',
+      blockId: 'b1',
+      commitmentId: 'c1',
+      elapsedMinutes: 7,
+      idempotencyKey: 'timer:receipt-retry',
+    };
+
+    const failed = await handleRecordSessionOutcome(input);
+    expect(failed).toMatchObject({ ok: false, code: 'OUTCOME_LEDGER_WRITE_FAILED' });
+    expect(folioBlock().actualMinutes).toBe(12);
+    expect(folioCommitments().c1.loggedMinutes).toBe(12);
+    expect(events).toHaveLength(0);
+
+    failOutcomeLedgerWrite = false;
+    const recovered = await handleRecordSessionOutcome(input);
+    expect(recovered.ok).toBe(true);
+    expect(folioBlock().actualMinutes).toBe(12);
+    expect(folioCommitments().c1.loggedMinutes).toBe(12);
+    expect(events.map((event) => event.type)).toContain('session.completed');
+  });
+
+  it('rejects a different outcome for a session that already has a receipt', async () => {
+    seedBlock();
+    const completed = await handleRecordSessionOutcome({
+      sessionId: 'outcome-conflict', outcome: 'completed', blockId: 'b1', elapsedMinutes: 8,
+    });
+    const conflict = await handleRecordSessionOutcome({
+      sessionId: 'outcome-conflict', outcome: 'partial', blockId: 'b1', elapsedMinutes: 8,
+    });
+    expect(completed.ok).toBe(true);
+    expect(conflict).toMatchObject({ ok: false, code: 'OUTCOME_CONFLICT' });
+    expect(folioBlock().actualMinutes).toBe(13);
+    expect(folioCommitments().c1.loggedMinutes).toBe(13);
+  });
+
+  it('keeps an outcome retryable when the canonical session mirror fails', async () => {
+    seedBlock();
+    failSessionEntityPut = true;
+    const input = { sessionId: 'mirror-retry', outcome: 'completed', blockId: 'b1', elapsedMinutes: 6 };
+    const failed = await handleRecordSessionOutcome(input);
+    expect(failed).toMatchObject({ ok: false, code: 'SESSION_ENTITY_WRITE_FAILED' });
+    expect(folioBlock().actualMinutes).toBe(5);
+
+    failSessionEntityPut = false;
+    const recovered = await handleRecordSessionOutcome(input);
+    expect(recovered.ok).toBe(true);
+    expect(folioBlock().actualMinutes).toBe(11);
+  });
+
+  it('keeps both outcome records when two sessions finish concurrently', async () => {
+    seedBlock();
+    const first = { sessionId: 'first-session', outcome: 'completed', commitmentId: 'c1', elapsedMinutes: 7 };
+    const second = { sessionId: 'second-session', outcome: 'completed', commitmentId: 'c1', elapsedMinutes: 4 };
+    await Promise.all([handleRecordSessionOutcome(first), handleRecordSessionOutcome(second)]);
+    expect(folioCommitments().c1.loggedMinutes).toBe(16);
+    expect(sessions()).toHaveLength(2);
+    expect((await handleRecordSessionOutcome(first)).deduplicated).toBe(true);
+    expect((await handleRecordSessionOutcome(second)).deduplicated).toBe(true);
+    expect(folioCommitments().c1.loggedMinutes).toBe(16);
+  });
+
+  it('preserves the session course while mirroring an assignment in its current course', async () => {
+    seedBlock();
+    await handleRecordSessionOutcome({
+      sessionId: 'moved-assignment',
+      outcome: 'completed',
+      commitmentId: 'c1',
+      elapsedMinutes: 7,
+      courseId: 'syllabus:course:former-course',
+      course: 'BIO 101',
+    });
+    expect(sessions()[0]).toMatchObject({ courseId: 'syllabus:course:former-course', course: 'BIO 101' });
+    expect(puts).toContainEqual(expect.objectContaining({
+      type: 'commitment',
+      id: 'c1',
+      courseId: 'syllabus:course:course1',
+      course: 'BIO 201',
+    }));
   });
 
   it('canceled outcome writes no session row, entity, or edges — but reverts the block', async () => {
@@ -192,16 +357,22 @@ describe('recordSessionOutcome', () => {
   });
 
   it('a foreign session outcome never touches another live session\'s restore blob', async () => {
+    seedBlock();
     /* a live focus countdown's blob carries its own sessionId — an interval
        finish or manual backfill must not wipe it (or reload-restore dies) */
     /* a live blob always carries running:true — a flag-less blob is a
        corpse both TimerView's mount-restore and the context revive sweep */
-    store.set('timer.session.live.v1', JSON.stringify({ sessionId: 'live_A', running: true, endsAt: Date.now() + 60000 }));
+    store.set('timer.session.live.v1', JSON.stringify({
+      sessionId: 'live_A', syllabus: { commitmentId: 'c1' }, running: true, endsAt: Date.now() + 60000,
+    }));
     await handleRecordSessionOutcome({ sessionId: 's_other', outcome: 'completed', elapsedMinutes: 10 });
     expect(store.get('timer.session.live.v1')).toContain('live_A');
+    expect(sessions()[0].commitmentId).toBeUndefined();
+    expect(folioCommitments().c1.loggedMinutes).toBe(5);
     /* ...but finishing the live session itself does clear it */
     await handleRecordSessionOutcome({ sessionId: 'live_A', outcome: 'completed', elapsedMinutes: 25 });
     expect(store.get('timer.session.live.v1')).toBeUndefined();
+    expect(folioCommitments().c1.loggedMinutes).toBe(30);
   });
 
   it('sessionKind stamps interval/stopwatch rows honestly', async () => {

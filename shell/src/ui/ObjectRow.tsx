@@ -345,8 +345,8 @@ export function ObjectRow({
       {/* Actions: Send-to, Pin, Details (the row itself opens the object) */}
       <div className="flex items-center gap-0.5 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 transition-opacity print:hidden">
         <DropdownMenu
-          trigger={(_open, toggle) => (
-            <IconButton label={`Send "${item.title}" to another tool`} onClick={toggle}>
+          trigger={(open, toggle) => (
+            <IconButton label={`Send "${item.title}" to another tool`} aria-expanded={open} onClick={toggle}>
               <Share2 className="h-3.5 w-3.5" />
             </IconButton>
           )}

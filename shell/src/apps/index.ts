@@ -39,6 +39,7 @@ export const PLACE_COMPONENTS: Record<string, LazyPlace> = {
   gradestack: lazyRetry(() => import('./gradestack/App')),
   margin: lazyRetry(() => import('./margin/App')),
   flashcards: lazyRetry(() => import('./flashcards/App')),
+  boxed: lazyRetry(() => import('./boxed/App')),
 };
 
 /* Read one param from the place's hash query — replaces the old

@@ -3,7 +3,8 @@ import { Play, Pause, RotateCcw, Volume2, VolumeX, Focus, Minus, Plus, X } from 
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, vibrate } from '../lib/utils';
 import { getSessions, saveSession } from '../lib/stats';
-import { execCommand } from '../../../integration/commands';
+import { clearPendingSessionOutcome, enqueueSessionOutcome, getPendingSessionOutcomes } from '../lib/session-outbox';
+import { execCommand, type RecordSessionOutcomeInput } from '../../../integration/commands';
 import { useCountdown, useWakeLock } from '../hooks/useTimer';
 import { useViewport } from '../hooks/useViewport';
 import { useSettings, updateSettings } from '../lib/settings';
@@ -21,6 +22,10 @@ const QUICK = [5, 10, 15, 25, 30, 45, 60, 90];
    mount restores it, completion/reset clears it. shared.focus is the
    cross-app read; this key is the reload-survival restore point. */
 const LIVE_SESSION_KEY = 'timer.session.live.v1';
+type CompletionSave =
+  | { state: 'saving' }
+  | { state: 'failed'; durable: boolean; message: string; conflict?: boolean }
+  | { state: 'saved'; url?: string };
 
 function fmt(totalSec: number) {
   const m = Math.floor(totalSec / 60);
@@ -72,10 +77,45 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const [customOpen, setCustomOpen] = useState(false);
   const [customMin, setCustomMin] = useState(25);
   const [done, setDone] = useState<null | 'focus' | 'break'>(null);
+  const [completionSave, setCompletionSave] = useState<CompletionSave | null>(null);
+  const retryCompletionRef = useRef<(() => void) | null>(null);
   const [keyFlash, setKeyFlash] = useState<string | null>(null);
   const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string; courseId?: string; commitmentId?: string; material?: string } | null>(null);
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const submitOutcome = async (input: RecordSessionOutcomeInput) => {
+    const durable = enqueueSessionOutcome(input);
+    try {
+      const result = await execCommand('recordSessionOutcome', { ...input });
+      if (result.ok && input.sessionId) clearPendingSessionOutcome(input.sessionId, input);
+      const terminalConflict = result.code === 'OUTCOME_CONFLICT';
+      if (terminalConflict && input.sessionId) clearPendingSessionOutcome(input.sessionId, input);
+      return { ...result, outboxSaved: durable && !terminalConflict, terminalConflict };
+    } catch {
+      return {
+        ok: false as const,
+        commandId: '',
+        error: 'Session outcome could not be saved.',
+        outboxSaved: durable,
+        terminalConflict: false,
+      };
+    }
+  };
+
+  /* A completed session is already in Timer's local history. If the
+     workspace outcome write was interrupted or the page reloaded, retry its
+     durable outbox row when Timer mounts. The session ID and idempotency key
+     make overlapping tabs safe. */
+  useEffect(() => {
+    for (const input of getPendingSessionOutcomes()) {
+      void execCommand('recordSessionOutcome', { ...input })
+        .then((result) => {
+          if (result.ok) clearPendingSessionOutcome(input.sessionId!, input);
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   /* UX-TRACKER #81 — recent courses: the terrain's session entities,
      newest-first, offered as bound 25m quick-starts */
@@ -356,6 +396,12 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
 
   const fileBackToSyllabus = () => {
     if (!syllabus) return;
+    if (completionSave) {
+      if (completionSave.state !== 'saved' || !completionSave.url) return;
+      openTerrain(completionSave.url);
+      resetTimer();
+      return;
+    }
     const actual = filedActual.current ?? Math.round((cd.totalMs - cd.remainingMs) / 60000);
     const url = syllabusReturnUrl(syllabus, actual);
     if (!url) return;
@@ -450,6 +496,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       const t = e.target as HTMLElement;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
       if (done) {
+        if (t instanceof HTMLElement && t.closest('button') && (e.key === 'Enter' || e.code === 'Space')) return;
+        if (completionSave && completionSave.state !== 'saved') return;
         // the completion takeover owns the keys — no ghost restarts underneath
         if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); setDone(null); resetTimer(); }
         else if (e.key === 'r' || e.key === 'R') resetTimer();
@@ -471,33 +519,64 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const completeFocus = () => {
     vibrate([120, 80, 120, 80, 300]);
     stationChime();
-    const recess = isBreak || /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000));
+    // A bound study session is focus work even when its duration matches a rest
+    // preset, or its course label happens to contain "break" or "rest".
+    const recess = isBreak || (!syllabus && /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000)));
+    // The countdown reaches zero before React commits the last tick. Use the
+    // total at natural expiration; finishEarly calculates partial time separately.
+    const elapsedSeconds = Math.round(cd.totalMs / 1000);
+    const plannedMinutes = Math.round(elapsedSeconds / 60);
     /* a second tab that re-armed this same live session reaches completion
        with the same sessionId — the first tab to log wins; the loser skips
        the ledger row, command, and stir but still shows its done state */
-    const alreadyLogged = !!sessionIdRef.current && getSessions().some((s) => s.id === sessionIdRef.current);
-    const sess = alreadyLogged ? undefined : saveSession({
+    // A sibling tab may have persisted this session just before it crashed or
+    // lost its reply. Reuse that row and submit the idempotent outcome command
+    // anyway; otherwise the presence of the row can permanently suppress the
+    // only command/outbox attempt that reconciles Planning.
+    const existingSession = sessionIdRef.current
+      ? getSessions().find((s) => s.id === sessionIdRef.current)
+      : undefined;
+    const sess = existingSession ?? saveSession({
       id: sessionIdRef.current ?? undefined,
-      duration: cd.totalMs / 1000,
+      duration: elapsedSeconds,
       type: recess ? 'break' : 'focus',
       label: intent || undefined,
       preset: label,
       course: syllabus?.course,
       courseId: syllabus?.courseId,
       commitmentId: syllabus?.commitmentId,
+      outcome: recess ? undefined : 'completed',
+      blockId: syllabus?.block,
+      materialRef: syllabus?.material,
+      plannedMinutes,
+      confirmedByUser: recess ? undefined : true,
     });
-    if (!recess) filedActual.current = Math.round((cd.totalMs - cd.remainingMs) / 60000);
+    if (!recess) filedActual.current = plannedMinutes;
     /* Record the outcome through the command layer — distinguishes a full
        completion from partial/canceled, marks the bound block practicedIn,
        and dedupes on the session id so file-back retries can't double-log.
        Recess completions stay out of it: a break is not bound study work,
        so it mustn't stamp the block with break minutes. */
+    const showCompletedBoard = () => {
+      const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
+      if (!recess && !willFileBack) (window as any).iterra?.feed?.({ text: `completed ${plannedMinutes}m ${label || 'focus'}`, course: syllabus?.course });
+      setDone(isBreak ? 'break' : 'focus');
+      if (!isBreak && thenBreak > 0) {
+        if (chainTimer.current) clearTimeout(chainTimer.current);
+        chainTimer.current = setTimeout(() => {
+          chainTimer.current = null;
+          setDone(null);
+          setIsBreak(true);
+          cd.start(thenBreak * 60000, completeBreakLive);
+        }, 2600);
+      }
+    };
     if (sess && !recess) {
-      void execCommand('recordSessionOutcome', {
+      const input: RecordSessionOutcomeInput = {
         sessionId: sess.id,
         outcome: 'completed',
-        elapsedSeconds: Math.round((cd.totalMs - cd.remainingMs) / 1000),
-        plannedMinutes: Math.round(cd.totalMs / 60000),
+        elapsedSeconds,
+        plannedMinutes,
         blockId: syllabus?.block ?? null,
         commitmentId: syllabus?.commitmentId ?? null,
         materialRef: syllabus?.material ?? null,
@@ -506,24 +585,35 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
         label: intent || label || undefined,
         confirmedByUser: true,
         idempotencyKey: `timer:${sess.id}`,
-      });
+      };
+      if (inTerrain()) {
+        const record = async () => {
+          setCompletionSave({ state: 'saving' });
+          const result = await submitOutcome(input);
+          if (result.ok) {
+            retryCompletionRef.current = null;
+            setCompletionSave({ state: 'saved', url: result.url });
+            showCompletedBoard();
+            return;
+          }
+          setCompletionSave({
+            state: 'failed',
+            durable: result.outboxSaved,
+            conflict: result.terminalConflict,
+            message: result.terminalConflict
+              ? 'This session already has a different outcome recorded. The existing result was kept; this completion was not saved.'
+              : 'Your focus time is in Timer. Retry saving it to your workspace.',
+          });
+          if (result.terminalConflict) retryCompletionRef.current = null;
+        };
+        retryCompletionRef.current = record;
+        setDone('focus');
+        void record();
+        return;
+      }
+      void submitOutcome(input);
     }
-    /* standalone complete → 'completed Nm' stir; a session bound for
-       file-back emits only its 'filed Xm' (the file-back IS its stir) */
-    const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
-    if (!recess && !willFileBack) (window as any).iterra?.feed?.({ text: `completed ${Math.round(cd.totalMs / 60000)}m ${label || 'focus'}`, course: syllabus?.course });
-    if (!isBreak && thenBreak > 0) {
-      setDone('focus');
-      if (chainTimer.current) clearTimeout(chainTimer.current);
-      chainTimer.current = setTimeout(() => {
-        chainTimer.current = null;
-        setDone(null);
-        setIsBreak(true);
-        cd.start(thenBreak * 60000, completeBreakLive);
-      }, 2600);
-    } else {
-      setDone(isBreak ? 'break' : 'focus');
-    }
+    showCompletedBoard();
   };
   const completeBreak = () => {
     vibrate([80, 60, 80]);
@@ -569,6 +659,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     vibrate([25, 40, 25]);
     if (chainTimer.current) { clearTimeout(chainTimer.current); chainTimer.current = null; }
     clearBinding();
+    setCompletionSave(null);
+    retryCompletionRef.current = null;
     cd.reset(setMinutes * 60000);
     setIsBreak(false);
     setDone(null);
@@ -594,6 +686,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     const elapsedSec = Math.round((cd.totalMs - cd.remainingMs) / 1000);
     const sess = elapsedSec >= 60
       ? saveSession({
+          id: sessionIdRef.current ?? undefined,
           duration: elapsedSec,
           type: isBreak ? 'break' : 'focus',
           label: intent || undefined,
@@ -601,13 +694,20 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
           course: syllabus?.course,
           courseId: syllabus?.courseId,
           commitmentId: syllabus?.commitmentId,
+          outcome: isBreak ? undefined : 'partial',
+          blockId: syllabus?.block,
+          materialRef: syllabus?.material,
+          plannedMinutes: Math.round(cd.totalMs / 60000),
+          confirmedByUser: isBreak ? undefined : true,
         })
       : null;
+    const outcomeSessionId = sess?.id ?? sessionIdRef.current ?? `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
     /* partial when real minutes banked, canceled when the run was scrubbed
        before a minute — the command reconciles the bound block either way.
        Breaks never fire it: recess minutes aren't block work. */
-    if (!isBreak) void execCommand('recordSessionOutcome', {
-      sessionId: sess?.id,
+    if (!isBreak) {
+      const input: RecordSessionOutcomeInput = {
+      sessionId: outcomeSessionId,
       outcome: sess ? 'partial' : 'canceled',
       elapsedSeconds: elapsedSec,
       plannedMinutes: Math.round(cd.totalMs / 60000),
@@ -618,8 +718,34 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       courseId: syllabus?.courseId ?? null,
       label: intent || label || undefined,
       confirmedByUser: true,
-      idempotencyKey: sess ? `timer:${sess.id}` : `timer:${Date.now()}-scrub`,
-    });
+      idempotencyKey: `timer:${outcomeSessionId}`,
+      };
+      const record = async () => {
+        setCompletionSave({ state: 'saving' });
+        const result = await submitOutcome(input);
+        if (result.ok) {
+          retryCompletionRef.current = null;
+          resetTimer();
+          return;
+        }
+        setCompletionSave({
+          state: 'failed',
+          durable: result.outboxSaved,
+          conflict: result.terminalConflict,
+          message: result.terminalConflict
+            ? 'This session already has a different outcome recorded. The existing result was kept; this early finish was not saved.'
+            : sess
+              ? 'Your partial focus time is in Timer. Retry saving it to your workspace.'
+              : 'Timer could not reconcile this canceled session with Planning. Retry the save.',
+        });
+        if (result.terminalConflict) retryCompletionRef.current = null;
+        setDone('focus');
+      };
+      retryCompletionRef.current = record;
+      setDone('focus');
+      void record();
+      return;
+    }
     resetTimer();
   };
 
@@ -1129,7 +1255,11 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
               transition={{ type: 'spring', stiffness: 160, damping: 18, delay: 0.15 }}
               className="flex flex-col items-center gap-10 z-10 px-6"
             >
-              <FlipText text={done === 'break' ? 'RECESS OVER' : 'SESSION COMPLETE'} size={Math.min(72, tw / 16)} accent={false} />
+              <FlipText
+                text={completionSave?.state === 'saving' ? 'SAVING SESSION' : completionSave?.state === 'failed' ? 'SAVE FAILED' : done === 'break' ? 'RECESS OVER' : 'SESSION COMPLETE'}
+                size={Math.min(72, tw / 16)}
+                accent={false}
+              />
               <motion.p
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 0.6, y: 0 }}
@@ -1137,7 +1267,14 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                 className="engraved text-sm md:text-base text-center"
                 style={{ letterSpacing: '0.4em' }}
               >
-                {done === 'break' ? 'BOARD READY — NEXT DEPARTURE AWAITS' : thenBreak > 0 ? `RECESS ${thenBreak}M BOARDING` : 'TIME WELL KEPT'}
+                {completionSave?.state === 'saving'
+                  ? <span role="status">Saving your focus session…</span>
+                  : completionSave?.state === 'failed'
+                    ? <span role="alert">
+                        {completionSave.message}
+                        {!completionSave.durable && !completionSave.conflict && ' A retry copy could not be saved, so keep Timer open and retry before leaving.'}
+                      </span>
+                    : done === 'break' ? 'BOARD READY — NEXT DEPARTURE AWAITS' : thenBreak > 0 ? `RECESS ${thenBreak}M BOARDING` : 'TIME WELL KEPT'}
               </motion.p>
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
@@ -1145,13 +1282,31 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                 transition={{ delay: 1.1 }}
                 className="flex gap-4"
               >
-                <KeyButton variant="signal" className="px-10 py-4 text-sm" onClick={() => { setDone(null); resetTimer(); }}>
-                  Continue
-                </KeyButton>
-                {(done === 'focus' || done === 'break') && syllabus?.block && syllabus?.returnUrl && (
-                  <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus} title="Return to Syllabus and file this time">
-                    File back → Syllabus
+                {completionSave?.state === 'failed' && (
+                  <KeyButton
+                    variant="signal"
+                    className="px-10 py-4 text-sm"
+                    onClick={() => completionSave.conflict ? resetTimer() : retryCompletionRef.current?.()}
+                  >
+                    {completionSave.conflict ? 'Dismiss' : 'Retry save'}
                   </KeyButton>
+                )}
+                {(!completionSave || completionSave.state === 'saved') && (
+                  <>
+                    <KeyButton variant="signal" className="px-10 py-4 text-sm" onClick={() => { setDone(null); resetTimer(); }}>
+                      Continue
+                    </KeyButton>
+                    {completionSave?.state === 'saved' && (syllabus?.block || syllabus?.commitmentId) && completionSave.url?.startsWith('/apps/syllabus/') && (
+                      <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus}>
+                        Open in Planning
+                      </KeyButton>
+                    )}
+                    {!inTerrain() && !completionSave && syllabus?.block && syllabus?.returnUrl && (
+                      <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus} title="Return to Syllabus and file this time">
+                        File back → Syllabus
+                      </KeyButton>
+                    )}
+                  </>
                 )}
               </motion.div>
             </motion.div>

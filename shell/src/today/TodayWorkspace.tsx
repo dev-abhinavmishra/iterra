@@ -46,6 +46,17 @@ function fmtClock(sec: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+function focusMinutes(item: WorkspaceObject) {
+  return [item.data?.plannedMinutes, item.data?.minutes, item.data?.estimatedMinutes].find(
+    (value): value is number => typeof value === 'number' && Number.isFinite(value) && value > 0,
+  );
+}
+
+function hasPlanningBinding(item: WorkspaceObject, type: 'block' | 'commitment') {
+  return item.app === 'syllabus' && !!item.id.trim() &&
+    (item.raw?.type === type || item.url === `/apps/syllabus/?${type}=${encodeURIComponent(item.id)}`);
+}
+
 export interface TodayWorkspaceProps {
   presences: Record<string, Presence>;
   mounted?: string[];
@@ -250,8 +261,9 @@ export function TodayWorkspace({
 
   /* ── 3. Next Up: Scheduled work blocks & commitments ── */
   const scheduledWork = useMemo(() => {
-    const nb = (shared.today?.v as any)?.nextBlock as
-      | { id?: string; title?: string; minutes?: number; course?: string }
+    const nb = shared.today?.v?.nextBlock as
+      | { id?: string; title?: string; minutes?: number; course?: string; courseId?: string;
+          commitmentId?: string; materialRef?: string }
       | undefined;
 
     const allBC = allObjects.filter((o) => o.type === 'block' || o.type === 'commitment');
@@ -275,26 +287,42 @@ export function TodayWorkspace({
     /* shared.today.nextBlock goes stale when a bound session marks its block
        done while syllabus is cold — if the live object exists and says done,
        skip it rather than fabricating a finished slip as next up */
-    const nbDone = nb?.id ? allBC.some((o) => o.id === nb.id && !isLive(o)) : false;
+    const nextBlockId = typeof nb?.id === 'string' && nb.id.trim() ? nb.id : undefined;
+    const isMatchingBlock = (item: WorkspaceObject) => hasPlanningBinding(item, 'block') &&
+      (!nb?.course || !item.course || item.course.toLowerCase() === nb.course.toLowerCase());
+    const nbDone = nextBlockId ? allBC.some((o) => isMatchingBlock(o) && o.id === nextBlockId && !isLive(o)) : false;
 
     let primary: WorkspaceObject | null = null;
     if (nb?.title && matchesCourseFilter(nb.course) && !nbDone) {
-      primary =
-        blocksAndCommitments.find((b) => b.id === nb.id || b.title === nb.title) || {
-          key: `syllabus:block:${nb.id || 'next'}`,
+      // A published ID is authoritative even before the corresponding row is
+      // loaded. Use title matching only for older publications without IDs.
+      const match = blocksAndCommitments.find((item) => isMatchingBlock(item) &&
+        (nextBlockId ? item.id === nextBlockId : item.title === nb.title));
+      const publishedData = {
+        minutes: nb.minutes,
+        commitmentId: nb.commitmentId,
+        materialRef: nb.materialRef,
+      };
+      if (match) {
+        primary = nextBlockId ? {
+          ...match,
+          course: match.course ?? nb.course,
+          courseId: match.courseId ?? nb.courseId,
+          data: { ...publishedData, ...match.data },
+        } : match;
+      } else {
+        primary = {
+          key: `syllabus:block:${nextBlockId || 'next'}`,
           app: 'syllabus',
           type: 'block',
-          id: nb.id || 'next',
+          id: nextBlockId || '',
           title: nb.title,
-          course: nb.course || (shared.activeCourse?.v as any)?.code,
-          courseId: (nb as any).courseId,
-          url: nb.id ? `/apps/syllabus/?block=${encodeURIComponent(nb.id)}` : '/apps/syllabus/',
-          data: {
-            minutes: nb.minutes || 25,
-            commitmentId: (nb as any).commitmentId,
-            materialRef: (nb as any).materialRef,
-          },
+          course: nb.course,
+          courseId: nb.courseId,
+          url: nextBlockId ? `/apps/syllabus/?block=${encodeURIComponent(nextBlockId)}` : '/apps/syllabus/',
+          data: publishedData,
         };
+      }
     }
     if (!primary && blocksAndCommitments.length > 0) {
       primary = blocksAndCommitments[0];
@@ -303,7 +331,7 @@ export function TodayWorkspace({
     const queue = blocksAndCommitments.filter((b) => !primary || b.key !== primary.key).slice(0, 4);
     return { primary, queue };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shared.today, shared.activeCourse, allObjects, courseFilterLow]);
+  }, [shared.today, allObjects, courseFilterLow]);
 
   /* 'Scheduled Next' should admit when it's late — a slipped block or a
      past-due commitment wears a warn badge instead of blending in. */
@@ -613,9 +641,10 @@ export function TodayWorkspace({
   }, [allObjects]);
 
   const startBoundTimer = (item: WorkspaceObject) => {
-    const mins = (item.data?.minutes as number) || (item.data?.estimatedMinutes as number) || 25;
-    const course = item.course || activeCourseFilter || '';
-    const blockParam = item.type === 'block' ? `&block=${encodeURIComponent(item.id)}` : '';
+    const mins = focusMinutes(item) ?? 25;
+    const course = item.course || '';
+    const isBoundBlock = hasPlanningBinding(item, 'block');
+    const blockParam = isBoundBlock ? `&block=${encodeURIComponent(item.id)}` : '';
     /* canonical bindings survive onto the session record: courseId for the
        course pin, mat for material provenance (review slips carry their
        materialRef so the session files a practicedIn edge to the source),
@@ -623,7 +652,12 @@ export function TodayWorkspace({
     const courseIdParam = item.courseId ? `&courseId=${encodeURIComponent(item.courseId)}` : '';
     const matRef = item.data?.materialRef as string;
     const matParam = matRef ? `&mat=${encodeURIComponent(matRef)}` : '';
-    const commitmentParam = item.type === 'commitment' ? `&commitment=${encodeURIComponent(item.id)}` : '';
+    const commitmentId = hasPlanningBinding(item, 'commitment')
+      ? item.id
+      : isBoundBlock && typeof item.data?.commitmentId === 'string'
+        ? item.data.commitmentId
+        : '';
+    const commitmentParam = commitmentId.trim() ? `&commitment=${encodeURIComponent(commitmentId)}` : '';
     const url =
       `/apps/timer/?intent=${encodeURIComponent(item.title)}&minutes=${mins}` +
       `${course ? `&course=${encodeURIComponent(course)}` : ''}` +
@@ -962,9 +996,9 @@ export function TodayWorkspace({
                               {scheduledWork.primary.course}
                             </Badge>
                           )}
-                          {typeof scheduledWork.primary.data?.minutes === 'number' && (
+                          {scheduledWork.primary.type === 'block' && focusMinutes(scheduledWork.primary) !== undefined && (
                             <span className="font-mono text-[11px] text-[var(--color-mute)]">
-                              {scheduledWork.primary.data.minutes}m block
+                              {focusMinutes(scheduledWork.primary)}m block
                             </span>
                           )}
                         </div>
@@ -979,7 +1013,7 @@ export function TodayWorkspace({
                           icon={<Play className="h-3 w-3" />}
                           onClick={() => startBoundTimer(scheduledWork.primary!)}
                         >
-                          Start {(scheduledWork.primary.data?.minutes as number) || 25}m Focus
+                          Start {focusMinutes(scheduledWork.primary) ?? 25}m Focus
                         </Button>
                         <Button
                           variant="secondary"
@@ -1110,14 +1144,14 @@ export function TodayWorkspace({
                   compact
                   icon={<Calendar className="h-4 w-4" />}
                   title="No study blocks scheduled for today"
-                  description="Plan daily work blocks from your course commitments or launch an ad-hoc focus session."
+                  description="Add a study task in Planning. If you're new, Planning helps you set up a course first."
                   actions={
                     <>
-                      <Button variant="primary" size="xs" onClick={() => onEnter('syllabus')}>
-                        Plan Today’s Blocks
+                      <Button variant="primary" size="xs" onClick={() => onGo('#/p/syllabus?p=today')}>
+                        Add a Study Task in Planning
                       </Button>
                       <Button variant="secondary" size="xs" onClick={() => onEnter('timer')}>
-                        Start 25m Focus Session
+                        Open Timer
                       </Button>
                     </>
                   }

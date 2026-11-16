@@ -19,7 +19,6 @@ import {
   ChevronDown,
   RotateCcw,
   HelpCircle,
-  CheckCircle2,
   BookOpen,
   LayoutDashboard,
   Library,
@@ -30,6 +29,7 @@ import {
 } from 'lucide-react';
 import { PLACES, PLACE_MAP } from './places';
 import { SettingsSurface } from './settings/SettingsSurface';
+import { useDataStatus } from './settings/useDataStatus';
 import {
   subscribePresences,
   subscribeShared,
@@ -84,6 +84,7 @@ const PLACE_STORAGE: Record<string, { lsPrefixes: string[]; idbNames?: string[] 
   ink: { lsPrefixes: ['ink'] },
   timer: { lsPrefixes: ['timer.', 'platform.'] },
   flashcards: { lsPrefixes: ['cardfile'] },
+  boxed: { lsPrefixes: ['boxed.'] },
   margin: { lsPrefixes: ['margin.'], idbNames: ['ModularAINotesDB'] },
 };
 
@@ -265,7 +266,7 @@ export default function App() {
       else sessionStorage.removeItem('iterra.courseFilter');
     } catch { /* best-effort */ }
   }, []);
-  const [lastSavedAt, setLastSavedAt] = useState<number>(() => Date.now());
+  const dataStatus = useDataStatus();
 
   // Tick for live focus countdown in global top bar
   const [now, setNow] = useState(() => Date.now());
@@ -304,7 +305,6 @@ export default function App() {
         .then((list: StoreEntity[]) => {
           failures = 0;
           setEntities(list || []);
-          setLastSavedAt(Date.now());
           /* a stamped slip should close the follow-up parked on it —
              reconcile on the same refresh so 'scheduled' never goes stale */
           void reconcileFollowUps(list || []).catch(() => {});
@@ -648,36 +648,7 @@ export default function App() {
     setContextOpen(true);
   }, []);
 
-  // Persistence / Sync status
-  const persistenceStatus = useMemo(() => {
-    const it = (window as any).iterra;
-    const sync = it?.sync?.status?.() as
-      | { attached?: boolean; adapter?: string; error?: string; queued?: number }
-      | undefined;
-    const totalPendingIntakes = Object.values(intakes).reduce((acc, w) => acc + (w?.count || 0), 0);
-    if (sync?.error) {
-      return { label: 'Sync issue · Saved locally', tone: 'warn' as const, detail: sync.error };
-    }
-    if (totalPendingIntakes > 0) {
-      return {
-        label: `${totalPendingIntakes} transfer${totalPendingIntakes === 1 ? '' : 's'} queued`,
-        tone: 'warn' as const,
-        detail: 'Queued actions will deliver when the target tool opens',
-      };
-    }
-    if (sync?.attached) {
-      return {
-        label: `Synced (${sync.adapter || 'cloud'})`,
-        tone: 'ok' as const,
-        detail: 'Saved locally in IndexedDB and synced to cloud',
-      };
-    }
-    return {
-      label: 'Saved locally',
-      tone: 'ok' as const,
-      detail: 'Persisted in browser storage (IndexedDB + localStorage)',
-    };
-  }, [intakes, lastSavedAt]);
+  const totalPendingIntakes = Object.values(intakes).reduce((acc, transfer) => acc + (transfer?.count || 0), 0);
 
   const effectiveCourseContext =
     course ||
@@ -985,10 +956,11 @@ export default function App() {
           {/* Course / Topic Context Selector */}
           <DropdownMenu
             align="right"
-            trigger={(_open, toggle) => (
+            trigger={(open, toggle) => (
               <button
                 type="button"
                 onClick={toggle}
+                aria-expanded={open}
                 title="Current course context"
                 className="hidden md:inline-flex items-center gap-1.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/70 px-2.5 py-1 text-[12px] text-[var(--color-ink)] hover:border-[var(--color-accent)] cursor-pointer"
               >
@@ -1075,10 +1047,11 @@ export default function App() {
           ) : (
             <DropdownMenu
               align="right"
-              trigger={(_open, toggle) => (
+              trigger={(open, toggle) => (
                 <button
                   type="button"
                   onClick={toggle}
+                  aria-expanded={open}
                   title="Start a 25m focus session"
                   className="hidden sm:inline-flex items-center gap-1 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1 text-[12px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] cursor-pointer"
                 >
@@ -1142,10 +1115,11 @@ export default function App() {
               buttons */}
           <DropdownMenu
             align="right"
-            trigger={(_open, toggle) => (
+            trigger={(open, toggle) => (
               <button
                 type="button"
                 onClick={toggle}
+                aria-expanded={open}
                 title="Workspace options"
                 aria-label="Workspace options"
                 className="inline-flex h-7 w-7 items-center justify-center rounded-[5px] border border-transparent text-[var(--color-mute)] hover:bg-[var(--color-sheet-2)] hover:text-[var(--color-ink)] transition-colors cursor-pointer"
@@ -1156,29 +1130,21 @@ export default function App() {
           >
             {(close) => (
               <div className="w-56 p-1">
-                {/* save state — read-only line, the detail lives on the row */}
-                <div className="flex items-center gap-2 px-2.5 py-1.5" title={persistenceStatus.detail}>
-                  <CheckCircle2
-                    className={`h-3.5 w-3.5 shrink-0 ${
-                      persistenceStatus.tone === 'warn'
-                        ? 'text-[var(--color-warn)]'
-                        : 'text-[var(--color-accent)]'
-                    }`}
-                  />
-                  <div className="min-w-0">
-                    <div className="text-[12px] font-medium text-[var(--color-ink)]">
-                      {persistenceStatus.label}
-                    </div>
-                    <div className="text-[10.5px] text-[var(--color-faint)] truncate">
-                      {persistenceStatus.detail}
-                    </div>
-                  </div>
+                <div className={`px-2.5 py-1.5 text-[12px] font-medium ${
+                  dataStatus.tone === 'warn' ? 'text-[var(--color-warn)]' : 'text-[var(--color-ink)]'
+                }`}>
+                  {dataStatus.label}
                 </div>
+                {totalPendingIntakes > 0 && (
+                  <div className="px-2.5 pb-1.5 text-[11px] text-[var(--color-mute)]">
+                    {totalPendingIntakes} tool transfer{totalPendingIntakes === 1 ? '' : 's'} waiting for the receiving tool to open
+                  </div>
+                )}
                 <div className="my-1 border-t border-[var(--color-line)]" />
                 <button
                   type="button"
                   onClick={() => {
-                    close();
+                    close({ restoreFocus: true });
                     setTheme();
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
@@ -1309,7 +1275,7 @@ export default function App() {
                   onEnter={enter}
                 />
               ) : section === 'settings' ? (
-                <SettingsSurface onGo={goUrl} />
+                <SettingsSurface onGo={goUrl} dataStatus={dataStatus} />
               ) : section === 'library' ? (
                 <LibraryView
                   entities={entities}
@@ -1393,10 +1359,11 @@ export default function App() {
           side="top"
           align="right"
           className="min-w-0 flex-1"
-          trigger={(_open, toggle) => (
+          trigger={(open, toggle) => (
             <button
               type="button"
               onClick={toggle}
+              aria-expanded={open}
               aria-label={`Course context: ${effectiveCourseContext || 'All'}`}
               className={navItemCls(!!effectiveCourseContext)}
             >

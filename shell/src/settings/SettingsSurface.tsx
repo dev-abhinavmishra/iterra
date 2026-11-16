@@ -4,6 +4,8 @@ import { PLACES } from '../places';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
 import { formatRelativeTime } from '../ui/ObjectRow';
 import { useWorkspaceTheme } from '../ui/theme';
+import { DataCoverage } from './DataCoverage';
+import type { DataStatus } from './dataStatus';
 import {
   collectBackup,
   downloadBackup,
@@ -42,7 +44,7 @@ const SETTINGS_NOTE: Record<string, string> = {
   flashcards: 'Keyboard map — theme and motion live here in the terrain',
 };
 
-export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
+export function SettingsSurface({ onGo, dataStatus }: { onGo: (url: string) => void; dataStatus: DataStatus }) {
   const [theme, setTheme] = useWorkspaceTheme();
   const dark = theme === 'graphite';
 
@@ -102,8 +104,7 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
         </button>
       </section>
 
-      {/* Backup */}
-      <BackupSection />
+      <BackupSection dataStatus={dataStatus} />
 
       {/* Sample semester */}
       <DemoSection />
@@ -165,11 +166,9 @@ export function SettingsSurface({ onGo }: { onGo: (url: string) => void }) {
   );
 }
 
-/* The terrain is local-first — everything lives in this browser, which makes
-   a file backup the user's only real safety net (and the way to move between
-   machines). Restore replaces the whole terrain, so it confirms first and
-   reloads after: every store rehydrates from the restored storage on boot. */
-function BackupSection() {
+/* Restore replaces local data, so it confirms first and reloads to
+   rehydrate the stores from the restored browser storage. */
+function BackupSection({ dataStatus }: { dataStatus: DataStatus }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -215,7 +214,18 @@ function BackupSection() {
 
   return (
     <section className="pt-6">
-      <SectionHeader title="Backup" />
+      <SectionHeader title="Data & sync" />
+      <div className="mb-3 rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-4 py-3">
+        <div role="status" className="mb-3">
+          <p className={`text-[13px] font-semibold ${
+            dataStatus.tone === 'warn' ? 'text-[var(--color-warn)]' : 'text-[var(--color-ink)]'
+          }`}>
+            {dataStatus.label}
+          </p>
+          <p className="mt-1 text-[12px] text-[var(--color-mute)]">{dataStatus.detail}</p>
+        </div>
+        <DataCoverage />
+      </div>
       <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
         <button
           type="button"
@@ -228,8 +238,8 @@ function BackupSection() {
             <span className="block text-[13px] font-medium text-[var(--color-ink)]">
               {busy ? 'Gathering data…' : 'Download backup'}
             </span>
-            <span className="block truncate text-[12px] text-[var(--color-mute)]">
-              One JSON file with every tool's data — notes, cards, sessions, courses.
+            <span className="block text-[12px] text-[var(--color-mute)]">
+              Export a copy of the data stored in this browser.
             </span>
           </span>
         </button>
@@ -243,7 +253,7 @@ function BackupSection() {
             <span className="block text-[13px] font-medium text-[var(--color-ink)]">
               Restore from file
             </span>
-            <span className="block truncate text-[12px] text-[var(--color-mute)]">
+            <span className="block text-[12px] text-[var(--color-mute)]">
               Replaces everything currently stored in this browser.
             </span>
           </span>

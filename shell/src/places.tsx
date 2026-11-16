@@ -29,6 +29,29 @@ const S = {
 
 export const PLACES: Place[] = [
   {
+    id: 'boxed',
+    label: 'Daily Board',
+    place: 'Boxed',
+    app: 'Boxed',
+    shortDesc: 'Brain dump, rank priorities, and box work into time',
+    tagline: 'Capture everything, choose what matters, and give it a place in the day.',
+    glyph: (
+      <svg viewBox="0 0 32 32" {...S}>
+        <rect x="4.5" y="5" width="23" height="22" rx="1.5" />
+        <path d="M4.5 12h23M4.5 19h10M18 15.5h9.5M18 19h9.5M18 22.5h9.5" />
+        <circle cx="8" cy="8.5" r=".7" fill="currentColor" />
+        <circle cx="8" cy="15.5" r=".7" fill="currentColor" />
+      </svg>
+    ),
+    today: (s) => {
+      const items: TodayItem[] = [];
+      if (s?.top) items.push({ text: `${s.top} priority item${s.top === 1 ? '' : 's'}` });
+      if (s?.scheduled) items.push({ text: `${s.scheduled} block${s.scheduled === 1 ? '' : 's'} planned` });
+      if (s?.active) items.push({ text: `Now: ${s.active}`, live: true });
+      return items;
+    },
+  },
+  {
     id: 'syllabus',
     label: 'Planning',
     place: 'the Folio',

@@ -1,3 +1,5 @@
+import type { SessionOutcomeKind } from '../../../integration/types';
+
 export interface Session {
   id: string;
   duration: number; // in seconds
@@ -8,6 +10,11 @@ export interface Session {
   course?: string;      // bound course code (deep-link ?course= / intake course)
   courseId?: string;    // canonical course key (syllabus:course:<id>)
   commitmentId?: string;// bound commitment id the session was started for
+  outcome?: SessionOutcomeKind;
+  blockId?: string;
+  materialRef?: string;
+  plannedMinutes?: number;
+  confirmedByUser?: boolean;
 }
 
 const STORAGE_KEY = 'timer.sessions.v1';
