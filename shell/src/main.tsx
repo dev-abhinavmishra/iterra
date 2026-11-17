@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
+import './ui/place-colors.css';
 import App, { ShellBoundary } from './App';
 import { placeHashFromAppUrl } from './route';
 import { registerIntegrationCommands } from './integration/commands';

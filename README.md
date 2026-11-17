@@ -24,6 +24,7 @@ apps/<name>/       vendored upstream sources (reference only — not built)
 packages/hub/      iterra-hub.js — the one shared environment bus
 api/               Margin's serverless functions (needs Supabase + Groq env vars)
 docs/WIRING.md     the integration contract every place follows
+docs/REPOSITORIES.md  upstream repository map and update workflow
 ```
 
 ## How it coheres

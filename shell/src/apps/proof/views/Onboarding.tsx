@@ -7,7 +7,7 @@ export function Onboarding({ goView }: { goView: (v: ViewKey) => void }) {
     <div className="mx-auto max-w-3xl px-4 pb-16">
       <div className="pad mt-8 p-8">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded bg-[var(--color-bench)] text-[var(--color-paper)]">
+          <span className="flex h-11 w-11 items-center justify-center rounded bg-[var(--color-blueprint)] text-[var(--terrain-accent-text,#fff)]">
             <svg width="24" height="24" viewBox="0 0 15 15" aria-hidden="true">
             <path d="M4 2v11M4 7.5h7" stroke="currentColor" strokeWidth="2" strokeLinecap="square" fill="none" />
           </svg>

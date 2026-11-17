@@ -1,0 +1,87 @@
+/* The shell owns these semantic colors. Capture them on the place wrapper
+   before individual applications define their own similarly named tokens. */
+[data-terrain] {
+  --terrain-paper: var(--color-paper);
+  --terrain-sheet: var(--color-sheet);
+  --terrain-recess: var(--color-sheet-2);
+  --terrain-line: var(--color-line);
+  --terrain-line-strong: var(--color-line-2);
+  --terrain-ink: var(--color-ink);
+  --terrain-muted: var(--color-mute);
+  --terrain-faint: var(--color-faint);
+  --terrain-accent: var(--color-accent);
+  --terrain-accent-hover: var(--color-accent-2);
+  --terrain-accent-text: var(--color-accent-fg);
+  --terrain-accent-soft: var(--color-accent-soft);
+}
+
+[data-terrain] .it-place-flashcards.it-place-flashcards {
+  --paper: var(--terrain-paper); --paper-2: var(--terrain-recess); --card: var(--terrain-sheet);
+  --ink: var(--terrain-ink); --ink-2: var(--terrain-muted); --ink-3: var(--terrain-faint);
+  --rule: var(--terrain-line); --rule-soft: var(--terrain-recess);
+  --blue: var(--terrain-accent); --blue-deep: var(--terrain-accent-hover); --blue-ink-bg: var(--terrain-accent-soft);
+}
+[data-terrain] .it-place-margin.it-place-margin {
+  --paper: var(--terrain-paper); --card: var(--terrain-sheet); --card-2: var(--terrain-recess);
+  --ink: var(--terrain-ink); --ink-2: var(--terrain-muted); --ink-3: var(--terrain-faint);
+  --line: var(--terrain-line); --line-2: var(--terrain-line-strong);
+  --mark: var(--terrain-accent); --mark-ink: var(--terrain-accent-text); --mark-soft: var(--terrain-accent-soft);
+}
+[data-terrain] .it-place-ink.it-place-ink {
+  --color-desk: var(--terrain-paper); --color-desk-deep: var(--terrain-recess);
+  --color-paper: var(--terrain-sheet); --color-paper-dim: var(--terrain-recess); --color-paper-edge: var(--terrain-line);
+  --color-ink: var(--terrain-ink); --color-ink-soft: var(--terrain-muted); --color-ink-faint: var(--terrain-faint);
+  --color-line: var(--terrain-line); --color-line-strong: var(--terrain-line-strong);
+  --color-pencil: var(--terrain-accent); --color-pencil-deep: var(--terrain-accent-hover); --color-pencil-wash: var(--terrain-accent-soft);
+  --color-fountain: var(--terrain-accent); --color-fountain-wash: var(--terrain-accent-soft);
+}
+[data-terrain] .it-place-gradestack.it-place-gradestack {
+  --color-paper: var(--terrain-paper); --color-form: var(--terrain-sheet); --color-form-raised: var(--terrain-sheet);
+  --color-ink: var(--terrain-ink); --color-pencil: var(--terrain-muted); --color-faint: var(--terrain-faint);
+  --color-hairline: var(--terrain-line); --color-hairline-strong: var(--terrain-line-strong);
+  --color-mark: var(--terrain-accent); --color-mark-deep: var(--terrain-accent-hover);
+  --color-mark-mist: var(--terrain-accent-soft); --color-mark-mist-2: var(--terrain-recess); --color-on-mark: var(--terrain-accent-text);
+  --color-surface-container-low: var(--terrain-sheet); --color-surface-container: var(--terrain-recess); --color-surface-container-high: var(--terrain-line);
+}
+[data-terrain] .it-place-timer.it-place-timer {
+  --color-wall: var(--terrain-paper); --color-wall-deep: var(--terrain-recess); --color-wall-edge: var(--terrain-line);
+  --color-ink: var(--terrain-ink); --color-ink-soft: var(--terrain-muted); --color-ink-faint: var(--terrain-faint);
+  --color-signal: var(--terrain-accent); --color-signal-bright: var(--terrain-accent); --color-signal-deep: var(--terrain-accent-hover);
+}
+[data-terrain] .it-place-rhythm.it-place-rhythm {
+  --color-chassis: var(--terrain-paper); --color-chassis-deep: var(--terrain-recess);
+  --color-deck: var(--terrain-sheet); --color-panel: var(--terrain-sheet); --color-recess: var(--terrain-recess);
+  --color-ink: var(--terrain-ink); --color-ink-soft: var(--terrain-muted); --color-ink-faint: var(--terrain-faint);
+  --color-rule: var(--terrain-line); --color-rule-dark: var(--terrain-line-strong);
+  --color-indigo: var(--terrain-accent); --color-indigo-deep: var(--terrain-accent-hover);
+}
+[data-terrain] .it-place-syllabus.it-place-syllabus {
+  --color-desk: var(--terrain-paper); --color-desk-deep: var(--terrain-recess); --color-desk-edge: var(--terrain-line);
+  --color-stock: var(--terrain-sheet); --color-stock-dim: var(--terrain-recess); --color-slip: var(--terrain-sheet); --color-form: var(--terrain-sheet);
+  --color-ink: var(--terrain-ink); --color-ink-soft: var(--terrain-muted); --color-ink-faint: var(--terrain-faint);
+  --color-rule: var(--terrain-line); --color-rule-dark: var(--terrain-line-strong);
+}
+[data-terrain] .it-place-proof.it-place-proof {
+  --color-bench: var(--terrain-paper); --color-bench-deep: var(--terrain-recess); --color-bench-edge: var(--terrain-line);
+  --color-paper: var(--terrain-sheet); --color-paper-dim: var(--terrain-recess); --color-film: var(--terrain-sheet); --color-form: var(--terrain-sheet);
+  --color-ink: var(--terrain-ink); --color-ink-soft: var(--terrain-muted); --color-ink-faint: var(--terrain-faint);
+  --color-rule: var(--terrain-line); --color-rule-dark: var(--terrain-line-strong); --color-blueprint: var(--terrain-accent);
+}
+/* The sequencer's original dark hardware gradients do not follow its token
+   colors. Use the terrain surfaces for controls in the integrated shell. */
+[data-terrain] .it-place-rhythm.it-place-rhythm .panel {
+  background: var(--terrain-sheet); border-color: var(--terrain-line); box-shadow: none;
+}
+[data-terrain] .it-place-rhythm.it-place-rhythm .btn,
+[data-terrain] .it-place-rhythm.it-place-rhythm .padbtn,
+[data-terrain] .it-place-rhythm.it-place-rhythm .stab[aria-selected='true'] {
+  background: var(--terrain-sheet); border-color: var(--terrain-line); color: var(--terrain-ink); box-shadow: none; text-shadow: none;
+}
+[data-terrain] .it-place-rhythm.it-place-rhythm .btn:hover,
+[data-terrain] .it-place-rhythm.it-place-rhythm .padbtn:hover {
+  background: var(--terrain-recess); border-color: var(--terrain-line-strong);
+}
+[data-terrain] .it-place-rhythm.it-place-rhythm .btn--primary,
+[data-terrain] .it-place-rhythm.it-place-rhythm .btn--primary:hover {
+  background: var(--terrain-accent); border-color: var(--terrain-accent); color: var(--terrain-accent-text);
+}
