@@ -13,9 +13,14 @@ let bus: DynamicsCompressorNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
 let unlocked = false;
 let masterEnabled = true;
+let tickingEnabled = false;
 
 export function setSoundEnabled(on: boolean) {
   masterEnabled = on;
+}
+
+export function setTickingEnabled(on: boolean) {
+  tickingEnabled = on;
 }
 
 function ac(): AudioContext | null {
@@ -126,7 +131,7 @@ export function flapLand(gain = 0.07) {
 
 /* faint running tick each second while a countdown runs (visible view only) */
 export function secondTick() {
-  if (!masterEnabled) return;
+  if (!masterEnabled || !tickingEnabled) return;
   const c = ac(); if (!c) return;
   click(c, 1500, 5, 0.014, 1.4);
 }

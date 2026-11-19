@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useWorkbench } from '../store';
-import type { Attempt, WorkStep } from '../lib/types';
+import type { Attachment, Attempt, WorkStep } from '../lib/types';
 import { autoCheck, answerKind } from '../lib/checking';
 import { timerDeepLink } from '../lib/links';
 import { openDeep } from '../lib/iterra';
@@ -15,6 +15,13 @@ import {
   Lightbulb, Send, Timer, Plus, Trash2, ImagePlus, PenLine, CheckCheck,
 } from 'lucide-react';
 import { placeActive } from '../../active';
+
+function hasVisibleProofDialog() {
+  const root = document.querySelector('.it-place-proof');
+  return !!root && Array.from(root.querySelectorAll<HTMLElement>('[role="dialog"]')).some((dialog) =>
+    dialog.getClientRects().length > 0 && getComputedStyle(dialog).visibility !== 'hidden',
+  );
+}
 
 export function AttemptDesk({
   attemptId,
@@ -64,9 +71,14 @@ export function AttemptDesk({
   // keyboard: h = hint, digits = confidence
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!placeActive("proof")) return;
-      const t = e.target as HTMLElement;
-      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (!placeActive("proof") || e.defaultPrevented || e.isComposing || hasVisibleProofDialog()) return;
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      if (
+        (target instanceof HTMLElement && target.isContentEditable) ||
+        !!target.closest('input, textarea, select, button, [role="button"], [role="dialog"]') ||
+        e.metaKey || e.ctrlKey || e.altKey
+      ) return;
       if (e.key === 'h' && !submitted) {
         e.preventDefault();
         revealHint(attemptId);
@@ -152,9 +164,9 @@ export function AttemptDesk({
           </div>
         </div>
 
-        {/* under ~640px the fixed 72rem aside leaves ~50px of work surface —
-            stack it below; desktop keeps the signature rail | work | verdict */}
-        <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
+        {/* Keep the writing area usable on tablets by stacking the answer
+            panel until the full rail, work surface, and sidebar fit. */}
+        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           <div className="flex min-w-0 flex-1">
             {/* ── proof rail ── */}
             <div className="w-14 shrink-0 border-r border-[var(--color-rule)] pt-3">
@@ -193,7 +205,7 @@ export function AttemptDesk({
             {/* step editor */}
             <div className="px-6 py-4">
               <div className="mb-2 flex items-center justify-between">
-                <div className="kicker">your proof — assertion {activeStep + 1} of {attempt.work.length}</div>
+                <div className="kicker">Your work — step {activeStep + 1} of {attempt.work.length}</div>
                 <div className="flex items-center gap-1">
                   <button
                     className="xbtn mono text-[10px]"
@@ -204,7 +216,7 @@ export function AttemptDesk({
                     }}
                     disabled={submitted}
                   >
-                    <Plus size={12} className="mr-1" /> assertion
+                    <Plus size={12} className="mr-1" /> Add step
                   </button>
                   <button
                     className="xbtn"
@@ -214,8 +226,8 @@ export function AttemptDesk({
                       setActiveStep(Math.max(0, activeStep - 1));
                     }}
                     disabled={submitted || !step || attempt.work.length <= 1}
-                    aria-label="Remove assertion"
-                    title="Remove assertion"
+                    aria-label="Remove step"
+                    title="Remove step"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -229,7 +241,7 @@ export function AttemptDesk({
                 />
               ) : (
                 <div className="text-[12.5px] italic text-[var(--color-ink-faint)]">
-                  no assertions on this attempt{!submitted && ' — add one to begin'}
+                  No steps in this attempt{!submitted && ' — add one to begin'}
                 </div>
               )}
             </div>
@@ -237,7 +249,7 @@ export function AttemptDesk({
           </div>
 
           {/* ── right column: answer + hints + submit ── */}
-          <aside className="flex w-full shrink-0 flex-col border-t border-[var(--color-rule)] sm:w-72 sm:border-l sm:border-t-0">
+          <aside className="flex w-full shrink-0 flex-col border-t border-[var(--color-rule)] md:w-72 md:border-l md:border-t-0">
             <div className="border-b border-[var(--color-rule)] px-4 py-3">
               <div className="kicker mb-2"><span className="turnstile">∴</span> conclusion</div>
               {kind === 'text' && (
@@ -307,7 +319,7 @@ export function AttemptDesk({
             </div>
 
             <div className="border-b border-[var(--color-rule)] px-4 py-3">
-              <div className="kicker mb-2">hint ladder</div>
+              <div className="kicker mb-2">Hints</div>
               <div className="space-y-1.5">
                 {([1, 2, 3] as const).map((lvl) => {
                   const used = revealedHints.includes(lvl);
@@ -337,7 +349,7 @@ export function AttemptDesk({
             <div className="mt-auto px-4 py-3">
               <ConfidencePicker value={attempt.confidence} onChange={(n) => updateAttempt(attempt.id, { confidence: n })} />
               <button className="btn btn--blueprint mt-3 w-full" onClick={submit} disabled={submitted}>
-                <span className="inline-flex items-center gap-1.5"><Send size={12} /> Submit for verification</span>
+                <span className="inline-flex items-center gap-1.5"><Send size={12} /> Finish attempt</span>
               </button>
               {verdict && <div className="mt-2 text-[11.5px] text-[var(--color-ink-soft)]">{verdict}</div>}
             </div>
@@ -358,16 +370,24 @@ function StepEditor({
   onChange: (patch: Partial<WorkStep>) => void;
 }) {
   const [mode, setMode] = useState<'write' | 'draw'>('write');
-  const attach = (files: FileList | null) => {
+  const [attachmentMessage, setAttachmentMessage] = useState('');
+  const attach = async (files: FileList | null) => {
     if (!files) return;
-    for (const f of Array.from(files)) {
-      if (f.size > 600_000) continue;
-      const r = new FileReader();
-      r.onload = () => {
-        onChange({ attachments: [...(step.attachments ?? []), { id: uid('f_'), name: f.name, mime: f.type, dataUrl: String(r.result) }] });
-      };
-      r.readAsDataURL(f);
-    }
+    const selected = Array.from(files);
+    const rejected = selected.filter((f) => f.size > 600_000);
+    setAttachmentMessage(rejected.length
+      ? `${rejected.map((f) => f.name).join(', ')} ${rejected.length === 1 ? 'is' : 'are'} over the 600 KB limit.`
+      : '');
+    const readable = selected.filter((f) => f.size <= 600_000);
+    const additions = await Promise.all(readable.map((file) => new Promise<Attachment | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ id: uid('f_'), name: file.name, mime: file.type, dataUrl: String(reader.result) });
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    })));
+    const loaded = additions.filter((item): item is Attachment => item !== null);
+    if (loaded.length) onChange({ attachments: [...(step.attachments ?? []), ...loaded] });
+    if (loaded.length < readable.length) setAttachmentMessage('One or more images could not be read. Try another file.');
   };
   return (
     <div>
@@ -379,12 +399,13 @@ function StepEditor({
           </button>
         </span>
         {!readOnly && (
-          <label className="xbtn" title="Attach image to step (≤600KB)">
+          <label className="xbtn" title="Attach image to step (up to 600 KB)">
             <ImagePlus size={13} />
-            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => attach(e.target.files)} />
+            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { void attach(e.target.files); e.currentTarget.value = ''; }} />
           </label>
         )}
       </div>
+      {attachmentMessage && <p className="mb-2 text-[11px] text-[var(--color-correct-deep)]" role="status">{attachmentMessage}</p>}
       {mode === 'write' ? (
         <textarea
           className="f-textarea font-mono text-[13px]"

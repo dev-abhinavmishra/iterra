@@ -1,7 +1,6 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useFolio, beginBulkFeed, endBulkFeed, stir } from '../store';
 import { Field, FInput, FSelect } from '../components/Field';
-import { Stamp } from '../components/Stamp';
 import { addDaysISO, stampDate } from '../lib/utils';
 import { nextCourseColor, COURSE_COLORS, courseColorVar } from '../lib/colors';
 import type { CourseColor } from '../lib/types';
@@ -39,6 +38,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
   const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
   const nameRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const termNameRef = useRef<HTMLInputElement>(null);
 
   const filled = useMemo(() => rows.filter((r) => r.code.trim() || r.name.trim()), [rows]);
 
@@ -50,6 +50,11 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     if (!datesOk) return;
     setStep('courses');
     requestAnimationFrame(() => codeRefs.current[0]?.focus());
+  };
+
+  const goTerm = () => {
+    setStep('term');
+    requestAnimationFrame(() => termNameRef.current?.focus());
   };
 
   const setRow = (i: number, patch: Partial<DraftCourse>) =>
@@ -87,31 +92,30 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   };
 
   return (
-    <div className="min-h-full flex items-center justify-center p-4 bg-[color:var(--color-desk)]">
-      <div className="sheet w-full max-w-2xl p-6 sm:p-9 animate-[sheet-in_0.34s_cubic-bezier(0.2,0.8,0.3,1)_both]">
+    <div className="onboarding-root min-h-full flex items-center justify-center p-4">
+      <div className="onboarding-card sheet w-full max-w-2xl p-6 sm:p-9 animate-[sheet-in_0.34s_cubic-bezier(0.2,0.8,0.3,1)_both]">
         {/* intake header */}
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
-            <div className="kicker mb-1.5">OFFICE OF THE REGISTRAR — PLANNING DESK</div>
-            <h1 className="slab text-3xl font-semibold leading-tight">Syllabus</h1>
+            <div className="kicker mb-1.5">GET STARTED</div>
+            <h1 className="slab text-3xl font-semibold leading-tight">Set up your courses</h1>
             <p className="mt-1.5 text-[13.5px] text-[color:var(--color-ink-soft)] max-w-md">
-              File your term once. The folio turns course requirements into a realistic
-              daily plan — and hands each block to Timer when it’s time to work.
+              Add your term dates and at least one course. You can update these details later.
             </p>
           </div>
-          <Stamp text="INTAKE" tone="ok" className="mt-2 shrink-0" />
         </div>
 
         {step === 'term' && (
-          <section aria-label="Term registration">
-            <div className="hrule kicker mb-5">TERM CARD</div>
+          <section aria-label="Step 1: term dates">
+            <div className="hrule kicker mb-5">STEP 1 OF 2 · TERM DATES</div>
             <div className="grid sm:grid-cols-3 gap-4">
               <Field label="Term name" className="sm:col-span-1">
                 <FInput
+                  ref={termNameRef}
                   autoFocus
                   value={termName}
                   onChange={(e) => setTermName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && goCourses()}
+                  onKeyDown={(e) => isPlainEnter(e) && goCourses()}
                   placeholder={guessName}
                 />
               </Field>
@@ -124,15 +128,15 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
             </div>
             {startDate && endDate && startDate > endDate && (
               <p className="mono text-[10px] text-[color:var(--color-late)] mt-3" role="alert">
-                Last day precedes first day — the term card can’t be filed like that.
+                The end date must be on or after the start date.
               </p>
             )}
-            <div className="mt-6 flex items-center justify-between">
+            <div className="onboarding-actions mt-6 flex items-center justify-between">
               <span className="mono text-[11px] text-[color:var(--color-ink-faint)]">
                 {startDate && endDate && startDate <= endDate ? `${stampDate(startDate)} → ${stampDate(endDate)}` : ''}
               </span>
               <button className="btn inline-flex items-center gap-2" onClick={goCourses} disabled={!datesOk}>
-                Course ledger <ArrowRight size={13} />
+                Continue to courses <ArrowRight size={13} />
               </button>
             </div>
           </section>
@@ -140,19 +144,18 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
         {step === 'courses' && (
           <section
-            aria-label="Course ledger"
+            aria-label="Step 2: your courses"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && filled.length > 0) file();
+              if (isPlainEnter(e) && (e.metaKey || e.ctrlKey) && filled.length > 0) file();
             }}
           >
-            <div className="hrule kicker mb-5">COURSE LEDGER — {termName.toUpperCase()}</div>
+            <div className="hrule kicker mb-5">STEP 2 OF 2 · YOUR COURSES</div>
             <p className="text-[12.5px] text-[color:var(--color-ink-soft)] mb-4">
-              One row per course. Enter moves down the ledger; the color is the course’s
-              spine tab.
+              Add a course code and name. You can add or edit courses after setup.
             </p>
             <div className="space-y-2.5">
               {rows.map((r, i) => (
-                <div key={i} className="grid grid-cols-[30px_110px_1fr_110px] gap-2.5 items-center">
+                <div key={i} className="onboarding-course-row grid grid-cols-[30px_110px_1fr_110px] gap-2.5 items-center">
                   <span
                     className="h-[26px] w-[14px] rounded-[2px] justify-self-center"
                     style={{ background: courseColorVar(r.color) }}
@@ -163,7 +166,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                     value={r.code}
                     onChange={(e) => setRow(i, { code: e.target.value.toUpperCase() })}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') nameRefs.current[i]?.focus();
+                      if (isPlainEnter(e)) {
+                        e.preventDefault();
+                        nameRefs.current[i]?.focus();
+                      }
                     }}
                     placeholder={`CODE ${i + 1}`}
                     aria-label={`Course ${i + 1} code`}
@@ -174,7 +180,8 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                     value={r.name}
                     onChange={(e) => setRow(i, { name: e.target.value })}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (isPlainEnter(e)) {
+                        e.preventDefault();
                         if (i === rows.length - 1) addRow();
                         else codeRefs.current[i + 1]?.focus();
                       }
@@ -197,17 +204,26 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex items-center justify-between">
-              <button className="btn btn--ghost inline-flex items-center gap-1.5" onClick={addRow}>
-                <Plus size={13} /> Add row
+            <div className="onboarding-actions mt-4 flex items-center justify-between">
+              <button className="btn btn--ghost inline-flex items-center gap-1.5" onClick={goTerm}>
+                Back
               </button>
-              <button className="btn" onClick={file} disabled={filled.length === 0} title="⌘/Ctrl+Enter also files">
-                File {filled.length > 0 ? `${filled.length} course${filled.length === 1 ? '' : 's'}` : 'folio'}
-              </button>
+              <div className="flex items-center gap-2">
+                <button className="btn btn--ghost inline-flex items-center gap-1.5" onClick={addRow}>
+                  <Plus size={13} /> Add course
+                </button>
+                <button className="btn" onClick={file} disabled={filled.length === 0} title="Create your course plan">
+                  Start planning
+                </button>
+              </div>
             </div>
           </section>
         )}
       </div>
     </div>
   );
+}
+
+function isPlainEnter(event: ReactKeyboardEvent): boolean {
+  return event.key === 'Enter' && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229;
 }

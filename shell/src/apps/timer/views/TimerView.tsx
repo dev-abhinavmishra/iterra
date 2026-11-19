@@ -437,7 +437,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   useEffect(() => {
     if (running && cd.secondsLeft !== lastSec.current) {
       lastSec.current = cd.secondsLeft;
-      if (cd.secondsLeft <= 3 && cd.secondsLeft > 0) flapLand(0.12); // final beats hit harder
+      if (settings.ticks && cd.secondsLeft <= 3 && cd.secondsLeft > 0) flapLand(0.12); // opt-in final beats hit harder
       else if (active) secondTick();
     }
   }, [cd.secondsLeft, running, active]);
@@ -876,7 +876,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
             }
           >
             <div className="flex items-center justify-center py-2">
-              <FlipRow text={dispStr} size={flipSize} live={running} accent={isBreak} />
+              <FlipRow text={dispStr} size={flipSize} live={running} accent={isBreak} sound={settings.ticks} />
             </div>
             {/* progress tape along the board floor — glides between second ticks */}
             <div className="mt-4 h-[3px] rounded-full" style={{ background: 'rgba(242,233,207,0.08)' }}>
@@ -1143,6 +1143,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                 size={Math.min(220, Math.round(tw / (dispStr.length === 5 ? 6.4 : 7.2)))}
                 live={running}
                 accent={isBreak}
+                sound={settings.ticks}
               />
               <motion.div
                 initial={{ scaleX: 0 }}

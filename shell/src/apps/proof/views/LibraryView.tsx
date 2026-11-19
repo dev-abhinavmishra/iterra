@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import {
   useWorkbench,
@@ -27,7 +27,15 @@ function lastResult(attempts: Attempt[]): ResultKind | undefined {
   return g.length ? g[g.length - 1].result : undefined;
 }
 
-export function LibraryView({ onAttempt }: { onAttempt: (a: Attempt) => void }) {
+export function LibraryView({
+  onAttempt,
+  openNewProblem = false,
+  onNewProblemOpened,
+}: {
+  onAttempt: (a: Attempt) => void;
+  openNewProblem?: boolean;
+  onNewProblemOpened?: () => void;
+}) {
   const problems = useWorkbench(useShallow(selectActiveProblems));
   const archived = useWorkbench(useShallow((s) => Object.values(s.problems).filter((p) => p.archived)));
   const topics = useWorkbench(useShallow(selectAllTopics));
@@ -46,6 +54,12 @@ export function LibraryView({ onAttempt }: { onAttempt: (a: Attempt) => void }) 
   const [editing, setEditing] = useState<Problem | 'new' | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!openNewProblem) return;
+    setEditing('new');
+    onNewProblemOpened?.();
+  }, [openNewProblem, onNewProblemOpened]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -78,12 +92,12 @@ export function LibraryView({ onAttempt }: { onAttempt: (a: Attempt) => void }) 
       <div className="pad mt-3 p-5">
         <div className="mb-4 flex flex-wrap items-end gap-3">
           <div className="min-w-56 flex-1">
-            <Field label="Search the bank">
+            <Field label="Search problems">
               <div className="relative">
                 <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--color-ink-faint)]" />
                 <input
                   className="f-input !pl-8"
-                  placeholder="prompt text, topic, tag, source…"
+                  placeholder="Search the question, topic, tag, or source…"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                 />
@@ -114,16 +128,16 @@ export function LibraryView({ onAttempt }: { onAttempt: (a: Attempt) => void }) 
               ))}
             </select>
           </Field>
-          <Field label="State">
+          <Field label="Review status">
             <select className="f-select" value={state} onChange={(e) => setState(e.target.value as typeof state)}>
               <option value="all">all</option>
-              <option value="new">never attempted</option>
-              <option value="due">due for retry</option>
-              <option value="missed">last missed</option>
+              <option value="new">not attempted</option>
+              <option value="due">ready to retry</option>
+              <option value="missed">missed last time</option>
             </select>
           </Field>
           <button className="btn btn--blueprint" onClick={() => setEditing('new')}>
-            <span className="inline-flex items-center gap-1.5"><Plus size={13} /> New problem</span>
+            <span className="inline-flex items-center gap-1.5"><Plus size={13} /> Add problem</span>
           </button>
         </div>
 
@@ -133,7 +147,7 @@ export function LibraryView({ onAttempt }: { onAttempt: (a: Attempt) => void }) 
 
         {filtered.length === 0 && (
           <div className="py-10 text-center text-[13px] text-[var(--color-ink-soft)]">
-            Nothing matches. Loosen a filter or file a new problem.
+            No problems match. Clear a filter or add a problem.
           </div>
         )}
 
@@ -247,7 +261,7 @@ function ProblemRow({
           >
             <Archive size={14} />
           </button>
-          <button className="btn btn--blueprint !px-3 !py-1.5" onClick={onBegin} title="Start an attempt">
+          <button className="btn btn--blueprint !px-3 !py-1.5" onClick={onBegin} title="Start practicing this problem">
             <span className="inline-flex items-center gap-1"><Play size={11} /> Attempt</span>
           </button>
         </div>

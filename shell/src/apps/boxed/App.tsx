@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent } from 'react';
 import { ArrowDown, ArrowLeft, ArrowUp, Check, ChevronLeft, ChevronRight, Clock3, GripVertical, Plus, RotateCw, Trash2, Undo2, X } from 'lucide-react';
 import './boxed.css';
+import { placeActive } from '../active';
 
 type Zone = 'dump' | 'top';
 type Status = 'planned' | 'active' | 'done' | 'skipped' | 'missed';
@@ -93,6 +94,7 @@ export default function App() {
     if (!iterra) return;
     presenceStateRef.current = { state, now };
     iterra.register('boxed', {
+      ownKeys: ['/'],
       title: 'Boxed',
       summary: () => {
         const current = presenceStateRef.current;
@@ -234,9 +236,17 @@ export default function App() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement; const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) doRedo(); else doUndo(); return; }
-      if (!typing && (event.key === 'n' || event.key === '/')) { event.preventDefault(); inputRef.current?.focus(); }
+      if (!placeActive('boxed') || event.defaultPrevented || event.isComposing) return;
+      const target = event.target;
+      const typing = target instanceof HTMLElement &&
+        (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable);
+      /* Leave the browser's native text undo available while editing a field.
+         Planner history is only the shortcut when focus is outside editors. */
+      if (!typing && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) doRedo(); else doUndo(); return; }
+      if (!typing && !event.ctrlKey && !event.metaKey && !event.altKey && (event.key === 'n' || event.key === '/')) {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }
     };
     window.addEventListener('keydown', onKeyDown); return () => window.removeEventListener('keydown', onKeyDown);
   }, [doRedo, doUndo]);
@@ -272,7 +282,7 @@ export default function App() {
     return <div className={`boxed-task ${block ? 'has-block' : ''}`} draggable onDragStart={(event) => handleDragStart(event, { taskId: task.id, ...(block ? { blockId: block.id } : {}) })}>
       <span className="boxed-grip" aria-hidden="true"><GripVertical size={15} /></span>
       {zone === 'top' && <span className="boxed-rank">{index + 1}</span>}
-      {editingId === task.id ? <input autoFocus value={editText} aria-label="Edit task title" onChange={(event) => setEditText(event.target.value)} onBlur={() => { if (cancelEditRef.current) { cancelEditRef.current = false; return; } if (editText !== task.title) updateTask(task.id, editText); else setEditingId(null); }} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { cancelEditRef.current = true; setEditingId(null); setEditText(task.title); } }} /> : <button className={`boxed-task-title ${block?.status === 'done' ? 'task-done' : ''}`} onDoubleClick={() => { setEditingId(task.id); setEditText(task.title); }} onKeyDown={(event) => { if (zone === 'top' && event.altKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) { event.preventDefault(); reorderTop(task.id, index + (event.key === 'ArrowUp' ? -1 : 1)); } }} title="Double-click to edit">{task.title}</button>}
+      {editingId === task.id ? <input autoFocus value={editText} aria-label="Edit task title" onChange={(event) => setEditText(event.target.value)} onBlur={() => { if (cancelEditRef.current) { cancelEditRef.current = false; return; } if (editText !== task.title) updateTask(task.id, editText); else setEditingId(null); }} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { cancelEditRef.current = true; setEditingId(null); setEditText(task.title); } }} /> : <button className={`boxed-task-title ${block?.status === 'done' ? 'task-done' : ''}`} onClick={() => { setEditingId(task.id); setEditText(task.title); }} onKeyDown={(event) => { if (zone === 'top' && event.altKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) { event.preventDefault(); reorderTop(task.id, index + (event.key === 'ArrowUp' ? -1 : 1)); } }} title="Edit task title">{task.title}</button>}
       {block && <span className="boxed-time-chip"><Clock3 size={12} />{formatRange(block)}</span>}
       {zone === 'top' && !block && <span className="boxed-unscheduled">Unscheduled</span>}
       <div className="boxed-row-actions">

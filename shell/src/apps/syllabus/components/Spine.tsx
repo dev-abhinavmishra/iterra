@@ -20,16 +20,16 @@ export function Spine({ term, courses, activeCourseId, onOpenCourse, onOpenSemes
   return (
     <nav
       aria-label="Semester spine"
-      className="no-print shrink-0 w-14 sm:w-16 flex flex-col items-stretch bg-[color:var(--color-desk-deep)] border-r border-[color:var(--color-desk-edge)]"
+      className="no-print syllabus-spine shrink-0 w-14 sm:w-16 flex flex-col items-stretch bg-[color:var(--color-desk-deep)] border-r border-[color:var(--color-desk-edge)]"
     >
       {/* registrar seal */}
       <button
         onClick={onOpenSemester}
-        className="group flex flex-col items-center pt-4 pb-3 px-1 focus-visible:outline-2 focus-visible:outline-white"
+        className="syllabus-spine-seal group flex flex-col items-center pt-4 pb-3 px-1 focus-visible:outline-2 focus-visible:outline-white"
         title="Semester folio"
       >
         <span
-          className="mono text-[9px] font-semibold tracking-[0.28em] text-[#8f97a3] group-hover:text-[#c9cfd8] transition-colors"
+          className="syllabus-spine-wordmark mono text-[9px] font-semibold tracking-[0.28em] text-[#8f97a3] group-hover:text-[#c9cfd8] transition-colors"
           style={{ writingMode: 'vertical-rl' }}
         >
           SYLLABUS
@@ -37,10 +37,10 @@ export function Spine({ term, courses, activeCourseId, onOpenCourse, onOpenSemes
         <LibraryBig size={15} className="mt-2 text-[#6b7280] group-hover:text-[#aeb6c0] transition-colors" aria-hidden />
       </button>
 
-      <div className="mx-3 border-t border-[#34383f]" />
+      <div className="syllabus-spine-rule mx-3 border-t border-[#34383f]" />
 
       {/* course tabs */}
-      <div className="flex-1 overflow-y-auto py-3 flex flex-col gap-1.5 items-end pr-0 pl-2">
+      <div className="syllabus-course-tabs flex-1 overflow-y-auto py-3 flex flex-col gap-1.5 items-end pr-0 pl-2">
         {active.map((c) => (
           <button
             key={c.id}
@@ -62,7 +62,7 @@ export function Spine({ term, courses, activeCourseId, onOpenCourse, onOpenSemes
 
       {/* term imprint at the foot of the spine */}
       {term && (
-        <div className="px-1 pb-3 pt-2 flex flex-col items-center gap-1">
+        <div className="syllabus-spine-term px-1 pb-3 pt-2 flex flex-col items-center gap-1">
           <span
             className="mono text-[8.5px] tracking-[0.18em] text-[#5c636e]"
             style={{ writingMode: 'vertical-rl' }}

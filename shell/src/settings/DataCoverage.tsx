@@ -12,19 +12,17 @@ export function DataCoverage() {
       </h3>
       <div className="mt-2 space-y-2 text-[12px] leading-relaxed text-[var(--color-mute)]">
         <p>
-          Iterra saves your work in this browser. A downloaded backup contains
-          the data saved here, such as notes, plans, and study materials. Keep
-          the file somewhere safe to move or restore that data.
+          Iterra saves your work in this browser. Download a backup to keep a
+          copy of your notes, plans, and study materials or move them to another device.
         </p>
         <p>
-          Some course and study records can sync across devices when sync is
-          available and you use the same account. An anonymous session stays
-          with this browser. Original files and tool-specific or private data
-          may also stay here, so use a backup for those items.
+          When sync is available, some course and study records can follow your
+          account across devices. Anonymous sessions stay in this browser.
+          Keep a backup of original files and anything that only lives here.
         </p>
         <p>
-          GradeStack offers separate, optional account sync for its register.
-          Manage it in GradeStack settings; it is separate from Iterra sync.
+          GradeStack has its own optional account sync. You can manage it in
+          GradeStack settings.
         </p>
       </div>
     </section>

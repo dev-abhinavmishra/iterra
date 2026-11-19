@@ -21,8 +21,9 @@ export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFoc
     if (!autoFocusKey) return;
     const onKey = (e: KeyboardEvent) => {
       if (!placeActive('syllabus')) return;
-      const t = e.target as HTMLElement;
-      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229 || e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target instanceof HTMLElement ? e.target : null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
       if (modalOpen()) return; // a sheet/drawer owns the keys — don't open behind it
       if (e.key.toLowerCase() === autoFocusKey.toLowerCase()) {
         e.preventDefault();
@@ -39,12 +40,12 @@ export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFoc
   const parse = () => {
     const p = parseQuick(value, courses);
     if (!p.title) {
-      setFlash('needs a title — e.g. “Problem set 4 @math210 due:+7”');
+      setFlash('Add a title — e.g. “Problem set 4 @math210”');
       setTimeout(() => setFlash(''), 2600);
       return;
     }
     if (!p.course) {
-      setFlash(`needs @course — e.g. @${courses[0]?.code.toLowerCase() ?? 'math211'}`);
+      setFlash(`Add a course code — e.g. @${courses[0]?.code.toLowerCase() ?? 'math211'}`);
       setTimeout(() => setFlash(''), 2600);
       return;
     }
@@ -59,7 +60,7 @@ export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFoc
       pinned: p.pinned,
     });
     setValue('');
-    setFlash(`filed — ${p.title}`);
+    setFlash(`Added “${p.title}”`);
     setTimeout(() => setFlash(''), 2200);
   };
 
@@ -67,10 +68,12 @@ export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFoc
     return (
       <button
         className="w-full slip pl-6 pr-4 py-3 text-left group"
+        aria-label="Add a course commitment"
+        title={`Add coursework or an exam${autoFocusKey ? ` (press ${autoFocusKey.toUpperCase()})` : ''}`}
         onClick={() => { setOpen(true); requestAnimationFrame(() => inputRef.current?.focus()); }}
       >
         <span className="mono text-[11px] text-[color:var(--color-ink-faint)] group-hover:text-[color:var(--color-ink-soft)] transition-colors">
-          {autoFocusKey ? `press ${autoFocusKey.toUpperCase()} — ` : ''}quick file a commitment…
+          {autoFocusKey ? `press ${autoFocusKey.toUpperCase()} — ` : ''}add coursework or an exam…
         </span>
       </button>
     );
@@ -84,25 +87,29 @@ export function QuickAdd({ courses, autoFocusKey }: { courses: Course[]; autoFoc
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') parse();
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) {
+              e.preventDefault();
+              parse();
+            }
             if (e.key === 'Escape') { setOpen(false); setValue(''); }
           }}
-          onBlur={() => { if (!value.trim()) setOpen(false); }}
-          placeholder="Title @course #type due:+7 ~90m"
-          className="flex-1 bg-transparent outline-none text-[14px] placeholder:text-[color:var(--color-ink-faint)]"
-          aria-label="Quick-file a commitment"
+          onBlur={(e) => {
+            const next = e.relatedTarget;
+            const row = e.currentTarget.parentElement;
+            if (!value.trim() && (!(next instanceof Node) || !row?.contains(next))) setOpen(false);
+          }}
+          placeholder="e.g. Essay @bio101 due:+7 ~90m"
+          className="min-w-0 flex-1 bg-transparent outline-none text-[14px] placeholder:text-[color:var(--color-ink-faint)]"
+          aria-label="Coursework or exam title and course"
         />
-        {flash ? (
-          <span className="mono text-[10.5px] text-[color:var(--color-ok)]">{flash}</span>
-        ) : (
-          <span className="mono text-[9.5px] text-[color:var(--color-ink-faint)] hidden sm:block">
-            @course #type due: ~min !pin
-          </span>
-        )}
-        <button className="xbtn" onClick={parse} title="File it" aria-label="File commitment">
+        <button className="xbtn" onMouseDown={(e) => e.preventDefault()} onClick={parse} title="Add this commitment" aria-label="Add commitment">
           <CornerDownLeft size={15} />
         </button>
       </div>
+      <p className="mono text-[10px] leading-relaxed text-[color:var(--color-ink-faint)] mt-1.5">
+        Optional: <code>#assignment</code> · <code>due:+7</code> · <code>~90m</code>
+      </p>
+      <p role="status" className="text-[12px] text-[color:var(--color-ink-soft)] empty:hidden">{flash}</p>
       {value.trim() && !flash && (
         <div className="mono text-[9.5px] text-[color:var(--color-ink-soft)] mt-1" aria-live="polite">
           {describeParsed(parsed) || 'parsed: title only — add @course #type due: ~min !pin'}
@@ -183,15 +190,16 @@ export function parseQuick(raw: string, courses: Course[]): Parsed {
        user can see it, not silently eaten with the default date kept */
     if (dueParsed) rest = rest.replace(dueMatch[0], ' ');
   }
-  const minMatch = rest.match(/~(\d+)\s*m?(?:in)?/i);
-  if (minMatch) {
-    minutes = Math.min(2400, Math.max(15, Number(minMatch[1])));
-    rest = rest.replace(minMatch[0], ' ');
-  }
-  const hourMatch = rest.match(/~(\d+(?:\.\d+)?)h/i);
+  // Match hours first so `~4h` is not mistaken for a four-minute estimate.
+  const hourMatch = rest.match(/~(\d+(?:\.\d+)?)\s*h\b/i);
   if (hourMatch) {
     minutes = Math.min(2400, Math.max(15, Math.round(Number(hourMatch[1]) * 60)));
     rest = rest.replace(hourMatch[0], ' ');
+  }
+  const minMatch = rest.match(/~(\d+)\s*(?:m|min)?\b/i);
+  if (minMatch) {
+    minutes = Math.min(2400, Math.max(15, Number(minMatch[1])));
+    rest = rest.replace(minMatch[0], ' ');
   }
   // '!pin'/'!pinned' is the pin token — a bare '!' is punctuation and stays
   // in the title.

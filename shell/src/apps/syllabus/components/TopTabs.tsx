@@ -8,7 +8,7 @@ const TABS: { key: ViewKey; label: string; hint: string }[] = [
   { key: 'today', label: 'Today', hint: 'T' },
   { key: 'semester', label: 'Semester', hint: 'E' },
   { key: 'calendar', label: 'Calendar', hint: 'C' },
-  { key: 'review', label: 'Weekly', hint: 'W' },
+  { key: 'review', label: 'Review', hint: 'W' },
   ...(isIntegrated() ? [] : [{ key: 'settings' as const, label: 'Registry', hint: ',' }]),
 ];
 

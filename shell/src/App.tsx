@@ -62,7 +62,9 @@ import { PLACE_COMPONENTS } from './apps';
 import IntegrationModals from './integration/ModalsHost';
 import { reconcileFollowUps } from './integration/identity';
 import { useWorkspaceTheme } from './ui/theme';
+import { useWorkspaceAccent } from './ui/accent';
 import { Dialog, DropdownMenu, IconButton } from './ui/primitives';
+import { WorkspaceHomeButton } from './ui/WorkspaceHomeButton';
 import { type WorkspaceObject } from './ui/ObjectRow';
 
 const readHash = () => parseHash(window.location.hash);
@@ -232,6 +234,7 @@ export default function App() {
 
   /* Theme & Workspace Context state */
   const [theme, setTheme] = useWorkspaceTheme();
+  const [accent, setAccent] = useWorkspaceAccent();
   const [contextOpen, setContextOpen] = useState<boolean>(() => {
     /* under lg the panel is a full-screen drawer — always start closed there;
        a persisted "open" from a desktop session must not cover a phone. */
@@ -359,18 +362,19 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
+      if (e.defaultPrevented || e.isComposing) return;
+      const t = e.target instanceof HTMLElement ? e.target : null;
       const typing =
         t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         if (owns('k')) return;
         e.preventDefault();
         setSearchOpen((o) => !o);
-      } else if (e.key === '/' && !typing) {
+      } else if (e.key === '/' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (owns('/')) return;
         e.preventDefault();
         setSearchOpen(true);
-      } else if (e.key === '?' && !typing) {
+      } else if (e.key === '?' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) {
         if (owns('?')) return;
         e.preventDefault();
         setCheatOpen((v) => !v);
@@ -539,7 +543,7 @@ export default function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+      if (e.defaultPrevented || e.isComposing || !(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
       /* no typing guard — a meta-chord never inserts text, and ⌘K already
          works mid-edit; ⌘3 doing nothing inside a note reads as broken */
       if (e.key === '0' || e.key === '`') {
@@ -759,19 +763,7 @@ export default function App() {
       <header className="relative z-30 flex h-12 shrink-0 items-center justify-between gap-2 border-b border-[var(--color-line)] bg-[var(--color-sheet)] px-3 sm:px-4">
         {/* Left: Brand + Primary Navigation (Today, Courses, Library, Tools) */}
         <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-          <button
-            type="button"
-            onClick={goHome}
-            className="flex items-center gap-2 rounded-[5px] px-2 py-1 text-left hover:bg-[var(--color-sheet-2)] cursor-pointer"
-            title="Iterra Workspace — Today (⌘0)"
-          >
-            <span className="flex h-5 w-5 items-center justify-center rounded-[4px] bg-[var(--color-accent)] text-[var(--color-accent-fg)] font-place text-[12px] font-bold">
-              i
-            </span>
-            <span className="font-place text-[16px] font-semibold tracking-tight text-[var(--color-ink)] hidden sm:inline">
-              iterra
-            </span>
-          </button>
+          <WorkspaceHomeButton onClick={goHome} />
 
           <span className="h-4 w-px bg-[var(--color-line)] hidden lg:block" />
 
@@ -1275,7 +1267,7 @@ export default function App() {
                   onEnter={enter}
                 />
               ) : section === 'settings' ? (
-                <SettingsSurface onGo={goUrl} dataStatus={dataStatus} />
+                <SettingsSurface onGo={goUrl} dataStatus={dataStatus} accent={accent} onAccentChange={setAccent} />
               ) : section === 'library' ? (
                 <LibraryView
                   entities={entities}

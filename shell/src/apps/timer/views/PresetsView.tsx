@@ -134,8 +134,8 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
               <div className="flex items-start justify-between mb-5">
                 <div className={cn(
                   'w-11 h-11 rounded-md flex items-center justify-center',
-                  preset.accent ? 'bg-[rgb(var(--signal-rgb)_/_0.12)] text-[color:var(--color-signal)]' : 'bg-[rgb(var(--ink-rgb)_/_0.07)] text-ink-soft'
-                )}>
+                  preset.accent ? 'text-[color:var(--color-signal)]' : 'bg-[rgb(var(--ink-rgb)_/_0.07)] text-ink-soft'
+                )} style={preset.accent ? { background: 'color-mix(in srgb, var(--color-signal) 12%, transparent)' } : undefined}>
                   <Icon size={20} strokeWidth={1.8} />
                 </div>
                 <div className="flex items-center gap-1.5">

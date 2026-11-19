@@ -461,11 +461,12 @@
 /* ── Buttons ──────────────────────────────────────────────────── */
 .it-place-proof .btn {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 8px 14px;
+  min-height: 40px;
+  padding: 9px 14px;
   border-radius: 2px;
   border: 1px solid var(--color-ink);
   background: var(--color-ink);
@@ -524,8 +525,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  min-width: 34px;
+  min-height: 34px;
   border-radius: 3px;
   color: var(--color-ink-soft);
   cursor: pointer;
@@ -548,7 +549,8 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgb(var(--bench-ink-rgb, 245 242 230) / 0.55);
-  padding: 9px 16px 8px;
+  min-height: 40px;
+  padding: 9px 14px 8px;
   border: 1px solid transparent;
   border-bottom: none;
   border-radius: 4px 4px 0 0;
@@ -818,10 +820,64 @@
    stays local to this app; [data-terrain] overrides win by specificity. */
 .it-place-proof {
   --font-ui: var(--font-sans, system-ui, sans-serif);
-  --color-bench: #22302a;
-  --color-form: #faf7ee;
-  --color-blueprint: #2f5d46;
+  --color-bench: #1b2e25;
+  --color-bench-deep: #14211b;
+  --color-bench-edge: #101a15;
+  --color-paper: #f4f1e8;
+  --color-paper-dim: #ebe5d6;
+  --color-film: #fbf9f4;
+  --color-form: #fbf9f4;
+  --color-ink: #1c2621;
+  --color-ink-soft: #4c5951;
+  --color-ink-faint: #6e6552;
+  --color-rule: #d8d0bc;
+  --color-rule-dark: #b8ad93;
+  --color-blueprint: #2b5440;
+  --color-blueprint-deep: #223d30;
   --color-correct-deep: #553d88;
   --color-hint-deep: #7d6234;
-  --ink-rgb: 34 48 42;
+  --ink-rgb: 28 38 33;
+  --paper-rgb: 244 241 232;
+  --blueprint-rgb: 43 84 64;
+  --bench-rgb: 27 46 37;
+}
+
+html[data-theme='graphite'] .it-place-proof {
+  --color-bench: #14171c;
+  --color-bench-deep: #101217;
+  --color-bench-edge: #0b0d11;
+  --color-paper: #1c2026;
+  --color-paper-dim: #232830;
+  --color-film: #1c2026;
+  --color-form: #14171c;
+  --color-ink: #e8ecf2;
+  --color-ink-soft: #9da6b5;
+  --color-ink-faint: #8b94a4;
+  --color-rule: #2e3540;
+  --color-rule-dark: #434c5b;
+  --color-blueprint: #58a07c;
+  --color-blueprint-deep: #6bb38f;
+  --color-correct-deep: #ad9de0;
+  --color-hint-deep: #e0b66f;
+  --ink-rgb: 232 236 242;
+  --paper-rgb: 28 32 38;
+  --blueprint-rgb: 88 160 124;
+  --bench-rgb: 20 23 28;
+  --shadow-sheet: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 12px 30px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.35);
+}
+
+/* Comfortable tap targets on phones; preserve the tiny overlaid remove
+   controls that sit directly on image thumbnails. */
+@media (max-width: 640px) {
+  .it-place-proof .proof-nav {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .it-place-proof .proof-nav::-webkit-scrollbar { display: none; }
+  .it-place-proof .xbtn:not(.absolute) {
+    min-width: 40px;
+    min-height: 40px;
+  }
+  .it-place-proof .seg > button { padding: 8px 12px; }
+  .it-place-proof .dtab { padding-inline: 10px; }
 }

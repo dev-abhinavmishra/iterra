@@ -2,7 +2,7 @@
    Tiny external store so every view shares one source of truth. */
 
 import { useSyncExternalStore } from 'react';
-import { setSoundEnabled } from './sound';
+import { setSoundEnabled, setTickingEnabled } from './sound';
 import { isIntegrated, terrainIsDark } from '../../theme';
 
 export interface AccentTheme {
@@ -24,13 +24,14 @@ export const ACCENTS: AccentTheme[] = [
 export interface AppSettings {
   accent: string;      // ACCENTS[].name
   sound: boolean;
+  ticks: boolean;
   motion: 'full' | 'reduced';
   theme: 'day' | 'night';
 }
 
 const KEY = 'timer.settings.v1';
 const LEGACY_KEYS = ['platform.settings.v1'];
-const DEFAULTS: AppSettings = { accent: 'Moss', sound: true, motion: 'full', theme: 'day' };
+const DEFAULTS: AppSettings = { accent: 'Moss', sound: true, ticks: false, motion: 'full', theme: 'day' };
 
 let current: AppSettings = (() => {
   if (typeof window === 'undefined') return DEFAULTS;
@@ -71,14 +72,17 @@ export function applySettings(s: AppSettings = current) {
      every other place */
   const el = (document.querySelector('.it-place-timer') as HTMLElement | null) ?? document.documentElement;
   const r = el.style;
-  r.setProperty('--color-signal', t.signal);
-  r.setProperty('--color-signal-bright', t.bright);
-  r.setProperty('--color-signal-deep', t.deep);
-  r.setProperty('--signal-rgb', hexToRgbTriplet(t.signal));
+  if (!isIntegrated()) {
+    r.setProperty('--color-signal', t.signal);
+    r.setProperty('--color-signal-bright', t.bright);
+    r.setProperty('--color-signal-deep', t.deep);
+    r.setProperty('--signal-rgb', hexToRgbTriplet(t.signal));
+  }
   el.dataset.motion = s.motion;
   /* integrated: the terrain owns day/night; s.theme stays the standalone pref */
   el.dataset.theme = isIntegrated() ? (terrainIsDark() ? 'night' : 'day') : s.theme;
   setSoundEnabled(s.sound);
+  setTickingEnabled(s.ticks);
 }
 
 export function getAccent(name: string): AccentTheme {

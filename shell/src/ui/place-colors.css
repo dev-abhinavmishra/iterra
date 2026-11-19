@@ -1,3 +1,46 @@
+@media screen {
+  html[data-accent='blue'] body {
+    --color-accent: #315c92;
+    --color-accent-2: #254773;
+    --color-accent-soft: #e2eaf6;
+  }
+  html[data-accent='purple'] body {
+    --color-accent: #674585;
+    --color-accent-2: #523467;
+    --color-accent-soft: #efe5f5;
+  }
+  html[data-accent='rose'] body {
+    --color-accent: #923e56;
+    --color-accent-2: #733046;
+    --color-accent-soft: #f6e4e9;
+  }
+  html[data-accent='amber'] body {
+    --color-accent: #854b1d;
+    --color-accent-2: #683a16;
+    --color-accent-soft: #f6eadb;
+  }
+  html[data-theme='graphite'][data-accent='blue'] body {
+    --color-accent: #8bb7f4;
+    --color-accent-2: #a8c9f7;
+    --color-accent-soft: #21324d;
+  }
+  html[data-theme='graphite'][data-accent='purple'] body {
+    --color-accent: #c9a5ea;
+    --color-accent-2: #d9bcf2;
+    --color-accent-soft: #39294b;
+  }
+  html[data-theme='graphite'][data-accent='rose'] body {
+    --color-accent: #ef9caf;
+    --color-accent-2: #f8b6c6;
+    --color-accent-soft: #452834;
+  }
+  html[data-theme='graphite'][data-accent='amber'] body {
+    --color-accent: #e9ac69;
+    --color-accent-2: #f6c58d;
+    --color-accent-soft: #443022;
+  }
+}
+
 /* The shell owns these semantic colors. Capture them on the place wrapper
    before individual applications define their own similarly named tokens. */
 [data-terrain] {
@@ -65,7 +108,22 @@
   --color-bench: var(--terrain-paper); --color-bench-deep: var(--terrain-recess); --color-bench-edge: var(--terrain-line);
   --color-paper: var(--terrain-sheet); --color-paper-dim: var(--terrain-recess); --color-film: var(--terrain-sheet); --color-form: var(--terrain-sheet);
   --color-ink: var(--terrain-ink); --color-ink-soft: var(--terrain-muted); --color-ink-faint: var(--terrain-faint);
-  --color-rule: var(--terrain-line); --color-rule-dark: var(--terrain-line-strong); --color-blueprint: var(--terrain-accent);
+  --color-rule: var(--terrain-line); --color-rule-dark: var(--terrain-line-strong);
+  --color-blueprint: var(--terrain-accent); --color-blueprint-deep: var(--terrain-accent-hover);
+}
+
+[data-terrain] .it-place-syllabus .btn:not(.btn--ghost, .btn--late) {
+  background: var(--terrain-accent);
+  border-color: var(--terrain-accent);
+  color: var(--terrain-accent-text);
+}
+[data-terrain] .it-place-syllabus .btn:not(.btn--ghost, .btn--late):hover:not(:disabled) {
+  background: var(--terrain-accent-hover);
+}
+
+[data-terrain] .it-place-syllabus .sheet,
+[data-terrain] .it-place-proof .pad {
+  background-image: none;
 }
 /* The sequencer's original dark hardware gradients do not follow its token
    colors. Use the terrain surfaces for controls in the integrated shell. */

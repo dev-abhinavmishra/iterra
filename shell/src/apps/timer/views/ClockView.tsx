@@ -7,6 +7,7 @@ import { useViewport } from '../hooks/useViewport';
 import { FlipRow, FlipText, Board } from '../components/Flip';
 import { KeyButton } from '../components/KeyButton';
 import { alarmRing, flapTick } from '../lib/sound';
+import { useSettings } from '../lib/settings';
 import { placeActive } from '../../active';
 import { PlacePortal } from '../../portal';
 
@@ -35,6 +36,7 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
   onTakeover?: (up: boolean) => void;  // report takeover up/down to the shell
 }) {
   const now = useNow(1000);
+  const settings = useSettings();
   const vp = useViewport();
   const [alarms, setAlarms] = useState<Alarm[]>(loadAlarms);
   const [showAdd, setShowAdd] = useState(false);
@@ -146,7 +148,7 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
             {now.toLocaleTimeString('en-US', { hour12: false, timeZoneName: 'short' }).split(' ').pop()}
           </span>
         }>
-          <FlipRow text={clockStr} size={flipSize} live />
+          <FlipRow text={clockStr} size={flipSize} live sound={settings.ticks} />
         </Board>
         <div className="label-wall text-xs md:text-sm" style={{ letterSpacing: '0.3em' }}>{dateStr.toUpperCase()}</div>
       </div>

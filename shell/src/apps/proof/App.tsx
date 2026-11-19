@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useWorkbench } from './store';
 import { TopTabs, type ViewKey } from './components/TopTabs';
 import { LibraryView } from './views/LibraryView';
@@ -22,6 +22,13 @@ export interface RouteState {
   sessionId?: string;
   compareAttemptId?: string;
   inbound?: InboundLink | null;
+}
+
+function hasVisibleProofDialog() {
+  const root = document.querySelector('.it-place-proof');
+  return !!root && Array.from(root.querySelectorAll<HTMLElement>('[role="dialog"]')).some((dialog) =>
+    dialog.getClientRects().length > 0 && getComputedStyle(dialog).visibility !== 'hidden',
+  );
 }
 
 /* The bench mounts inside the terrain — .it-place-proof carries its scoped
@@ -49,9 +56,16 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
   const [route, setRoute] = useState<RouteState>({ view: 'library' });
   const [helpOpen, setHelpOpen] = useState(false);
   const [onboardingSeen, setOnboardingSeen] = useState(false);
+  const [createProblemOnLibrary, setCreateProblemOnLibrary] = useState(false);
 
   const nav = (patch: Partial<RouteState>) => setRoute((r) => ({ ...r, ...patch }));
   const goView = (view: ViewKey) => { setOnboardingSeen(true); setRoute({ view }); };
+  const addFirstProblem = () => {
+    setOnboardingSeen(true);
+    setCreateProblemOnLibrary(true);
+    setRoute({ view: 'library' });
+  };
+  const consumeCreateProblemRequest = useCallback(() => setCreateProblemOnLibrary(false), []);
   /* the terrain listens for 'iterra:select-object' — a desk/compare landing
      puts the problem in the context panel like picking it in Search */
   const selectProblemFor = (attemptId: string) => {
@@ -156,10 +170,11 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
   // global keyboard map — inactive while typing or while a modal is open
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (!placeActive("proof")) return;
-      const t = e.target as HTMLElement;
-      const typing =
-        t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable;
+      if (!placeActive("proof") || e.defaultPrevented || e.isComposing) return;
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      const interactive = target.closest('input, textarea, select, button, a, [role="button"], [role="dialog"]');
+      const typing = (target instanceof HTMLElement && target.isContentEditable) || !!interactive;
       if (e.key === '?' && !typing) {
         e.preventDefault();
         setHelpOpen((o) => !o);
@@ -179,7 +194,7 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
       }
       /* the help overlay and modals (problem editor has role="dialog") own
          the keyboard — a bare 'l' must not navigate behind them */
-      if (helpOpen || document.querySelector('[role="dialog"]')) return;
+      if (helpOpen || hasVisibleProofDialog()) return;
       if (views[e.key.toLowerCase()]) {
         e.preventDefault();
         goView(views[e.key.toLowerCase()]);
@@ -196,10 +211,16 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
       <TopTabs route={route} goView={goView} due={due} onHelp={() => setHelpOpen(true)} />
       <main className="min-h-0 flex-1 overflow-y-auto">
         {problemCount === 0 && !onboardingSeen ? (
-          <Onboarding goView={goView} />
+          <Onboarding goView={goView} onAddProblem={addFirstProblem} />
         ) : (
           <>
-            {route.view === 'library' && <LibraryView onAttempt={(a) => startAttempt(a.id, a.sessionId)} />}
+            {route.view === 'library' && (
+              <LibraryView
+                onAttempt={(a) => startAttempt(a.id, a.sessionId)}
+                openNewProblem={createProblemOnLibrary}
+                onNewProblemOpened={consumeCreateProblemRequest}
+              />
+            )}
             {route.view === 'session' && (
               <SessionSetupView
                 sessionId={route.sessionId}

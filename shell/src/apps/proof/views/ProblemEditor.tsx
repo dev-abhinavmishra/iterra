@@ -35,6 +35,7 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
   const [spec, setSpec] = useState<AnswerSpec>(problem?.answerSpec ?? { kind: 'open' });
   const [attachments, setAttachments] = useState<Attachment[]>(problem?.attachments ?? []);
   const [previewTab, setPreviewTab] = useState<'write' | 'preview'>('write');
+  const [attachmentMessage, setAttachmentMessage] = useState('');
 
   /* dialogs close on Escape — the backdrop click already did, the key
      was the missing half of the contract */
@@ -76,12 +77,17 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
 
   const attach = (files: FileList | null) => {
     if (!files) return;
+    const rejected = Array.from(files).filter((f) => f.size > 600_000);
+    setAttachmentMessage(rejected.length
+      ? `${rejected.map((f) => f.name).join(', ')} ${rejected.length === 1 ? 'is' : 'are'} over the 600 KB limit.`
+      : '');
     for (const f of Array.from(files)) {
       if (f.size > 600_000) continue;
       const r = new FileReader();
       r.onload = () => {
         setAttachments((a) => [...a, { id: uid('f_'), name: f.name, mime: f.type, dataUrl: String(r.result) }]);
       };
+      r.onerror = () => setAttachmentMessage(`Could not read ${f.name}. Try another image.`);
       r.readAsDataURL(f);
     }
   };
@@ -98,7 +104,7 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
           <button className="xbtn" onClick={onClose} aria-label="Close editor"><X size={16} /></button>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Topic">
             <input className="f-input" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="kinematics, integration by parts…" />
           </Field>
@@ -148,7 +154,7 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
         </div>
 
         <div className="mt-3">
-          <span className="f-label">Attachments</span>
+          <span className="f-label">Attachments <span className="font-sans font-normal normal-case tracking-normal">(images up to 600 KB each)</span></span>
           <div className="flex flex-wrap items-center gap-2">
             {attachments.map((a) => (
               <div key={a.id} className="relative">
@@ -162,11 +168,12 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
                 </button>
               </div>
             ))}
-            <label className="xbtn !h-9 !w-9 border border-dashed border-[var(--color-rule-dark)]" title="Attach image (≤600KB)">
+            <label className="xbtn !h-9 !w-9 border border-dashed border-[var(--color-rule-dark)]" title="Attach image (up to 600 KB)">
               <ImagePlus size={15} />
-              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => attach(e.target.files)} />
+              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { attach(e.target.files); e.currentTarget.value = ''; }} />
             </label>
           </div>
+          {attachmentMessage && <p className="mt-1 text-[11px] text-[var(--color-correct-deep)]" role="status">{attachmentMessage}</p>}
         </div>
 
         <div className="mt-4">
@@ -201,7 +208,7 @@ export function ProblemEditor({ problem, onClose }: { problem: Problem | null; o
         <div className="sticky bottom-0 mt-5 flex items-center justify-end gap-2 border-t border-[var(--color-rule)] bg-[var(--color-film)] py-3">
           <button className="btn btn--ghost" onClick={onClose}>Cancel</button>
           <button className="btn btn--blueprint" onClick={save} disabled={!promptDoc.trim()}>
-            {problem ? 'Save changes' : 'File problem'}
+            {problem ? 'Save changes' : 'Add problem'}
           </button>
         </div>
       </div>

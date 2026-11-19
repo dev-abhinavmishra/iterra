@@ -50,8 +50,11 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
       {/* signal colour */}
       <motion.section initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
         {sectionHead(<Palette size={20} />, 'Signal colour')}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          {ACCENTS.map((t, i) => (
+        {isIntegrated() ? (
+          <p className="panel-wall p-5 text-sm text-ink-soft font-body">Signal colour follows workspace Settings.</p>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            {ACCENTS.map((t, i) => (
             <motion.button
               key={t.name}
               initial={{ opacity: 0, scale: 0.92 }}
@@ -72,8 +75,9 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
               </div>
               <span className="label-wall text-[10px]">{t.name}</span>
             </motion.button>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </motion.section>
 
       {/* behaviour */}
@@ -87,6 +91,13 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
               desc: 'Relay clicks, landing thunks, and the station chime.',
               on: settings.sound,
               toggle: () => { updateSettings({ sound: !settings.sound }); if (!settings.sound) setTimeout(stationChime, 120); },
+            },
+            {
+              icon: <Volume2 size={17} />,
+              title: 'Second ticks',
+              desc: 'A faint tick each second while a countdown or interval runs.',
+              on: settings.ticks,
+              toggle: () => updateSettings({ ticks: !settings.ticks }),
             },
             {
               icon: <Gauge size={17} />,

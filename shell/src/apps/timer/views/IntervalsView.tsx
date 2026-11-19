@@ -11,6 +11,7 @@ import { useViewport } from '../hooks/useViewport';
 import { FlipRow, FlipText, Board } from '../components/Flip';
 import { KeyButton } from '../components/KeyButton';
 import { stationChime, flapLand, secondTick } from '../lib/sound';
+import { useSettings } from '../lib/settings';
 import { useRef } from 'react';
 import { placeActive } from '../../active';
 import { PlacePortal } from '../../portal';
@@ -39,6 +40,7 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
   focusRoutine?: string | null;        // ?routine=<name> intake — focus this card
 }) {
   const run = useRoutineRunner();
+  const settings = useSettings();
   const [focusedId, setFocusedId] = useState<string | null>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
   const vp = useViewport();
@@ -231,7 +233,7 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
                 </span>
               }>
                 <div className="flex items-center justify-center py-1">
-                  <FlipRow text={dispStr} size={flipSize} live={run.running} accent={phase?.kind === 'rest'} />
+                  <FlipRow text={dispStr} size={flipSize} live={run.running} accent={phase?.kind === 'rest'} sound={settings.ticks} />
                 </div>
                 <div className="mt-4 h-[3px] rounded-full" style={{ background: 'rgba(242,233,207,0.08)' }}>
                   <div className="h-full rounded-full" style={{ background: 'var(--color-signal-bright)', width: `${phaseProgress * 100}%`, transition: 'width 0.15s linear' }} />
@@ -256,9 +258,9 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
                       <div key={`${r}-${pIdx}`} className="flex items-center gap-1.5">
                         <div className={cn(
                           'label-wall text-[9px] px-2 py-1 rounded border transition-colors',
-                          current ? 'border-[color:var(--color-signal)] text-ink bg-[rgb(var(--signal-rgb)_/_0.12)]'
+                          current ? 'border-[color:var(--color-signal)] text-ink'
                                   : done ? 'border-transparent text-ink-faint line-through' : 'border-rule text-ink-soft'
-                        )}>
+                        )} style={current ? { background: 'color-mix(in srgb, var(--color-signal) 12%, transparent)' } : undefined}>
                           {p.name} {fmtDur(p.seconds)}
                         </div>
                         {!(pIdx === run.routine!.phases.length - 1 && r === run.routine!.rounds - 1) && (

@@ -570,6 +570,186 @@
   }
 }
 
+/* Keep the folio usable inside Iterra's narrower place pane and on phones.
+   The course spine becomes a compact horizontal rail instead of consuming
+   the width needed by the planner itself. */
+.it-place-syllabus.syllabus-layout {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.it-place-syllabus .syllabus-page {
+  min-width: 0;
+  min-height: 0;
+}
+
+.it-place-syllabus .onboarding-root {
+  min-width: 0;
+  background: var(--color-stock);
+}
+
+.it-place-syllabus .onboarding-card {
+  border: 1px solid var(--color-rule);
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .it-place-syllabus.syllabus-layout {
+    flex-direction: column;
+  }
+
+  .it-place-syllabus .syllabus-spine {
+    width: 100%;
+    height: 50px;
+    min-height: 50px;
+    flex-direction: row;
+    align-items: stretch;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-desk-edge);
+  }
+
+  .it-place-syllabus .syllabus-spine-seal {
+    width: 48px;
+    flex-direction: row;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .it-place-syllabus .syllabus-spine-wordmark {
+    writing-mode: horizontal-tb !important;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+  }
+
+  .it-place-syllabus .syllabus-spine-seal svg,
+  .it-place-syllabus .syllabus-spine-rule,
+  .it-place-syllabus .syllabus-spine-term {
+    display: none;
+  }
+
+  .it-place-syllabus .syllabus-course-tabs {
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 10px 0 0;
+  }
+
+  .it-place-syllabus .ctab {
+    writing-mode: horizontal-tb;
+    white-space: nowrap;
+    padding: 7px 10px;
+    border-radius: 3px;
+    font-size: 10px;
+    transform: none;
+  }
+
+  .it-place-syllabus .ctab:hover,
+  .it-place-syllabus .ctab--on {
+    transform: none;
+  }
+
+  .it-place-syllabus .syllabus-page {
+    padding: 6px;
+  }
+
+  .it-place-syllabus .onboarding-root {
+    height: 100%;
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 8px;
+  }
+
+  .it-place-syllabus .onboarding-card {
+    margin-top: auto;
+    margin-bottom: auto;
+    padding: 16px;
+  }
+
+  .it-place-syllabus .onboarding-actions,
+  .it-place-syllabus .onboarding-actions > div {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .it-place-syllabus .onboarding-course-row {
+    grid-template-columns: 18px minmax(58px, 0.8fr) minmax(76px, 1.2fr) minmax(68px, 0.8fr);
+    gap: 6px;
+  }
+
+  .it-place-syllabus .onboarding-course-row .f-input,
+  .it-place-syllabus .onboarding-course-row .f-select {
+    min-width: 0;
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .it-place-syllabus .today-view {
+    padding: 16px 10px;
+  }
+
+  .it-place-syllabus .today-capacity {
+    align-items: flex-start;
+  }
+
+  .it-place-syllabus .agenda-heading {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 4px 10px;
+  }
+
+  .it-place-syllabus .agenda-heading > span:last-child {
+    flex-basis: 100%;
+    font-size: 9px;
+    line-height: 1.5;
+  }
+
+  .it-place-syllabus .today-missed-row {
+    flex-wrap: wrap;
+  }
+
+  .it-place-syllabus .today-missed-row > div:first-of-type {
+    flex-basis: 100%;
+  }
+
+  .it-place-syllabus .today-missed-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .it-place-syllabus .sheet {
+    min-height: 0;
+  }
+
+  .it-place-syllabus .dtab {
+    flex: 0 0 auto;
+    padding: 8px 9px 7px;
+    font-size: 9px;
+    letter-spacing: 0.07em;
+  }
+}
+
+@media (max-width: 380px) {
+  .it-place-syllabus .syllabus-spine-seal {
+    width: 40px;
+  }
+
+  .it-place-syllabus .dtab {
+    padding-right: 7px;
+    padding-left: 7px;
+    letter-spacing: 0.04em;
+  }
+
+  .it-place-syllabus .onboarding-course-row {
+    grid-template-columns: 14px minmax(54px, 0.8fr) minmax(64px, 1.2fr) minmax(62px, 0.8fr);
+    gap: 4px;
+  }
+}
+
 /* ── Terrain theme — paper swaps the dark blotter for a light one;
    stock, slips, and ink already read light-theme. ── */
 [data-terrain='paper'] .it-place-syllabus {

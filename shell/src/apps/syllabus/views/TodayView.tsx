@@ -86,8 +86,9 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!placeActive('syllabus')) return;
-      const t = e.target as HTMLElement;
-      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
+      const t = e.target instanceof HTMLElement ? e.target : null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
       // defer sheet or any other modal (commitment drawer, help, import)
       // owns the keys — never stamp/defer/reorder a slip behind its back.
       if (deferFor || modalOpen()) return;
@@ -151,16 +152,16 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
   const acceptOne = (p: ProposedBlock) => s.acceptProposals([p]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6" ref={listRef}>
+    <div className="today-view max-w-3xl mx-auto px-4 sm:px-6 py-6" ref={listRef}>
       {/* agenda page header — the day's sheet torn from the filed syllabi */}
       <div className="text-center mb-1">
         <p className="kicker">DAILY AGENDA</p>
         <h1 className="slab text-[28px] font-semibold leading-tight mt-1">{fullDate(today)}</h1>
       </div>
       <div className="double-rule mt-3 mb-4" />
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
+      <div className="today-capacity flex items-center justify-between flex-wrap gap-3 mb-5">
         <label className="flex items-center gap-2">
-          <span className="f-label !mb-0">Minutes open</span>
+          <span className="f-label !mb-0">Time available</span>
           <input
             type="number"
             min={0}
@@ -168,7 +169,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
             value={available}
             onChange={(e) => setAvailable(Math.max(0, Number(e.target.value) || 0))}
             className="f-input mono w-[76px] !py-1.5 text-right"
-            aria-label="Available minutes today"
+            aria-label="Time available today, in minutes"
           />
           <span className="mono text-[11px] text-[color:var(--color-ink-faint)]">min</span>
         </label>
@@ -227,7 +228,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
               const c = s.commitments[b.commitmentId];
               const course = c ? courseById[c.courseId] : undefined;
               return (
-                <div key={b.id} className="slip pl-6 pr-3 py-2 flex items-center gap-3">
+                <div key={b.id} className="today-missed-row slip pl-6 pr-3 py-2 flex items-center gap-3">
                   <span className="absolute left-0 top-0 bottom-0 w-[6px] bg-[color:var(--color-late)]" aria-hidden />
                   <div className="flex-1 min-w-0">
                     <div className="mono text-[10.5px] text-[color:var(--color-late)] font-semibold">
@@ -237,23 +238,25 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
                       {course?.code} — {c?.title}
                     </div>
                   </div>
-                  <button
-                    className="btn btn--ghost !py-1.5 !px-3"
-                    onClick={() => s.carryBlock(b.id, today)}
-                    title="Re-book onto today"
-                  >
-                    Today
-                  </button>
-                  <button
-                    className="btn btn--ghost !py-1.5 !px-3"
-                    onClick={() => s.carryBlock(b.id, addDaysISO(today, 1))}
-                    title="Re-book onto tomorrow"
-                  >
-                    +1d
-                  </button>
-                  <button className="xbtn" onClick={() => setDeferFor(b)} title="Pick a date" aria-label="Pick a new date">
-                    <CalendarPlus size={15} />
-                  </button>
+                  <div className="today-missed-actions flex items-center gap-2">
+                    <button
+                      className="btn btn--ghost !py-1.5 !px-3"
+                      onClick={() => s.carryBlock(b.id, today)}
+                      title="Re-book onto today"
+                    >
+                      Today
+                    </button>
+                    <button
+                      className="btn btn--ghost !py-1.5 !px-3"
+                      onClick={() => s.carryBlock(b.id, addDaysISO(today, 1))}
+                      title="Re-book onto tomorrow"
+                    >
+                      Tomorrow
+                    </button>
+                    <button className="xbtn" onClick={() => setDeferFor(b)} title="Pick a date" aria-label="Pick a new date">
+                      <CalendarPlus size={15} />
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -263,16 +266,16 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
 
       {/* ── the queue — numbered agenda items ── */}
       <section className="mt-7" aria-label="Agenda items">
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="kicker">AGENDA ITEMS</span>
+        <div className="agenda-heading flex items-center justify-between mb-2.5">
+          <span className="kicker">Scheduled work</span>
           <span className="mono text-[10px] text-[color:var(--color-ink-faint)]">j/k select · J/K move · D done · X defer · Enter open</span>
         </div>
         {queue.length === 0 ? (
           <div className="slip pl-6 pr-4 py-8 text-center">
             <Inbox size={20} className="mx-auto text-[color:var(--color-ink-faint)] mb-2" />
-            <p className="slab text-[16px] text-[color:var(--color-ink-soft)]">Nothing booked yet.</p>
+            <p className="slab text-[16px] text-[color:var(--color-ink-soft)]">Nothing scheduled yet</p>
             <p className="text-[12px] text-[color:var(--color-ink-faint)] mt-1">
-              Accept proposals below, or file commitments on the Semester folio.
+              Pick a suggested study block below or add an assignment in Semester.
             </p>
           </div>
         ) : (
@@ -314,7 +317,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
       {/* ── registrar's proposals ── */}
       <section className="mt-8" aria-label="Proposed blocks">
         <div className="flex items-center justify-between mb-2.5">
-          <span className="kicker">PROPOSED — REGISTRAR'S SUGGESTION</span>
+          <span className="kicker">Suggested study blocks</span>
           {plan.proposals.length > 0 && (
             <button className="btn btn--ghost !py-1 !px-3" onClick={acceptAll}>
               Accept all
@@ -327,7 +330,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
               ? 'No open commitments on file.'
               : available <= plannedTotal
                 ? 'Day is fully booked — raise available time for more proposals.'
-                : 'Nothing pressing. The registrar sees no urgent filings.'}
+                : 'You’re caught up. There are no urgent tasks to schedule.'}
           </p>
         ) : (
           <ol className="space-y-2">

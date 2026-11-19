@@ -163,16 +163,17 @@ export default function App({ query = '' }: { query?: string }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!placeActive('syllabus')) return;
-      const t = e.target as HTMLElement;
+      if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
+      const t = e.target instanceof HTMLElement ? e.target : null;
       const typing =
-        t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable;
+        !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+      if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (route.inspectId || modalOpen()) return; // a sheet/drawer owns its keys
       if (e.key === '?' && !typing) {
         e.preventDefault();
         setHelpOpen((o) => !o);
         return;
       }
-      if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (route.inspectId || modalOpen()) return; // a sheet/drawer owns its keys
       switch (e.key) {
         case 't':
           goView('today');
@@ -213,7 +214,7 @@ export default function App({ query = '' }: { query?: string }) {
   }
 
   return (
-    <div ref={rootRef} className="it-place-syllabus h-full flex" data-app="syllabus">
+    <div ref={rootRef} className="it-place-syllabus syllabus-layout h-full flex" data-app="syllabus">
       {/* vertical semester spine — course tabs are the only large color surfaces */}
       <Spine
         term={term}
@@ -224,7 +225,7 @@ export default function App({ query = '' }: { query?: string }) {
       />
 
       {/* folio page */}
-      <div className="flex-1 min-w-0 flex flex-col px-3 py-3 sm:px-5">
+      <div className="syllabus-page flex-1 min-w-0 flex flex-col px-3 py-3 sm:px-5">
         <div className="sheet flex-1 min-h-0 flex flex-col animate-[sheet-in_0.34s_cubic-bezier(0.2,0.8,0.3,1)_both]">
           {/* folio header: divider tabs + the day's date stamp */}
           <header className="no-print flex items-end justify-between gap-3 px-4 pt-2.5 border-b border-[color:var(--color-rule)]">

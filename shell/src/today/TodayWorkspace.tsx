@@ -838,8 +838,8 @@ export function TodayWorkspace({
           {/* Left Column (7 cols on lg) */}
           <div className="space-y-6 lg:col-span-7">
             {/* ── 2. RESUME WORKING ── */}
-            <section aria-label="Resume working">
-              <SectionHeader title="Resume Working" />
+            <section aria-label="Pick up where you left off">
+              <SectionHeader title="Pick up where you left off" />
               {resumeObject ? (
                 <div className="rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                   <div className="flex items-start justify-between gap-3">
@@ -1189,7 +1189,7 @@ export function TodayWorkspace({
               ) : (
                 <EmptyState
                   compact
-                  title="No study objects recorded yet"
+                  title="No recent work yet"
                   description="Notes, flashcard decks, study sheets, problems, and assessments you create will appear here with direct links."
                   actions={
                     <>
@@ -1511,7 +1511,7 @@ export function TodayWorkspace({
                       onClick={() => setFeedExpanded((x) => !x)}
                       className="w-full px-3.5 py-1.5 text-left font-mono text-[10px] uppercase tracking-wider text-[var(--color-faint)] hover:text-[var(--color-accent)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
                     >
-                      {feedExpanded ? 'show less' : `${visible.length - 5} more stirs`}
+                      {feedExpanded ? 'Show less' : `Show ${visible.length - 5} more updates`}
                     </button>
                   )}
                 </div>

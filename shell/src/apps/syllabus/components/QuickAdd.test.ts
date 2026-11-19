@@ -23,6 +23,19 @@ describe('parseQuick', () => {
     expect(p.minutes).toBe(120);
   });
 
+  it('parses hour estimates without treating them as minutes', () => {
+    const fourHours = parseQuick('Read chapter @math241 ~4h', courses);
+    expect(fourHours.minutes).toBe(240);
+    expect(fourHours.title).toBe('Read chapter');
+    const ninetyMinutes = parseQuick('Review notes @math241 ~1.5h', courses);
+    expect(ninetyMinutes.minutes).toBe(90);
+    expect(ninetyMinutes.title).toBe('Review notes');
+  });
+
+  it('keeps bare exclamation punctuation in the title', () => {
+    expect(parseQuick('What a result! @math241 ~45m', courses).title).toBe('What a result!');
+  });
+
   it('resolves due:today and due:tomorrow', () => {
     expect(parseQuick('x @math241 due:today', courses).due).toBe(isoNDaysAhead(0));
     expect(parseQuick('x @math241 due:tomorrow', courses).due).toBe(isoNDaysAhead(1));

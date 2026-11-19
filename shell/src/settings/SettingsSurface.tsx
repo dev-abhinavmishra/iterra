@@ -4,6 +4,7 @@ import { PLACES } from '../places';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
 import { formatRelativeTime } from '../ui/ObjectRow';
 import { useWorkspaceTheme } from '../ui/theme';
+import { ACCENTS, type Accent } from '../ui/accent';
 import { DataCoverage } from './DataCoverage';
 import type { DataStatus } from './dataStatus';
 import {
@@ -35,16 +36,21 @@ const SETTINGS_TARGET: Record<string, string> = {
 
 const SETTINGS_NOTE: Record<string, string> = {
   timer: 'Session defaults, sound, motion',
-  ink: 'Editor density, autosave, desk behavior',
-  rhythm: 'Routines, week shape, experiments',
-  proof: 'Session length, review cadence, motion',
-  syllabus: 'Study window, block size, semester',
-  gradestack: 'Answer key, rubric, roster defaults',
+  ink: 'Editor layout and autosave',
+  rhythm: 'Routines and weekly schedule',
+  proof: 'Practice time, review schedule, and animation',
+  syllabus: 'Study hours, session length, and semester dates',
+  gradestack: 'Answer keys, rubrics, and class lists',
   margin: 'Titles, format, editor size, transcription',
-  flashcards: 'Keyboard map — theme and motion live here in the terrain',
+  flashcards: 'Keyboard shortcuts',
 };
 
-export function SettingsSurface({ onGo, dataStatus }: { onGo: (url: string) => void; dataStatus: DataStatus }) {
+export function SettingsSurface({ onGo, dataStatus, accent, onAccentChange }: {
+  onGo: (url: string) => void;
+  dataStatus: DataStatus;
+  accent: Accent;
+  onAccentChange: (accent: Accent) => void;
+}) {
   const [theme, setTheme] = useWorkspaceTheme();
   const dark = theme === 'graphite';
 
@@ -57,13 +63,12 @@ export function SettingsSurface({ onGo, dataStatus }: { onGo: (url: string) => v
         </h1>
       </div>
       <p className="mt-1 text-[13px] text-[var(--color-mute)]">
-        One place for the terrain and every tool — each row opens that tool's
-        settings straight where they live.
+        Make Iterra feel like yours, manage your backups, or adjust settings for a tool.
       </p>
 
       {/* Terrain */}
       <section className="pt-6">
-        <SectionHeader title="Terrain" />
+        <SectionHeader title="Appearance" />
         <button
           type="button"
           onClick={() => setTheme()}
@@ -82,10 +87,10 @@ export function SettingsSurface({ onGo, dataStatus }: { onGo: (url: string) => v
             </div>
             <div>
               <div className="text-[13.5px] font-semibold text-[var(--color-ink)]">
-                Theme — {dark ? 'Graphite' : 'Paper'}
+                {dark ? 'Graphite theme' : 'Paper theme'}
               </div>
               <div className="text-[12px] text-[var(--color-mute)]">
-                One flick restyles the whole terrain — every tool follows.
+                Switch between light and dark across Iterra.
               </div>
             </div>
           </div>
@@ -102,6 +107,25 @@ export function SettingsSurface({ onGo, dataStatus }: { onGo: (url: string) => v
             />
           </span>
         </button>
+        <fieldset className="mt-3 rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-4 pb-4">
+          <legend className="px-1 text-[13px] font-semibold text-[var(--color-ink)]">Accent color</legend>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {ACCENTS.map(({ id, label, swatch }) => (
+              <label key={id} className="flex cursor-pointer items-center gap-2 rounded border border-[var(--color-line)] px-2.5 py-2 text-[13px] text-[var(--color-ink)]">
+                <input
+                  type="radio"
+                  name="workspace-accent"
+                  value={id}
+                  checked={accent === id}
+                  onChange={() => onAccentChange(id)}
+                  className="accent-[var(--color-accent)]"
+                />
+                <span aria-hidden="true" className="h-3 w-3 rounded-full" style={{ backgroundColor: swatch }} />
+                {label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </section>
 
       <BackupSection dataStatus={dataStatus} />
@@ -156,7 +180,7 @@ export function SettingsSurface({ onGo, dataStatus }: { onGo: (url: string) => v
               Getting Started
             </div>
             <div className="text-[12px] text-[var(--color-mute)]">
-              Guides for every tool — the first three moves in each.
+              Quick guides to help you get started with each tool.
             </div>
           </div>
           <span className="text-[12px] font-medium text-[var(--color-accent)]">Open →</span>
@@ -405,7 +429,7 @@ function DiagnosticsSection() {
                 {diag.pending} deliver{diag.pending === 1 ? 'y' : 'ies'} waiting
               </span>
               <span className="block truncate text-[12px] text-[var(--color-mute)]">
-                Send-to deliveries queue until their tool next opens — they land automatically.
+                These items will arrive when you open the tool you sent them to.
               </span>
             </span>
           </div>
@@ -420,7 +444,7 @@ function DiagnosticsSection() {
                 {diag.stuck} deliver{diag.stuck === 1 ? 'y is' : 'ies are'} stuck retrying
               </span>
               <span className="block truncate text-[12px] text-[var(--color-mute)]">
-                Their tool keeps declining — open it and check for a malformed or stale send.
+                Open the destination tool to check whether the item is still there, then try sending it again.
               </span>
             </span>
           </div>
@@ -430,10 +454,10 @@ function DiagnosticsSection() {
             <AlertTriangle className="h-4 w-4 shrink-0 text-[var(--color-bad)]" />
             <span className="min-w-0 flex-1">
               <span className="block text-[13px] font-medium text-[var(--color-ink)]">
-                {diag.quarantined} malformed write{diag.quarantined === 1 ? '' : 's'} quarantined
+                {diag.quarantined} record{diag.quarantined === 1 ? '' : 's'} could not be saved
               </span>
               <span className="block truncate text-[12px] text-[var(--color-mute)]">
-                The hub rejected these instead of storing them — usually a publisher bug, worth a backup.
+                Iterra set these records aside because it couldn’t read them. Download a backup to keep a copy.
               </span>
             </span>
           </div>
@@ -519,7 +543,7 @@ function StorageRow() {
       <HardDrive className={`h-4 w-4 shrink-0 ${nearFull ? 'text-amber-600' : 'text-[var(--color-mute)]'}`} />
       <span className="min-w-0 flex-1">
         <span className="block text-[13px] font-medium text-[var(--color-ink)]">
-          {nearFull ? 'Storage nearly full' : info.persisted ? 'Storage is protected' : 'Storage is best-effort'}
+          {nearFull ? 'Storage nearly full' : info.persisted ? 'Browser storage is protected' : 'Browser storage may be cleared'}
         </span>
         <span className="block truncate text-[12px] text-[var(--color-mute)]">
           {nearFull
@@ -579,7 +603,7 @@ function ResetSection() {
             Erase all workspace data
           </span>
           <span className="block truncate text-[12px] text-[var(--color-mute)]">
-            Clears every tool, course and record stored in this browser — a fresh terrain.
+            Deletes all Iterra data stored in this browser.
           </span>
         </span>
       </button>
@@ -658,7 +682,7 @@ function DemoSection() {
                 Load a sample semester
               </span>
               <span className="block truncate text-[12px] text-[var(--color-mute)]">
-                Three courses, assignments, decks and sessions — the terrain as it looks in use.
+                Try Iterra with three sample courses, assignments, decks, and focus sessions.
               </span>
             </span>
           </button>
@@ -690,10 +714,8 @@ function DemoSection() {
         title="Load a sample semester?"
       >
         <p className="text-[12.5px] leading-relaxed text-[var(--color-mute)]">
-          Iterra adds a small set of demo records — courses, assignments,
-          planned blocks, flashcard decks and focus sessions — alongside
-          anything already here. Everything it adds is marked and can be
-          removed in one pass from this same panel.
+          The sample adds courses, assignments, study blocks, flashcards, and
+          focus sessions alongside your work. You can remove it here anytime.
         </p>
         <div className="mt-4 flex justify-end gap-2">
           <Button onClick={() => setConfirming(null)} disabled={busy}>Cancel</Button>
