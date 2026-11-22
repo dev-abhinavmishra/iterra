@@ -426,7 +426,12 @@ self.addEventListener('fetch', event => {
       try {
         response = await fetch(request);
       } catch {
-        const current = policy ? await matchOwned(request.url, coreCacheName(policy.buildId)) : null;
+        // Navigation Request.url may retain the document fragment in some
+        // browsers. Fragments (and query strings) are not cache asset keys.
+        const navigationUrl = new URL(request.url);
+        navigationUrl.search = '';
+        navigationUrl.hash = '';
+        const current = policy ? await matchOwned(navigationUrl.href, coreCacheName(policy.buildId)) : null;
         if (current) return current;
         const root = policy ? await matchOwned('/', coreCacheName(policy.buildId)) : await matchOwned('/');
         if (root) return root;

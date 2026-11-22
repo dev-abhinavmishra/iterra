@@ -565,7 +565,10 @@ function applyReceipt(receipt: NativeReceipt): Promise<'applied' | 'already-appl
         revision: base.revision + 1,
         recordRevisions: merged.recordRevisions,
       };
-      next.version = receipt.version;
+      // A stale tab can finish a lower-version receipt after a newer build
+      // has already migrated the same native row. State deltas still merge,
+      // but the persisted schema version only moves forward.
+      next.version = Math.max(next.version, receipt.version);
       const put = states.put(next);
       projected = { ...next, generation, keyGeneration };
       applied.put({ id: receipt.id, generation, appliedRevision: next.revision } satisfies AppliedReceipt);
@@ -795,7 +798,7 @@ export function createNativeStateStorage(key: NativeStateKey): {
           const receipt = makeReceipt(key, { ...base, state: withoutTabContext(key, base.state) }, withoutTabContext(key, parsed.state), parsed.version);
           // The durable recovery receipt is written in this synchronous call
           // before Zustand's public mutation returns its generated ID.
-          if (!receipt.operations.length) return Promise.resolve();
+          if (!receipt.operations.length && receipt.version <= base.version) return Promise.resolve();
           localStorage.setItem(localReceiptKey(receipt.id), JSON.stringify(receipt));
           reportNativePending(key);
           before = { ...base, state: clone(parsed.state), version: parsed.version,
@@ -884,12 +887,14 @@ export async function readNativeSnapshot(key: NativeStateKey): Promise<NativeSna
 export async function updateNativeStore<T extends JsonObject>(
   key: NativeStateKey,
   updater: (state: T) => T,
+  version?: number,
 ): Promise<T> {
   const base = await readNativeSnapshot(key);
   const next = updater(clone(base.state) as T);
   if (!next || typeof next !== 'object') throw new Error(`Invalid native state update for ${key}.`);
-  const receipt = makeReceipt(key, base, next, base.version);
-  if (receipt.operations.length) await persistReceipt(receipt);
+  const targetVersion = version ?? base.version;
+  const receipt = makeReceipt(key, base, next, targetVersion);
+  if (receipt.operations.length || targetVersion > base.version) await persistReceipt(receipt);
   await flushNativeStore(key);
   return clone(next);
 }
@@ -906,7 +911,7 @@ export function writeNativeSnapshotDelta(
   const receipt = makeReceipt(key,
     { ...clone(base), state: withoutTabContext(key, base.state) },
     withoutTabContext(key, nextState), version);
-  return receipt.operations.length ? persistReceipt(receipt) : Promise.resolve();
+  return receipt.operations.length || version > base.version ? persistReceipt(receipt) : Promise.resolve();
 }
 
 export async function flushNativeStore(key: NativeStateKey): Promise<void> {

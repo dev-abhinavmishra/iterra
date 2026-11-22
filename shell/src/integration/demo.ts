@@ -251,7 +251,7 @@ async function seedFolio() {
 
   seeded = true;
   return s;
-  });
+  }, 1);
   return seeded;
 }
 

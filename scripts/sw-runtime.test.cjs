@@ -343,6 +343,21 @@ test('offline navigation prefers the active build shell over a preserved old cor
   assert.match(html, /main-2\.js/);
 });
 
+test('offline navigation strips route query and fragment before cache lookup', async () => {
+  const world = createWorld({ buildPolicy: policy('3') });
+  await world.dispatch('install');
+  await world.dispatch('activate');
+  world.context.fetch = async () => { throw new Error('offline navigation'); };
+  let response;
+  await world.dispatch('fetch', {
+    request: { url: `${origin}/?term=fall#/p/syllabus`, method: 'GET', mode: 'navigate' },
+    respondWith: promise => { response = Promise.resolve(promise); },
+  });
+  const html = await (await response).text();
+  assert.match(html, new RegExp(`content="${policy('3').buildId}"`));
+  assert.match(html, /main-3\.js/);
+});
+
 test('an old active worker does not overwrite its offline shell with new-build HTML', async () => {
   const world = createWorld({ buildPolicy: policy('1') });
   await world.dispatch('install');

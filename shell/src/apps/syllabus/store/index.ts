@@ -678,6 +678,13 @@ export const useFolio = create<FolioState>()(
       name: 'syllabus.folio.v1',
       storage: createJSONStorage(() => createNativeStateStorage('syllabus.folio.v1')),
       version: 1,
+      // Native demo/workspace writes created before this version contract
+      // stored a valid Folio at version 0. Keep its state and let `merge`
+      // below supply fields added since then; Zustand then persists v1.
+      migrate: (persisted, fromVersion) => {
+        if (fromVersion !== 0) throw new Error(`Unsupported Folio persistence version ${fromVersion}.`);
+        return persisted as Partial<FolioData>;
+      },
       // Blobs written before array fields existed boot-crash on bare
       // iteration (c.dependencies is not iterable → white screen).
       // Backfill them at the merge boundary, once — same class as the

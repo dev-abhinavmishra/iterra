@@ -204,6 +204,46 @@ describe('native persistence transaction lifecycles', () => {
     expect(pendingKeys()).toEqual([]);
   });
 
+  it('upgrades a populated Folio snapshot version without changing its state', async () => {
+    const native = await loadNative();
+    const state = {
+      terms: { 'demo-fall': { id: 'demo-fall', name: 'Fall' } },
+      courses: { 'demo-bio201': { id: 'demo-bio201', termId: 'demo-fall', code: 'BIO 201' } },
+      commitments: {}, blocks: {}, links: {}, reviews: {}, dismissed: {}, activeTermId: 'demo-fall',
+    };
+    await native.replaceNativeStores({ [FOLIO]: { state, version: 0 } });
+    const storage = native.createNativeStateStorage(FOLIO);
+    const before = JSON.parse((await storage.getItem(FOLIO))!);
+    expect(before.version).toBe(0);
+    await storage.setItem(FOLIO, wrapper(before.state, 1));
+
+    const after = await native.readNativeSnapshot(FOLIO);
+    expect(after.version).toBe(1);
+    expect(after.revision).toBe(2);
+    expect(after.state).toEqual(state);
+    expect(pendingKeys()).toEqual([]);
+  });
+
+  it('does not let a delayed version-only migration downgrade a newer native row', async () => {
+    const oldModule = await loadNative();
+    const state = { terms: {}, courses: { old: { id: 'old', code: 'OLD' } }, commitments: {}, blocks: {}, links: {}, reviews: {}, dismissed: {} };
+    await oldModule.replaceNativeStores({ [FOLIO]: { state, version: 0 } });
+    const oldActor = oldModule.createNativeStateStorage(FOLIO);
+    const stale = JSON.parse((await oldActor.getItem(FOLIO))!);
+
+    vi.resetModules();
+    const newModule = await loadNative();
+    const newActor = newModule.createNativeStateStorage(FOLIO);
+    const fresh = JSON.parse((await newActor.getItem(FOLIO))!);
+    const upgraded = { ...fresh.state, courses: { ...fresh.state.courses, newer: { id: 'newer', code: 'NEW' } } };
+    await newActor.setItem(FOLIO, wrapper(upgraded, 2));
+    await oldActor.setItem(FOLIO, wrapper(stale.state, 1));
+
+    const after = await newModule.readNativeSnapshot(FOLIO);
+    expect(after.version).toBe(2);
+    expect(after.state.courses).toEqual(upgraded.courses);
+  });
+
   it('writes a durable receipt synchronously before hydration, imports the legacy projection, and replays without replacing it', async () => {
     const native = await loadNative();
     const legacy = {
