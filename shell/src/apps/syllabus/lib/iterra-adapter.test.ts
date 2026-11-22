@@ -10,6 +10,24 @@ let events: { type: string; payload: any }[];
 let entities: Map<string, any>;
 let adapterOpts: any;
 let lists: (f: any) => any[];
+const nativeModules: Array<typeof import('../../../integration/nativePersistence')> = [];
+
+async function resetNativeFixture() {
+  for (const native of nativeModules) await native.nativePersistenceTestReset();
+  const request = indexedDB.deleteDatabase('iterra-native-state');
+  await new Promise<void>((resolve, reject) => {
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error ?? new Error('Could not reset native test database.'));
+    request.onblocked = () => reject(new Error('Native test database reset was blocked.'));
+  });
+  nativeModules.length = 0;
+}
+
+async function settleMirror() {
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+  await nativeModules[0].flushNativeStore('syllabus.folio.v1');
+  await new Promise<void>(resolve => setTimeout(resolve, 0));
+}
 
 const installStubs = () => {
   puts = [];
@@ -20,6 +38,8 @@ const installStubs = () => {
   lists = () => [];
   const mem = new Map<string, string>();
   const localStorageStub = {
+    get length() { return mem.size; },
+    key: (index: number) => [...mem.keys()][index] ?? null,
     getItem: (k: string) => mem.get(k) ?? null,
     setItem: (k: string, v: string) => void mem.set(k, String(v)),
     removeItem: (k: string) => void mem.delete(k),
@@ -96,12 +116,15 @@ const seedAndWire = async (data: Record<string, any>) => {
     dismissed: {}, settings: DEFAULT_SETTINGS, booted: true, ...data,
   } as any);
   const adapter = await import('./iterra-adapter');
+  await settleMirror();
   return { useFolio, adapter };
 };
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.resetModules();
   installStubs();
+  await resetNativeFixture();
+  nativeModules.push(await import('../../../integration/nativePersistence'));
 });
 
 describe('syllabus canonical-store mirror', () => {
@@ -145,6 +168,7 @@ describe('syllabus canonical-store mirror', () => {
     useFolio.setState({
       commitments: { ...useFolio.getState().commitments, k2: { ...useFolio.getState().commitments.k2, title: 'Quiz 2' } },
     } as any);
+    await settleMirror();
     expect(puts.map((e) => `${e.type}:${e.id}`)).toEqual(['commitment:k2']);
   });
 
@@ -155,6 +179,7 @@ describe('syllabus canonical-store mirror', () => {
     });
     removes.length = 0;
     useFolio.setState({ blocks: {} } as any);
+    await settleMirror();
     expect(removes).toContain('syllabus:block:b1');
     expect(entities.has('syllabus:block:b1')).toBe(false);
   });
@@ -164,6 +189,7 @@ describe('syllabus canonical-store mirror', () => {
     useFolio.setState({
       courses: { ...useFolio.getState().courses, cB: mkCourse('cB', 'HST201', 'History') },
     } as any);
+    await settleMirror();
     const reg = events.filter((e) => e.type === 'course.registered');
     expect(reg).toHaveLength(1);
     expect(reg[0].payload).toMatchObject({ courseId: 'syllabus:course:cB', course: 'HST201', title: 'History' });
@@ -175,6 +201,7 @@ describe('syllabus canonical-store mirror', () => {
       commitments: { k1: mkCommitment('k1', 'c1') },
     });
     useFolio.getState().setCommitmentStatus('k1', 'done');
+    await settleMirror();
     const done = events.filter((e) => e.type === 'assignment.completed');
     expect(done).toHaveLength(1);
     expect(done[0].payload).toMatchObject({ commitmentId: 'k1', courseId: 'syllabus:course:c1', course: 'MTH151', title: 'Midterm' });
@@ -186,6 +213,7 @@ describe('syllabus canonical-store mirror', () => {
       commitments: { k1: mkCommitment('k1', 'c1') },
     });
     useFolio.getState().setCommitmentStatus('k1', 'dropped');
+    await settleMirror();
     const dropped = events.filter((e) => e.type === 'assignment.dropped');
     expect(dropped).toHaveLength(1);
     expect(dropped[0].payload).toMatchObject({ commitmentId: 'k1', course: 'MTH151', title: 'Midterm' });
@@ -203,11 +231,13 @@ describe('syllabus canonical-store mirror', () => {
     useFolio.setState({
       commitments: { k1: { ...useFolio.getState().commitments.k1, dueAt: soon } },
     } as any);
+    await settleMirror();
     const due = events.filter((e) => e.type === 'assignment.due');
     expect(due).toHaveLength(1);
     expect(due[0].payload).toMatchObject({ commitmentId: 'k1', courseId: 'syllabus:course:c1', dueAt: soon });
     events.length = 0;
     useFolio.setState({ commitments: { k1: { ...useFolio.getState().commitments.k1, weight: 41 } } } as any);
+    await settleMirror();
     expect(events.filter((e) => e.type === 'assignment.due')).toEqual([]);
   });
 });
@@ -301,6 +331,10 @@ describe('block.plan intake', () => {
       terms: { t1: mkTerm() },
       courses: { c1: mkCourse('c1', 'MTH151') },
     });
+    entities.set('flashcards:deck:d1', {
+      key: 'flashcards:deck:d1', app: 'flashcards', type: 'deck', id: 'd1',
+      title: 'Trig identities', course: 'MTH151', url: '/apps/flashcards/?deck=d1', data: { count: 0 },
+    });
     const res = await adapterOpts.intakes['block.plan']({
       id: 'bp2', action: 'block.plan',
       entity: { key: 'flashcards:deck:d1', app: 'flashcards', type: 'deck', id: 'd1' },
@@ -323,6 +357,10 @@ describe('block.plan intake', () => {
     const { useFolio } = await seedAndWire({
       terms: { t1: mkTerm() },
       courses: { c1: mkCourse('c1', 'MTH151') },
+    });
+    entities.set('flashcards:deck:d1', {
+      key: 'flashcards:deck:d1', app: 'flashcards', type: 'deck', id: 'd1',
+      title: 'Trig identities', course: 'MTH151', url: '/apps/flashcards/?deck=d1', data: { count: 0 },
     });
     const send = () => adapterOpts.intakes['block.plan']({
       id: `bp-${Math.random()}`, action: 'block.plan',

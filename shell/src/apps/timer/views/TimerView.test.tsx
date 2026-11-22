@@ -27,7 +27,7 @@ function blockPendingOutboxWrites() {
   return () => vi.stubGlobal('localStorage', backing);
 }
 
-it.each(['', '&course=Forest%20Ecology'])('records the full bound session after a missed final tick (%s)', async (course) => {
+it.each(['', '&course=Forest%20Ecology', 'unbound'])('records a five-minute focus session after a missed final tick (%s)', async (course) => {
   vi.mocked(execCommand).mockClear();
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
@@ -37,14 +37,20 @@ it.each(['', '&course=Forest%20Ecology'])('records the full bound session after 
   const root = createRoot(host);
 
   try {
+    const unbound = course === 'unbound';
+    const binding = unbound ? {} : { blockId: 'b1', commitmentId: 'c1' };
     await act(async () => {
       root.render(
         <TimerView
           active={false}
-          linkQuery={`from=syllabus&intent=Read&minutes=5&autostart=1&block=b1&commitment=c1${course}`}
+          presetMinutes={5}
+          linkQuery={unbound ? '' : `from=syllabus&intent=Read&minutes=5&autostart=1&block=b1&commitment=c1${course}`}
         />,
       );
     });
+    if (unbound) {
+      await act(async () => host.querySelector<HTMLButtonElement>('[title="Start / Pause (Space)"]')?.click());
+    }
     expect(getSessions()).toHaveLength(0);
 
     // Simulate a background tab whose next interval callback fires after expiry.
@@ -57,16 +63,14 @@ it.each(['', '&course=Forest%20Ecology'])('records the full bound session after 
       duration: 300,
       type: 'focus',
       outcome: 'completed',
-      blockId: 'b1',
-      commitmentId: 'c1',
+      ...binding,
     })]);
     expect(execCommand).toHaveBeenCalledOnce();
     expect(execCommand).toHaveBeenCalledWith('recordSessionOutcome', expect.objectContaining({
       outcome: 'completed',
       elapsedSeconds: 300,
       plannedMinutes: 5,
-      blockId: 'b1',
-      commitmentId: 'c1',
+      ...binding,
     }));
   } finally {
     act(() => root.unmount());

@@ -172,7 +172,7 @@ export function SemesterView({
         <div className="flex items-center justify-between mb-3">
           <div className="hrule kicker flex-1 mr-4">COURSE LEDGER</div>
           <div className="flex gap-2">
-            <button className="btn btn--ghost !py-1.5 !px-3 inline-flex items-center gap-1.5" onClick={() => setImporting(true)} title="Stage a Modular AI extraction for review">
+            <button className="btn btn--ghost !py-1.5 !px-3 inline-flex items-center gap-1.5" onClick={() => setImporting(true)} title="Import a course schedule">
               <FileDown size={13} /> Import
             </button>
             <button className="btn btn--ghost !py-1.5 !px-3 inline-flex items-center gap-1.5" onClick={() => setAdding((a) => !a)}>

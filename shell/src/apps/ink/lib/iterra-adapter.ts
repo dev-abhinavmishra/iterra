@@ -11,6 +11,7 @@
 import { useStore } from '../store';
 import { extractText } from './notes';
 import type { Note } from '../store';
+import { flushNativeStore } from '../../../integration/nativePersistence';
 
 /* intake drains can race the desk's persist hydration — a mutation made
    pre-hydration is stomped when persisted state lands. Await it; throw on
@@ -234,7 +235,17 @@ export function registerAdapter() {
   const start = () => { diff(); drain(); emitNew(); };
   if (useStore.persist?.hasHydrated?.()) start();
   else useStore.persist?.onFinishHydration?.(start);
-  useStore.subscribe(() => { diff(); drain(); emitNew(); });
+  let committedMirror = Promise.resolve();
+  useStore.subscribe(() => {
+    committedMirror = committedMirror.then(async () => {
+      await flushNativeStore('ink-notes-storage');
+      diff();
+      drain();
+      emitNew();
+    }).catch((error) => {
+      console.warn('Ink changes are waiting for local persistence before publishing:', error);
+    });
+  });
 
   adapter({
     name: 'ink',
@@ -286,6 +297,7 @@ export function registerAdapter() {
               : {};
           })(),
         });
+        await flushNativeStore('ink-notes-storage');
         /* provenance: the new page was derived FROM the sent entity — the
            relationship edge is what dossiers/search show, not just the
            'From <app>' title. Mirrors cards.create's derived links. */

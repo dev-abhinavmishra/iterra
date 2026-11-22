@@ -86,10 +86,12 @@ runs those standalone on ports 3001–3008, which the terrain doesn't need.
 ## Build & deploy
 
 ```bash
+npm ci --prefix shell --no-audit --no-fund # install locked shell dependencies
 npm run build                     # dist/ — shell at root, apps under /apps/<name>
 ```
 
-Vercel: build command `npm run build`, output `dist`. Margin's API functions
+The build requires installed shell dependencies and does not reinstall them.
+Vercel installs them before the build, with output in `dist`. Margin's API functions
 need `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`/`ANON_KEY`, and `GROQ_API_KEY`
 project env vars — without them Margin still runs local-first.
 

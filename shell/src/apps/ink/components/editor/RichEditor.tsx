@@ -265,7 +265,9 @@ export const RichEditor: React.FC<RichEditorProps> = ({
   const [suggest, setSuggest] = useState<SuggestUI | null>(null);
   const suggestRef = useRef<SuggestUI | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
-  const [deckDraft, setDeckDraft] = useState<{ text: string; noteId: string; title: string; fullText: string; rev: number } | null>(null);
+  const [deckDraft, setDeckDraft] = useState<{
+    text: string; noteId: string; title: string; fullText: string; rev: number; course?: string; courseId?: string;
+  } | null>(null);
   // Editor callbacks are bound once at creation — read live values from a ref.
   const latest = useRef({ typewriter, headingAnchors, editable, onUpdate });
   useEffect(() => {
@@ -456,7 +458,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({
                     <p className="px-3 pt-1.5 pb-1 font-mono text-2xs text-paper/40">send the selection</p>
                     {([
                       { to: 'margin', label: 'Margin note' },
-                      { to: 'flashcards', label: 'Flashcards card' },
+                      { to: 'flashcards', label: 'Draft flashcards' },
                       { to: 'proof', label: 'Proof step' },
                     ] as const).map(t => (
                       <button
@@ -468,16 +470,19 @@ export const RichEditor: React.FC<RichEditorProps> = ({
                              send — provenance lands as derivedFrom links. */
                           if (t.to === 'flashcards') {
                             const { from, to: selTo } = editor.state.selection;
-                            const sel = editor.state.doc.textBetween(from, selTo, ' ').trim();
+                            const sel = editor.state.doc.textBetween(from, selTo, '\n').trim();
                             if (!sel) return;
                             const st = useStore.getState();
                             const page = st.notes.find(n => n.id === st.activeNoteId);
+                            if (!page) return;
                             setDeckDraft({
                               text: sel,
-                              noteId: page?.id ?? 'page',
-                              title: page?.title || 'untitled',
+                              noteId: page.id,
+                              title: page.title || 'Untitled note',
                               fullText: editor.getText(),
-                              rev: page?.lastModified ?? 0,
+                              rev: page.lastModified,
+                              course: page.course,
+                              courseId: page.courseId,
                             });
                           } else {
                             sendSelection(editor, t.to);
@@ -549,24 +554,19 @@ export const RichEditor: React.FC<RichEditorProps> = ({
           selectedText={deckDraft.text}
           sourceFullText={deckDraft.fullText}
           sourceRevision={deckDraft.rev || undefined}
-          onCreated={(res) => {
-            setDeckDraft(null);
-            const it = (window as unknown as { iterra?: IterraSendSurface }).iterra;
-            if (res?.url) {
-              if (it?.open) it.open(res.url); else window.open(res.url, '_blank');
-            }
-          }}
+          initialCourse={deckDraft.course}
+          initialCourseId={deckDraft.courseId}
         />
       )}
     </div>
   );
 };
 
-/* Workflow B — hand the selection to a sibling place through the canonical
-   send queue: a Margin page, a Flashcards card, or a Proof step. The send
+/* Hand the selection to a sibling place through the canonical
+   send queue: a Margin page or a Proof step. The send
    resolves with the created entity's deep link, which we then open. */
 interface SendOpts {
-  to: 'margin' | 'flashcards' | 'proof';
+  to: 'margin' | 'proof';
   action: string;
   entity: { app: string; type: string; id: string; title: string };
   payload?: Record<string, unknown>;
@@ -577,7 +577,7 @@ interface IterraSendSurface {
   open?: (url: string) => void;
 }
 
-const sendSelection = (editor: Editor, to: 'margin' | 'flashcards' | 'proof'): void => {
+const sendSelection = (editor: Editor, to: 'margin' | 'proof'): void => {
   const it = (window as unknown as { iterra?: IterraSendSurface }).iterra;
   if (!it?.send) return;
   const { from, to: selTo } = editor.state.selection;
@@ -587,13 +587,11 @@ const sendSelection = (editor: Editor, to: 'margin' | 'flashcards' | 'proof'): v
   const page = st.notes.find(n => n.id === st.activeNoteId);
   const pageTitle = page?.title || 'untitled';
   const entity = { app: 'ink', type: 'note', id: page?.id ?? 'page', title: pageTitle };
-  const label = to === 'margin' ? 'Margin' : to === 'flashcards' ? 'Flashcards' : 'Proof';
+  const label = to === 'margin' ? 'Margin' : 'Proof';
   const opts =
     to === 'margin'
       ? { to, action: 'note.create', entity, payload: { text: sel } }
-      : to === 'flashcards'
-        ? { to, action: 'cards.create', entity, payload: { cards: [{ q: `from “${pageTitle}” — recall`, a: sel }], deckTitle: pageTitle } }
-        : { to, action: 'step.append', entity: { app: 'ink', type: 'note', id: page?.id ?? 'page', title: sel } };
+      : { to, action: 'step.append', entity: { app: 'ink', type: 'note', id: page?.id ?? 'page', title: sel } };
   Promise.resolve(it.send(opts))
     .then((res) => {
       /* a declined delivery (ok:true, url:null) carries the handler's

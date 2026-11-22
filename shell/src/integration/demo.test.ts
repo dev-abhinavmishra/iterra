@@ -7,7 +7,22 @@
 //              written before or after the seed survives untouched.
 // Runs in plain node like record-session-outcome.test.ts: localStorage and
 // window.iterra stubbed BEFORE importing the module under test.
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+const NATIVE_DB = 'iterra-native-state';
+type NativeModule = typeof import('./nativePersistence');
+let nativeModule: NativeModule | null = null;
+
+async function deleteNativeDatabase(): Promise<void> {
+  if (nativeModule) await nativeModule.nativePersistenceTestReset();
+  await new Promise<void>((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(NATIVE_DB);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error ?? new Error('Could not reset native state for demo test.'));
+    request.onblocked = () => reject(new Error('Native state reset was blocked in demo test.'));
+  });
+  nativeModule = null;
+}
 
 let store: Map<string, string>;
 let puts: Record<string, unknown>[];
@@ -38,14 +53,22 @@ const installStubs = () => {
 };
 
 const load = async () => {
-  vi.resetModules();
   return import('./demo');
 };
 
 const folioState = () =>
   (JSON.parse(store.get('syllabus.folio.v1') ?? '{}') as { state?: Record<string, Record<string, { id: string }>> }).state ?? {};
 
-beforeEach(installStubs);
+beforeEach(async () => {
+  await deleteNativeDatabase();
+  installStubs();
+  vi.resetModules();
+  nativeModule = await import('./nativePersistence');
+});
+
+afterEach(async () => {
+  await deleteNativeDatabase();
+});
 
 describe('seedDemoSemester', () => {
   it('plants courses, commitments, blocks, decks, sessions and sets the flag', async () => {
@@ -82,16 +105,13 @@ describe('seedDemoSemester', () => {
   });
 
   it('merges into existing folio data instead of replacing it', async () => {
-    localStorageStub.setItem('syllabus.folio.v1', JSON.stringify({
-      state: {
+    await nativeModule!.replaceNativeStores({ ['syllabus.folio.v1']: { state: {
         terms: { 'real-term': { id: 'real-term' } },
         activeTermId: 'real-term',
         courses: { 'real-course': { id: 'real-course' } },
         commitments: { 'real-c1': { id: 'real-c1' } },
         blocks: {}, links: {}, reviews: {}, dismissed: {},
-      },
-      version: 1,
-    }));
+    }, version: 1 } });
     const demo = await load();
     await demo.seedDemoSemester();
     const s = folioState();
@@ -164,16 +184,13 @@ describe('removeDemoData', () => {
 
     /* simulate a delivered intake artifact: an ink note created from the
        demo intake carries the intake-derived demo id */
-    localStorageStub.setItem('ink-notes-storage', JSON.stringify({
-      state: {
-        notes: [
-          { id: 'intake-in-demo-ink1', title: 'Lecture notes' },
-          { id: 'user-note', title: 'Mine' },
-        ],
-        activeNoteId: 'intake-in-demo-ink1',
-      },
-      version: 4,
-    }));
+    await nativeModule!.replaceNativeStores({ ['ink-notes-storage']: { state: {
+      notes: [
+        { id: 'intake-in-demo-ink1', title: 'Lecture notes' },
+        { id: 'user-note', title: 'Mine' },
+      ],
+      folders: [], drafts: {}, activeNoteId: 'intake-in-demo-ink1',
+    }, version: 4 } });
 
     const res = await demo.removeDemoData();
     expect(res.ok).toBe(true);

@@ -41,11 +41,15 @@ const ok = (msg) => console.log('  ok:', msg);
 
   /* ── courses index ── */
   await page.goto(`${BASE}/#/courses`, { waitUntil: 'load' });
-  const coursesTxt = await page.evaluate(() => document.body.innerText);
-  for (const needle of ['BIO 201', 'ENGL 210', 'STAT 220']) {
-    if (!coursesTxt.includes(needle)) fail(`courses index missing ${needle}`);
+  try {
+    await page.waitForFunction(() => ['BIO 201', 'ENGL 210', 'STAT 220'].every(
+      code => document.body.innerText.includes(code)
+    ), undefined, { timeout: 15000 });
+    ok('courses index shows all three courses');
+  } catch {
+    const coursesTxt = await page.evaluate(() => document.body.innerText);
+    fail(`courses index missing ${['BIO 201', 'ENGL 210', 'STAT 220'].filter(code => !coursesTxt.includes(code)).join(', ')}`);
   }
-  ok('courses index shows all three courses');
 
   /* ── syllabus hydrates the folio ── */
   await page.goto(`${BASE}/#/p/syllabus`, { waitUntil: 'load' });
@@ -208,7 +212,7 @@ const ok = (msg) => console.log('  ok:', msg);
   /* Today lists the routine; clicking 'Log routine' marks inline. Poll —
      the entity publish + presence summary lag a few seconds on slow disks. */
   await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
-  const logBtn = page.getByRole('button', { name: 'Log routine' }).first();
+  const logBtn = page.getByRole('button', { name: /^(Log routine|Log amount)$/ }).first();
   let btnFound = false;
   /* the routine row lags the intake drain — the adapter's mirror/index write
      is a second async pass, and on a loaded disk it lands tens of seconds
@@ -257,6 +261,11 @@ const ok = (msg) => console.log('  ok:', msg);
     fail('Today shows no Log routine row: ' + JSON.stringify(diag));
   } else {
     await logBtn.click();
+    const amountDialog = page.getByRole('dialog', { name: 'Log routine amount' });
+    if (await amountDialog.isVisible()) {
+      await amountDialog.getByRole('spinbutton').fill('30');
+      await amountDialog.getByRole('button', { name: 'Save check-in' }).click();
+    }
     let checked = 0;
     for (let i = 0; i < 20; i++) {
       checked = await page.evaluate(() => {

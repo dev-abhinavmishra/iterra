@@ -5,7 +5,7 @@ import './ui/place-colors.css';
 import App, { ShellBoundary } from './App';
 import { placeHashFromAppUrl } from './route';
 import { registerIntegrationCommands } from './integration/commands';
-import { runIntegrationMigrations, installCrossTabSync } from './integration/migration';
+import { ensureIntegrationMigrations, installCrossTabSync } from './integration/migration';
 
 /* One document, one terrain — app-to-app links can't open real windows
    anymore. Apps call iterra.open('/apps/<p>/…') (the hub posts
@@ -81,7 +81,7 @@ if (typeof navigator.storage?.persist === 'function') {
    synchronously before this module), run versioned migrations, and keep
    persisted app stores rehydrated across tabs. */
 registerIntegrationCommands();
-void runIntegrationMigrations().catch(() => {});
+void ensureIntegrationMigrations().catch(() => {});
 installCrossTabSync();
 
 /* Offline support — prod only. A dev-mode SW caching module responses

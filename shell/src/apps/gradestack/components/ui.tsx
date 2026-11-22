@@ -168,12 +168,12 @@ export function PageHeader({ title, description, children }: {
   title: string; description?: string; children?: React.ReactNode;
 }) {
   return (
-    <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-5 border-b border-hairline pb-6">
-      <div>
+    <div className="mb-8 flex flex-col sm:flex-row sm:flex-wrap sm:items-end justify-between gap-4 border-b border-hairline pb-6">
+      <div className="min-w-0">
         <h2 className="text-headline-lg">{title}</h2>
         {description && <p className="text-body-md text-pencil mt-1">{description}</p>}
       </div>
-      {children && <div className="flex items-center gap-3 shrink-0">{children}</div>}
+      {children && <div className="flex min-w-0 flex-wrap items-center gap-2">{children}</div>}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { StoreEntity } from './hub';
+import { boxedFocusUrl, parseBoxedFocus } from './integration/boxedFocus';
 
 /* Non-intrusive toast notifications for completed focus sessions and
    resolved cross-module intakes. Live focus controls now live directly in
@@ -16,6 +17,7 @@ export function Ambient({
   entities,
   onGo,
   panelOpen,
+  activePlace,
 }: {
   entities: StoreEntity[];
   mounted?: string[];
@@ -61,9 +63,10 @@ export function Ambient({
     seenSessions.current = keys;
     if (fresh) {
       const mins = (fresh.data?.minutes as number) || null;
+      const boxed = parseBoxedFocus(fresh.data?.boxedFocus);
       pushRef.current({
         text: `${fresh.title || 'Focus session'}${mins ? ` · ${mins}m` : ''} logged`,
-        url: fresh.url || '/apps/timer/',
+        url: boxed ? boxedFocusUrl(boxed) : fresh.url || '/apps/timer/',
       });
     }
   }, [entities]);
@@ -118,7 +121,7 @@ export function Ambient({
       role="status"
       className={`it-ambient pointer-events-none fixed bottom-[calc(1rem+var(--iterra-bottom-inset,0px))] z-50 flex flex-col items-end gap-2 transition-[right] duration-150 ${
         panelOpen ? 'right-4 lg:right-[336px]' : 'right-4'
-      }`}
+      } ${activePlace === 'boxed' ? 'max-[761px]:bottom-[calc(4.5rem+var(--iterra-bottom-inset,0px))]' : ''}`}
     >
       {updateReady && (
         <button

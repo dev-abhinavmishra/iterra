@@ -33,6 +33,20 @@ export function ScanSheets() {
 
   const [selectedTestId, setSelectedTestId] = useState<string>(initialTestId || '');
   const [isScanning, setIsScanning] = useState(false);
+  const pdfBatchInFlight = useRef(false);
+  const [legacySheet, setLegacySheet] = useState<{ file: string; assessment: string } | null>(null);
+  const legacyDecision = useRef<((accepted: boolean) => void) | null>(null);
+  const resolveLegacy = (accepted: boolean) => {
+    const resolve = legacyDecision.current;
+    legacyDecision.current = null;
+    setLegacySheet(null);
+    resolve?.(accepted);
+  };
+  useEffect(() => () => { legacyDecision.current?.(false); legacyDecision.current = null; }, []);
+  const confirmLegacy = (file: string, assessment: string) => new Promise<boolean>(resolve => {
+    legacyDecision.current = resolve;
+    setLegacySheet({ file, assessment });
+  });
   const [showDrawer, setShowDrawer] = useState(false);
   const [isEditingKey, setIsEditingKey] = useState(false);
   const [reviewScanId, setReviewScanId] = useState<string | null>(initialScanId || null);
@@ -366,23 +380,30 @@ export function ScanSheets() {
 
   // ── Digitally-filled PDFs — graded locally, no AI ──────────
   const gradePDFs = async (files: File[]) => {
-    if (!selectedTest) return;
+    if (!selectedTest || pdfBatchInFlight.current) return;
+    pdfBatchInFlight.current = true;
     setIsScanning(true);
     setError(null);
-    let errorCount = 0;
-
-    for (const file of files) {
-      if (file.type === 'application/pdf') {
-        const success = await gradePDFProgrammatically(file);
-        if (!success) errorCount++;
-      } else {
-        errorCount++;
+    try {
+      const failures = new Set<'invalid' | 'wrong-assessment' | 'layout'>();
+      for (const file of files) {
+        if (file.type === 'application/pdf') {
+          const result = await gradePDFProgrammatically(file);
+          if (result !== 'ok' && result !== 'canceled') failures.add(result);
+        } else {
+          failures.add('invalid');
+        }
       }
-    }
-
-    setIsScanning(false);
-    if (errorCount > 0) {
-      setError(`${errorCount} file${errorCount > 1 ? 's' : ''} couldn't be read. Only digitally filled PDFs exported from GradeStack work — photos go through "Upload photo".`);
+      const messages: string[] = [];
+      if (failures.has('wrong-assessment')) messages.push('A sheet belongs to a different assessment. Select that assessment and upload it again.');
+      if (failures.has('layout')) messages.push('A sheet has a different question layout. Select the matching assessment or use its current sheet.');
+      if (failures.has('invalid')) messages.push('A file could not be read as a filled GradeStack sheet. Upload a valid filled PDF.');
+      if (messages.length) setError(messages.join(' '));
+    } catch {
+      setError('The sheets could not be read. Please try again.');
+    } finally {
+      pdfBatchInFlight.current = false;
+      setIsScanning(false);
     }
   };
 
@@ -392,16 +413,45 @@ export function ScanSheets() {
     e.target.value = '';
   };
 
-  const gradePDFProgrammatically = async (file: File): Promise<boolean> => {
-    if (!selectedTest) return false;
+  const gradePDFProgrammatically = async (file: File): Promise<'ok' | 'canceled' | 'invalid' | 'wrong-assessment' | 'layout'> => {
+    if (!selectedTest) return 'invalid';
 
     try {
       const arrayBuffer = await file.arrayBuffer();
       const { PDFDocument } = await import('pdf-lib');
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const pdfDoc = await PDFDocument.load(arrayBuffer, { updateMetadata: false });
       const form = pdfDoc.getForm();
       const fields = form.getFields();
-      if (fields.length === 0) throw new Error("No fields found");
+      let metadata: { format?: string; formatVersion?: number; assessmentId?: string; sections?: unknown };
+      try { metadata = JSON.parse(pdfDoc.getKeywords() || ''); } catch { throw new Error('Missing GradeStack metadata'); }
+      if (!metadata || !Array.isArray(metadata.sections)) throw new Error('Invalid GradeStack metadata');
+      const versioned = metadata.formatVersion !== undefined || metadata.assessmentId !== undefined;
+      if (versioned) {
+        if (metadata.format !== 'gradestack-sheet' || metadata.formatVersion !== 2 || typeof metadata.assessmentId !== 'string') return 'invalid';
+        if (metadata.assessmentId !== selectedTest.id) return 'wrong-assessment';
+      }
+      const sections = metadata.sections as Array<{ count?: unknown; format?: unknown }>;
+      if (sections.some(section => !section || !Number.isInteger(section.count) || (section.count as number) < 1 ||
+          (section.count as number) > 500 || typeof section.format !== 'string')) return 'invalid';
+      const fileFormats = sections.flatMap(section => Array(section.count as number).fill(section.format as string));
+      if (fileFormats.length !== testFormats.length || fileFormats.some((format, i) => format !== testFormats[i])) return 'layout';
+      const questionNumbers = new Set(fields.map(field => /^q\.(\d+)(?:\.|$)/.exec(field.getName()))
+        .filter((match): match is RegExpExecArray => !!match).map(match => Number(match[1])));
+      if (questionNumbers.size !== selectedTest.numQuestions ||
+          [...questionNumbers].some(q => q < 1 || q > selectedTest.numQuestions)) return 'layout';
+      for (let question = 1; question <= selectedTest.numQuestions; question++) {
+        const format = testFormats[question - 1];
+        const group = fields.filter(field => field.getName() === `q.${question}` || field.getName().startsWith(`q.${question}.`));
+        if (format === 'SA') {
+          if (group.length !== 1 || typeof (group[0] as any).getText !== 'function') return 'layout';
+        } else if (isMultiple(format)) {
+          const expected = optionsFor(format);
+          if (group.length !== expected.length || expected.some(option =>
+            !group.some(field => field.getName() === `q.${question}.${option}` && typeof (field as any).isChecked === 'function'))) return 'layout';
+        } else if (group.length !== 1 || typeof (group[0] as any).getSelected !== 'function') return 'layout';
+      }
+      const unverified = !versioned;
+      if (unverified && !await confirmLegacy(file.name, selectedTest.name)) return 'canceled';
 
       const studentResponses: Record<number, string> = {};
       let studentName = "";
@@ -461,14 +511,15 @@ export function ScanSheets() {
         maxScore: grade.maxScore,
         percentage: grade.percentage,
         grade: grade.grade,
-        needsReview: grade.needsReview,
+        needsReview: grade.needsReview || unverified,
+        pdfProvenance: unverified ? 'unverified-legacy' : 'matched',
         responses: studentResponses,
         batchName: batchName || undefined
       });
-      return true;
+      return 'ok';
     } catch (err) {
       console.error(err);
-      return false;
+      return 'invalid';
     }
   };
 
@@ -544,6 +595,14 @@ export function ScanSheets() {
       <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.pdf" className="hidden" />
       <input type="file" multiple ref={pdfInputRef} onChange={handlePdfUpload} accept="application/pdf" className="hidden" />
 
+      {legacySheet && (
+        <Modal title="Confirm older sheet" subtitle={legacySheet.file} onClose={() => resolveLegacy(false)}
+          footer={<><Button variant="ghost" onClick={() => resolveLegacy(false)} autoFocus>Cancel</Button>
+            <Button onClick={() => resolveLegacy(true)}>Grade for this assessment</Button></>}>
+          <div className="px-6 py-5 text-sm">This older GradeStack sheet has no assessment ID. Confirm it belongs to {legacySheet.assessment}.
+            Its result will be marked for review because its source cannot be verified.</div>
+        </Modal>
+      )}
       {/* Mobile header */}
       <header className="md:hidden flex items-center justify-between px-5 h-14 bg-form border-b border-hairline z-40 w-full shrink-0">
         <h1 className="font-display text-xl font-semibold text-ink">Scan Sheets</h1>
@@ -685,6 +744,7 @@ export function ScanSheets() {
         <div className="p-5 border-b border-hairline space-y-4 mt-14 md:mt-0">
           <Field label="Assessment">
             <Select
+              disabled={isScanning}
               value={selectedTestId}
               onChange={(e) => setSelectedTestId(e.target.value)}
             >
@@ -799,6 +859,7 @@ export function ScanSheets() {
                     </div>
                     <div className="text-center">
                       <p className="text-xs font-semibold text-white/60">Digitally filled PDF</p>
+                      {scanToReview.pdfProvenance === 'unverified-legacy' && <p className="text-xs text-white/60">Older sheet: assessment match was confirmed by the user, not verified from the file.</p>}
                       <p className="text-[11px] text-white/35 mt-1 max-w-[220px]">No page photo — this sheet was graded straight from the form fields.</p>
                     </div>
                   </div>

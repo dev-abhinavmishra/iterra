@@ -35,6 +35,11 @@ import {
   recordWorkflowHandoff,
   setActiveSessionInContext,
 } from './context';
+import { reviewQuestions } from '../apps/gradestack/lib/review';
+import type { Scan, Test } from '../apps/gradestack/store';
+import { boxedFocusUrl, parseBoxedFocus, type BoxedFocusTarget } from './boxedFocus';
+import { checkSessionPlan, writeStudySession, type SessionChecklist } from './studySessionState';
+import { readNativeSnapshot, writeNativeSnapshotDelta, type NativeStateKey, type NativeSnapshot } from './nativePersistence';
 
 const SESSION_OUTCOMES_KEY = 'iterra.v1.sessionOutcomes';
 const LIVE_SESSION_KEY = 'timer.session.live.v1';
@@ -57,6 +62,23 @@ function readZustandWrapper(storageKey: string): { state: Record<string, any>; v
 
 function writeZustandWrapper(storageKey: string, state: Record<string, any>, version = 1): void {
   localStorage.setItem(storageKey, JSON.stringify({ state, version }));
+}
+
+async function readNativeWrapper(storageKey: NativeStateKey): Promise<{ state: Record<string, any>; version: number; base: NativeSnapshot }> {
+  const base = await readNativeSnapshot(storageKey);
+  // Keep the comparison baseline immutable while command code edits its
+  // working snapshot. Sharing this object would make diffNativeState see the
+  // already-mutated state on both sides and silently produce an empty receipt.
+  const state = JSON.parse(JSON.stringify(base.state));
+  return { state, version: base.version, base };
+}
+
+async function writeNativeWrapper(
+  storageKey: NativeStateKey,
+  state: Record<string, any>,
+  wrapper: { version: number; base: NativeSnapshot },
+): Promise<void> {
+  await writeNativeSnapshotDelta(storageKey, wrapper.base, state, wrapper.version);
 }
 
 /* a write through localStorage is invisible to a mounted zustand store —
@@ -581,7 +603,7 @@ export async function handleScheduleReviewBlock(
   const linkId = uid('l_');
 
   // Update Syllabus authoritative store (`syllabus.folio.v1` + live `useFolio` if loaded)
-  const wrapper = readZustandWrapper('syllabus.folio.v1');
+  const wrapper = await readNativeWrapper('syllabus.folio.v1');
   const st = wrapper.state;
   st.terms = st.terms || {};
   st.courses = st.courses || {};
@@ -683,24 +705,10 @@ export async function handleScheduleReviewBlock(
   };
   st.links[linkId] = resourceLink;
 
-  writeZustandWrapper('syllabus.folio.v1', st, wrapper.version);
+  await writeNativeWrapper('syllabus.folio.v1', st, wrapper);
 
-  // Also sync live `useFolio` zustand store if loaded in memory
-  try {
-    const folioMod = (window as any).__syllabusFolioStore;
-    if (folioMod?.setState) {
-      folioMod.setState({
-        terms: { ...st.terms },
-        activeTermId: st.activeTermId,
-        courses: { ...st.courses },
-        commitments: { ...st.commitments },
-        blocks: { ...st.blocks },
-        links: { ...st.links },
-      });
-    }
-  } catch {
-    /* ignore */
-  }
+  // `writeNativeWrapper` adopts the committed merged snapshot into the live
+  // store after the IDB transaction; no stale whole-state echo is needed here.
   notifyStoreChange('syllabus');
 
   const blockKey = `syllabus:block:${blockId}`;
@@ -933,7 +941,7 @@ export async function handleAttachMaterialToBlock(
   }
 
   // Update Syllabus block record with attached material metadata
-  const wrapper = readZustandWrapper('syllabus.folio.v1');
+  const wrapper = await readNativeWrapper('syllabus.folio.v1');
   const st = wrapper.state;
   if (st.blocks?.[bObj.id]) {
     st.blocks[bObj.id] = {
@@ -942,12 +950,7 @@ export async function handleAttachMaterialToBlock(
       materialTitle: mObj.title,
       materialUrl: mObj.url,
     };
-    writeZustandWrapper('syllabus.folio.v1', st, wrapper.version);
-    try {
-      (window as any).__syllabusFolioStore?.setState?.({ blocks: { ...st.blocks } });
-    } catch {
-      /* ignore */
-    }
+    await writeNativeWrapper('syllabus.folio.v1', st, wrapper);
     notifyStoreChange('syllabus');
   }
 
@@ -1003,6 +1006,8 @@ export interface StartFocusSessionInput {
   plannedMinutes?: number;
   thenBreak?: number;
   from?: string;
+  boxedFocus?: BoxedFocusTarget;
+  studyPlan?: SessionChecklist;
   openMaterial?: boolean;
   workflowId?: string;
   idempotencyKey?: string;
@@ -1097,6 +1102,8 @@ export async function handleStartFocusSession(
   const now = Date.now();
   const endsAt = now + plannedMinutes * 60 * 1000;
   const blockId = blockObj?.id ?? input.blockId ?? null;
+  const boxedFocus = input.from === 'boxed' ? parseBoxedFocus(input.boxedFocus) : undefined;
+  const returnUrl = boxedFocus ? boxedFocusUrl(boxedFocus) : '/apps/syllabus';
 
   // Build Timer deep-link URL carrying block, material, and course bindings
   const q = new URLSearchParams();
@@ -1114,14 +1121,14 @@ export async function handleStartFocusSession(
     q.set('materialUrl', matObj.url);
   }
   q.set('sessionId', sessionId);
-  q.set('return', '/apps/syllabus');
+  q.set('return', returnUrl);
   q.set('autostart', '1');
   if (input.thenBreak && input.thenBreak > 0) q.set('break', String(Math.round(input.thenBreak)));
   const timerUrl = `/apps/timer/?${q.toString()}`;
 
   // Mark block in-progress in Syllabus store if bound to a block
   if (blockId) {
-    const wrapper = readZustandWrapper('syllabus.folio.v1');
+    const wrapper = await readNativeWrapper('syllabus.folio.v1');
     const st = wrapper.state;
     if (st.blocks?.[blockId] && st.blocks[blockId].state !== 'done') {
       st.blocks[blockId] = {
@@ -1129,17 +1136,16 @@ export async function handleStartFocusSession(
         state: 'in-progress',
         timerSessionUrl: timerUrl,
       };
-      writeZustandWrapper('syllabus.folio.v1', st, wrapper.version);
-      try {
-        (window as any).__syllabusFolioStore?.setState?.({ blocks: { ...st.blocks } });
-      } catch {
-        /* ignore */
-      }
+      await writeNativeWrapper('syllabus.folio.v1', st, wrapper);
       notifyStoreChange('syllabus');
     }
   }
 
-  // Persist live session state so Timer & all other modules see it immediately and across reloads
+  // Save the chosen checklist before binding the Timer view.
+  const studyPlan = checkSessionPlan(input.studyPlan);
+  if (studyPlan) writeStudySession({ sessionKey: sessionId, plan: studyPlan, checked: [] });
+
+  // Persist live session state so Timer and the other tools can restore it.
   const livePayload = {
     sessionId,
     label,
@@ -1160,7 +1166,8 @@ export async function handleStartFocusSession(
     syllabus: {
       sessionId,
       block: blockId || undefined,
-      returnUrl: '/apps/syllabus',
+      returnUrl,
+      boxedFocus,
       course: course || undefined,
       courseId: courseId || undefined,
       commitmentId: commitmentId || undefined,
@@ -1219,7 +1226,7 @@ export async function handleStartFocusSession(
     running: true,
     endsAt,
     from: input.from || 'syllabus',
-    returnUrl: '/apps/syllabus',
+    returnUrl,
   };
   setActiveSessionInContext(activeSessionCtx);
 
@@ -1288,6 +1295,7 @@ export interface RecordSessionOutcomeInput {
   course?: string | null;
   topic?: string | null;
   notes?: string;
+  boxedFocus?: BoxedFocusTarget;
   /* when the session happened — manual/backfilled entries need a date the
      stats can file under; defaults to now for live-timed runs */
   at?: number;
@@ -1554,6 +1562,7 @@ async function recordSessionOutcome(
       elapsedSeconds,
       plannedMinutes,
       sessionKind,
+      boxedFocus: parseBoxedFocus(input.boxedFocus),
       outcome: input.outcome,
       confirmedByUser,
       label,
@@ -1583,7 +1592,7 @@ async function recordSessionOutcome(
   let directCommitmentUrl: string | null = null;
   let finalBlockState: string | null = null;
   if (blockId) {
-    const wrapper = readZustandWrapper('syllabus.folio.v1');
+    const wrapper = await readNativeWrapper('syllabus.folio.v1');
     const st = wrapper.state;
     const blk = st.blocks?.[blockId];
     if (blk) {
@@ -1646,15 +1655,7 @@ async function recordSessionOutcome(
         // Persist the dedupe marker in the same wrapper write as the minute
         // credit, so an outbox retry after a crash cannot credit twice.
         st.blocks[blockId] = markSessionOutcome(st.blocks[blockId] || blk, sessionId, input.outcome);
-        writeZustandWrapper('syllabus.folio.v1', st, wrapper.version);
-      }
-      try {
-        (window as any).__syllabusFolioStore?.setState?.({
-          blocks: { ...st.blocks },
-          commitments: { ...st.commitments },
-        });
-      } catch {
-        /* ignore */
+        await writeNativeWrapper('syllabus.folio.v1', st, wrapper);
       }
 
       const updatedBlk = st.blocks[blockId];
@@ -1694,7 +1695,8 @@ async function recordSessionOutcome(
   } else if (commitmentId && elapsedMinutes > 0 && input.outcome !== 'canceled') {
     // A focus session can bind directly to an assignment without booking a block.
     // Credit time on that assignment without treating study time as task completion.
-    const { state, version } = readZustandWrapper('syllabus.folio.v1');
+    const wrapper = await readNativeWrapper('syllabus.folio.v1');
+    const { state } = wrapper;
     const commitment = state.commitments?.[commitmentId];
     if (commitment?.id === commitmentId) {
       const recordedOutcome = getRecordedSessionOutcome(commitment, sessionId);
@@ -1713,9 +1715,8 @@ async function recordSessionOutcome(
       if (!alreadyCredited) {
         const lastWorkedAt = new Date(Math.max(at, Date.parse(commitment.lastWorkedAt) || 0)).toISOString();
         state.commitments[commitmentId] = markSessionOutcome({ ...commitment, loggedMinutes, lastWorkedAt }, sessionId, input.outcome);
-        writeZustandWrapper('syllabus.folio.v1', state, version);
+        await writeNativeWrapper('syllabus.folio.v1', state, wrapper);
       }
-      syncLiveStore('__syllabusFolioStore', { commitments: { ...state.commitments } });
 
       directCommitmentUrl = `/apps/syllabus/?commitment=${encodeURIComponent(commitmentId)}`;
       const updatedCommitmentEntity = await putHubEntityRequired({
@@ -2070,7 +2071,7 @@ export async function handleAttachSourceMaterial(
   const noteTitle = String(input.title || srcObj?.title || 'Notes from Margin').trim();
   const now = Date.now();
 
-  const wrapper = readZustandWrapper('ink-notes-storage');
+  const wrapper = await readNativeWrapper('ink-notes-storage');
   const st = wrapper.state;
   st.notes = Array.isArray(st.notes) ? st.notes : [];
 
@@ -2137,15 +2138,7 @@ export async function handleAttachSourceMaterial(
     st.activeNoteId = noteId;
   }
 
-  writeZustandWrapper('ink-notes-storage', st, wrapper.version || 4);
-  try {
-    (window as any).__inkStore?.setState?.({
-      notes: [...st.notes],
-      activeNoteId: noteId,
-    });
-  } catch {
-    /* ignore */
-  }
+  await writeNativeWrapper('ink-notes-storage', st, wrapper);
   notifyStoreChange('ink');
 
   const noteKey = `ink:note:${noteId}`;
@@ -2514,6 +2507,8 @@ export interface CreateTargetedReviewInput {
   questionTopics?: Record<number, string>;
   /** User-identified follow-up topics when question mappings are absent */
   selectedTopics?: string[];
+  selectedQuestions?: number[];
+  scanIds?: string[];
   reviewKind?: 'syllabus-block' | 'flashcards-deck' | 'both';
   plannedDate?: string;
   plannedMinutes?: number;
@@ -2533,10 +2528,11 @@ export async function handleCreateTargetedReview(
     followUpRefs: string[];
     blockRef?: string;
     deckRef?: string;
+    warning?: string;
   }>
 > {
   const assessRef = parseRef(input?.assessmentRef);
-  if (!assessRef || assessRef.type !== 'assessment') {
+  if (!assessRef || assessRef.app !== 'gradestack' || assessRef.type !== 'assessment') {
     return {
       ok: false,
       commandId: '',
@@ -2555,20 +2551,39 @@ export async function handleCreateTargetedReview(
     };
   }
 
-  const rawTest = (assessObj.raw || {}) as any;
+  const rawTest = assessObj.raw as Test | undefined;
   const mergedQuestionTopics: Record<number, string> = {
-    ...(rawTest.questionTopics || {}),
+    ...rawTest?.questionTopics,
     ...(input.questionTopics || {}),
   };
-
-  const mappedTopics = Object.values(mergedQuestionTopics)
-    .map((t) => String(t || '').trim())
-    .filter(Boolean);
+  const { state: grades } = readZustandWrapper('gradestack-storage');
+  const scanIds = input.scanIds ? new Set(input.scanIds) : null;
+  const selectedQuestions = new Set(input.selectedQuestions ?? []);
+  const selected = rawTest && selectedQuestions.size
+    ? reviewQuestions({ ...rawTest, questionTopics: mergedQuestionTopics },
+        (Array.isArray(grades.scans) ? grades.scans as Scan[] : [])
+          .filter(scan => !scanIds || scanIds.has(scan.id)))
+      .filter(question => selectedQuestions.has(question.number))
+    : [];
   const manualTopics = (input.selectedTopics || [])
     .map((t) => String(t || '').trim())
     .filter(Boolean);
 
-  const topics = Array.from(new Set([...manualTopics, ...mappedTopics]));
+  const topics = [...new Set([...selected.map(question => question.topic || `Question ${question.number}`), ...manualTopics])];
+  const reviewKind = input.reviewKind || 'syllabus-block';
+  const needsDeck = reviewKind !== 'syllabus-block';
+  const cards: CandidateCard[] = input.cards?.length ? input.cards : selected.map(question => ({
+    id: `question-${question.number}`,
+    q: `Question ${question.number} from ${assessObj.title}${question.topic ? ` · ${question.topic}` : ''}`,
+    a: `Answer key: ${question.answer}`,
+    ex: 'Retry the question on the original assessment before revealing the answer.',
+  }));
+  if (selected.length !== selectedQuestions.size) {
+    return { ok: false, commandId: '', code: 'REVIEW_CHANGED', error: 'The graded answers changed. Reopen the review to refresh the suggestions.' };
+  }
+  if (needsDeck && !cards.some(card => card.q.trim() && card.a.trim())) {
+    return { ok: false, commandId: '', code: 'REVIEW_CARDS_REQUIRED', error: 'Select a missed question with an answer key, or create a study block for your topics.' };
+  }
 
   // CRITICAL HONESTY REQUIREMENT (§5):
   // "Use question/topic mappings only if available, otherwise let the user
@@ -2580,7 +2595,7 @@ export async function handleCreateTargetedReview(
       commandId: '',
       code: 'TOPICS_REQUIRED',
       error:
-        'Cannot infer detailed weaknesses from an overall score alone. Please provide question-to-topic mappings or select follow-up topics manually.',
+        'Select a missed question or add a topic to review.',
     };
   }
 
@@ -2588,7 +2603,7 @@ export async function handleCreateTargetedReview(
   const courseInfo = await resolveCanonicalCourse(
     input.courseId
       ? { courseId: input.courseId, course: input.course || undefined }
-      : input.course || assessObj.course || rawTest.courseName || 'GEN',
+      : input.course || assessObj.course || rawTest?.courseName || 'GEN',
     { createIfMissing: true },
   );
   const courseId = courseInfo!.courseId;
@@ -2655,22 +2670,12 @@ export async function handleCreateTargetedReview(
   });
   if (assessedRel.relationship) relationships.push(assessedRel.relationship);
 
-  const reviewKind = input.reviewKind || 'syllabus-block';
   let deckRef: string | undefined;
   let blockRef: string | undefined;
+  let warning: string | undefined;
   let primaryUrl = assessObj.url;
 
-  if (reviewKind === 'flashcards-deck' || reviewKind === 'both') {
-    const cardsToCreate: CandidateCard[] =
-      input.cards && input.cards.length > 0
-        ? input.cards
-        : topics.map((t, idx) => ({
-            id: `rev-${idx + 1}`,
-            q: `${t} — targeted review (${assessObj.title})`,
-            a: `Review key concepts and common errors for ${t}`,
-            ex: `Follow-up from ${assessObj.title}`,
-          }));
-
+  if (needsDeck) {
     const deckRes = await handleCreateDeckFromSelection({
       sourceRef: {
         key: assessObj.key,
@@ -2680,14 +2685,15 @@ export async function handleCreateTargetedReview(
         title: assessObj.title,
         url: assessObj.url,
       },
-      deckTitle: `${course} — ${assessObj.title} Review (${topics.join(', ')})`,
-      cards: cardsToCreate,
+      deckTitle: `${assessObj.title} review`,
+      cards,
       courseId,
       course,
       topic: topics[0],
       workflowId: input.workflowId,
     });
-    if (deckRes.ok && deckRes.ref) {
+    if (!deckRes.ok || !deckRes.ref) return { ok: false, commandId: '', error: deckRes.error || 'Could not create the review deck.' };
+    {
       deckRef = deckRes.ref;
       primaryUrl = deckRes.url || primaryUrl;
       if (deckRes.relationships) relationships.push(...deckRes.relationships);
@@ -2732,6 +2738,10 @@ export async function handleCreateTargetedReview(
       blockRef = blockRes.ref;
       primaryUrl = blockRes.url || primaryUrl;
       if (blockRes.relationships) relationships.push(...blockRes.relationships);
+    } else if (!deckRef) {
+      return { ok: false, commandId: '', error: blockRes.error || 'Could not create the study block.' };
+    } else {
+      warning = blockRes.error || 'The deck was saved. The study block could not be created.';
     }
   }
 
@@ -2795,6 +2805,7 @@ export async function handleCreateTargetedReview(
       followUpRefs,
       blockRef,
       deckRef,
+      warning,
     },
   };
 }

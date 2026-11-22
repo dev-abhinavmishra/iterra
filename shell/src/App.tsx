@@ -35,7 +35,6 @@ import {
   subscribeShared,
   subscribeIndexes,
   subscribeFeed,
-  subscribeStore,
   pendingIntakes,
   firstPendingIntake,
   sendTo,
@@ -43,7 +42,6 @@ import {
   type SharedField,
   type Entity,
   type FeedItem,
-  type StoreEntity,
   type IntakeWait,
   type StoreEvent as StoreEventT,
 } from './hub';
@@ -58,12 +56,15 @@ import {
   resolveActiveWorkspaceObject,
 } from './context/ContextPanel';
 import { parseHash, placeHashFromAppUrl, type WorkspaceSection } from './route';
-import { PLACE_COMPONENTS } from './apps';
+import { getPlaceComponent } from './apps';
+import { PlaceLoadFallback } from './apps/PlaceLoadFallback';
 import IntegrationModals from './integration/ModalsHost';
-import { reconcileFollowUps } from './integration/identity';
+import { useCanonicalEntities } from './useCanonicalEntities';
 import { useWorkspaceTheme } from './ui/theme';
 import { useWorkspaceAccent } from './ui/accent';
+import { StudyEntities } from './integration/StudySessionPlan';
 import { Dialog, DropdownMenu, IconButton } from './ui/primitives';
+import { WorkspaceDataGate } from './WorkspaceDataGate';
 import { WorkspaceHomeButton } from './ui/WorkspaceHomeButton';
 import { type WorkspaceObject } from './ui/ObjectRow';
 
@@ -218,7 +219,7 @@ export default function App() {
   const [shared, setShared] = useState<Record<string, SharedField>>({});
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
   const [feed, setFeed] = useState<FeedItem[]>([]);
-  const [entities, setEntities] = useState<StoreEntity[]>([]);
+  const { entities, initialState: initialEntitiesState, retry: retryEntities } = useCanonicalEntities();
   const [searchOpen, setSearchOpen] = useState(false);
 
   /* keep-alive mounted places */
@@ -295,51 +296,6 @@ export default function App() {
   useEffect(() => subscribeShared(setShared), []);
   useEffect(() => subscribeIndexes(setIndexes), []);
   useEffect(() => subscribeFeed(setFeed), []);
-  useEffect(() => {
-    /* consecutive store failures mean the canonical layer is unreachable
-       (IDB blocked/private mode) — the terrain looks empty either way, so
-       say why once rather than let every surface silently show nothing */
-    let failures = 0;
-    const pull = () => {
-      const it = (window as any).iterra;
-      if (!it?.store?.list) return;
-      it.store
-        .list({})
-        .then((list: StoreEntity[]) => {
-          failures = 0;
-          setEntities(list || []);
-          /* a stamped slip should close the follow-up parked on it —
-             reconcile on the same refresh so 'scheduled' never goes stale */
-          void reconcileFollowUps(list || []).catch(() => {});
-        })
-        .catch(() => {
-          if (++failures === 2) {
-            try {
-              window.dispatchEvent(new CustomEvent('iterra:toast', {
-                detail: { text: 'Local data store is unreachable — check storage permissions', url: '#/settings' },
-              }));
-            } catch { /* no window to notify */ }
-          }
-        });
-    };
-    pull();
-    /* a broken store may never raise a subscribe event — the 15s sweep
-       keeps entity views fresh and gives the failure counter a second
-       observation to warn on */
-    const sweep = window.setInterval(pull, 15000);
-    let t = 0;
-    const debounced = () => {
-      if (t) window.clearTimeout(t);
-      t = window.setTimeout(pull, 150);
-    };
-    const off = subscribeStore(debounced);
-    return () => {
-      if (t) window.clearTimeout(t);
-      window.clearInterval(sweep);
-      off();
-    };
-  }, []);
-
   // Listen for custom object selection events from embedded modules (e.g. Flashcards deck selection)
   useEffect(() => {
     const onCustomSelect = (ev: Event) => {
@@ -1197,7 +1153,7 @@ export default function App() {
           >
             {PLACES.map((p) => {
               if (mounted[p.id] === undefined) return null;
-              const Comp = PLACE_COMPONENTS[p.id];
+              const Comp = getPlaceComponent(p.id, restarts[p.id] || 0);
               if (!Comp) {
                 return (
                   <div
@@ -1227,15 +1183,16 @@ export default function App() {
                   >
                     <Suspense
                       fallback={
-                        <div className="flex h-full items-center justify-center">
-                          <div className="anim-rise flex items-center gap-2 rounded-full border border-[var(--color-line-2)] bg-[var(--color-sheet)] px-3.5 py-1.5 text-[12px] text-[var(--color-mute)] shadow-sm">
-                            <span className="live-dot h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-                            Loading {p.label}…
-                          </div>
-                        </div>
+                        <PlaceLoadFallback
+                          placeId={p.id}
+                          placeName={p.label}
+                          onRetry={() => setRestarts((r) => ({ ...r, [p.id]: (r[p.id] || 0) + 1 }))}
+                        />
                       }
                     >
-                      <Comp query={mounted[p.id]} wakeTick={wakeTick} />
+                      <StudyEntities.Provider value={p.id === 'timer' || p.id === 'boxed' ? entities : null}>
+                        <Comp query={mounted[p.id]} wakeTick={wakeTick} />
+                      </StudyEntities.Provider>
                     </Suspense>
                   </PlaceBoundary>
                 </div>
@@ -1246,6 +1203,10 @@ export default function App() {
           {/* Shell Workspaces (Today, Course Workspace, Courses Index, Library) */}
           {!activePlace && (
             <main className="h-full overflow-y-auto">
+              {section === 'settings' ? (
+                <SettingsSurface onGo={goUrl} dataStatus={dataStatus} accent={accent} onAccentChange={setAccent} />
+              ) : (
+                <WorkspaceDataGate state={initialEntitiesState} onRetry={retryEntities} allowFallback={section === 'library' && Object.values(indexes).some(list => list.length > 0)}>
               {section === 'courses' && course ? (
                 <CourseWorkspace
                   course={course}
@@ -1266,8 +1227,6 @@ export default function App() {
                   onGo={goUrl}
                   onEnter={enter}
                 />
-              ) : section === 'settings' ? (
-                <SettingsSurface onGo={goUrl} dataStatus={dataStatus} accent={accent} onAccentChange={setAccent} />
               ) : section === 'library' ? (
                 <LibraryView
                   entities={entities}
@@ -1293,6 +1252,8 @@ export default function App() {
                   onEnter={enter}
                   onGo={goUrl}
                 />
+              )}
+                </WorkspaceDataGate>
               )}
             </main>
           )}

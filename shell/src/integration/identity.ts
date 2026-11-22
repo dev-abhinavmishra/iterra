@@ -12,6 +12,7 @@ import type {
   ResolvedObject,
   SourceBlockExcerpt,
 } from './types';
+import { readNativeSnapshot, readNativeStore, writeNativeSnapshotDelta, type NativeStateKey } from './nativePersistence';
 
 const FOLLOWUPS_KEY = 'iterra.v1.followups';
 
@@ -404,7 +405,10 @@ export async function reconcileFollowUps(entities: { app: string; type: string; 
 
 /* ── Authoritative Local Store Readers ─────────────────────────────────── */
 
-function readZustandState<T = Record<string, any>>(storageKey: string): T | null {
+async function readZustandState<T = Record<string, any>>(storageKey: string): Promise<T | null> {
+  if (storageKey === 'syllabus.folio.v1' || storageKey === 'ink-notes-storage') {
+    return await readNativeStore(storageKey as NativeStateKey) as T | null;
+  }
   try {
     const raw = localStorage.getItem(storageKey);
     if (!raw) return null;
@@ -418,7 +422,19 @@ function readZustandState<T = Record<string, any>>(storageKey: string): T | null
   }
 }
 
-function writeZustandState(storageKey: string, mutator: (state: any) => void): boolean {
+async function writeZustandState(storageKey: string, mutator: (state: any) => void): Promise<boolean> {
+  if (storageKey === 'syllabus.folio.v1' || storageKey === 'ink-notes-storage') {
+    const key = storageKey as NativeStateKey;
+    try {
+      const base = await readNativeSnapshot(key);
+      const state = JSON.parse(JSON.stringify(base.state));
+      mutator(state);
+      await writeNativeSnapshotDelta(key, base, state, base.version);
+      return true;
+    } catch {
+      return false;
+    }
+  }
   try {
     const raw = localStorage.getItem(storageKey);
     const wrapper = raw ? JSON.parse(raw) : { state: {}, version: 1 };
@@ -466,7 +482,7 @@ export async function resolveCanonicalCourse(
   }
 
   // 1. Check Syllabus authoritative persisted state (`syllabus.folio.v1`)
-  const folio = readZustandState<{ courses?: Record<string, any>; terms?: Record<string, any>; activeTermId?: string }>('syllabus.folio.v1');
+  const folio = await readZustandState<{ courses?: Record<string, any>; terms?: Record<string, any>; activeTermId?: string }>('syllabus.folio.v1');
   if (folio?.courses) {
     if (wantId && folio.courses[wantId]) {
       const c = folio.courses[wantId];
@@ -529,7 +545,7 @@ export async function resolveCanonicalCourse(
     let termId = folio?.activeTermId || Object.keys(folio?.terms || {})[0];
     if (!termId) termId = 't_default';
 
-    writeZustandState('syllabus.folio.v1', (st) => {
+    await writeZustandState('syllabus.folio.v1', (st) => {
       st.terms = st.terms || {};
       if (!st.terms[termId!]) {
         st.terms[termId!] = {
@@ -581,7 +597,7 @@ export async function resolveCanonicalCourse(
 /** List all available courses from Syllabus authoritative store + canonical store */
 export async function listAvailableCourses(): Promise<CanonicalCourseInfo[]> {
   const seen = new Map<string, CanonicalCourseInfo>();
-  const folio = readZustandState<{ courses?: Record<string, any> }>('syllabus.folio.v1');
+  const folio = await readZustandState<{ courses?: Record<string, any> }>('syllabus.folio.v1');
   if (folio?.courses) {
     for (const c of Object.values(folio.courses)) {
       if (!c || !c.id || c.archived) continue;
@@ -670,7 +686,7 @@ export async function resolveObject(
 
   // 1. Check authoritative module stores in localStorage
   if (app === 'ink' && type === 'note') {
-    const inkState = readZustandState<{ notes?: any[] }>('ink-notes-storage');
+    const inkState = await readZustandState<{ notes?: any[] }>('ink-notes-storage');
     const note = inkState?.notes?.find((n: any) => n && n.id === id);
     if (note) {
       const contentText = extractPlainTextFromInkContent(note.content);
@@ -712,6 +728,35 @@ export async function resolveObject(
           : {}),
       };
     }
+  }
+
+  if (app === 'margin' && type === 'note') {
+    try {
+      const { getLocalNote } = await import('../apps/margin/services/localNoteStorage');
+      const note = await getLocalNote(id);
+      if (note) {
+        const entity = await window.iterra?.store?.get?.(key).catch(() => null);
+        const contentText = extractPlainTextFromMarginNote(note);
+        const revision = entity?.data?.updated;
+        return {
+          status: 'ok',
+          tier: 'authoritative',
+          key,
+          app,
+          type,
+          id,
+          title: note.title || 'Untitled note',
+          courseId: ref.courseId || note.courseId || entity?.courseId,
+          course: ref.course || note.course || entity?.course,
+          topic: ref.topic || entity?.topic,
+          url: `/apps/margin/?note=${encodeURIComponent(id)}`,
+          revision: typeof revision === 'string' || typeof revision === 'number' ? revision : note.date,
+          contentText,
+          contentHash: computeContentHash(contentText),
+          raw: note,
+        };
+      }
+    } catch { /* A published preview is still available when local storage cannot be read. */ }
   }
 
   if (app === 'flashcards' && (type === 'deck' || type === 'card')) {
@@ -772,7 +817,7 @@ export async function resolveObject(
   }
 
   if (app === 'syllabus') {
-    const folio = readZustandState<{
+    const folio = await readZustandState<{
       terms?: Record<string, any>;
       courses?: Record<string, any>;
       commitments?: Record<string, any>;
@@ -865,7 +910,7 @@ export async function resolveObject(
   }
 
   if (app === 'proof') {
-    const wb = readZustandState<{
+    const wb = await readZustandState<{
       problems?: Record<string, any>;
       attempts?: Record<string, any>;
       courses?: Record<string, any>;
@@ -930,7 +975,7 @@ export async function resolveObject(
   }
 
   if (app === 'gradestack') {
-    const gs = readZustandState<{ tests?: any[]; scans?: any[] }>('gradestack-storage');
+    const gs = await readZustandState<{ tests?: any[]; scans?: any[] }>('gradestack-storage');
     if (gs) {
       if (type === 'assessment') {
         const t = gs.tests?.find((x: any) => x && x.id === id);
@@ -974,7 +1019,7 @@ export async function resolveObject(
   }
 
   if (app === 'rhythm') {
-    const reg = readZustandState<{
+    const reg = await readZustandState<{
       routines?: Record<string, any>;
       entries?: Record<string, any>;
       courses?: Record<string, any>;
@@ -1056,7 +1101,7 @@ export async function resolveObject(
               : ent.sub || '';
         return {
           status: 'ok',
-          tier: app === 'margin' ? 'authoritative' : 'derived_index',
+          tier: 'derived_index',
           key,
           app: ent.app || app,
           type: ent.type || type,

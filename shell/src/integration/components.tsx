@@ -147,12 +147,15 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
   const [topic, setTopic] = useState(initialTopic || '');
   const [courses, setCourses] = useState<CanonicalCourseInfo[]>([]);
   const [cards, setCards] = useState<CandidateCard[]>([]);
+  const [hiddenCards, setHiddenCards] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdResult, setCreatedResult] = useState<{ deckId: string; deckRef: string; url: string; count: number } | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const savingRef = useRef(false);
+  const closeWhenReady = () => { if (!savingRef.current) onClose(); };
 
-  useEscapeClose(open, onClose);
+  useEscapeClose(open, closeWhenReady);
   useModalA11y(open, panelRef);
 
   useEffect(() => {
@@ -168,18 +171,15 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
       sourceTitle || 'Note',
       selectedBlocks,
     );
+    setHiddenCards(Math.max(0, extracted.length - 12));
     setCards(
       extracted.length > 0
-        ? extracted
+        ? extracted.slice(0, 12)
         : [{ id: 'cand-1', q: `${sourceTitle || 'Note'} — key concept`, a: (selectedText || '').trim(), ex: '' }],
     );
-    void listAvailableCourses().then((list) => {
-      setCourses(list);
-      if (initialCourse && !initialCourseId) {
-        const match = list.find((c) => c.code.toLowerCase() === initialCourse.toLowerCase());
-        if (match) setCourseId(match.courseId);
-      }
-    });
+    let active = true;
+    void listAvailableCourses().then(list => { if (active) setCourses(list); }).catch(() => {});
+    return () => { active = false; };
   }, [open, sourceTitle, selectedText, sourceFullText, selectedBlocks, initialCourse, initialCourseId, initialTopic]);
 
   if (!open) return null;
@@ -198,12 +198,14 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingRef.current) return;
     setError(null);
     const valid = cards.filter((c) => c.q.trim() && c.a.trim());
     if (valid.length === 0) {
       setError('Add at least one card with both a front (question/term) and back (answer).');
       return;
     }
+    savingRef.current = true;
     setSaving(true);
     try {
       const cmdName = sourceRef.app === 'margin' ? 'attachSourceMaterial' : 'createDeckFromSelection';
@@ -214,8 +216,8 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
               targetKind: 'flashcards-deck',
               title: deckTitle.trim() || sourceTitle || 'Study Deck',
               cards: valid,
-              course: course.trim() || undefined,
-              courseId: courseId || undefined,
+              course: course.trim() || null,
+              courseId: courseId || null,
               topic: topic.trim() || undefined,
               excerpt: selectedText,
               selectedBlocks,
@@ -227,8 +229,8 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
               sourceRef: { ...sourceRef, title: sourceTitle },
               deckTitle: deckTitle.trim() || sourceTitle || 'Study Deck',
               cards: valid,
-              course: course.trim() || undefined,
-              courseId: courseId || undefined,
+              course: course.trim() || null,
+              courseId: courseId || null,
               topic: topic.trim() || undefined,
               excerpt: selectedText,
               selectedBlocks,
@@ -250,17 +252,22 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
     } catch (err) {
       setError(String(err));
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
 
+  const chosenCourse = courseId
+    ? courses.find(item => item.courseId === courseId)
+    : courses.find(item => item.code.toLowerCase() === course.toLowerCase());
+
   return (
     <div
       className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
+      onClick={closeWhenReady}
       role="dialog"
       aria-modal="true"
-      aria-label="Create flashcards deck from selection"
+      aria-label="Draft flashcards"
     >
       <div
         ref={panelRef}
@@ -270,17 +277,15 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
       >
         <div className="flex items-start justify-between gap-3 border-b border-[var(--color-line)] pb-3">
           <div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-[var(--color-faint)]">
-              {sourceRef.app} → flashcards · provenance preserved
-            </div>
-            <h3 className="text-lg font-semibold">Create &amp; Review Deck from Note</h3>
+            <h3 className="text-lg font-semibold">Draft flashcards</h3>
             <p className="text-xs text-[var(--color-mute)] mt-0.5">
-              Source: <span className="font-medium">{sourceTitle || sourceRef.id}</span> — preview and edit cards before saving.
+              Review the cards from <span className="font-medium">{sourceTitle || 'your note'}</span> before saving.
             </p>
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={closeWhenReady}
+            disabled={saving}
             className="rounded px-2 py-1 text-sm text-[var(--color-faint)] hover:bg-[var(--color-sheet-2)]"
             aria-label="Close"
           >
@@ -290,13 +295,13 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
 
         {createdResult ? (
           <div className="py-6 space-y-4">
-            <div className="rounded-md border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] p-4 text-sm text-[var(--color-ink)]">
+            <div role="status" className="rounded-md border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] p-4 text-sm text-[var(--color-ink)]">
               <div className="font-semibold">
                 ✓ Saved “{deckTitle}” ({createdResult.count} card{createdResult.count === 1 ? '' : 's'})
               </div>
               <div className="mt-1 text-xs text-[var(--color-accent)]">
-                Linked to source <span className="font-mono">{sourceRef.app}:{sourceRef.type}:{sourceRef.id}</span>
-                {course ? ` · Course: ${course}` : ''}
+                Source note linked
+                {course ? ` · ${course}` : ''}
                 {topic ? ` · Topic: ${topic}` : ''}.
               </div>
             </div>
@@ -333,44 +338,35 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
                   required
                 />
               </label>
-              <label className="block">
-                <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">
-                  Course (inherited / editable)
-                </span>
-                <div className="flex gap-1">
+              <div className="min-w-0">
                   {courses.length > 0 && (
-                    <select
-                      value={course}
-                      onChange={(e) => {
-                        const code = e.target.value;
-                        setCourse(code);
-                        const hit = courses.find((c) => c.code === code);
-                        setCourseId(hit?.courseId || '');
-                      }}
-                      className="rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1.5 text-xs"
-                      aria-label="Select course"
-                    >
-                      <option value="">None / Custom</option>
-                      {courses.map((c) => (
-                        <option key={c.courseId} value={c.code}>
-                          {c.code} — {c.name}
-                        </option>
-                      ))}
-                    </select>
+                    <label className="block">
+                      <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Course</span>
+                      <select
+                        value={chosenCourse?.courseId ?? ''}
+                        onChange={event => {
+                          const hit = courses.find(item => item.courseId === event.target.value);
+                          setCourse(hit?.code ?? '');
+                          setCourseId(hit?.courseId ?? '');
+                        }}
+                        className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1.5 text-xs"
+                      >
+                        <option value="">None or custom</option>
+                        {courses.map(item => <option key={item.courseId} value={item.courseId}>{item.code} · {item.name}</option>)}
+                      </select>
+                    </label>
                   )}
-                  <input
-                    type="text"
-                    value={course}
-                    onChange={(e) => {
-                      setCourse(e.target.value);
-                      const hit = courses.find((c) => c.code.toLowerCase() === e.target.value.trim().toLowerCase());
-                      setCourseId(hit?.courseId || '');
-                    }}
-                    placeholder="e.g. MTH"
-                    className="w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs"
-                  />
-                </div>
-              </label>
+                  {!chosenCourse && (
+                    <input
+                      type="text"
+                      value={course}
+                      aria-label="Custom course code"
+                      onChange={event => { setCourse(event.target.value); setCourseId(''); }}
+                      placeholder="Optional course code"
+                      className={`w-full rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-xs ${courses.length ? 'mt-2' : ''}`}
+                    />
+                  )}
+              </div>
               <label className="block">
                 <span className="block text-[11px] font-medium text-[var(--color-mute)] mb-1">Topic</span>
                 <input
@@ -383,19 +379,10 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
               </label>
             </div>
 
-            {selectedText && (
-              <div className="rounded border border-[var(--color-line)] bg-[var(--color-sheet-2)] px-3 py-2 text-[11px] text-[var(--color-mute)]">
-                <span className="font-mono uppercase text-[10px] text-[var(--color-faint)] block mb-0.5">
-                  Source Excerpt Snapshot
-                </span>
-                <div className="line-clamp-2 italic">{selectedText}</div>
-              </div>
-            )}
-
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-[var(--color-ink)]">
-                  Cards ({cards.length}) — edit or add manually
+                  Cards ({cards.length})
                 </span>
                 <button
                   type="button"
@@ -405,6 +392,7 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
                   + Add card
                 </button>
               </div>
+              {hiddenCards > 0 && <p className="mb-2 text-xs text-[var(--color-mute)]">Showing the first 12 suggestions. Add more cards if you need them.</p>}
               <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                 {cards.map((c, idx) => (
                   <div
@@ -455,7 +443,8 @@ export const CreateDeckModal: React.FC<CreateDeckModalProps> = ({
             <div className="flex items-center justify-end gap-2 border-t border-[var(--color-line)] pt-3">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={closeWhenReady}
+                disabled={saving}
                 className="rounded border border-[var(--color-line)] px-3 py-1.5 text-xs font-medium text-[var(--color-mute)] hover:bg-[var(--color-sheet-hover)]"
               >
                 Cancel

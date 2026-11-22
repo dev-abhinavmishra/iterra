@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bandFor } from './bands';
-import { dayState, exceptionFor, isPausedOn, routineWeek, weeklyScorecard } from './register';
+import { checkInCounts, dayState, exceptionFor, isPausedOn, recentMissedCheckIns, routineCheckIn, routineWeek, weeklyScorecard } from './register';
 import type { DayException, Entry, Experiment, Routine } from './types';
 
 const TODAY = '2026-10-11'; // a Sunday
@@ -56,6 +56,35 @@ describe('dayState', () => {
     expect(dayState(paused, '2026-10-05', {}, NO_EXC, TODAY)).toBe('paused');
     expect(isPausedOn(paused, '2026-10-10')).toBe(false); // 'to' is exclusive — resume day counts again
     expect(exceptionFor(exc, r.id, '2026-10-07')?.kind).toBe('travel');
+  });
+});
+
+describe('check-in shortcuts', () => {
+  const date = '2026-10-09';
+  const measured = mkRoutine({ id: 'minutes', measure: 'duration', target: { perWeek: 30 }, weekdays: [5] });
+  const skipped = mkRoutine({ id: 'excused' });
+  const exceptions: Record<string, DayException> = {
+    x: { id: 'x', routineId: skipped.id, date, kind: 'travel', createdAt: `${date}T12:00:00Z` },
+  };
+
+  it('keeps partial amounts actionable while filtering excused, off-day, and paused routines', () => {
+    const entries = { a: entry(measured.id, date, 10) };
+    const routines = [
+      measured, skipped, mkRoutine({ id: 'off', weekdays: [4] }),
+      mkRoutine({ id: 'paused', status: 'paused' }),
+    ];
+    expect(routineCheckIn(measured, date, entries, exceptions)).toMatchObject({
+      state: 'partial', target: 30, value: 10, pending: true,
+    });
+    expect(checkInCounts(routines, entries, exceptions, date)).toEqual({ pending: 1, marked: 0, total: 1 });
+    expect(checkInCounts(routines, { ...entries, b: entry(measured.id, date, 20) }, exceptions, date))
+      .toEqual({ pending: 0, marked: 1, total: 1 });
+  });
+
+  it('only offers recent scheduled dates without a check-in', () => {
+    const done = mkRoutine({ id: 'done' });
+    expect(recentMissedCheckIns([measured, skipped, done], { done: entry(done.id, date) }, exceptions, TODAY))
+      .toEqual([{ routine: measured, date }]);
   });
 });
 

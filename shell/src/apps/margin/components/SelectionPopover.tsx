@@ -5,6 +5,7 @@ import { createDeck } from '../services/studyService';
 import type { Note } from '../types';
 import { Icon, Spinner } from './ui/primitives';
 import { placeActive } from '../../active';
+import { extractPlainTextFromMarginNote } from '../../../integration/identity';
 
 interface SelectionPopoverProps {
     onAddToChat: (text: string) => void;
@@ -166,9 +167,10 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
             const noteTitle = note?.title || 'untitled';
             /* course linkage: the first tag that resolves to a real course —
                never a fabricated key */
-            let course: string | undefined;
-            let courseId: string | undefined;
+            let course = note?.course;
+            let courseId = note?.courseId;
             for (const tag of note?.tags ?? []) {
+                if (courseId) break;
                 const ent = await it.courses?.byCode?.(tag).catch(() => null);
                 if (ent?.key) { course = tag; courseId = ent.key; break; }
             }
@@ -193,6 +195,7 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                               sourceRef,
                               sourceTitle: noteTitle,
                               selectedText: sel,
+                              sourceFullText: extractPlainTextFromMarginNote(note),
                               initialCourse: course,
                               initialCourseId: courseId,
                           },

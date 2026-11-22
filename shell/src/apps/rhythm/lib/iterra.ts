@@ -7,23 +7,15 @@
 
 import { useEffect, useState } from 'react';
 import { todayISO } from './dates';
-import { entriesOn, isScheduled } from './register';
+import { checkInCounts } from './register';
 import { useRegister } from '../store';
-import type { Routine } from './types';
 
 /** What the rail reads: marked lines, lines due today, lines still open. */
 function summary(): { marked: number; total: number; pending: number } | null {
   if (!useRegister.persist.hasHydrated()) return null;
   const s = useRegister.getState();
   const today = todayISO();
-  // Due today = the Scheduled section's own rule: active and on today's line-up.
-  const due = Object.values(s.routines).filter(
-    (r: Routine) => r.status === 'active' && isScheduled(r, today),
-  );
-  // A line is marked once the routine has any entry today — per-routine, so
-  // pending stays the count of open lines even when one routine logs twice.
-  const marked = due.filter((r) => entriesOn(s.entries, r.id, today).length > 0).length;
-  return { marked, total: due.length, pending: Math.max(0, due.length - marked) };
+  return checkInCounts(Object.values(s.routines), s.entries, s.exceptions, today);
 }
 
 export function wireIterra() {

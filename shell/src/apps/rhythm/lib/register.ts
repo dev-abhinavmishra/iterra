@@ -104,6 +104,43 @@ export function dayState(
   return 'missed';
 }
 
+export function routineCheckIn(
+  routine: Routine,
+  date: ISODate,
+  entries: Record<string, Entry>,
+  exceptions: Record<string, DayException>,
+) {
+  const state = dayState(routine, date, entries, exceptions, date);
+  const scheduled = routine.status === 'active' && isScheduled(routine, date) &&
+    date >= dateOfInstant(routine.createdAt) && !exceptionFor(exceptions, routine.id, date) && !isPausedOn(routine, date);
+  const target = perDayBar(routine);
+  const value = valueOn(entries, routine.id, date);
+  return { date, state, scheduled, target, value, pending: scheduled && (state === 'missed' || state === 'partial') };
+}
+
+export function checkInCounts(routines: Routine[], entries: Record<string, Entry>, exceptions: Record<string, DayException>, date: ISODate) {
+  const due = routines.map(routine => routineCheckIn(routine, date, entries, exceptions)).filter(day => day.scheduled);
+  const pending = due.filter(day => day.pending).length;
+  return { pending, marked: due.length - pending, total: due.length };
+}
+
+export function recentMissedCheckIns(
+  routines: Routine[],
+  entries: Record<string, Entry>,
+  exceptions: Record<string, DayException>,
+  today: ISODate,
+): { routine: Routine; date: ISODate }[] {
+  const result: { routine: Routine; date: ISODate }[] = [];
+  for (let daysAgo = 1; daysAgo <= 3; daysAgo++) {
+    const date = addDaysISO(today, -daysAgo);
+    for (const routine of routines) {
+      const progress = routineCheckIn(routine, date, entries, exceptions);
+      if (progress.scheduled && progress.state === 'missed') result.push({ routine, date });
+    }
+  }
+  return result;
+}
+
 // ── Weekly scorecard ─────────────────────────────────────────────────────────
 
 export interface RoutineWeek {

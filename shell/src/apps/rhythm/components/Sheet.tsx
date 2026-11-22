@@ -30,6 +30,18 @@ export function Sheet({
     const onKey = (e: KeyboardEvent) => {
       if (!placeActive("rhythm")) return;
       if (e.key === 'Escape') onCloseRef.current();
+      if (e.key !== 'Tab') return;
+      const controls = Array.from(ref.current?.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled):not([type=hidden]), select:not(:disabled), textarea:not(:disabled), a[href]',
+      ) ?? []).filter(control => control.getClientRects().length > 0);
+      if (controls.length === 0) return;
+      const firstControl = controls[0];
+      const lastControl = controls[controls.length - 1];
+      const active = document.activeElement;
+      if (!ref.current?.contains(active) || active === (e.shiftKey ? firstControl : lastControl)) {
+        e.preventDefault();
+        (e.shiftKey ? lastControl : firstControl).focus();
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => {
@@ -43,8 +55,9 @@ export function Sheet({
      chassis chrome nor the frame and leaving header buttons clickable. */
   return (
     <PlacePortal place="rhythm">
-      <div className="sheet-backdrop" onClick={onClose} aria-hidden="true" />
-      <div className="sheet-modal" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="sheet-backdrop" aria-hidden="true" />
+      <div className="sheet-modal" role="dialog" aria-modal="true" aria-label={title}
+        onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
         <div
           ref={ref}
           className="panel panel--in w-full p-5"

@@ -30,7 +30,6 @@ jobs:
         working-directory: shell
         run: npm test
 
-      # contract checks + typecheck + vite build (build.sh installs
-      # shell deps again — already satisfied, npm ci is a fast no-op)
+      # Contract checks, typecheck, Vite build, and service-worker manifest.
       - name: build terrain
         run: npm run build

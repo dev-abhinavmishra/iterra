@@ -5,6 +5,15 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Fail before touching the existing candidate when prerequisites are absent.
+if [[ ! -f shell/node_modules/typescript/bin/tsc || ! -f shell/node_modules/vite/bin/vite.js ]]; then
+  echo "Shell dependencies are missing. Run: npm ci --prefix shell --no-audit --no-fund" >&2
+  exit 1
+fi
+
+echo "── service-worker graph policy tests"
+node --test scripts/emit-sw-manifest.test.mjs scripts/sw-runtime.test.cjs
+
 # rm -rf the dir outright; if a Windows process has a handle on it (Explorer,
 # indexer, a stale watcher), empty it in place instead — same result.
 rm -rf dist 2>/dev/null || { mkdir -p dist && rm -rf dist/* dist/.[!.]* 2>/dev/null || true; }
@@ -20,17 +29,14 @@ echo "── typecheck"
 (cd shell && npx tsc --noEmit -p .)
 
 echo "── building shell"
-# npm ci is the hermetic path; on Windows a running dev server (or antivirus)
-# can hold a .node/.exe handle and wedge ci mid-delete, leaving a broken
-# node_modules. Fall back to npm install — same lockfile, heals in place.
-(cd shell && { npm ci --no-audit --no-fund --silent || npm install --no-audit --no-fund; } && npm run build)
+(cd shell && npm run build)
 cp -r shell/dist/. dist/
 
 # the hub must exist at the root — index.html loads '/iterra-hub.js'
 cp packages/hub/iterra-hub.js dist/iterra-hub.js
 
-# precache manifest for the service worker — hashed assets it caches at
-# install so an offline reload after a deploy still boots
+# full hashed-asset inventory plus a separate source-keyed core/tool/feature
+# graph policy consumed by the selective service worker
 node scripts/emit-sw-manifest.mjs
 
 echo "── terrain built → dist/"

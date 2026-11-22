@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRegister } from '../store';
 import type { Routine } from '../lib/types';
-import { dayState, isScheduled, perDayBar, routineWeek } from '../lib/register';
+import { dayState, isScheduled, perDayBar, recentMissedCheckIns, routineCheckIn, routineWeek } from '../lib/register';
 import { bandFor } from '../lib/bands';
 import { addDaysISO, fmtDay, fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
 import { folioInbox, planFolio, type FolioCommitment } from '../lib/iterra-adapter';
@@ -41,6 +41,10 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
   const [amount, setAmount] = useState('');
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [pastCheckIn, setPastCheckIn] = useState<{ routineId: string; date: string } | null>(null);
+  const [pastAmount, setPastAmount] = useState('');
+  const [pastError, setPastError] = useState('');
+  const [recoveryStatus, setRecoveryStatus] = useState('');
   const [frictionFor, setFrictionFor] = useState<string | null>(null);
   const [frictionKind, setFrictionKind] = useState<string>('tired');
   const [frictionNote, setFrictionNote] = useState('');
@@ -104,6 +108,25 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
     }
     return { scheduled, open, paused };
   }, [routines, today, pinnedName]);
+
+  const recentMisses = useMemo(
+    () => recentMissedCheckIns(Object.values(routines), entries, exceptions, today),
+    [routines, entries, exceptions, today],
+  );
+  const pastRoutine = pastCheckIn ? routines[pastCheckIn.routineId] : undefined;
+  const todayEntries = useMemo(
+    () => new Map(Object.values(entries).filter(entry => entry.date === today).map(entry => [entry.routineId, entry])),
+    [entries, today],
+  );
+  function noteAction(routineId: string) {
+    const entry = todayEntries.get(routineId);
+    if (entry) {
+      return () => {
+        setNoteFor(entry.id);
+        setNote(entry.note || '');
+      };
+    }
+  }
 
   /* Unhit clears every entry the day carries for that channel — the step
      returns to un-programmed. The triggering event stays in the ledger, so
@@ -192,10 +215,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
                 onAmountConfirm={() => confirmAmount(r)}
                 onAmountMinimum={() => confirmAmount(r, true)}
                 onAmountClose={() => setAmountFor(null)}
-                onNote={() => {
-                  setNoteFor(r.id);
-                  setNote('');
-                }}
+                onNote={noteAction(r.id)}
                 onFriction={() => {
                   setFrictionFor(r.id);
                   setFrictionKind('tired');
@@ -232,10 +252,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
                 onAmountConfirm={() => confirmAmount(r)}
                 onAmountMinimum={() => confirmAmount(r, true)}
                 onAmountClose={() => setAmountFor(null)}
-                onNote={() => {
-                  setNoteFor(r.id);
-                  setNote('');
-                }}
+                onNote={noteAction(r.id)}
                 onFriction={() => {
                   setFrictionFor(r.id);
                   setFrictionKind('tired');
@@ -272,6 +289,33 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
         </section>
       )}
 
+      {recentMisses.length > 0 && (
+        <details className="mt-6 border-y border-rule">
+          <summary className="cursor-pointer px-2 py-3 text-sm font-medium">Recent missing check-ins</summary>
+          <p className="px-2 pb-2 text-sm text-ink-faint">Log work you completed in the past three days.</p>
+          <ul className="max-h-72 overflow-y-auto px-2 pb-2">
+            {recentMisses.map(({ routine, date }) => (
+              <li key={`${routine.id}-${date}`} className="flex items-center justify-between gap-3 border-t border-rule py-2">
+                <div className="min-w-0">
+                  <div className="break-words text-sm font-medium">{routine.name}</div>
+                  <div className="text-xs text-ink-faint">{fmtDayFull(date)}</div>
+                </div>
+                <button
+                  className="btn btn--quiet shrink-0"
+                  aria-label={`Log ${routine.name} for ${fmtDayFull(date)}`}
+                  onClick={() => {
+                    setPastCheckIn({ routineId: routine.id, date });
+                    setPastAmount('');
+                    setPastError('');
+                  }}
+                >Log</button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {recoveryStatus && <p role="status" className="mt-3 px-2 text-sm">{recoveryStatus}</p>}
+
       {/* ── From the folio — UX-TRACKER #72: open syllabus commitments
           offered as one-click channel scaffolds (same mapping as the
           adapter's 'routine.plan' intake, via planFolio) ─────────── */}
@@ -285,27 +329,48 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
       </div>
 
       {/* ── Sheets ───────────────────────────────────────────────── */}
+      {pastCheckIn && pastRoutine && (
+        <Sheet title="Log a past check-in" onClose={() => setPastCheckIn(null)}>
+          <form className="space-y-4" onSubmit={(event) => {
+            event.preventDefault();
+            const latest = useRegister.getState();
+            const routine = latest.routines[pastCheckIn.routineId];
+            const date = pastCheckIn.date;
+            const progress = routine && routineCheckIn(routine, date, latest.entries, latest.exceptions);
+            if (!progress?.scheduled || progress.state !== 'missed' || date >= todayISO()) {
+              setPastError('This date no longer needs a check-in.');
+              return;
+            }
+            const value = routine.measure === 'check' ? 1 : Number(pastAmount);
+            if (!Number.isFinite(value) || value <= 0 || !checkIn(routine.id, { date, value })) {
+              setPastError('Enter a positive amount and try again.');
+              return;
+            }
+            setRecoveryStatus(`Logged ${routine.name} for ${fmtDayFull(date)}.`);
+            setPastCheckIn(null);
+          }}>
+            <p className="text-sm">{pastRoutine.name} · {fmtDayFull(pastCheckIn.date)}</p>
+            {pastRoutine.measure !== 'check' && (
+              <Field label={pastRoutine.unit ? `Amount (${pastRoutine.unit})` : 'Amount'}>
+                <input className="f-input" type="number" inputMode="decimal" step="any" required
+                  value={pastAmount} onChange={event => setPastAmount(event.target.value)} />
+              </Field>
+            )}
+            {pastError && <p role="alert" className="text-sm">{pastError}</p>}
+            <div className="flex justify-end gap-2">
+              <button type="button" className="btn btn--quiet" onClick={() => setPastCheckIn(null)}>Cancel</button>
+              <button type="submit" className="btn btn--primary">Save check-in</button>
+            </div>
+          </form>
+        </Sheet>
+      )}
       {noteFor && (
         <Sheet title="A note on today's step" onClose={() => setNoteFor(null)}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              const r = routines[noteFor];
-              if (r && note.trim()) {
-                const entry = checkIn(noteFor, {
-                  value: r.measure === 'check' ? 1 : perDayBar(r),
-                  note,
-                });
-                if (!entry) {
-                  // already hit — attach the note to today's first entry
-                  const ex = Object.values(entries).find(
-                    (en) => en.routineId === noteFor && en.date === today,
-                  );
-                  if (ex) useRegister.getState().updateEntryNote(ex.id, note);
-                }
-              }
+              useRegister.getState().updateEntryNote(noteFor, note);
               setNoteFor(null);
-              setJustStamped(noteFor);
             }}
             className="space-y-4"
           >
@@ -430,7 +495,7 @@ function RoutineRow({
   onAmountConfirm: () => void;
   onAmountMinimum: () => void;
   onAmountClose: () => void;
-  onNote: () => void;
+  onNote?: () => void;
   onFriction: () => void;
   onOpen: () => void;
   onUndo: () => void;
@@ -515,9 +580,9 @@ function RoutineRow({
               unhit
             </button>
           )}
-          <IconBtn label="note" onClick={onNote}>
+          {onNote && <IconBtn label="note" onClick={onNote}>
             <StickyNote size={13} />
-          </IconBtn>
+          </IconBtn>}
           {!done && (
             <IconBtn label="didn't happen — log friction" onClick={onFriction}>
               <XCircle size={13} />

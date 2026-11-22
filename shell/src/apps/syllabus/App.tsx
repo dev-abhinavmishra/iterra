@@ -16,17 +16,21 @@ import { Onboarding } from './views/Onboarding';
 import { HelpOverlay } from './components/HelpOverlay';
 import { todayISO, stampDate, dowName, modalOpen } from './lib/utils';
 import { placeActive } from '../active';
+import { NativePersistenceNotice } from '../../integration/NativePersistenceNotice';
 import './index.css';
 
 export interface RouteState {
   view: ViewKey;
   courseId?: string;
+  assignmentForm?: number;
+  scheduleImport?: number;
   inspectId?: string;
   date?: string;
 }
 
 export default function App({ query = '' }: { query?: string }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const [hydrated, setHydrated] = useState(() => useFolio.persist.hasHydrated());
   const booted = useFolio((s) => s.booted);
   const settings = useFolio((s) => s.settings);
   const term = useFolio(selectActiveTerm);
@@ -36,14 +40,53 @@ export default function App({ query = '' }: { query?: string }) {
   const [route, setRoute] = useState<RouteState>({ view: 'today' });
   const [helpOpen, setHelpOpen] = useState(false);
   const [importPayload, setImportPayload] = useState<ImportPayload | null>(null);
+  const assignmentFormId = useRef(0);
+
+  useEffect(() => {
+    if (useFolio.persist.hasHydrated()) {
+      setHydrated(true);
+      return;
+    }
+    return useFolio.persist.onFinishHydration(() => setHydrated(true));
+  }, []);
 
   // inbound deep links ride the place query now — boot consumes the first
   // (completedBlock / block / commitment); this one stages the import sheet.
-  useEffect(() => { useFolio.getState().boot(query); }, [query]);
+  useEffect(() => {
+    if (hydrated) useFolio.getState().boot(query);
+  }, [query, hydrated]);
+
+  useEffect(() => {
+    const inbound = new URLSearchParams(query);
+    const action = inbound.has('importSchedule') ? 'importSchedule' : 'addAssignment';
+    const courseId = inbound.get(action);
+    if (!booted || !courseId) return;
+    const hash = window.location.hash;
+    const separator = hash.indexOf('?');
+    if (separator >= 0) {
+      const params = new URLSearchParams(hash.slice(separator + 1));
+      if (params.get(action) !== courseId) return;
+      params.delete(action);
+      const rest = params.toString();
+      window.location.hash = hash.slice(0, separator) + (rest ? `?${rest}` : '');
+    }
+    const course = useFolio.getState().courses[courseId];
+    if (course && !course.archived) {
+      const request = ++assignmentFormId.current;
+      setRoute(action === 'importSchedule'
+        ? { view: 'course', courseId, scheduleImport: request }
+        : { view: 'course', courseId, assignmentForm: request });
+    } else {
+      window.dispatchEvent(new CustomEvent('iterra:toast', {
+        detail: { text: 'That course is no longer available in Planning.' },
+      }));
+    }
+  }, [booted, query]);
 
   // Inbound Modular AI staging payload: ?import=<base64url JSON> — staged for
   // review, never committed without the confirmation table.
   useEffect(() => {
+    if (!hydrated) return;
     if (typeof window === 'undefined') return;
     const q = new URLSearchParams(query);
     const raw = q.get('import');
@@ -64,11 +107,12 @@ export default function App({ query = '' }: { query?: string }) {
     }
     const h = window.location.hash;
     if (h.includes('?')) window.location.hash = h.slice(0, h.indexOf('?'));
-  }, [query]);
+  }, [query, hydrated]);
 
   /* ?p=<view> — 'week reviewed' stirs and the like land on the right tab
      instead of the folio default. Consumed params strip. */
   useEffect(() => {
+    if (!hydrated) return;
     const p = new URLSearchParams(query).get('p');
     if (!p) return;
     const h = window.location.hash;
@@ -90,11 +134,12 @@ export default function App({ query = '' }: { query?: string }) {
       } catch { /* ambient listener absent */ }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, [query, hydrated]);
 
   /* ?settings — the terrain's central settings surface deep-links here;
      consumed params strip so the same link fires again later */
   useEffect(() => {
+    if (!hydrated) return;
     if (!new URLSearchParams(query).has('settings')) return;
     setRoute({ view: 'settings' });
     const h = window.location.hash;
@@ -104,7 +149,7 @@ export default function App({ query = '' }: { query?: string }) {
       const rest = q.toString();
       window.location.hash = h.slice(0, h.indexOf('?')) + (rest ? '?' + rest : '');
     }
-  }, [query]);
+  }, [query, hydrated]);
 
   const nav = (patch: Partial<RouteState>) => setRoute((r) => ({ ...r, ...patch }));
   const goView = (view: ViewKey) => setRoute({ view });
@@ -202,12 +247,21 @@ export default function App({ query = '' }: { query?: string }) {
   const today = useMemo(() => todayISO(), []);
   const inspected = useFolio((s) => (route.inspectId ? s.commitments[route.inspectId!] : undefined));
 
+  if (!hydrated) {
+    return (
+      <div className="it-place-syllabus h-full" data-app="syllabus">
+        <NativePersistenceNotice storeKey="syllabus.folio.v1" onRetryHydration={() => useFolio.persist.rehydrate()} />
+        <div className="px-6 py-10 text-sm text-[color:var(--color-mute)]" role="status" aria-live="polite">Loading saved Planning data…</div>
+      </div>
+    );
+  }
   if (!booted) return null;
 
   // first run: seat the student at the registrar's desk
   if (courseCount === 0 && route.view !== 'settings') {
     return (
       <div ref={rootRef} className="it-place-syllabus h-full" data-app="syllabus">
+        <NativePersistenceNotice storeKey="syllabus.folio.v1" onRetryHydration={() => useFolio.persist.rehydrate()} />
         <Onboarding onDone={() => goView('semester')} />
       </div>
     );
@@ -226,6 +280,7 @@ export default function App({ query = '' }: { query?: string }) {
 
       {/* folio page */}
       <div className="syllabus-page flex-1 min-w-0 flex flex-col px-3 py-3 sm:px-5">
+        <NativePersistenceNotice storeKey="syllabus.folio.v1" onRetryHydration={() => useFolio.persist.rehydrate()} />
         <div className="sheet flex-1 min-h-0 flex flex-col animate-[sheet-in_0.34s_cubic-bezier(0.2,0.8,0.3,1)_both]">
           {/* folio header: divider tabs + the day's date stamp */}
           <header className="no-print flex items-end justify-between gap-3 px-4 pt-2.5 border-b border-[color:var(--color-rule)]">
@@ -252,7 +307,9 @@ export default function App({ query = '' }: { query?: string }) {
             {route.view === 'review' && <ReviewView today={today} />}
             {route.view === 'settings' && <SettingsView />}
             {route.view === 'course' && route.courseId && (
-              <CourseView courseId={route.courseId} onInspect={inspect} />
+              <CourseView key={route.scheduleImport ?? route.assignmentForm ?? route.courseId}
+                courseId={route.courseId} startAdding={route.assignmentForm !== undefined}
+                startImport={route.scheduleImport !== undefined} onInspect={inspect} />
             )}
           </main>
         </div>

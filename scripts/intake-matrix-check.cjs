@@ -9,6 +9,13 @@
      mounts the cold place AT that url (pending-aware), the boot drain
      claims the record and lands on its result.url. */
 const { chromium } = require('playwright-core');
+const fs = require('fs');
+const EXE = [
+  'C:/Users/pmsma/AppData/Local/ms-playwright/chromium-1243/chrome-win64/chrome.exe',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+].find((p) => fs.existsSync(p));
+if (!EXE) throw new Error('No Chromium-family browser found');
 
 /* Run against ITERRA_BASE (default :8090). Prefer a spare port serving the
    same dist — a different origin gets a fresh IDB/localStorage, so matrix
@@ -16,8 +23,9 @@ const { chromium } = require('playwright-core');
 const BASE = process.env.ITERRA_BASE || 'http://localhost:8090';
 
 (async () => {
-  const browser = await chromium.connectOverCDP(process.env.ITERRA_CDP || 'http://localhost:29229');
-  const page = await browser.contexts()[0].newPage();
+  const browser = await chromium.launch({ executablePath: EXE, headless: true });
+  const context = await browser.newContext();
+  const page = await context.newPage();
   const errs = [];
   page.on('pageerror', (e) => errs.push('page: ' + e.message));
   await page.goto(`${BASE}/#/`, { waitUntil: 'networkidle' });
@@ -26,8 +34,9 @@ const BASE = process.env.ITERRA_BASE || 'http://localhost:8090';
   const send = (opts) => page.evaluate(async (o) => {
     try { return await window.iterra.send(o); } catch (e) { return { ok: false, error: String(e) }; }
   }, opts);
-  const frameOf = (app) => page.frames().find((f) => f.url().includes(`/apps/${app}/`));
-  const bodyOf = async (fr) => { try { return await fr.evaluate(() => document.body.innerText); } catch { return ''; } };
+  // Integrated places render in the shell document, not separate frames.
+  const frameOf = () => page;
+  const bodyOf = async (fr) => { try { return await fr.locator('.it-workspace-mode > .frame-fade:visible').innerText(); } catch { return ''; } };
   const ls = (k) => page.evaluate((key) => localStorage.getItem(key), k);
   const storeList = (q) => page.evaluate(async (query) => {
     try { return await window.iterra.store.list(query); } catch { return []; }
@@ -149,10 +158,21 @@ const BASE = process.env.ITERRA_BASE || 'http://localhost:8090';
   const probMade = await until(wb);
   row('problem.create', r.ok && probMade, fmt(r) + ` | in-workbench=${probMade}`);
 
-  /* ── step.append → contract: needs an open attempt; deliver+r.ok ── */
-  r = await send({ to: 'proof', action: 'step.append', entity: { app: 'ink', type: 'note', id: 'matrix-n1', title: `mstep-`+RUN, sub: 'see the trick' } });
-  await page.waitForTimeout(2000);
-  row('step.append', r.ok !== false, fmt(r) + ' | (needs open attempt — delivery contract only)');
+  /* ── step.append → live open attempt contains the canonical note ref ── */
+  const attemptId = await page.evaluate(run => {
+    const s = window.__proofWorkbenchStore;
+    const p = Object.values(s?.getState?.().problems || {}).find(x => JSON.stringify(x.promptDoc).includes(`mprob-${run}`));
+    return p ? s.getState().startAttempt(p.id).id : null;
+  }, RUN);
+  const sourceNote = (await storeList({ app: 'ink', type: 'note' })).find(e => e.title?.includes(`mink-${RUN}`));
+  r = attemptId && sourceNote
+    ? await send({ to: 'proof', action: 'step.append', entity: { app: 'ink', type: 'note', id: sourceNote.id, key: sourceNote.key, title: sourceNote.title } })
+    : { ok: false, error: `missing open-attempt fixture: attempt=${attemptId}, note=${!!sourceNote}` };
+  const stepAdded = await until(() => page.evaluate(({ attemptId, key }) => {
+    const a = window.__proofWorkbenchStore?.getState?.().attempts?.[attemptId];
+    return !!a?.work?.some(w => w.text.includes(key));
+  }, { attemptId, key: sourceNote?.key || '' }));
+  row('step.append', !!attemptId && !!sourceNote && r.ok && stepAdded, fmt(r) + ` | attempt=${attemptId || '-'} note=${sourceNote?.key || '-'} appended=${stepAdded}`);
 
   /* ── routine.plan → real routine on the register ──────────────── */
   const regBefore = (await ls('rhythm.register.v1')) || '';
@@ -187,23 +207,55 @@ const BASE = process.env.ITERRA_BASE || 'http://localhost:8090';
   const slipMade = !folioBefore.includes(`mslip-`+RUN) && await until(async () => ((await ls('syllabus.folio.v1')) || '').includes(`mslip-`+RUN));
   row('block.plan', r.ok && slipMade, fmt(r) + ` | hit=${slipMade}`);
 
-  /* ── weights.import → graceful even without a weights source ──── */
+  /* ── weights.import → saved syllabus weight reaches a saved assessment ── */
   const course = await page.evaluate(async () => {
     try { return await window.iterra.courses.resolve({ course: 'MTH' }); } catch { return null; }
   });
-  r = await send({ to: 'gradestack', action: 'weights.import', payload: { courseId: course?.key || 'syllabus:course:c1' } });
+  const weightedCommitment = course?.id && await page.evaluate(({ courseId, title }) => {
+    const s = window.__syllabusFolioStore?.getState?.();
+    return s?.addCommitment({ courseId, type: 'exam', title, dueAt: '2999-12-01T23:59:00.000Z', weight: 55, estimatedMinutes: 45, pinned: false, dependencies: [] }) || null;
+  }, { courseId: course.id, title: `mweight-${RUN}` });
+  await page.evaluate(() => window.postMessage({ type: 'iterra:open', url: '/apps/gradestack/' }, location.origin));
+  const gradeStoreReady = await until(() => page.evaluate(() => !!window.__gradestackStore?.getState));
+  const test = course && await page.evaluate(async run => {
+    const s = window.__gradestackStore?.getState?.();
+    return s ? s.addTest({ name: `mtest-${run}`, courseName: 'MTH', numQuestions: 1, format: 'SA', includeStudentId: false, answerKey: {} }) : null;
+  }, RUN);
+  const categoriesReady = !!course?.key && await until(async () => {
+    const e = await page.evaluate(key => window.iterra.store.get(key), course.key);
+    return e?.data?.categories?.exam === 55;
+  });
+  r = categoriesReady && gradeStoreReady && test
+    ? await send({ to: 'gradestack', action: 'weights.import', payload: { courseId: course.key } })
+    : { ok: false, error: `missing saved weighted course/test: categories=${categoriesReady}, gradeStore=${gradeStoreReady}, test=${!!test}` };
   fr = await honor('gradestack', r, 5000);
-  body = fr ? await bodyOf(fr) : '';
-  row('weights.import (graceful)', r.ok !== false && body.length > 100, fmt(r));
+  const appliedWeights = await until(() => page.evaluate(id => {
+    const t = window.__gradestackStore?.getState?.().tests?.find(x => x.id === id);
+    return t?.weights?.exam === 55;
+  }, test?.id || ''));
+  row('weights.import', categoriesReady && gradeStoreReady && !!test && r.ok && appliedWeights,
+    fmt(r) + ` | course=${course?.key || '-'} test=${test?.id || '-'} categoriesReady=${categoriesReady} storeReady=${gradeStoreReady} applied=${appliedWeights}${r.error ? ` error=${r.error}` : ''}`);
 
-  /* ── study-plan.request → delivers + resolves to the folio (it only
-     files blocks when signals exist — due cards / weak topics / an exam
-     anchor; a quiet folio legitimately yields none) ──────────────── */
-  const blocksBefore = (await storeList({ app: 'syllabus' })).filter((e) => e.type === 'block').length;
-  r = await send({ to: 'syllabus', action: 'study-plan.request', payload: { courseId: course?.key || 'syllabus:course:c1' } });
-  await honor('syllabus', r, 5000);
-  const blocksAfter = (await storeList({ app: 'syllabus' })).filter((e) => e.type === 'block').length;
-  row('study-plan.request', r.ok !== false && !!r.delivered, fmt(r) + ` | blocks ${blocksBefore}→${blocksAfter} (0 = no signals, legit)`);
+  /* ── study-plan.request → due-card signal creates a bound review block ── */
+  const dueCardId = `mdue-${RUN}`;
+  const dueCardWrite = course?.key && await page.evaluate(async ({ id, courseId }) => window.iterra.store.put({
+    app: 'flashcards', type: 'card', id, courseId, course: 'MTH', title: `due-${id}`,
+    data: { dueAt: '2000-01-01T00:00:00.000Z' },
+  }), { id: dueCardId, courseId: course.key });
+  const dueCardReady = !!dueCardWrite?.ok && !!(await page.evaluate(id => window.iterra.store.get(`flashcards:card:${id}`), dueCardId));
+  const scopedBlocks = () => storeList({ app: 'syllabus', type: 'block', courseId: course?.key });
+  const blocksBefore = (await scopedBlocks()).length;
+  r = dueCardReady && weightedCommitment
+    ? await send({ to: 'syllabus', action: 'study-plan.request', payload: { courseId: course.key } })
+    : { ok: false, error: `missing due card/anchor fixture: card=${dueCardReady}, anchor=${!!weightedCommitment}` };
+  fr = await honor('syllabus', r, 5000);
+  let plannedBlock = null;
+  const blockCreated = await until(async () => {
+    plannedBlock = (await scopedBlocks()).find(e => e.title === 'review due cards' && e.data?.commitmentId === weightedCommitment?.id);
+    return !!plannedBlock;
+  });
+  row('study-plan.request', dueCardReady && !!weightedCommitment && r.ok && !!r.delivered && blockCreated && !!fr,
+    fmt(r) + ` | dueCard=${dueCardReady} block=${plannedBlock?.key || '-'} anchor=${plannedBlock?.data?.commitmentId || '-'} expected=${weightedCommitment?.id || '-'} before=${blocksBefore}`);
 
   /* ── nothing left queued anywhere ─────────────────────────────── */
   let pendingTotal = 0;
@@ -216,7 +268,8 @@ const BASE = process.env.ITERRA_BASE || 'http://localhost:8090';
     if (!ok) fails++;
     console.log(`${ok ? 'PASS' : 'FAIL'}  ${name.padEnd(30)} ${detail}`);
   }
+  if (errs.length) fails++;
   console.log(`\n${results.length - fails}/${results.length} pass · errs: ${errs.slice(0, 8).join(' | ') || 'none'}`);
-  await page.close();
+  await browser.close();
   process.exit(fails ? 1 : 0);
 })().catch((e) => { console.error('FATAL', e); process.exit(1); });

@@ -13,8 +13,8 @@
      rows still come from the legacy feed() call in iterra.ts) */
 
 import { useRegister } from '../store';
-import { addDaysISO, dateOfInstant, nowISO, todayISO } from './dates';
-import { dayState, entriesOn, isScheduled } from './register';
+import { addDaysISO, dateOfInstant, nowISO, parseISO, todayISO } from './dates';
+import { checkInCounts, dayState, routineCheckIn } from './register';
 import { KNOWN_APPS } from './events';
 import type { Entry, Routine, SuiteApp } from './types';
 
@@ -184,7 +184,7 @@ export function streakDays(
 
 export function routineEntity(
   r: Routine,
-  opts: { course?: string; courseId?: string; streak?: number; todayValue?: number } = {},
+  opts: { course?: string; courseId?: string; streak?: number; checkIn?: ReturnType<typeof routineCheckIn> } = {},
 ): Record<string, unknown> {
   return {
     app: 'rhythm',
@@ -199,11 +199,15 @@ export function routineEntity(
       streak: opts.streak ?? 0,
       measure: r.measure,
       perWeek: r.target.perWeek,
+      unit: r.unit,
       status: r.status,
-      /* surfaces like Today read this to flip 'Log routine' into a done
-         state without opening the register — value, not a boolean, so
-         count routines can show partial progress too */
-      ...(opts.todayValue ? { todayDone: true, todayValue: opts.todayValue } : {}),
+      ...(opts.checkIn ? {
+        checkInDate: opts.checkIn.date,
+        checkInPending: opts.checkIn.pending,
+        todayDone: opts.checkIn.state === 'full' || opts.checkIn.state === 'minimum',
+        todayValue: opts.checkIn.value,
+        todayTarget: opts.checkIn.target,
+      } : {}),
     },
   };
 }
@@ -473,7 +477,7 @@ export function registerAdapter() {
         course: label,
         courseId: key ?? undefined,
         streak: streakDays(r, s.entries, s.exceptions),
-        todayValue: entriesOn(s.entries, r.id, todayISO()).reduce((t, e) => t + (e.value || 0), 0),
+        checkIn: routineCheckIn(r, todayISO(), s.entries, s.exceptions),
       });
       const j = JSON.stringify(ent);
       const rk = `rhythm:routine:${id}`;
@@ -569,9 +573,7 @@ export function registerAdapter() {
   const pendingNow = (): number | null => {
     const s = useRegister.getState();
     const today = todayISO();
-    const due = Object.values(s.routines).filter((r) => r.status === 'active' && isScheduled(r, today));
-    const marked = due.filter((r) => entriesOn(s.entries, r.id, today).length > 0).length;
-    return Math.max(0, due.length - marked);
+    return checkInCounts(Object.values(s.routines), s.entries, s.exceptions, today).pending;
   };
   useRegister.subscribe((s) => {
     diffState();
@@ -610,9 +612,7 @@ export function registerAdapter() {
     summary: () => {
       const s = useRegister.getState();
       const today = todayISO();
-      const due = Object.values(s.routines).filter((r) => r.status === 'active' && isScheduled(r, today));
-      const marked = due.filter((r) => entriesOn(s.entries, r.id, today).length > 0).length;
-      return { marked, total: due.length, pending: Math.max(0, due.length - marked) };
+      return checkInCounts(Object.values(s.routines), s.entries, s.exceptions, today);
     },
     intakes: {
       /* {kind,minutes?,course?,courseId?,label?,at?} → a register event;
@@ -696,15 +696,27 @@ export function registerAdapter() {
         const s = useRegister.getState();
         const r = rid ? s.routines[rid] : undefined;
         if (!r) return { url: null, toast: 'that routine no longer exists' };
-        if (r.status === 'archived') return { url: null, toast: `${r.name} is archived` };
+        if (r.status !== 'active') return { url: null, toast: `${r.name} is ${r.status}` };
         const ctx = rec?.id ? `intake:${rec.id}` : undefined;
         if (ctx && Object.values(s.entries).some((e) => e.routineId === rid && e.context === ctx)) {
           return { url: null, navigate: false, toast: `${r.name} — already logged` };
         }
-        const date = typeof p.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.date) ? p.date : todayISO();
+        const today = todayISO();
+        const date = p.date ?? today;
+        if (typeof date !== 'string' || !parseISO(date) || addDaysISO(date, 0) !== date || date > today || date < dateOfInstant(r.createdAt)) {
+          return { url: null, navigate: false, toast: 'Choose a valid check-in date on or before today.' };
+        }
+        const progress = routineCheckIn(r, date, s.entries, s.exceptions);
+        if (p.scheduledOnly === true && !progress.pending) {
+          return { url: null, navigate: false, toast: `${r.name} has no open check-in for that day.` };
+        }
+        const value = typeof p.value === 'number' ? p.value : NaN;
+        if (r.measure !== 'check' && (!Number.isFinite(value) || value <= 0)) {
+          return { url: null, navigate: false, toast: `Enter the amount completed for ${r.name}.` };
+        }
         const entry = s.checkIn(rid, {
           date,
-          value: Number.isFinite(Number(p.value)) ? Number(p.value) : undefined,
+          value: r.measure === 'check' ? undefined : value,
           isMinimum: p.isMinimum === true,
           context: ctx,
         });
@@ -731,6 +743,16 @@ export function registerAdapter() {
       ).then(queueDrain, queueDrain);
     },
   });
+  let publishedDay = todayISO();
+  const refreshDay = () => {
+    const date = todayISO();
+    if (date === publishedDay) return;
+    publishedDay = date;
+    diffState();
+    queueDrain();
+  };
+  window.setInterval?.(refreshDay, 60_000);
+  window.addEventListener?.('focus', refreshDay);
 }
 
 if (typeof window !== 'undefined') registerAdapter();

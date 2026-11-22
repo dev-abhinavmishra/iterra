@@ -87,6 +87,10 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [react(), tailwindcss(), devApiPlugin()],
         build: {
+            // The release build uses this source-keyed graph to generate the
+            // service-worker's core/tool/feature precache policy. Keep hashed
+            // output names out of ownership decisions; they change each build.
+            manifest: true,
             rollupOptions: {
                 output: {
                     // Keep dependencies of manual chunks out of app entries,

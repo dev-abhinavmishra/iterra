@@ -66,6 +66,7 @@ export interface Scan {
   userId?: string;
   createdAt?: number;
   batchName?: string;
+  pdfProvenance?: 'matched' | 'unverified-legacy';
 }
 
 interface AppState {

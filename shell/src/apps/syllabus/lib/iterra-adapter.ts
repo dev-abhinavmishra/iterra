@@ -12,6 +12,7 @@ import { execCommand } from '../../../integration/commands';
 import { addDaysISO, clamp, diffDaysISO, dueDateISO, isoAtTime, todayISO } from './utils';
 import type { Commitment, Course, Term, WorkBlock } from './types';
 import type { ProposedBlock } from './schedule';
+import { flushNativeStore } from '../../../integration/nativePersistence';
 
 declare const window: any;
 
@@ -168,11 +169,24 @@ function emitEvent(type: string, payload: Record<string, unknown>) {
  *  deleted keys, and emit transition events. Mirror writes run inside the
  *  store's subscribe path — a throw must never reach the app's own set(). */
 export function mirrorFolio() {
-  try {
+  mirrorQueue = mirrorQueue.then(async () => {
+    await flushNativeStore('syllabus.folio.v1');
     mirrorFolioInner();
-  } catch (e) {
-    console.warn('iterra mirror failed:', e);
-  }
+  }).catch((e) => {
+    console.warn('iterra mirror is waiting for committed Planning data:', e);
+  });
+}
+
+let mirrorQueue: Promise<void> = Promise.resolve();
+
+function durableIntake<T>(handler: (record: any) => Promise<T> | T) {
+  return async (record: any): Promise<T> => {
+    await whenBooted();
+    await flushNativeStore('syllabus.folio.v1');
+    const result = await handler(record);
+    await flushNativeStore('syllabus.folio.v1');
+    return result;
+  };
 }
 
 function mirrorFolioInner() {
@@ -549,12 +563,12 @@ export function registerAdapter() {
     name: APP,
     title: 'Syllabus',
     intakes: {
-      'study-plan.request': (rec: any) => studyPlan(rec),
+      'study-plan.request': durableIntake(studyPlan),
       /* {title, courseId?, course?, date?, minutes?, phase?, label?} → book a
          slip on the folio: the rhythm app files routine sessions here so
          'what's planned' and 'what was done' live on the same ledger.
          Hangs on a found-or-filed commitment in the resolved course. */
-      'block.plan': async (rec: any) => {
+      'block.plan': durableIntake(async (rec: any) => {
         await whenBooted();
         const s = useFolio.getState();
         const p = rec?.payload ?? {};
@@ -680,12 +694,12 @@ export function registerAdapter() {
             late: false,
           }]);
         }
-      },
+      }),
       /* {blockId} → stamp the slip done where it sits — Today's 'Mark done'
          completes off-clock work without a timer session. navigate:false:
          the point is staying on the surface that asked. completeBlock is
          idempotent, so a redelivered record returns 'already done'. */
-      'block.done': async (rec: any) => {
+      'block.done': durableIntake(async (rec: any) => {
         await whenBooted();
         const s = useFolio.getState();
         const p = (rec?.payload ?? {}) as Record<string, any>;
@@ -701,7 +715,7 @@ export function registerAdapter() {
         const title = b.label || s.commitments[b.commitmentId]?.title || 'Slip';
         s.completeBlock(b.id);
         return { url: deep, navigate: false, toast: `${title} — stamped done` };
-      },
+      }),
       /* {blockId, date?} → push the slip — defaults to tomorrow, stays
          'planned' on the new date (deferBlock with toDate reschedules
          rather than marking 'deferred'). Today's 'Push to tomorrow' —
@@ -710,7 +724,7 @@ export function registerAdapter() {
          dossier rows + Today check-offs send this. Weekly commitments spawn
          their next instance inside setCommitmentStatus (the recurrence
          chain rides along). navigate:false, same contract as block.done. */
-      'commitment.done': async (rec: any) => {
+      'commitment.done': durableIntake(async (rec: any) => {
         await whenBooted();
         const s = useFolio.getState();
         const p = (rec?.payload ?? {}) as Record<string, any>;
@@ -722,11 +736,11 @@ export function registerAdapter() {
         if (c.status === 'done') return { url: deep, navigate: false, toast: `${c.title} — already filed done` };
         s.setCommitmentStatus(c.id, 'done');
         return { url: deep, navigate: false, toast: `${c.title} — filed done` };
-      },
+      }),
       /* overdue work the student won't do shouldn't haunt Today — drop
          retires it without touching the grade ledger. Recurrence does NOT
          spawn on drop (done-only), matching the store semantics. */
-      'commitment.drop': async (rec: any) => {
+      'commitment.drop': durableIntake(async (rec: any) => {
         await whenBooted();
         const s = useFolio.getState();
         const p = (rec?.payload ?? {}) as Record<string, any>;
@@ -739,8 +753,8 @@ export function registerAdapter() {
         if (c.status === 'done') return { url: deep, navigate: false, toast: `${c.title} — already filed done` };
         s.setCommitmentStatus(c.id, 'dropped');
         return { url: deep, navigate: false, toast: `${c.title} — dropped` };
-      },
-      'block.defer': async (rec: any) => {
+      }),
+      'block.defer': durableIntake(async (rec: any) => {
         await whenBooted();
         const s = useFolio.getState();
         const p = (rec?.payload ?? {}) as Record<string, any>;
@@ -757,7 +771,7 @@ export function registerAdapter() {
         s.deferBlock(b.id, 'pushed from Today', to as any);
         const title = b.label || s.commitments[b.commitmentId]?.title || 'Slip';
         return { url: deep, navigate: false, toast: `${title} — pushed to ${to === tomorrow ? 'tomorrow' : to}` };
-      },
+      }),
     },
     wake: () => mirrorFolio(),
   });

@@ -91,6 +91,7 @@ export function gradeEntity(scan: Scan, test: Test | undefined, courseId?: strin
       pct: scan.percentage,
       grade: scan.grade,
       needsReview: scan.needsReview || undefined,
+      pdfProvenance: scan.pdfProvenance,
       enteredAt: typeof scan.createdAt === 'number' ? new Date(scan.createdAt).toISOString() : undefined,
       testId: scan.testId,
       batchName: scan.batchName,

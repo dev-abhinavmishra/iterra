@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { ActiveStudyPlan } from '../../../integration/StudySessionPlan';
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Focus, Minus, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn, vibrate } from '../lib/utils';
 import { getSessions, saveSession } from '../lib/stats';
 import { clearPendingSessionOutcome, enqueueSessionOutcome, getPendingSessionOutcomes } from '../lib/session-outbox';
 import { execCommand, type RecordSessionOutcomeInput } from '../../../integration/commands';
+import { boxedFocusUrl, parseBoxedFocus, type BoxedFocusTarget } from '../../../integration/boxedFocus';
 import { useCountdown, useWakeLock } from '../hooks/useTimer';
 import { useViewport } from '../hooks/useViewport';
 import { useSettings, updateSettings } from '../lib/settings';
@@ -25,7 +27,7 @@ const LIVE_SESSION_KEY = 'timer.session.live.v1';
 type CompletionSave =
   | { state: 'saving' }
   | { state: 'failed'; durable: boolean; message: string; conflict?: boolean }
-  | { state: 'saved'; url?: string };
+  | { state: 'saved'; url?: string; outcome?: 'partial' | 'canceled' };
 
 function fmt(totalSec: number) {
   const m = Math.floor(totalSec / 60);
@@ -80,7 +82,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const [completionSave, setCompletionSave] = useState<CompletionSave | null>(null);
   const retryCompletionRef = useRef<(() => void) | null>(null);
   const [keyFlash, setKeyFlash] = useState<string | null>(null);
-  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string; courseId?: string; commitmentId?: string; material?: string } | null>(null);
+  const [syllabus, setSyllabus] = useState<{ block?: string; returnUrl?: string; course?: string; from?: string; courseId?: string; commitmentId?: string; material?: string; boxedFocus?: BoxedFocusTarget } | null>(null);
+  const boxedTarget = syllabus?.boxedFocus;
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -143,6 +146,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const hasTime = cd.totalMs > 0;
   const running = cd.running;
   const atTop = !running && !done && cd.remainingMs === cd.totalMs; // set-but-not-started → show the dial
+  const recess = isBreak || (!syllabus && /\b(recess|break|rest)\b/i.test(label ?? ''));
 
   useWakeLock(running || focus);
 
@@ -260,7 +264,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
        command layer's field name); the live state field is `material` —
        normalize here or a mid-session reload drops the practicedIn edge */
     setSyllabus(live.syllabus
-      ? { ...live.syllabus, material: live.syllabus.material ?? live.syllabus.materialRef }
+      ? { ...live.syllabus, material: live.syllabus.material ?? live.syllabus.materialRef,
+          boxedFocus: live.syllabus.from === 'boxed' ? parseBoxedFocus(live.syllabus.boxedFocus) : undefined }
       : null);
     const totalMs = (live.totalMin || 25) * 60000;
     if (live.running) {
@@ -322,7 +327,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
         /* a returnUrl the file-back gate would reject stays out of state —
            otherwise it renders a dead 'file back' button */
         const returnUrl = link.returnUrl && syllabusReturnUrl(link, 1) ? link.returnUrl : undefined;
-        setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId, material: link.material });
+        setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId, material: link.material, boxedFocus: link.boxedFocus });
         /* strip the link params from the hash — a reload mid-session must
            hit the live-restore path, not re-arm the original link */
         const h = window.location.hash.replace(/\?[^#]*$/, '');
@@ -380,7 +385,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     if (link.intent) setIntent(link.intent);
     setThenBreak(link.thenBreak ?? 0);
     const returnUrl = link.returnUrl && syllabusReturnUrl(link, 1) ? link.returnUrl : undefined;
-    setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId, material: link.material });
+    setSyllabus({ block: link.block, returnUrl, course: link.course, from: link.from, courseId: link.courseId, commitmentId: link.commitmentId, material: link.material, boxedFocus: link.boxedFocus });
     const h = window.location.hash.replace(/\?[^#]*$/, '');
     window.history.replaceState({}, '', window.location.pathname + window.location.search + h);
     const ms = (link.minutes ?? presetMinutes) * 60000;
@@ -456,10 +461,11 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       if (idle.current) { clearTimeout(idle.current); idle.current = null; }
       return;
     }
+    const autoFocus = running && !inTerrain();
     const wake = () => {
       enterFocus(false);
       if (idle.current) clearTimeout(idle.current);
-      if (running) idle.current = setTimeout(() => enterFocus(true), 10000);
+      if (autoFocus) idle.current = setTimeout(() => enterFocus(true), 10000);
     };
     const opts: AddEventListenerOptions = { passive: true };
     window.addEventListener('mousemove', wake, opts);
@@ -469,7 +475,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     // Arm the AFK timer on (re)run, but don't exit focus here — that only
     // happens on real user input (running flips mid-takeover otherwise).
     if (idle.current) clearTimeout(idle.current);
-    if (running) idle.current = setTimeout(() => enterFocus(true), 10000);
+    if (autoFocus) idle.current = setTimeout(() => enterFocus(true), 10000);
     return () => {
       ['mousemove', 'keydown', 'pointerdown', 'wheel'].forEach(e => window.removeEventListener(e, wake));
       if (idle.current) clearTimeout(idle.current);
@@ -493,10 +499,11 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     if (!active) return; // keys belong to whichever view is on screen
     const onKey = (e: KeyboardEvent) => {
       if (!placeActive("timer")) return;
-      const t = e.target as HTMLElement;
-      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+      const target = e.target instanceof HTMLElement ? e.target : null;
+      if (e.defaultPrevented || e.isComposing || e.ctrlKey || e.metaKey || e.altKey ||
+          target?.matches('input, textarea, select') || target?.isContentEditable) return;
+      if ((e.key === 'Enter' || e.code === 'Space') && target?.closest('button, a, summary')) return;
       if (done) {
-        if (t instanceof HTMLElement && t.closest('button') && (e.key === 'Enter' || e.code === 'Space')) return;
         if (completionSave && completionSave.state !== 'saved') return;
         // the completion takeover owns the keys — no ghost restarts underneath
         if (e.code === 'Space' || e.key === 'Enter') { e.preventDefault(); setDone(null); resetTimer(); }
@@ -519,9 +526,6 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   const completeFocus = () => {
     vibrate([120, 80, 120, 80, 300]);
     stationChime();
-    // A bound study session is focus work even when its duration matches a rest
-    // preset, or its course label happens to contain "break" or "rest".
-    const recess = isBreak || (!syllabus && /recess|break|rest/i.test(label ?? secLabel(cd.totalMs / 1000)));
     // The countdown reaches zero before React commits the last tick. Use the
     // total at natural expiration; finishEarly calculates partial time separately.
     const elapsedSeconds = Math.round(cd.totalMs / 1000);
@@ -560,8 +564,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     const showCompletedBoard = () => {
       const willFileBack = !!(syllabus?.block && syllabus?.returnUrl);
       if (!recess && !willFileBack) (window as any).iterra?.feed?.({ text: `completed ${plannedMinutes}m ${label || 'focus'}`, course: syllabus?.course });
-      setDone(isBreak ? 'break' : 'focus');
-      if (!isBreak && thenBreak > 0) {
+      setDone(recess ? 'break' : 'focus');
+      if (!recess && thenBreak > 0) {
         if (chainTimer.current) clearTimeout(chainTimer.current);
         chainTimer.current = setTimeout(() => {
           chainTimer.current = null;
@@ -582,6 +586,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
         materialRef: syllabus?.material ?? null,
         course: syllabus?.course ?? null,
         courseId: syllabus?.courseId ?? null,
+        boxedFocus: boxedTarget,
         label: intent || label || undefined,
         confirmedByUser: true,
         idempotencyKey: `timer:${sess.id}`,
@@ -684,28 +689,29 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
      would stamp the full preset duration and lie about the session */
   const finishEarly = () => {
     const elapsedSec = Math.round((cd.totalMs - cd.remainingMs) / 1000);
+    cd.pause();
     const sess = elapsedSec >= 60
       ? saveSession({
           id: sessionIdRef.current ?? undefined,
           duration: elapsedSec,
-          type: isBreak ? 'break' : 'focus',
+          type: recess ? 'break' : 'focus',
           label: intent || undefined,
           preset: label,
           course: syllabus?.course,
           courseId: syllabus?.courseId,
           commitmentId: syllabus?.commitmentId,
-          outcome: isBreak ? undefined : 'partial',
+          outcome: recess ? undefined : 'partial',
           blockId: syllabus?.block,
           materialRef: syllabus?.material,
           plannedMinutes: Math.round(cd.totalMs / 60000),
-          confirmedByUser: isBreak ? undefined : true,
+          confirmedByUser: recess ? undefined : true,
         })
       : null;
     const outcomeSessionId = sess?.id ?? sessionIdRef.current ?? `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
     /* partial when real minutes banked, canceled when the run was scrubbed
        before a minute — the command reconciles the bound block either way.
        Breaks never fire it: recess minutes aren't block work. */
-    if (!isBreak) {
+    if (!recess) {
       const input: RecordSessionOutcomeInput = {
       sessionId: outcomeSessionId,
       outcome: sess ? 'partial' : 'canceled',
@@ -716,6 +722,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       materialRef: syllabus?.material ?? null,
       course: syllabus?.course ?? null,
       courseId: syllabus?.courseId ?? null,
+      boxedFocus: boxedTarget,
       label: intent || label || undefined,
       confirmedByUser: true,
       idempotencyKey: `timer:${outcomeSessionId}`,
@@ -725,7 +732,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
         const result = await submitOutcome(input);
         if (result.ok) {
           retryCompletionRef.current = null;
-          resetTimer();
+          if (boxedTarget) setCompletionSave({ state: 'saved', url: result.url, outcome: sess ? 'partial' : 'canceled' });
+          else resetTimer();
           return;
         }
         setCompletionSave({
@@ -818,14 +826,10 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
     if (!running) { cd.reset(m * 60000); setIsBreak(false); setDone(null); }
   };
 
-  const secLabel = (secs: number) => {
+  const sessionLabel = () => {
     if (isBreak) return 'Recess';
     if (label) return label;
-    const m = secs / 60;
-    if (m <= 5) return 'Short Recess';
-    if (m <= 15) return 'Long Recess';
-    if (m <= 25) return 'Deep Work';
-    return 'Extended Focus';
+    return (hasTime ? cd.totalMs / 60000 : setMinutes) <= 25 ? 'Deep Work' : 'Extended Focus';
   };
 
   const dispSec = hasTime ? cd.secondsLeft : setMinutes * 60;
@@ -851,7 +855,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
           )}
           <Board
             screws
-            label={isBreak ? 'RECESS' : secLabel(dispSec)}
+            label={sessionLabel()}
             right={
               <div className="flex items-center gap-3">
                 {running && (
@@ -899,7 +903,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                     title={`Bound from ${syllabus.from} — return there`}
                     onClick={() =>
                       (window as any).iterra?.open?.(
-                        syllabus.from === 'terrain'
+                        boxedTarget ? boxedFocusUrl(boxedTarget) : syllabus.from === 'terrain'
                           ? (syllabus.course ? `#/c/${encodeURIComponent(syllabus.course)}` : '#/')
                           : `/apps/${syllabus.from}/`,
                       )
@@ -1027,9 +1031,22 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
               >
                 <div>
                   <div className="label-wall text-[10px] mb-1">Session</div>
-                  <div className="font-display text-2xl font-bold text-ink leading-none uppercase">{secLabel(dispSec)}</div>
-                  {intent && <div className="text-sm text-ink-soft mt-1 font-body">{intent}</div>}
+                  <div className="font-display text-2xl font-bold text-ink leading-none uppercase">{sessionLabel()}</div>
+                  {intent && intent.trim().toLowerCase() !== sessionLabel().trim().toLowerCase() &&
+                    <div className="text-sm text-ink-soft mt-1 font-body">{intent}</div>}
                 </div>
+                {inTerrain() && !recess && !done && (running || paused) && (
+                  <ActiveStudyPlan
+                    minutes={Math.round(cd.totalMs / 60000)}
+                    courseRef={syllabus?.courseId || syllabus?.course || boundCode || undefined}
+                    commitmentId={syllabus?.commitmentId}
+                    materialRef={syllabus?.material}
+                    sessionKey={sessionIdRef.current}
+                  />
+                )}
+                {boxedTarget && (running || paused) && !done && (
+                  <KeyButton className="px-4 py-2 text-sm self-start" onClick={finishEarly}>End focus</KeyButton>
+                )}
                 {/* UX-TRACKER #82 — bound course → the shell dossier */}
                 {boundCode && inTerrain() && (
                   <div className="flex justify-between text-sm">
@@ -1065,9 +1082,11 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                   </div>
                 )}
                 <hr className="rule-h" />
-                <p className="text-[11px] text-ink-faint font-body leading-relaxed">
-                  Step away and the board takes over — focus mode fills the screen after 10 seconds idle.
-                </p>
+                {!inTerrain() && (
+                  <p className="text-[11px] text-ink-faint font-body leading-relaxed">
+                    Focus mode fills the screen after 10 seconds idle.
+                  </p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1218,12 +1237,12 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       </AnimatePresence></PlacePortal>
 
       {/* ---------- COMPLETION TAKEOVER ---------- */}
-      <PlacePortal place="timer"><AnimatePresence>
+      <PlacePortal place="timer">
         {done && (
           <motion.div
             key="done"
             ref={takeoverEl}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
             className="absolute inset-0 z-[300] flex flex-col items-center justify-center overflow-hidden"
             style={{ background: 'linear-gradient(180deg, #16130B 0%, #0F0C06 100%)' }}
@@ -1257,7 +1276,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
               className="flex flex-col items-center gap-10 z-10 px-6"
             >
               <FlipText
-                text={completionSave?.state === 'saving' ? 'SAVING SESSION' : completionSave?.state === 'failed' ? 'SAVE FAILED' : done === 'break' ? 'RECESS OVER' : 'SESSION COMPLETE'}
+                text={completionSave?.state === 'saving' ? 'SAVING SESSION' : completionSave?.state === 'failed' ? 'SAVE FAILED' : done === 'break' ? 'RECESS OVER' : completionSave?.outcome ? 'SESSION ENDED' : 'SESSION COMPLETE'}
                 size={Math.min(72, tw / 16)}
                 accent={false}
               />
@@ -1275,13 +1294,14 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                         {completionSave.message}
                         {!completionSave.durable && !completionSave.conflict && ' A retry copy could not be saved, so keep Timer open and retry before leaving.'}
                       </span>
-                    : done === 'break' ? 'BOARD READY — NEXT DEPARTURE AWAITS' : thenBreak > 0 ? `RECESS ${thenBreak}M BOARDING` : 'TIME WELL KEPT'}
+                    : done === 'break' ? 'BOARD READY — NEXT DEPARTURE AWAITS' : thenBreak > 0 ? `RECESS ${thenBreak}M BOARDING` :
+                      completionSave?.outcome === 'canceled' ? 'UNDER ONE MINUTE' : boxedTarget ? 'FOCUS TIME SAVED' : 'TIME WELL KEPT'}
               </motion.p>
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.1 }}
-                className="flex gap-4"
+                className="flex flex-wrap justify-center gap-3"
               >
                 {completionSave?.state === 'failed' && (
                   <KeyButton
@@ -1294,9 +1314,19 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                 )}
                 {(!completionSave || completionSave.state === 'saved') && (
                   <>
-                    <KeyButton variant="signal" className="px-10 py-4 text-sm" onClick={() => { setDone(null); resetTimer(); }}>
+                    {boxedTarget && completionSave?.state === 'saved' && (
+                      <KeyButton variant="signal" className="px-6 py-4 text-sm" onClick={() => { resetTimer(); openTerrain(boxedFocusUrl(boxedTarget)); }}>
+                        Return to Daily Board
+                      </KeyButton>
+                    )}
+                    <KeyButton variant={boxedTarget ? 'dark' : 'signal'} className="px-10 py-4 text-sm" onClick={() => { setDone(null); resetTimer(); }}>
                       Continue
                     </KeyButton>
+                    {!boxedTarget && completionSave?.state === 'saved' && thenBreak === 0 && (
+                      <KeyButton className="px-6 py-4 text-sm" onClick={() => { resetTimer(); openTerrain('#/'); }}>
+                        Back to Today
+                      </KeyButton>
+                    )}
                     {completionSave?.state === 'saved' && (syllabus?.block || syllabus?.commitmentId) && completionSave.url?.startsWith('/apps/syllabus/') && (
                       <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus}>
                         Open in Planning
@@ -1324,7 +1354,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
             ))}
           </motion.div>
         )}
-      </AnimatePresence></PlacePortal>
+      </PlacePortal>
     </div>
   );
 }

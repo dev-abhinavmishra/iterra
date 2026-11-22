@@ -8,6 +8,7 @@
 
 const FORMAT = 'iterra-backup';
 const VERSION = 1;
+import { flushAllNativeStores, readNativeSnapshot, NATIVE_STATE_DB, NATIVE_STATE_KEYS, replaceNativeStores, clearNativeStoresAndFence } from './nativePersistence';
 
 export interface BackupStore {
   keyPath: string | string[] | null;
@@ -39,7 +40,7 @@ export interface BackupSummary {
   records: number;
 }
 
-const KNOWN_DBS = ['iterra', 'ModularAINotesDB'];
+const KNOWN_DBS = ['iterra', 'ModularAINotesDB', NATIVE_STATE_DB];
 
 /* exported for sibling integration tools (demo seed) that need the same
    tolerant open/list/read primitives — never throw, null on failure */
@@ -55,7 +56,9 @@ export const openDatabase = (name: string, version?: number, onUpgrade?: (db: ID
     req.onsuccess = () => res(req.result);
     req.onerror = () => res(null);
     req.onblocked = () => res(null);
-    if (onUpgrade) req.onupgradeneeded = () => onUpgrade(req.result);
+    if (onUpgrade) req.onupgradeneeded = () => {
+      try { onUpgrade(req.result); } catch { req.transaction?.abort(); }
+    };
   });
 
 export const storeAllKeys = (dbName: string, storeName: string): Promise<IDBValidKey[]> =>
@@ -124,28 +127,54 @@ const dbNames = async (): Promise<string[]> => {
   return KNOWN_DBS;
 };
 
+// Backup creation must distinguish a missing database from an unreadable one.
+const openBackupDb = (name: string): Promise<IDBDatabase | null> => new Promise((resolve, reject) => {
+  let created = false;
+  let abandoned = false;
+  try {
+    const request = indexedDB.open(name);
+    request.onupgradeneeded = () => { created = true; request.transaction?.abort(); };
+    request.onsuccess = () => {
+      if (abandoned) { request.result.close(); return; }
+      resolve(request.result);
+    };
+    request.onerror = () => {
+      if (created && request.error?.name === 'AbortError') resolve(null);
+      else reject(request.error || new Error('Could not read database.'));
+    };
+    request.onblocked = () => { abandoned = true; reject(new Error('Database read was blocked.')); };
+  } catch (error) { reject(error); }
+});
+
+const backupDbNames = async (): Promise<string[]> => {
+  const idb = indexedDB as unknown as { databases?: () => Promise<{ name?: string }[]> };
+  if (!idb.databases) return KNOWN_DBS;
+  const list = await idb.databases();
+  return [...new Set([...KNOWN_DBS, ...list.map(d => d.name).filter((name): name is string => !!name)])];
+};
+
 const dumpDb = async (name: string): Promise<BackupDb | null> => {
-  const db = await openExistingDatabase(name);
+  const db = await openBackupDb(name);
   if (!db) return null;
   try {
     const stores: BackupDb['stores'] = {};
     for (const storeName of Array.from(db.objectStoreNames)) {
       const tx = db.transaction(storeName, 'readonly');
       const s = tx.objectStore(storeName);
-      const records = await new Promise<unknown[]>((res, rej) => {
-        const r = s.getAll();
-        r.onsuccess = () => res(r.result || []);
-        r.onerror = () => rej(r.error);
+      const completed = new Promise<void>((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onabort = () => reject(tx.error || new Error('Backup database read aborted.'));
+        tx.onerror = () => reject(tx.error || new Error('Backup database read failed.'));
       });
       const keyPath = (s.keyPath ?? null) as string | string[] | null;
-      let keys: unknown[] | null = null;
-      if (keyPath === null) {
-        keys = await new Promise<unknown[]>((res, rej) => {
-          const r = s.getAllKeys();
-          r.onsuccess = () => res(r.result || []);
-          r.onerror = () => rej(r.error);
-        });
-      }
+      const read = (r: IDBRequest): Promise<unknown[]> => new Promise((resolve, reject) => {
+        r.onsuccess = () => resolve(r.result || []);
+        r.onerror = () => reject(r.error || new Error('Could not read database store.'));
+      });
+      // Start both requests before awaiting, while the transaction is active.
+      const recordsRequest = read(s.getAll());
+      const keysRequest = keyPath === null ? read(s.getAllKeys()) : Promise.resolve(null);
+      const [records, keys] = await Promise.all([recordsRequest, keysRequest, completed]);
       stores[storeName] = { keyPath, autoIncrement: s.autoIncrement, keys, records };
     }
     return { name, version: db.version, stores };
@@ -155,27 +184,40 @@ const dumpDb = async (name: string): Promise<BackupDb | null> => {
 };
 
 export async function collectBackup(): Promise<IterraBackup> {
-  const ls: Record<string, string> = {};
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k == null) continue;
-      const v = localStorage.getItem(k);
-      if (v != null) ls[k] = v;
-    }
-  } catch {
-    /* storage denied (private mode) — the idb half still exports */
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await flushAllNativeStores();
+    const before = await Promise.all(NATIVE_STATE_KEYS.map(key => readNativeSnapshot(key)));
+    const backup = await captureBackupSnapshot();
+    await flushAllNativeStores();
+    const after = await Promise.all(NATIVE_STATE_KEYS.map(key => readNativeSnapshot(key)));
+    if (before.every((snapshot, index) => snapshot.revision === after[index].revision &&
+      snapshot.generation === after[index].generation && snapshot.keyGeneration === after[index].keyGeneration)) return backup;
   }
+  throw new Error('Native data kept changing while the backup was created. Try again when edits are finished.');
+}
 
+async function captureBackupSnapshot(): Promise<IterraBackup> {
+  const ls: Record<string, string> = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key == null) throw new Error('Could not read browser storage.');
+    const value = localStorage.getItem(key);
+    if (value == null) throw new Error('Browser storage changed while creating the backup.');
+    ls[key] = value;
+  }
+  if (typeof indexedDB === 'undefined') throw new Error('IndexedDB is unavailable.');
   const idb: IterraBackup['idb'] = {};
-  if (typeof indexedDB !== 'undefined') {
-    for (const name of await dbNames()) {
-      try {
-        const d = await dumpDb(name);
-        if (d && Object.keys(d.stores).length) idb[name] = d;
-      } catch {
-        /* a store that won't read shouldn't sink the whole backup */
+  for (const name of await backupDbNames()) {
+    const db = await dumpDb(name);
+    if (db && Object.keys(db.stores).length) {
+      if (name === NATIVE_STATE_DB) {
+        // The local receipt journal is flushed first; only committed native
+        // state belongs in a portable backup. Applied IDs and old receipt
+        // payloads are replay guards, not user data.
+        delete db.stores.receipts;
+        delete db.stores.applied;
       }
+      idb[name] = db;
     }
   }
   return { format: FORMAT, v: VERSION, at: Date.now(), localStorage: ls, idb };
@@ -200,17 +242,56 @@ export function parseBackup(raw: string): IterraBackup {
   } catch {
     throw new Error("That file isn't valid JSON.");
   }
-  const o = b as Partial<IterraBackup>;
-  if (!o || typeof o !== 'object' || o.format !== FORMAT) {
-    throw new Error("That file isn't an Iterra backup.");
+  const isRecord = (value: unknown): value is Record<string, unknown> =>
+    !!value && typeof value === 'object' && !Array.isArray(value);
+  if (!isRecord(b) || b.format !== FORMAT) throw new Error("That file isn't an Iterra backup.");
+  if (typeof b.v === 'number' && b.v > VERSION) throw new Error('This backup is from a newer version of Iterra.');
+  const invalid = () => { throw new Error('This backup has invalid saved data.'); };
+  if (b.v !== VERSION || typeof b.at !== 'number' || !Number.isFinite(b.at) || b.at < 0 || b.at > 8640000000000000 ||
+      !isRecord(b.localStorage) || Object.values(b.localStorage).some(value => typeof value !== 'string')) invalid();
+  if (b.idb !== undefined && !isRecord(b.idb)) invalid();
+  const validKey = (key: unknown): boolean =>
+    typeof key === 'string' || (typeof key === 'number' && Number.isFinite(key)) ||
+    (Array.isArray(key) && key.every(validKey));
+  const inlineKey = (record: unknown, path: string): unknown => {
+    if (!path) return record;
+    return path.split('.').reduce<unknown>((value, part) =>
+      value && typeof value === 'object' ? (value as Record<string, unknown>)[part] : undefined, record);
+  };
+  for (const [name, db] of Object.entries((b.idb ?? {}) as Record<string, unknown>)) {
+    if (!name || !isRecord(db) || db.name !== name || !Number.isSafeInteger(db.version) || (db.version as number) < 1 || !isRecord(db.stores)) invalid();
+    for (const [storeName, store] of Object.entries((db as Record<string, unknown>).stores as Record<string, unknown>)) {
+      if (!storeName || !isRecord(store)) invalid();
+      const row = store as Record<string, unknown>;
+      const keyPath = row.keyPath;
+      if (!(keyPath === null || typeof keyPath === 'string' ||
+        (Array.isArray(keyPath) && keyPath.length > 0 && keyPath.every(key => typeof key === 'string'))) ||
+        typeof row.autoIncrement !== 'boolean' || !Array.isArray(row.records) ||
+        (keyPath === null ? !Array.isArray(row.keys) || row.keys.length !== row.records.length : row.keys !== null)) invalid();
+      const validPath = (path: string) => path === '' || path.split('.').every(part => /^[\p{ID_Start}$_][\p{ID_Continue}$\u200c\u200d]*$/u.test(part));
+      if ((typeof keyPath === 'string' && !validPath(keyPath)) ||
+          (Array.isArray(keyPath) && !keyPath.every(validPath)) ||
+          (row.autoIncrement === true && (Array.isArray(keyPath) || keyPath === ''))) invalid();
+      if (keyPath === null) {
+        if (!(row.keys as unknown[]).every(validKey)) invalid();
+      } else {
+        for (const record of row.records as unknown[]) {
+          const key = Array.isArray(keyPath) ? keyPath.map(path => inlineKey(record, path)) : inlineKey(record, keyPath as string);
+          if (!validKey(key)) {
+            if (key !== undefined || row.autoIncrement !== true || typeof keyPath !== 'string' || !isRecord(record)) invalid();
+            let cursor: unknown = record;
+            for (const part of (keyPath as string).split('.').slice(0, -1)) {
+              const next = (cursor as Record<string, unknown>)[part];
+              if (next === undefined) break;
+              if (!isRecord(next)) invalid();
+              cursor = next;
+            }
+          }
+        }
+      }
+    }
   }
-  if (typeof o.v !== 'number' || o.v > VERSION) {
-    throw new Error('This backup is from a newer version of Iterra.');
-  }
-  if (!o.localStorage || typeof o.localStorage !== 'object') {
-    throw new Error('This backup is missing its saved data.');
-  }
-  return { ...o, idb: o.idb || {} } as IterraBackup;
+  return { ...b, idb: b.idb ?? {} } as unknown as IterraBackup;
 }
 
 export function summarizeBackup(b: IterraBackup): BackupSummary {
@@ -226,64 +307,74 @@ export function summarizeBackup(b: IterraBackup): BackupSummary {
   };
 }
 
-const restoreDb = (name: string, dump: BackupDb): Promise<void> =>
-  new Promise((res) => {
-    /* Open at the backup's version so missing stores are (re)created during
-       upgrade. If the live db is already newer, VersionError falls back to a
-       versionless open and only stores that exist get written. */
-    const finish = (db: IDBDatabase | null) => {
-      if (!db) return res();
-      const jobs = Object.entries(dump.stores)
-        .filter(([sn]) => db.objectStoreNames.contains(sn))
-        .map(
-          ([sn, s]) =>
-            new Promise<void>((done) => {
-              const tx = db.transaction(sn, 'readwrite');
-              const os = tx.objectStore(sn);
-              os.clear();
-              s.records.forEach((rec, i) => {
-                if (s.keyPath === null) os.put(rec, s.keys?.[i] as IDBValidKey);
-                else os.put(rec);
-              });
-              tx.oncomplete = () => done();
-              tx.onerror = () => done();
-              tx.onabort = () => done();
-            }),
-        );
-      Promise.all(jobs).then(() => {
-        db.close();
-        res();
+const restoreDb = async (name: string, dump: BackupDb): Promise<void> => {
+  let db = await openDatabase(name, dump.version, (upgrading) => {
+    for (const [sn, store] of Object.entries(dump.stores)) {
+      if (!upgrading.objectStoreNames.contains(sn)) upgrading.createObjectStore(sn, {
+        keyPath: store.keyPath ?? undefined, autoIncrement: store.autoIncrement,
       });
-    };
-    openDatabase(name, dump.version, (upgrading) => {
-      for (const [sn, s] of Object.entries(dump.stores)) {
-        if (!upgrading.objectStoreNames.contains(sn)) {
-          upgrading.createObjectStore(sn, {
-            keyPath: s.keyPath ?? undefined,
-            autoIncrement: s.autoIncrement,
+    }
+  });
+  if (!db) db = await openDatabase(name);
+  if (!db) throw new Error('Could not open backup database.');
+  try {
+    for (const [sn, store] of Object.entries(dump.stores)) {
+      if (!db.objectStoreNames.contains(sn)) throw new Error('Backup database is missing a store.');
+      const existing = db.transaction(sn, 'readonly').objectStore(sn);
+      if (JSON.stringify(existing.keyPath) !== JSON.stringify(store.keyPath) || existing.autoIncrement !== store.autoIncrement)
+        throw new Error('Backup database store has an incompatible schema.');
+    }
+    const names = Array.from(db.objectStoreNames);
+    if (!names.length) return;
+    await new Promise<void>((resolve, reject) => {
+      const tx = db!.transaction(names, 'readwrite');
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error || new Error('Database restore aborted.'));
+      tx.onerror = () => reject(tx.error || new Error('Database restore failed.'));
+      try {
+        for (const sn of names) {
+          const os = tx.objectStore(sn);
+          os.clear();
+          const store = dump.stores[sn];
+          if (!store) continue;
+          store.records.forEach((record, i) => {
+            if (store.keyPath === null) os.put(record, store.keys![i] as IDBValidKey);
+            else os.put(record);
           });
         }
-      }
-    }).then((db) => {
-      if (db) return finish(db);
-      openDatabase(name).then(finish);
+      } catch (error) { tx.abort(); reject(error); }
     });
-  });
+  } finally { db.close(); }
+};
 
+const clearOwnedDb = async (name: string): Promise<void> => {
+  const db = await openExistingDatabase(name);
+  if (!db) return;
+  try {
+    const names = Array.from(db.objectStoreNames);
+    if (!names.length) return;
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(names, 'readwrite');
+      tx.oncomplete = () => resolve();
+      tx.onabort = () => reject(tx.error || new Error('Database clearing aborted.'));
+      tx.onerror = () => reject(tx.error || new Error('Database clearing failed.'));
+      for (const name of names) tx.objectStore(name).clear();
+    });
+  } finally { db.close(); }
+};
 /* Full reset — every localStorage key and every IndexedDB database the
    terrain owns. The caller confirms first and offers a backup; this is the
    "start over" escape hatch a local-first app owes its users. */
 export async function wipeAll(): Promise<void> {
-  try {
-    localStorage.clear();
-  } catch {
-    /* storage denied — idb wipe still runs */
-  }
+  // Fence old tabs and clear native data transactionally before broad LS
+  // clearing or database deletion. If this fails, reset must fail visibly.
+  await clearNativeStoresAndFence();
+  localStorage.clear();
   if (typeof indexedDB === 'undefined') return;
   /* only databases this app owns — indexedDB.databases() would sweep any
      sibling project's db that shares this localhost origin in dev */
   await Promise.all(
-    KNOWN_DBS.map(
+    KNOWN_DBS.filter(name => name !== NATIVE_STATE_DB).map(
       (name) =>
         new Promise<void>((res) => {
           try {
@@ -299,26 +390,54 @@ export async function wipeAll(): Promise<void> {
   );
 }
 
-/* Restore = full replace: current localStorage is cleared, backed-up stores
-   are emptied and rewritten. Anything made since the backup is gone — the
-   caller must have already told the user that. */
-export async function restoreBackup(b: IterraBackup): Promise<BackupSummary> {
+
+export async function restoreBackup(input: IterraBackup): Promise<BackupSummary> {
+  // Validate even direct callers before changing any existing data.
+  const b = parseBackup(JSON.stringify(input));
+  if (typeof indexedDB === 'undefined' && Object.keys(b.idb).length) throw new Error('IndexedDB is unavailable.');
+  const previous = await collectBackup();
   try {
-    localStorage.clear();
-  } catch {
-    /* storage denied — idb restore still runs */
-  }
-  for (const [k, v] of Object.entries(b.localStorage)) {
-    try {
-      localStorage.setItem(k, v);
-    } catch {
-      /* quota — keep restoring the rest */
+    await applyBackupContents(b);
+  } catch (error) {
+    try { await applyBackupContents(previous); }
+    catch (rollbackError) {
+      throw new Error(`Restore failed and rollback also failed: ${String(rollbackError)} (original: ${String(error)})`);
     }
-  }
-  if (typeof indexedDB !== 'undefined') {
-    for (const [name, d] of Object.entries(b.idb || {})) {
-      await restoreDb(name, d);
-    }
+    throw error;
   }
   return summarizeBackup(b);
+}
+
+async function applyBackupContents(b: IterraBackup): Promise<void> {
+  localStorage.clear();
+  for (const [k, v] of Object.entries(b.localStorage)) localStorage.setItem(k, v);
+  if (typeof indexedDB === 'undefined') return;
+
+  for (const name of KNOWN_DBS) {
+    if (name === NATIVE_STATE_DB) continue;
+    if (!b.idb[name]) await clearOwnedDb(name);
+  }
+  for (const [name, dump] of Object.entries(b.idb)) {
+    if (name !== NATIVE_STATE_DB) await restoreDb(name, dump);
+  }
+
+  // Never restore an old native generation or receipt journal from a backup.
+  // Replace only state rows and let the live helper choose a newer fence.
+  const nativeDump = b.idb[NATIVE_STATE_DB];
+  const stateRows = nativeDump?.stores?.states?.records ?? [];
+  const nativeStates: Partial<Record<typeof NATIVE_STATE_KEYS[number], { state: Record<string, any>; version?: number } | null>> = {};
+  for (const key of NATIVE_STATE_KEYS) {
+    const row = stateRows.find((item: any) => item?.key === key) as any;
+    if (row?.state && typeof row.state === 'object') {
+      nativeStates[key] = { state: row.state, version: row.version };
+      continue;
+    }
+    const raw = b.localStorage[key];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const state = parsed?.state && typeof parsed.state === 'object' ? parsed.state : parsed;
+      nativeStates[key] = { state, version: Number.isInteger(parsed?.version) ? parsed.version : 0 };
+    } else nativeStates[key] = null;
+  }
+  await replaceNativeStores(nativeStates);
 }

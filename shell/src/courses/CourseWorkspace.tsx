@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { PLACE_MAP } from '../places';
 import { GETTING_STARTED } from '../gettingStarted';
+import { todayISO } from '../apps/rhythm/lib/dates';
 import type { Entity, FeedItem, SharedField, StoreEntity } from '../hub';
 import { sendTo } from '../hub';
 import { subscribeShelf, togglePin, type ShelfPin } from '../shelf';
@@ -557,11 +558,17 @@ export function CourseWorkspace({
      they can't drift apart again. */
   const scheduleRowAction = (item: WorkspaceObject) => {
     if (item.type === 'routine') {
+      const date = todayISO();
+      if (item.data?.checkInDate !== date || item.data?.checkInPending !== true || item.data?.measure !== 'check') {
+        return {
+          label: 'Open Attendance',
+          run: () => onGo(`/apps/rhythm/?p=today&routine=${encodeURIComponent(item.title)}`),
+        };
+      }
       return {
-        label: item.data?.todayDone === true ? 'Logged ✓' : 'Log check-in',
+        label: 'Log check-in',
         run: () => {
-          if (item.data?.todayDone === true) return;
-          void sendTo({ to: 'rhythm', action: 'routine.check', payload: { routineId: item.id } }).then(
+          void sendTo({ to: 'rhythm', action: 'routine.check', payload: { routineId: item.id, date, scheduledOnly: true } }).then(
             (r) =>
               showToast(
                 r.toast ||
@@ -1422,30 +1429,18 @@ export function CourseWorkspace({
             </div>
             {resultItems.length > 0 ? (
               <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                {resultItems.map((item) =>
-                  renderObjectWithRelationships(
-                    item,
-                    item.type === 'assessment' || item.type === 'grade' ? 'Follow-up Cards' : undefined,
-                    item.type === 'assessment' || item.type === 'grade'
-                      ? (w) => {
-                          void sendTo({
-                            to: 'flashcards',
-                            action: 'cards.create',
-                            entity: w.raw as any,
-                            payload: {
-                              deckTitle: `${display} — ${w.title} Review`,
-                              course: display,
-                              courseId,
-                              cards: [{ q: `${w.title} — key review question`, a: w.sub || 'Review missed items' }],
-                            },
-                          }).then((r) => {
-                            if (r.url) onGo(r.url);
-                            else showToast('Created review deck in Flashcards', '/apps/flashcards/');
-                          });
-                        }
-                      : undefined,
-                  ),
-                )}
+                {resultItems.map((item) => {
+                  if (item.app !== 'gradestack') return renderObjectWithRelationships(item);
+                  if (item.type === 'grade' && item.data?.needsReview) {
+                    return renderObjectWithRelationships(item, 'Check sheet', () => onGo(item.url));
+                  }
+                  const assessment = item.type === 'assessment' ? item.id
+                    : item.type === 'grade' && typeof item.data?.testId === 'string' ? item.data.testId : '';
+                  if (!assessment) return renderObjectWithRelationships(item);
+                  const params = new URLSearchParams({ assessment, review: '1' });
+                  if (item.type === 'grade') params.set('reviewScan', item.id);
+                  return renderObjectWithRelationships(item, 'Plan review', () => onGo(`/apps/gradestack/?${params}`));
+                })}
               </div>
             ) : (
               <EmptyState

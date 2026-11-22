@@ -4,6 +4,7 @@ import { useFolio, selectCourseCommitments, selectLinksFor, selectActiveTerm } f
 import { Field, FInput, FSelect } from '../components/Field';
 import { Stamp } from '../components/Stamp';
 import { QuickAdd } from '../components/QuickAdd';
+import { ImportSheet } from '../components/ImportSheet';
 import { courseColorVar } from '../lib/colors';
 import { estimateRatio, remainingMinutes, reversePlan, gradeScenario, atRisk } from '../lib/schedule';
 import { resourceDeepLink, appBadge } from '../lib/links';
@@ -24,13 +25,19 @@ import { Archive, ExternalLink, Link2, Pin, Printer, X } from 'lucide-react';
  * registrar: masthead + double rule, § sections (evaluation, course schedule,
  * required materials, work ledger). Prints like the syllabus it is.
  */
-export function CourseView({ courseId, onInspect }: { courseId: string; onInspect: (id: string) => void }) {
+export function CourseView({ courseId, startAdding = false, startImport = false, onInspect }: {
+  courseId: string;
+  startAdding?: boolean;
+  startImport?: boolean;
+  onInspect: (id: string) => void;
+}) {
   const s = useFolio();
   const term = useFolio(selectActiveTerm);
   const course = s.courses[courseId];
   const commitments = useFolio(useShallow((st) => selectCourseCommitments(st, courseId)));
   const links = useFolio(useShallow((st) => selectLinksFor(st, undefined, courseId)));
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(startAdding);
+  const [importing, setImporting] = useState(startImport);
   const [linking, setLinking] = useState(false);
 
   const blocks = useMemo(
@@ -210,12 +217,14 @@ export function CourseView({ courseId, onInspect }: { courseId: string; onInspec
 
           <div className="no-print mt-3 space-y-3">
             <QuickAdd courses={[course]} />
-            <div className="flex justify-end">
+            <div className="flex flex-wrap justify-end gap-2">
+              <button className="btn btn--ghost !py-1.5 !px-3" onClick={() => setImporting(true)}>Paste schedule</button>
               <button className="btn btn--ghost !py-1.5 !px-3" onClick={() => setAdding((a) => !a)}>
                 {adding ? 'Close form' : '+ Commitment'}
               </button>
             </div>
             {adding && <NewCommitmentForm courseId={courseId} onDone={() => setAdding(false)} />}
+            {importing && <ImportSheet courseId={courseId} onClose={() => setImporting(false)} />}
           </div>
 
           {schedule.length === 0 ? (

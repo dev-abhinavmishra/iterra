@@ -195,7 +195,8 @@ export const generatePDF = async (test: Partial<Test>, onComplete?: () => void, 
     pdfDoc.setProducer('GradeStack');
     pdfDoc.setKeywords([JSON.stringify({ 
       sections, 
-      includeStudentId: test.includeStudentId 
+      includeStudentId: test.includeStudentId,
+      ...(test.id ? { format: 'gradestack-sheet', formatVersion: 2, assessmentId: test.id } : {})
     })]);
 
     const pdfBytes = await pdfDoc.save();

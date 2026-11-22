@@ -12,6 +12,7 @@ import { FocusView } from './components/editor/FocusView';
 import { OrganizationInsights } from './components/organization/OrganizationInsights';
 import { wireIterra, applyInboundLink } from './lib/iterra';
 import { useStore } from './store';
+import { NativePersistenceNotice } from '../../integration/NativePersistenceNotice';
 import './index.css';
 
 let wired = false;
@@ -60,21 +61,32 @@ function QueryBridge({ query }: { query: string }) {
 }
 
 function App({ query = '' }: { query?: string }) {
+  const [hydrated, setHydrated] = useState(() => useStore.persist.hasHydrated());
   const [initialEntry] = useState<InitialEntry>(() => {
     const p = new URLSearchParams(query).get('p');
     return p && INK_ROUTES.has(p) ? `/${p}` : '/';
   });
 
   useEffect(() => {
-    if (!wired) { wired = true; wireIterra(); }
+    if (useStore.persist.hasHydrated()) {
+      setHydrated(true);
+      return;
+    }
+    return useStore.persist.onFinishHydration(() => setHydrated(true));
   }, []);
 
-  useEffect(() => { applyInboundLink(query); }, [query]);
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!wired) { wired = true; wireIterra(); }
+  }, [hydrated]);
+
+  useEffect(() => { if (hydrated) applyInboundLink(query); }, [query, hydrated]);
 
   /* ?settings — the terrain's central settings surface deep-links into the
      desk's own settings sheet (opened by SideNavBar's listener). The param
      strips so the same link fires again later. */
   useEffect(() => {
+    if (!hydrated) return;
     if (!new URLSearchParams(query).has('settings')) return;
     const h = window.location.hash;
     const qi = h.indexOf('?');
@@ -85,11 +97,21 @@ function App({ query = '' }: { query?: string }) {
       window.location.hash = h.slice(0, qi) + (rest ? '?' + rest : '');
     }
     window.dispatchEvent(new CustomEvent('ink:open-settings'));
-  }, [query]);
+  }, [query, hydrated]);
+
+  if (!hydrated) {
+    return (
+      <div className="it-place-ink min-h-full w-full" role="status" aria-live="polite">
+        <NativePersistenceNotice storeKey="ink-notes-storage" onRetryHydration={() => useStore.persist.rehydrate()} />
+        <div className="mx-auto max-w-3xl px-6 py-10 text-sm text-muted-foreground" role="status" aria-live="polite">Loading saved notes…</div>
+      </div>
+    );
+  }
 
   return (
     <MotionConfig reducedMotion="user">
       <div className="it-place-ink h-full w-full">
+        <NativePersistenceNotice storeKey="ink-notes-storage" onRetryHydration={() => useStore.persist.rehydrate()} />
         <MemoryRouter initialEntries={[initialEntry]}>
           {/* p= links arriving while mounted (the place stays alive) still
               navigate — initialEntries only seeds the first mount */}

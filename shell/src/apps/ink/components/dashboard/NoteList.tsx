@@ -51,6 +51,7 @@ export const NoteList: React.FC<NoteListProps> = ({ filter = 'all', title }) => 
   const index = useMemo(() => getNoteIndex(notes), [notes]);
 
   const live = notes.filter(n => !n.trashedAt);
+  const editing = live.some(note => note.id === activeNoteId);
 
   const query = searchQuery.trim().toLowerCase();
   const tagQuery = query.startsWith('#') ? query.slice(1) : null;
@@ -90,7 +91,7 @@ export const NoteList: React.FC<NoteListProps> = ({ filter = 'all', title }) => 
   const sectionTitle = title || (filter === 'pinned' ? 'Favorites' : filter === 'recent' ? 'Recent' : activeFolder);
 
   return (
-    <section className="w-full md:w-[320px] lg:w-[352px] bg-desk-deep/40 flex flex-col flex-shrink-0 border-r border-line overflow-hidden">
+    <section className={`w-full md:w-[320px] lg:w-[352px] bg-desk-deep/40 flex-col flex-shrink-0 border-r border-line overflow-hidden ${editing ? 'hidden md:flex' : 'flex'}`}>
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex-shrink-0 border-b border-line">
         <div className="relative mb-3">

@@ -1,3 +1,5 @@
+import { parseBoxedFocus, type BoxedFocusTarget } from '../../../integration/boxedFocus';
+
 /* Deep-link contract with Syllabus (the registrar's planning folio).
    Inbound:  /?intent=<label>&minutes=<n>&course=<code>&from=syllabus&block=<id>&return=<origin>
    Outbound: {return}/?completedBlock=<id>&actual=<minutes> — filed when the
@@ -11,6 +13,7 @@ export interface SyllabusLink {
   course?: string;
   block?: string;
   returnUrl?: string;
+  boxedFocus?: BoxedFocusTarget;
   /** which terrain app bound this session (syllabus, flashcards, terrain…) */
   from?: string;
   /** canonical course key + bound commitment — carried onto the session
@@ -34,6 +37,11 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
   if (!from || !/^[a-z]{2,16}$/.test(from)) return null;
   const minutes = Number(q.get('minutes'));
   const thenBreak = Number(q.get('break'));
+  const returnUrl = q.get('return') || undefined;
+  const boxedReturn = from === 'boxed' && returnUrl?.startsWith('#/p/boxed?')
+    ? new URLSearchParams(returnUrl.slice('#/p/boxed?'.length)) : null;
+  const boxedFocus = boxedReturn
+    ? parseBoxedFocus({ date: boxedReturn.get('date'), blockId: boxedReturn.get('focusBlock') }) : undefined;
   /* labels ride into session records + feed rows — cap them so a hostile
      or hand-mangled link can't file a megabyte as the session's name */
   const clip = (v: string | null, n = 160) => {
@@ -45,7 +53,8 @@ export function parseSyllabusLink(search: string): SyllabusLink | null {
     minutes: Number.isFinite(minutes) && minutes >= 1 && minutes <= 720 ? Math.round(minutes) : undefined,
     course: clip(q.get('course'), 60),
     block: clip(q.get('block'), 100),
-    returnUrl: q.get('return') || undefined,
+    returnUrl,
+    ...(boxedFocus ? { boxedFocus } : {}),
     from,
     courseId: clip(q.get('courseId'), 140),
     commitmentId: clip(q.get('commitment'), 100),

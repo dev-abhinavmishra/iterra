@@ -27,11 +27,28 @@ import {
   getWorkflowContext,
   updateWorkflowContext,
 } from './context';
+import { readNativeStore, type NativeStateKey } from './nativePersistence';
 
 export const INTEGRATION_SCHEMA_VERSION = 2;
 const SCHEMA_VERSION_KEY = 'iterra.v1.integrationSchemaVersion';
+let integrationMigrationRun: ReturnType<typeof runIntegrationMigrations> | null = null;
 
-function readZustandState(key: string): Record<string, any> | null {
+/** One idempotent migration run shared by app bootstrap and data consumers. */
+export function ensureIntegrationMigrations() {
+  if (!integrationMigrationRun) {
+    const run = runIntegrationMigrations();
+    integrationMigrationRun = run.catch((error) => {
+      integrationMigrationRun = null;
+      throw error;
+    });
+  }
+  return integrationMigrationRun;
+}
+
+async function readZustandState(key: string): Promise<Record<string, any> | null> {
+  if (key === 'syllabus.folio.v1' || key === 'ink-notes-storage') {
+    return await readNativeStore(key as NativeStateKey) as Record<string, any> | null;
+  }
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
@@ -61,6 +78,11 @@ export async function runIntegrationMigrations(): Promise<{
   let entitiesBackfilled = 0;
   let relationshipsUpgraded = 0;
   const it = (window as any).iterra;
+  const backfillNativeEntity = async (entity: Record<string, unknown>) => {
+    const result = await it.store.put(entity);
+    if (result && result.ok === false) throw new Error(`Native entity backfill was rejected: ${String(result.error || entity.id)}`);
+    entitiesBackfilled++;
+  };
 
   // 1. Upgrade legacy link records (`derived` -> `derivedFrom`, `retest` -> `followUpFor`)
   try {
@@ -88,7 +110,7 @@ export async function runIntegrationMigrations(): Promise<{
   // 2. Backfill canonical store from persisted module stores even if those modules haven't mounted yet
   if (it?.store?.put) {
     // 2a. Syllabus courses, commitments, blocks, and ResourceLinks
-    const folio = readZustandState('syllabus.folio.v1');
+    const folio = await readZustandState('syllabus.folio.v1');
     if (folio) {
       const courses = folio.courses || {};
       const commitments = folio.commitments || {};
@@ -97,7 +119,7 @@ export async function runIntegrationMigrations(): Promise<{
 
       for (const c of Object.values(courses) as any[]) {
         if (!c || !c.id) continue;
-        await it.store.put({
+        await backfillNativeEntity({
           app: 'syllabus',
           type: 'course',
           id: c.id,
@@ -105,14 +127,13 @@ export async function runIntegrationMigrations(): Promise<{
           course: c.code,
           url: c.code ? `#/c/${encodeURIComponent(c.code)}` : '/apps/syllabus/',
           data: { code: c.code, termId: c.termId, color: c.color, archived: c.archived || undefined },
-        }).catch(() => {});
-        entitiesBackfilled++;
+        });
       }
 
       for (const k of Object.values(commitments) as any[]) {
         if (!k || !k.id) continue;
         const course = courses[k.courseId];
-        await it.store.put({
+        await backfillNativeEntity({
           app: 'syllabus',
           type: 'commitment',
           id: k.id,
@@ -129,15 +150,14 @@ export async function runIntegrationMigrations(): Promise<{
             estimatedMinutes: k.estimatedMinutes,
             loggedMinutes: k.loggedMinutes,
           },
-        }).catch(() => {});
-        entitiesBackfilled++;
+        });
       }
 
       for (const b of Object.values(blocks) as any[]) {
         if (!b || !b.id) continue;
         const k = commitments[b.commitmentId];
         const course = k ? courses[k.courseId] : undefined;
-        await it.store.put({
+        await backfillNativeEntity({
           app: 'syllabus',
           type: 'block',
           id: b.id,
@@ -157,8 +177,7 @@ export async function runIntegrationMigrations(): Promise<{
             score: b.score,
             materialRef: b.materialRef,
           },
-        }).catch(() => {});
-        entitiesBackfilled++;
+        });
       }
 
       // Migrate Syllabus ResourceLinks into `scheduledFor` relationships
@@ -190,7 +209,7 @@ export async function runIntegrationMigrations(): Promise<{
     }
 
     // 2b. Ink notes (`ink-notes-storage`)
-    const inkState = readZustandState('ink-notes-storage');
+    const inkState = await readZustandState('ink-notes-storage');
     if (Array.isArray(inkState?.notes)) {
       for (const n of inkState.notes) {
         if (!n || !n.id || n.trashedAt) continue;
@@ -206,7 +225,7 @@ export async function runIntegrationMigrations(): Promise<{
             }
           }
         }
-        await it.store.put({
+        await backfillNativeEntity({
           app: 'ink',
           type: 'note',
           id: n.id,
@@ -217,8 +236,7 @@ export async function runIntegrationMigrations(): Promise<{
           sub: n.folder,
           url: `/apps/ink/?note=${encodeURIComponent(n.id)}`,
           data: { updated: n.lastModified, folder: n.folder, tags: n.tags, words: n.wordCount },
-        }).catch(() => {});
-        entitiesBackfilled++;
+        });
       }
     }
 
@@ -288,10 +306,12 @@ export async function runIntegrationMigrations(): Promise<{
     }
   }
 
-  try {
-    localStorage.setItem(SCHEMA_VERSION_KEY, String(INTEGRATION_SCHEMA_VERSION));
-  } catch {
-    /* ignore */
+  if (it?.store?.put) {
+    try {
+      localStorage.setItem(SCHEMA_VERSION_KEY, String(INTEGRATION_SCHEMA_VERSION));
+    } catch {
+      /* ignore */
+    }
   }
 
   return {

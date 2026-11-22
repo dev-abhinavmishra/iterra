@@ -19,6 +19,7 @@ import type { StoreEntity } from '../hub';
 import { sendTo } from '../hub';
 import { isPinned, togglePin } from '../shelf';
 import { Badge, DropdownMenu, IconButton } from './primitives';
+import { canDraftNoteDeck, openNoteDeckDraft } from '../integration/ModalsHost';
 
 export interface WorkspaceObject {
   key: string;
@@ -211,6 +212,13 @@ export function ObjectRow({
   })();
 
   const handleSend = async (target: (typeof QUICK_SEND_TARGETS)[number]) => {
+    if (target.action === 'cards.create') {
+      await openNoteDeckDraft(item, message => {
+        if (onNotify) onNotify(message);
+        else window.dispatchEvent(new CustomEvent('iterra:toast', { detail: { text: message } }));
+      });
+      return;
+    }
     const entityPayload = item.raw || {
       app: item.app,
       type: item.type,
@@ -235,7 +243,6 @@ export function ObjectRow({
         course: item.course,
         courseId: item.courseId,
         minutes: 25,
-        cards: [{ q: item.title, a: item.sub || item.title }],
       },
     });
     if (r.url) {
@@ -458,7 +465,8 @@ export function ObjectRow({
               <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
                 Use with another tool
               </div>
-              {QUICK_SEND_TARGETS.filter((t) => t.to !== item.app).map((t) => (
+              {QUICK_SEND_TARGETS.filter((t) => t.to !== item.app &&
+                (t.action !== 'cards.create' || canDraftNoteDeck(item))).map((t) => (
                 <button
                   key={`${t.to}:${t.action}`}
                   type="button"

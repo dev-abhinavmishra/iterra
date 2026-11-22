@@ -5,6 +5,7 @@ import type { Entity, StoreEntity } from './hub';
 import { sendTo, readFeed, subscribeFeed, type FeedItem, type SendResult } from './hub';
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 import { iconForObjectType } from './ui/ObjectRow';
+import { canDraftNoteDeck, openNoteDeckDraft } from './integration/ModalsHost';
 
 interface Hit {
   app: string;
@@ -21,7 +22,7 @@ interface Hit {
 }
 
 const SEND_TARGETS: { to: string; action: string; label: string; payload?: Record<string, unknown> }[] = [
-  { to: 'flashcards', action: 'cards.create', label: 'Flashcards — new card' },
+  { to: 'flashcards', action: 'cards.create', label: 'Draft flashcards' },
   { to: 'margin', action: 'note.create', label: 'Study Materials — new document' },
   { to: 'ink', action: 'note.create', label: 'Notes — new page' },
   { to: 'proof', action: 'step.append', label: 'Calculations — append step' },
@@ -405,6 +406,10 @@ export function Search({
   const doSend = async (h: Hit, t: { to: string; action: string; label: string; payload?: Record<string, unknown> }) => {
     setSendForKey(null);
     if (!h.entity) return;
+    if (t.action === 'cards.create') {
+      await openNoteDeckDraft(h.entity, setSentNote, onClose);
+      return;
+    }
     const r = await sendTo({ to: t.to, action: t.action, entity: h.entity, payload: t.payload });
     if (!r.ok) {
       setSentNote(`Could not send — ${r.error || 'unavailable'}`);
@@ -529,7 +534,7 @@ export function Search({
             <span className="text-[11px] font-semibold text-[var(--color-accent)]">
               {staged.length} selected →
             </span>
-            {SEND_TARGETS.map((t) => (
+            {SEND_TARGETS.filter(t => t.action !== 'cards.create').map((t) => (
               <button
                 key={t.to + t.action}
                 type="button"
@@ -756,7 +761,7 @@ export function Search({
                             Send “{h.label}” to:
                           </div>
                           <div className="flex flex-wrap gap-1.5">
-                            {SEND_TARGETS.map((t) => (
+                            {SEND_TARGETS.filter(t => t.action !== 'cards.create' || (h.entity && canDraftNoteDeck(h.entity))).map((t) => (
                               <button
                                 key={`${t.to}:${t.action}`}
                                 type="button"

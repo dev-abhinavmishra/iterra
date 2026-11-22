@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Play,
   Pause,
@@ -19,8 +19,12 @@ import type { Presence, SharedField, FeedItem, Entity, StoreEntity, IntakeWait }
 import { sendTo } from '../hub';
 import { isDemoLoaded, seedDemoSemester } from '../integration/demo';
 import { readFollowUpTasks, saveFollowUpTask } from '../integration/identity';
+import { PlanFromToday } from '../integration/StudySessionPlan';
+import { canDraftNoteDeck, openNoteDeckDraft } from '../integration/ModalsHost';
+import { studyCourses } from '../integration/studyPlan';
+import { todayISO } from '../apps/rhythm/lib/dates';
 import { subscribeShelf, togglePin, type ShelfPin } from '../shelf';
-import { Badge, Button, EmptyState, SectionHeader } from '../ui/primitives';
+import { Badge, Button, Dialog, EmptyState, SectionHeader } from '../ui/primitives';
 import {
   ObjectRow,
   type WorkspaceObject,
@@ -102,6 +106,34 @@ export function TodayWorkspace({
     setNotice({ text, url });
     window.setTimeout(() => setNotice((cur) => (cur?.text === text ? null : cur)), 4000);
   };
+  const [amountRoutine, setAmountRoutine] = useState<WorkspaceObject | null>(null);
+  const [amountError, setAmountError] = useState('');
+  const [checkingRoutine, setCheckingRoutine] = useState<string | null>(null);
+  const checkInBusy = useRef(false);
+  const checkInDay = todayISO(new Date(now));
+  const checkIn = async (routine: WorkspaceObject, value?: number) => {
+    if (checkInBusy.current) return;
+    checkInBusy.current = true;
+    setCheckingRoutine(routine.id);
+    try {
+      const result = await sendTo({
+        to: 'rhythm', action: 'routine.check', entity: routine.raw,
+        payload: { routineId: routine.id, date: checkInDay, value, scheduledOnly: true },
+      });
+      if (result.ok) {
+        setAmountRoutine(null);
+        notify(result.toast || (result.delivered === 'queued'
+          ? 'Check-in queued. Open Attendance to finish saving it.' : 'Check-in saved.'), result.url || undefined);
+      } else if (value !== undefined) setAmountError('Could not save the check-in. Try again.');
+      else notify('Could not save the check-in. Try again.');
+    } catch {
+      if (value !== undefined) setAmountError('Could not save the check-in. Try again.');
+      else notify('Could not save the check-in. Try again.');
+    } finally {
+      checkInBusy.current = false;
+      setCheckingRoutine(null);
+    }
+  };
 
   const courseFilterLow = activeCourseFilter.trim().toLowerCase();
   const matchesCourseFilter = (c?: string, topic?: string) => {
@@ -139,6 +171,8 @@ export function TodayWorkspace({
   const proofSession = shared.session?.v as { topic?: string; minutes?: number; active?: boolean } | undefined;
   const proofSessionLive =
     !!proofSession?.active && !!shared.session?.at && now - shared.session.at < 5 * 60 * 1000;
+  const hasStudyCourses = useMemo(() => studyCourses(entities).length > 0, [entities]);
+  const showStarterCards = !hasStudyCourses && !focusLive && !proofSessionLive;
 
   const timerCtl = (op: 'pause' | 'resume' | 'finish') => {
     void sendTo({ to: 'timer', action: 'timer.control', payload: { op } });
@@ -188,9 +222,10 @@ export function TodayWorkspace({
     const na = shared.noteActive;
     if (na?.v?.title && na.at && now - na.at < 30 * 60_000) {
       const v = na.v as { app: string; id: string; title: string; at?: number };
-      const match = allObjects.find((o) => o.app === v.app && (o.id === v.id || o.title === v.title));
+      const match = allObjects.find((o) => o.app === v.app && o.type === 'note' &&
+        (v.id ? o.id === v.id : o.title === v.title));
       if (match) return match;
-      if (!courseFilterLow) {
+      if (!courseFilterLow && v.id) {
         return {
           key: `${v.app}:note:${v.id}`,
           app: v.app,
@@ -459,52 +494,35 @@ export function TodayWorkspace({
       });
     }
 
-    // Rhythm pending attendance routines — the itemized rows carry a
-    // course key, so filter per-row like the neighbors rather than hiding
-    // the whole section under an active course filter.
-    const rhythmSum = (presences['rhythm']?.summary as any) || shared.register?.v;
-    const pendingRoutines = typeof rhythmSum?.pending === 'number' ? rhythmSum.pending : 0;
-    if (pendingRoutines > 0) {
-      const routines = allObjects.filter(
-        (o) =>
-          o.app === 'rhythm' &&
-          o.type === 'routine' &&
-          o.data?.status !== 'paused' &&
-          o.data?.status !== 'archived' &&
-          matchesCourseFilter(o.course, o.topic),
-      );
-      if (routines.length > 0) {
-        for (const r of routines.slice(0, 2)) {
-          const doneToday = r.data?.todayDone === true;
-          items.push({
-            id: `rhythm:${r.id}`,
-            app: 'rhythm',
-            typeLabel: 'Attendance',
-            title: r.title,
-            detail: doneToday ? 'Logged today ✓' : r.sub || 'Scheduled today',
-            course: r.course,
-            actionLabel: doneToday ? 'Logged' : 'Log routine',
-            url: r.url,
-            object: r,
-            /* the register stays durable through the intake queue — the
-               button marks inline (navigate:false) rather than leaving Today */
-            inlineCheck: !doneToday,
-          });
-        }
-      } else {
-        items.push({
-          id: 'rhythm-pending',
-          app: 'rhythm',
-          typeLabel: 'Attendance',
-          title: `${pendingRoutines} routine${pendingRoutines === 1 ? '' : 's'} open today`,
-          detail:
-            rhythmSum?.marked != null && rhythmSum?.total != null
-              ? `${rhythmSum.marked} of ${rhythmSum.total} logged today`
-              : 'Ready to mark on the weekly register',
-          actionLabel: 'Log attendance',
-          url: '/apps/rhythm/',
-        });
-      }
+    const currentRoutines = allObjects.filter(row => row.app === 'rhythm' && row.type === 'routine' &&
+      row.data?.checkInDate === checkInDay);
+    for (const routine of currentRoutines.filter(row => row.data?.checkInPending === true).slice(0, 2)) {
+      const check = routine.data?.measure === 'check';
+      const amount = routine.data?.todayValue;
+      const target = routine.data?.todayTarget;
+      const unit = typeof routine.data?.unit === 'string' ? routine.data.unit : '';
+      items.push({
+        id: `rhythm:${routine.id}`,
+        app: 'rhythm',
+        typeLabel: 'Attendance',
+        title: routine.title,
+        detail: !check && typeof amount === 'number' && typeof target === 'number'
+          ? `${amount} of ${target}${unit ? ` ${unit}` : ''} logged today` : 'Scheduled today',
+        course: routine.course,
+        actionLabel: check ? 'Log routine' : 'Log amount',
+        url: routine.url,
+        object: routine,
+        inlineCheck: true,
+      });
+    }
+    const pendingRoutines = (presences.rhythm?.summary as { pending?: number } | undefined)?.pending ?? shared.register?.v?.pending;
+    if (!courseFilterLow && !currentRoutines.length && typeof pendingRoutines === 'number' && pendingRoutines > 0) {
+      items.push({
+        id: 'rhythm-pending', app: 'rhythm', typeLabel: 'Attendance',
+        title: `${pendingRoutines} routine${pendingRoutines === 1 ? '' : 's'} open today`,
+        detail: 'Review the register before checking in.',
+        actionLabel: 'Open Attendance', url: '/apps/rhythm/',
+      });
     }
 
     // Assessments flagged for review
@@ -549,7 +567,7 @@ export function TodayWorkspace({
 
     return items;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allObjects, entities, presences, shared.register, now, courseFilterLow]);
+  }, [allObjects, entities, presences, shared.register, now, courseFilterLow, checkInDay]);
 
   /* ── 5. Course Overview: Grouped by course with real counts ── */
   const courseGroups = useMemo(() => {
@@ -669,6 +687,28 @@ export function TodayWorkspace({
 
   return (
     <div className="terrain-map min-h-full">
+      {amountRoutine && (
+        <Dialog open title="Log routine amount" subtitle={amountRoutine.title} onClose={() => { if (!checkingRoutine) setAmountRoutine(null); }}>
+          <form className="space-y-3" onSubmit={event => {
+            event.preventDefault();
+            const amount = Number(new FormData(event.currentTarget).get('amount'));
+            if (!Number.isFinite(amount) || amount <= 0) { setAmountError('Enter an amount greater than zero.'); return; }
+            if (amountRoutine.data?.checkInDate !== checkInDay) { setAmountError('The date changed. Reopen the check-in for today.'); return; }
+            setAmountError('');
+            void checkIn(amountRoutine, amount);
+          }}>
+            <label className="block text-sm">
+              <span>Amount completed{typeof amountRoutine.data?.unit === 'string' ? ` (${amountRoutine.data.unit})` : ''}</span>
+              <input type="number" required min="0" step="any" name="amount" className="it-input mt-1 w-full" />
+            </label>
+            {amountError && <p role="alert" className="text-sm text-[var(--color-bad)]">{amountError}</p>}
+            <div className="flex justify-end gap-2">
+              <Button type="button" size="sm" disabled={!!checkingRoutine} onClick={() => setAmountRoutine(null)}>Cancel</Button>
+              <Button type="submit" size="sm" variant="primary" disabled={!!checkingRoutine}>{checkingRoutine ? 'Saving…' : 'Save check-in'}</Button>
+            </div>
+          </form>
+        </Dialog>
+      )}
       <h1 className="sr-only">Today — workspace overview</h1>
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Toast / action notification */}
@@ -795,6 +835,10 @@ export function TodayWorkspace({
           </section>
         )}
 
+        {!focusLive && !proofSessionLive && (
+          <PlanFromToday entities={entities} courseFilter={activeCourseFilter} onGo={onGo} />
+        )}
+
         {/* ── Pinned Shelf Strip (when items are pinned) ── */}
         {pins.length > 0 && (
           <section aria-label="Pinned items" className="flex flex-wrap items-center gap-1.5">
@@ -838,7 +882,7 @@ export function TodayWorkspace({
           {/* Left Column (7 cols on lg) */}
           <div className="space-y-6 lg:col-span-7">
             {/* ── 2. RESUME WORKING ── */}
-            <section aria-label="Pick up where you left off">
+            {(resumeObject || showStarterCards) && <section aria-label="Pick up where you left off">
               <SectionHeader title="Pick up where you left off" />
               {resumeObject ? (
                 <div className="rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
@@ -911,29 +955,12 @@ export function TodayWorkspace({
                     >
                       Start 25m Focus
                     </Button>
-                    {resumeObject.app !== 'flashcards' && (
+                    {canDraftNoteDeck(resumeObject) && (
                       <Button
                         variant="secondary"
                         size="sm"
                         icon={<Layers className="h-3.5 w-3.5" />}
-                        onClick={() => {
-                          void sendTo({
-                            to: 'flashcards',
-                            action: 'cards.create',
-                            entity: resumeObject.raw as any,
-                            payload: {
-                              deckTitle: resumeObject.course
-                                ? `${resumeObject.course} — ${resumeObject.title}`
-                                : resumeObject.title,
-                              course: resumeObject.course,
-                              courseId: resumeObject.courseId,
-                              cards: [{ q: resumeObject.title, a: resumeObject.sub || resumeObject.title }],
-                            },
-                          }).then((r) => {
-                            if (r.url) onGo(r.url);
-                            else notify('Sent to Flashcards', '/apps/flashcards/');
-                          });
-                        }}
+                        onClick={() => void openNoteDeckDraft(resumeObject, notify)}
                       >
                         Create Flashcards
                       </Button>
@@ -963,10 +990,10 @@ export function TodayWorkspace({
                   }
                 />
               )}
-            </section>
+            </section>}
 
             {/* ── 3. NEXT UP (Scheduled Work) ── */}
-            <section aria-label="Next up scheduled work">
+            {(scheduledWork.primary || showStarterCards) && <section aria-label="Next up scheduled work">
               <SectionHeader title="Next Up"
                 action={
                   <button
@@ -1157,10 +1184,10 @@ export function TodayWorkspace({
                   }
                 />
               )}
-            </section>
+            </section>}
 
             {/* ── 6. RECENT WORK ── */}
-            <section aria-label="Recent work">
+            {(recentWork.length > 0 || showStarterCards) && <section aria-label="Recent work">
               <SectionHeader title="Recent Work"
                 count={recentWork.length}
                 action={
@@ -1206,7 +1233,7 @@ export function TodayWorkspace({
                   }
                 />
               )}
-            </section>
+            </section>}
           </div>
 
           {/* Right Column (5 cols on lg): Review + Course Overview + Recent Activity */}
@@ -1275,30 +1302,11 @@ export function TodayWorkspace({
                         <Button
                           variant="primary"
                           size="xs"
-                          disabled={!rev.inlineCheck && rev.app === 'rhythm' && rev.object?.data?.todayDone === true}
+                          disabled={rev.inlineCheck && !!checkingRoutine}
                           onClick={() => {
                             if (rev.inlineCheck && rev.object) {
-                              const o = rev.object;
-                              void sendTo({
-                                  to: 'rhythm',
-                                  action: 'routine.check',
-                                  entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                  payload: { routineId: o.id },
-                                })
-                                .then((r: any) => {
-                                  if (!r?.ok) {
-                                    notify('Couldn’t log it — Rhythm may still be starting.');
-                                    return;
-                                  }
-                                  /* handler toasts beat generics; queued is
-                                     honest about landing later */
-                                  if (r.toast) { notify(r.toast, r.url); return; }
-                                  if (r.delivered === 'queued') {
-                                    notify('Log queued — Rhythm applies it on next open.', r.url);
-                                  } else {
-                                    notify('Logged to the register.', r.url);
-                                  }
-                                });
+                              if (rev.object.data?.measure === 'check') void checkIn(rev.object);
+                              else { setAmountError(''); setAmountRoutine(rev.object); }
                               return;
                             }
                             if (rev.object) onSelectObject?.(rev.object);

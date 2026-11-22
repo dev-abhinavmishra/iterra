@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { format } from 'date-fns';
-import { guardedStorage } from '../../guardedStorage';
+import { createNativeStateStorage } from '../../../integration/nativePersistence';
 import { todayKey, sanitizeDoc } from '../lib/notes';
 import { PENS } from '../lib/pens';
 import type { PenId } from '../lib/pens';
@@ -109,7 +109,7 @@ const para = (text: string) => ({
   content: [{ type: 'text', text }],
 });
 
-const initialNotes: Note[] = [
+export const initialNotes: Note[] = [
   {
     id: 'welcome',
     title: 'Welcome to the desk',
@@ -478,7 +478,7 @@ export const useStore = create<AppState>()(
     {
       name: 'ink-notes-storage',
       version: 4,
-      storage: createJSONStorage(() => guardedStorage),
+      storage: createJSONStorage(() => createNativeStateStorage('ink-notes-storage')),
       migrate: (persisted, version) => {
         const state = persisted as {
           notes?: Note[]; folders?: Folder[]; activeNoteId?: string | null;

@@ -30,6 +30,24 @@ const mkCommitment = (courseId: string, n: number) =>
   ({ courseId, title: `Row ${n}`, type: 'assignment' as const, dueAt: '2026-12-01T17:00', weight: 10, estimatedMinutes: 60 });
 
 describe('bulk feed suppression', () => {
+  it('commits a schedule in one change and publishes one course summary', () => {
+    const term = useFolio.getState().createTerm(TERM);
+    const course = useFolio.getState().addCourse({ code: 'CHEM 310', name: 'Chemistry', color: 'navy', termId: term.id });
+    feedCalls.length = 0;
+    const committedSizes: number[] = [];
+    const unsubscribe = useFolio.subscribe(state => committedSizes.push(Object.keys(state.commitments).length));
+    try {
+      const rows = useFolio.getState().addCommitments([mkCommitment(course.id, 1), mkCommitment(course.id, 2)]);
+      expect(rows.map(row => row.title)).toEqual(['Row 1', 'Row 2']);
+      expect(committedSizes).toEqual([2]);
+      expect(feedCalls).toEqual([{
+        text: 'commitments filed: 2 · CHEM 310', url: '#/c/CHEM%20310', course: 'CHEM 310',
+      }]);
+    } finally {
+      unsubscribe();
+    }
+  });
+
   it('suppresses per-row stirs inside begin/endBulkFeed; one summary stir emits after', () => {
     const term = useFolio.getState().createTerm(TERM);
     const course = useFolio.getState().addCourse({ code: 'HIST 140', name: 'History', color: 'navy', termId: term.id });

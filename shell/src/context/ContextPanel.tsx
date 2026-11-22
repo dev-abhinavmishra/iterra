@@ -17,6 +17,7 @@ import { PLACES, PLACE_MAP, formatEntityType } from '../places';
 import type { Entity, SharedField, StoreEntity } from '../hub';
 import { sendTo } from '../hub';
 import { execCommand } from '../integration/commands';
+import { canDraftNoteDeck, openNoteDeckDraft } from '../integration/ModalsHost';
 import { isPinned, subscribeShelf, togglePin, type ShelfPin } from '../shelf';
 import { Badge, Button, Disclosure, IconButton } from '../ui/primitives';
 import {
@@ -855,22 +856,10 @@ export function ContextPanel({
               )}
 
               {/* Create Flashcards */}
-              {object.app !== 'flashcards' && (
+              {canDraftNoteDeck(object) && (
                 <button
                   type="button"
-                  onClick={() =>
-                    void triggerAction({
-                      to: 'flashcards',
-                      action: 'cards.create',
-                      payload: {
-                        deckTitle: object.course ? `${object.course} — ${object.title}` : object.title,
-                        course: object.course,
-                        courseId: object.courseId,
-                        cards: [{ q: `${object.title} — key concept`, a: object.sub || object.title }],
-                      },
-                      successLabel: 'Created flashcard in deck',
-                    })
-                  }
+                  onClick={() => void openNoteDeckDraft(object, showMsg)}
                   className="flex w-full items-center gap-2.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/60 px-2.5 py-2 text-left text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-soft)]/50 transition-colors cursor-pointer"
                 >
                   <Layers className="h-3.5 w-3.5 text-[var(--color-accent)] shrink-0" />

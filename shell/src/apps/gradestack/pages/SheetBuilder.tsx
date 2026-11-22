@@ -332,7 +332,7 @@ export function SheetBuilder() {
   const handlePrint = async () => {
     setIsGeneratingPdf(true);
     await generatePDF(
-      { name: testName, courseName, instructorName, includeStudentId, sections: cleanSections, numQuestions: cleanNumQuestions },
+      { id: editingTestId || undefined, name: testName, courseName, instructorName, includeStudentId, sections: cleanSections, numQuestions: cleanNumQuestions },
       () => setIsGeneratingPdf(false),
       () => setIsGeneratingPdf(false)
     );

@@ -31,6 +31,7 @@
    rehydrates them from the new envelopes. */
 import { openDatabase, storeAllKeys, storeAllRecords, listDatabases } from './backup';
 import { saveFollowUpTask, writeFollowUpTasks, readFollowUpTasks } from './identity';
+import { readNativeStore, updateNativeStore } from './nativePersistence';
 
 export const DEMO_FLAG_KEY = 'iterra.v1.demo';
 export const DEMO_PREFIX = 'demo-';
@@ -38,14 +39,12 @@ const DEMO_INTAKE_PREFIX = 'in-demo-';
 const HUB_DB = 'iterra';
 const MARGIN_DB = 'ModularAINotesDB';
 const FEED_KEY = 'iterra.v1.doc.feed';
-const FOLIO_KEY = 'syllabus.folio.v1';
 const CARD_KEY = 'cardfile.decks.v1';
 const CARD_LAST_KEY = 'cardfile.lastDeck';
 const SESSIONS_KEY = 'timer.sessions.v1';
 const LS_INTAKES_KEY = 'iterra.v1.store.intakes';
 const LS_ENTITIES_KEY = 'iterra.v1.store.entities';
 const LS_LINKS_KEY = 'iterra.v1.store.links';
-const INK_KEY = 'ink-notes-storage';
 const PROOF_KEY = 'proof.workbench.v1';
 const RHYTHM_KEY = 'rhythm.register.v1';
 const GS_KEY = 'gradestack-storage';
@@ -66,28 +65,13 @@ const isDemoId = (id: unknown): boolean => {
 /* canonical store key is 'app:type:id' — the demo mark lives in the id slot */
 const isDemoKey = (key: unknown): boolean => isDemoId(String(key ?? '').split(':').slice(2).join(':'));
 
-/* mounted zustand stores hold their state in memory — a set() after a
-   seed/remove LS write would re-persist the stale memory over the fresh
-   blob (the publish mirrors' entity notifies are enough to trigger it).
-   Push the current blob into the live stores so memory, LS, and mirrors
-   all agree before the caller reloads. */
+/* Keep the remaining LS-backed stores in sync before the caller reloads.
+   Native Ink/Planning stores are adopted only from committed IDB snapshots. */
 function syncMountedStores() {
   try {
-    const folioNow = lsGet<{ state: Record<string, any> }>(FOLIO_KEY);
-    if (folioNow?.state) {
-      const s = folioNow.state;
-      (window as any).__syllabusFolioStore?.setState?.({
-        terms: s.terms, courses: s.courses, commitments: s.commitments,
-        blocks: s.blocks, links: s.links, reviews: s.reviews,
-        dismissed: s.dismissed, activeTermId: s.activeTermId,
-      });
-    }
-    const inkNow = lsGet<{ state?: { notes?: any[]; activeNoteId?: string | null } }>(INK_KEY);
-    if (inkNow?.state) {
-      (window as any).__inkStore?.setState?.({
-        notes: inkNow.state.notes, activeNoteId: inkNow.state.activeNoteId ?? null,
-      });
-    }
+    // Ink/Planning are synchronized from committed native IDB snapshots by
+    // nativePersistence. Never mirror their localStorage projection back into
+    // a live Zustand store here; that projection may be stale after a peer edit.
     const proofNow = lsGet<{ state?: { problems?: Record<string, any>; courses?: Record<string, any> } }>(PROOF_KEY);
     if (proofNow?.state) {
       /* courses ride along: intake mirrors canonical syllabus:course:* keys
@@ -179,7 +163,7 @@ export function isDemoLoaded(): boolean {
 export async function demoRowCount(): Promise<number> {
   if (!isDemoLoaded()) return 0;
   let n = 0;
-  const folio = lsGet<{ state?: Record<string, Record<string, unknown>> }>(FOLIO_KEY)?.state;
+  const folio = await readNativeStore('syllabus.folio.v1') as Record<string, Record<string, unknown>> | null;
   if (folio) {
     for (const bucket of ['terms', 'courses', 'commitments', 'blocks']) {
       n += Object.keys(folio[bucket] ?? {}).filter((k) => k.startsWith(DEMO_PREFIX)).length;
@@ -212,14 +196,13 @@ function daysFromNow(n: number, hour = 17, minute = 0): string {
   return d.toISOString();
 }
 
-function seedFolio() {
-  interface FolioBlob { state: Record<string, any>; version: number }
-  const blob = lsGet<FolioBlob>(FOLIO_KEY) ?? { state: {}, version: 1 };
-  const s = blob.state;
+async function seedFolio() {
+  let seeded = false;
+  await updateNativeStore('syllabus.folio.v1', (s: Record<string, any>) => {
   s.terms = s.terms ?? {}; s.courses = s.courses ?? {}; s.commitments = s.commitments ?? {};
   s.blocks = s.blocks ?? {}; s.links = s.links ?? {}; s.reviews = s.reviews ?? {};
   s.dismissed = s.dismissed ?? {};
-  if (s.courses[`${DEMO_PREFIX}bio201`]) return false; // already seeded
+  if (s.courses[`${DEMO_PREFIX}bio201`]) return s; // already seeded
 
   const now = new Date().toISOString();
   const termId = `${DEMO_PREFIX}fall`;
@@ -266,8 +249,10 @@ function seedFolio() {
   s.blocks[`${DEMO_PREFIX}blk-bio`] = block(`${DEMO_PREFIX}blk-bio`, `${DEMO_PREFIX}quiz-bio`, '16:00', 25, 'review', 'quiz review', 0);
   s.blocks[`${DEMO_PREFIX}blk-stat`] = block(`${DEMO_PREFIX}blk-stat`, `${DEMO_PREFIX}pset-stat`, '19:30', 50, 'work', 'problem set', 1);
 
-  lsSet(FOLIO_KEY, { state: s, version: blob.version ?? 1 });
-  return true;
+  seeded = true;
+  return s;
+  });
+  return seeded;
 }
 
 function seedCardfile() {
@@ -372,7 +357,7 @@ async function seedHub(sessions: Array<Record<string, any>>) {
   const put = (e: Record<string, unknown>) => it.store!.put(e).catch(() => ({ ok: false }));
   const ckey = (id: string) => `syllabus:course:${id}`;
   const now = Date.now();
-  const s = lsGet<{ state?: any }>(FOLIO_KEY)?.state ?? {};
+  const s = await readNativeStore('syllabus.folio.v1') ?? {};
 
   /* courses — the registry entities every other place resolves against */
   for (const id of [`${DEMO_PREFIX}bio201`, `${DEMO_PREFIX}engl210`, `${DEMO_PREFIX}stat220`]) {
@@ -554,7 +539,7 @@ export async function seedDemoSemester(): Promise<DemoResult> {
   if (typeof localStorage === 'undefined') return { ok: false, error: 'no local storage' };
   if (isDemoLoaded()) return { ok: true, already: true };
   try {
-    const folioSeeded = seedFolio();
+    const folioSeeded = await seedFolio();
     seedCardfile();
     seedGradestack();
     const sessions = seedSessions();
@@ -576,8 +561,8 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
        context, feed stirs other apps emitted) reference the display code,
        not the demo id */
     const demoCodes = new Set<string>();
-    const folioPeek = lsGet<{ state?: { courses?: Record<string, { id?: string; code?: string; name?: string }> } }>(FOLIO_KEY);
-    for (const [k, c] of Object.entries(folioPeek?.state?.courses ?? {})) {
+    const folioPeek = await readNativeStore('syllabus.folio.v1') as { courses?: Record<string, { id?: string; code?: string; name?: string }> } | null;
+    for (const [k, c] of Object.entries(folioPeek?.courses ?? {})) {
       if (k.startsWith(DEMO_PREFIX)) {
         if (c?.code) demoCodes.add(c.code);
         if (c?.name) demoCodes.add(c.name);
@@ -588,9 +573,9 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
 
     /* folio — strip demo rows; if the active term was the demo one, fall
        back to another term (or none) */
-    const folio = lsGet<{ state: Record<string, any>; version?: number }>(FOLIO_KEY);
-    if (folio?.state) {
-      const s = folio.state;
+    const folio = await readNativeStore('syllabus.folio.v1');
+    if (folio) {
+      await updateNativeStore('syllabus.folio.v1', (s: Record<string, any>) => {
       for (const bucket of ['terms', 'courses', 'commitments', 'blocks', 'links', 'reviews', 'dismissed']) {
         const b = s[bucket];
         if (b && typeof b === 'object') {
@@ -612,7 +597,8 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
       if (typeof s.activeTermId === 'string' && s.activeTermId.startsWith(DEMO_PREFIX)) {
         s.activeTermId = Object.keys(s.terms ?? {})[0] ?? null;
       }
-      lsSet(FOLIO_KEY, folio);
+      return s;
+      });
     }
 
     /* cardfile */
@@ -631,11 +617,13 @@ export async function removeDemoData(): Promise<{ ok: boolean }> {
     if (sessions) lsSet(SESSIONS_KEY, sessions.filter((x) => !x?.id?.startsWith(DEMO_PREFIX)));
 
     /* ink — delivered demo intakes became notes 'intake-in-demo-*' */
-    const ink = lsGet<{ state?: { notes?: Array<{ id?: string }>; activeNoteId?: string | null }; version?: number }>(INK_KEY);
-    if (ink?.state?.notes) {
-      ink.state.notes = ink.state.notes.filter((n) => !isDemoId(n?.id));
-      if (isDemoId(ink.state.activeNoteId)) ink.state.activeNoteId = null;
-      lsSet(INK_KEY, ink);
+    const ink = await readNativeStore('ink-notes-storage');
+    if (Array.isArray(ink?.notes)) {
+      await updateNativeStore('ink-notes-storage', (state: Record<string, any>) => {
+        state.notes = state.notes.filter((n: { id?: string }) => !isDemoId(n?.id));
+        if (isDemoId(state.activeNoteId)) state.activeNoteId = null;
+        return state;
+      });
     }
 
     /* proof — 'p_in-demo-*' problems */

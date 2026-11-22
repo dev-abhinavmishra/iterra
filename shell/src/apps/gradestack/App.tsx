@@ -46,16 +46,23 @@ function AppLayout({ query }: { query: string }) {
   // Inbound suite link: ?assessment=<id> → open that test's analytics page,
   // then strip the param so it can't re-fire. Unknown ids are ignored.
   useEffect(() => {
-    const id = new URLSearchParams(query).get('assessment');
+    const params = new URLSearchParams(query);
+    const id = params.get('assessment');
     if (!id) return;
     if (useStore.getState().tests.some((t) => t.id === id)) {
-      navigate(`/analytics?testId=${id}`);
+      const analytics = new URLSearchParams({ testId: id });
+      if (params.has('review')) {
+        analytics.set('review', '1');
+        const scan = params.get('reviewScan');
+        if (scan) analytics.set('reviewScan', scan);
+      }
+      navigate(`/analytics?${analytics}`);
     } else {
       deadLink('That assessment no longer exists', '#/p/gradestack?p=history');
     }
     /* hit or miss the param is consumed — a dead id lingering in the hash
        re-fires on every keep-alive remount */
-    stripPlaceQuery('assessment');
+    stripPlaceQuery('assessment', 'review', 'reviewScan');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, navigate]);
 

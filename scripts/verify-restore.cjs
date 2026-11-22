@@ -48,10 +48,10 @@ const errors = [];
   ok('seeded + ink drained');
 
   /* download the backup */
-  await page.goto(`${BASE}/#/settings`, { waitUntil: 'load' });
-  await page.waitForTimeout(2200);
+  await page.goto(`${BASE}/?verify=restore#/settings`, { waitUntil: 'load' });
+  await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
   const dl = page.waitForEvent('download', { timeout: 60000 }); /* collectBackup walks every IDB store — slow disks stretch it */
-  await page.getByText('Download backup', { exact: false }).first().click();
+  await page.getByRole('button', { name: /^Download backup\b/ }).click();
   const file = await dl;
   const backupPath = path.join(OUT, file.suggestedFilename());
   await file.saveAs(backupPath);
@@ -73,9 +73,7 @@ const errors = [];
   ok('demo fully removed');
 
   /* restore the backup */
-  await page.getByText('Restore from file', { exact: false }).first().click();
   await page.locator('input[type=file]').setInputFiles(backupPath);
-  await page.waitForTimeout(1000);
   await page.getByRole('button', { name: 'Replace everything' }).click();
   await page.waitForLoadState('load');
   await page.waitForTimeout(2000);

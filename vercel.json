@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build",
+  "buildCommand": "npm ci --prefix shell --no-audit --no-fund && npm run build",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/((?!api/|iterra-hub\\.js).*)", "destination": "/index.html" }

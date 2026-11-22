@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { guardedStorage } from '../../guardedStorage';
+import { createNativeStateStorage } from '../../../integration/nativePersistence';
 import type {
   AppSettings,
   Commitment,
@@ -19,6 +19,11 @@ import { estimateRatio, missedBlocks, remainingMinutes } from '../lib/schedule';
 import { exportFolio, parseFolioBackup } from '../lib/backup';
 
 export type { ProposedBlock };
+type CommitmentDraft = Omit<Commitment, 'id' | 'createdAt' | 'status' | 'loggedMinutes' | 'pinned' | 'dependencies'> & {
+  status?: CommitmentStatus;
+  pinned?: boolean;
+  dependencies?: string[];
+};
 
 // Module-level StrictMode/re-mount guard — boot(query) runs per query change,
 // but the same query must never consume an inbound link twice.
@@ -65,13 +70,8 @@ interface FolioState extends FolioData {
   archiveCourse: (id: string, archived: boolean) => void;
 
   // ── commitments ──
-  addCommitment: (
-    c: Omit<Commitment, 'id' | 'createdAt' | 'status' | 'loggedMinutes' | 'pinned' | 'dependencies'> & {
-      status?: CommitmentStatus;
-      pinned?: boolean;
-      dependencies?: string[];
-    },
-  ) => Commitment;
+  addCommitment: (draft: CommitmentDraft) => Commitment;
+  addCommitments: (drafts: CommitmentDraft[]) => Commitment[];
   updateCommitment: (id: string, patch: Partial<Commitment>) => void;
   setCommitmentStatus: (id: string, status: CommitmentStatus) => void;
   togglePin: (id: string) => void;
@@ -286,23 +286,29 @@ export const useFolio = create<FolioState>()(
         );
       },
 
-      addCommitment: (c) => {
-        const commitment: Commitment = {
-          ...c,
+      addCommitment: (draft) => get().addCommitments([draft])[0],
+
+      addCommitments: (drafts) => {
+        if (!drafts.length) return [];
+        const createdAt = new Date().toISOString();
+        const rows: Commitment[] = drafts.map(draft => ({
+          ...draft,
           id: uid('k_'),
-          status: c.status ?? 'open',
+          status: draft.status ?? 'open',
           loggedMinutes: 0,
-          pinned: c.pinned ?? false,
-          dependencies: c.dependencies ?? [],
-          createdAt: new Date().toISOString(),
-        };
-        set((s) => ({ commitments: { ...s.commitments, [commitment.id]: commitment } }));
-        feed(
-          `commitment filed: ${commitment.title}`,
-          `/apps/syllabus/?commitment=${encodeURIComponent(commitment.id)}`,
-          commitment.courseId ? get().courses[commitment.courseId]?.code : undefined,
-        );
-        return commitment;
+          pinned: draft.pinned ?? false,
+          dependencies: draft.dependencies ?? [],
+          createdAt,
+        }));
+        set(s => ({ commitments: { ...s.commitments, ...Object.fromEntries(rows.map(row => [row.id, row])) } }));
+        const first = rows[0];
+        const code = rows.every(row => row.courseId === first.courseId) ? get().courses[first.courseId]?.code : undefined;
+        if (rows.length === 1) {
+          feed(`commitment filed: ${first.title}`, `/apps/syllabus/?commitment=${encodeURIComponent(first.id)}`, code);
+        } else {
+          feed(`commitments filed: ${rows.length}${code ? ` · ${code}` : ''}`, dossierUrl(code), code);
+        }
+        return rows;
       },
 
       updateCommitment: (id, patch) =>
@@ -670,7 +676,7 @@ export const useFolio = create<FolioState>()(
     }),
     {
       name: 'syllabus.folio.v1',
-      storage: createJSONStorage(() => guardedStorage),
+      storage: createJSONStorage(() => createNativeStateStorage('syllabus.folio.v1')),
       version: 1,
       // Blobs written before array fields existed boot-crash on bare
       // iteration (c.dependencies is not iterable → white screen).

@@ -596,6 +596,12 @@
   animation: var(--animate-sheet-in);
 }
 
+/* The place frame is its own stacking context. Keep the shell's toast below
+   an open sheet and inside the normal shell layer at other times. */
+.frame-fade:has(.it-place-rhythm .sheet-modal) {
+  z-index: 51;
+}
+
 .it-place-rhythm .sheet-backdrop {
   /* absolute — sheets are bound to the place frame (per the terrain
      contract); fixed would pin them to the viewport and fight the
@@ -619,7 +625,7 @@
   padding: 16px;
 }
 @media (min-width: 640px) {
-  .sheet-modal { align-items: center; }
+  .it-place-rhythm .sheet-modal { align-items: center; }
 }
 
 /* ── The meter — a segmented LED level bar ────────────────────── */

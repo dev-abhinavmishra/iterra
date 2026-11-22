@@ -21,7 +21,8 @@
    always get a terminal signal to clean up. */
 
 import { useEffect, useRef, useState } from 'react';
-import { parseRef } from './identity';
+import { parseRef, resolveObject } from './identity';
+import type { ObjectRef } from './types';
 import {
   AttachToInkModal,
   CreateDeckModal,
@@ -41,6 +42,43 @@ type ModalRequest =
 
 export function openIntegrationModal(req: ModalRequest): void {
   window.dispatchEvent(new CustomEvent(MODAL_EVENT, { detail: req }));
+}
+
+export function canDraftNoteDeck(source: Pick<ObjectRef, 'app' | 'type'>): boolean {
+  return source.type === 'note' && (source.app === 'ink' || source.app === 'margin');
+}
+
+export async function openNoteDeckDraft(
+  source: Pick<ObjectRef, 'app' | 'type' | 'id'> & Partial<ObjectRef>,
+  onError: (message: string) => void,
+  beforeOpen?: () => void,
+): Promise<void> {
+  const startingRoute = window.location.hash;
+  let note;
+  try {
+    note = await resolveObject({ app: source.app, type: source.type, id: source.id });
+  } catch { /* Report unreadable notes below. */ }
+  if (window.location.hash !== startingRoute) return;
+  if (!note || note.status !== 'ok' || note.tier !== 'authoritative' || !note.raw) {
+    onError('This note is unavailable. Open the note and try again.');
+    return;
+  }
+  if (!note.contentText?.trim()) {
+    onError('Add some text to this note before creating flashcards.');
+    return;
+  }
+  beforeOpen?.();
+  openIntegrationModal({
+    kind: 'create-deck',
+    sourceRef: { app: note.app, type: note.type, id: note.id },
+    sourceTitle: note.title,
+    selectedText: note.contentText,
+    sourceFullText: note.contentText,
+    sourceRevision: note.revision,
+    initialCourse: note.course || source.course,
+    initialCourseId: note.courseId || source.courseId,
+    initialTopic: note.topic || source.topic,
+  });
 }
 
 function done(kind: string, url?: string, canceled = false) {
@@ -122,7 +160,7 @@ export default function IntegrationModals() {
           {...req}
           open
           onClose={close}
-          onCreated={(res) => { resultSent.current = true; done('create-deck', res?.url); close(); }}
+          onCreated={(res) => { resultSent.current = true; done('create-deck', res?.url); }}
         />
       );
     default:
