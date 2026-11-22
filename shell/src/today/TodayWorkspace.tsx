@@ -882,8 +882,8 @@ export function TodayWorkspace({
           {/* Left Column (7 cols on lg) */}
           <div className="space-y-6 lg:col-span-7">
             {/* ── 2. RESUME WORKING ── */}
-            {(resumeObject || showStarterCards) && <section aria-label="Pick up where you left off">
-              <SectionHeader title="Pick up where you left off" />
+            {(resumeObject || showStarterCards) && <section aria-label={showStarterCards && !resumeObject ? 'Get started' : 'Pick up where you left off'}>
+              <SectionHeader title={showStarterCards && !resumeObject ? 'Get started' : 'Pick up where you left off'} />
               {resumeObject ? (
                 <div className="rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
                   <div className="flex items-start justify-between gap-3">
@@ -920,6 +920,11 @@ export function TodayWorkspace({
                         {resumeObject.sub && (
                           <p className="mt-0.5 text-[12.5px] text-[var(--color-mute)]">{resumeObject.sub}</p>
                         )}
+                        {showStarterCards && (
+                          <p className="mt-1 text-[12px] text-[var(--color-mute)]">
+                            Set up courses to organize this saved work and build a study plan.
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -955,6 +960,16 @@ export function TodayWorkspace({
                     >
                       Start 25m Focus
                     </Button>
+                    {showStarterCards && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        icon={<Calendar className="h-3.5 w-3.5" />}
+                        onClick={() => onEnter('syllabus')}
+                      >
+                        Set Up Courses
+                      </Button>
+                    )}
                     {canDraftNoteDeck(resumeObject) && (
                       <Button
                         variant="secondary"
@@ -970,11 +985,14 @@ export function TodayWorkspace({
               ) : (
                 <EmptyState
                   icon={<FileText className="h-4 w-4" />}
-                  title="Ready to begin studying"
-                  description="Open a note, import lecture materials, build a flashcard deck, or set up your course plan."
+                  title="Start with your courses"
+                  description="Add your courses first. Then bring in deadlines so Today can suggest a realistic study session."
                   actions={
                     <>
-                      <Button variant="primary" size="xs" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => onEnter('ink')}>
+                      <Button variant="primary" size="xs" icon={<Calendar className="h-3.5 w-3.5" />} onClick={() => onEnter('syllabus')}>
+                        Set Up Courses
+                      </Button>
+                      <Button variant="secondary" size="xs" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => onEnter('ink')}>
                         New Note
                       </Button>
                       <Button variant="secondary" size="xs" icon={<Sparkles className="h-3.5 w-3.5" />} onClick={() => onEnter('margin')}>
@@ -982,9 +1000,6 @@ export function TodayWorkspace({
                       </Button>
                       <Button variant="secondary" size="xs" icon={<Layers className="h-3.5 w-3.5" />} onClick={() => onEnter('flashcards')}>
                         Create Deck
-                      </Button>
-                      <Button variant="secondary" size="xs" icon={<Calendar className="h-3.5 w-3.5" />} onClick={() => onEnter('syllabus')}>
-                        Set Up Courses
                       </Button>
                     </>
                   }
@@ -1174,7 +1189,7 @@ export function TodayWorkspace({
                   description="Add a study task in Planning. If you're new, Planning helps you set up a course first."
                   actions={
                     <>
-                      <Button variant="primary" size="xs" onClick={() => onGo('#/p/syllabus?p=today')}>
+                      <Button variant={showStarterCards ? 'secondary' : 'primary'} size="xs" onClick={() => onGo('#/p/syllabus?p=today')}>
                         Add a Study Task in Planning
                       </Button>
                       <Button variant="secondary" size="xs" onClick={() => onEnter('timer')}>
@@ -1428,7 +1443,7 @@ export function TodayWorkspace({
                   description="Add your semester courses in Planning to group notes, decks, problems, and assessments under dedicated course workspaces."
                   actions={
                     <>
-                      <Button variant="primary" size="xs" onClick={() => onEnter('syllabus')}>
+                      <Button variant={showStarterCards ? 'secondary' : 'primary'} size="xs" onClick={() => onEnter('syllabus')}>
                         Add Courses in Planning
                       </Button>
                       <Button variant="secondary" size="xs" onClick={() => onGo('#/c/unfiled')}>

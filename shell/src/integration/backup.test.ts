@@ -36,6 +36,45 @@ async function resetNativeDatabase(): Promise<void> {
   await nativePersistenceTestReset();
 }
 
+async function createDatabase(name: string, storeName: string, keyPath: string | null): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = actualIndexedDB.open(name, 1);
+    request.onupgradeneeded = () => request.result.createObjectStore(storeName, { keyPath: keyPath ?? undefined });
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error(`Could not create ${name}.`));
+    request.onblocked = () => reject(new Error(`Creating ${name} was blocked.`));
+  });
+}
+
+async function putRecord(db: IDBDatabase, storeName: string, value: unknown, key?: IDBValidKey): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readwrite');
+    const store = tx.objectStore(storeName);
+    if (key === undefined) store.put(value);
+    else store.put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onabort = tx.onerror = () => reject(tx.error ?? new Error(`Could not seed ${storeName}.`));
+  });
+}
+
+async function getRecords(db: IDBDatabase, storeName: string): Promise<unknown[]> {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const request = tx.objectStore(storeName).getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error(`Could not read ${storeName}.`));
+  });
+}
+
+async function deleteDatabase(name: string): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const request = actualIndexedDB.deleteDatabase(name);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error ?? new Error(`Could not delete ${name}.`));
+    request.onblocked = () => reject(new Error(`Deleting ${name} was blocked.`));
+  });
+}
+
 beforeEach(async () => {
   vi.unstubAllGlobals();
   await resetNativeDatabase();
@@ -82,6 +121,90 @@ describe('backup validation and restore', () => {
     vi.stubGlobal('localStorage', localStorageFixture({ clear: vi.fn(), setItem: vi.fn(() => { throw new Error('quota'); }) }));
     await expect(restoreBackup(valid())).rejects.toThrow('quota');
     vi.unstubAllGlobals();
+  });
+
+  it('rolls back earlier database and localStorage changes when a later database restore fails', async () => {
+    const iterra = await createDatabase('iterra', 'records', null);
+    const notes = await createDatabase('ModularAINotesDB', 'notes', 'id');
+    let restoredIterra: IDBDatabase | undefined;
+    let restoredNotes: IDBDatabase | undefined;
+    try {
+      await putRecord(iterra, 'records', { value: 'before' }, 'personal');
+      await putRecord(notes, 'notes', { id: 'personal', value: 'before' });
+      iterra.close();
+      notes.close();
+
+      localStorage.setItem('personal', 'before');
+      const { replaceNativeStores, readNativeStore, readNativeSnapshot } = await import('./nativePersistence');
+      await replaceNativeStores({
+        'ink-notes-storage': { state: { notes: [{ id: 'personal-ink', title: 'Before restore' }] }, version: 1 },
+        'syllabus.folio.v1': { state: {
+          terms: { fall: { id: 'fall', name: 'Fall' } }, courses: {}, commitments: {}, blocks: {},
+          links: {}, reviews: {}, dismissed: {}, activeTermId: 'fall',
+        }, version: 1 },
+      });
+      const nativeGenerationBefore = (await readNativeSnapshot('ink-notes-storage')).generation;
+
+      // `iterra` is restored first and commits. The following database is
+      // valid backup data but deliberately conflicts with its existing schema,
+      // so the restore fails only after one database has already changed.
+      const backup = {
+        ...valid(),
+        localStorage: { replacement: 'incoming' },
+        idb: {
+          iterra: { name: 'iterra', version: 1, stores: {
+            records: { keyPath: null, autoIncrement: false, keys: ['incoming'], records: [{ value: 'after' }] },
+          } },
+          ModularAINotesDB: { name: 'ModularAINotesDB', version: 1, stores: {
+            notes: { keyPath: 'differentId', autoIncrement: false, keys: null, records: [{ differentId: 'incoming', value: 'after' }] },
+          } },
+        },
+      };
+
+      const databasePrototype = IDBDatabase.prototype;
+      const originalTransaction = databasePrototype.transaction;
+      let completedIterraRestoreTransactions = 0;
+      databasePrototype.transaction = function (this: IDBDatabase, ...args: any[]) {
+        const transaction = originalTransaction.apply(this, args as any);
+        if (this.name === 'iterra' && transaction.mode === 'readwrite') {
+          transaction.addEventListener('complete', () => { completedIterraRestoreTransactions++; });
+        }
+        return transaction;
+      } as IDBDatabase['transaction'];
+      try {
+        await expect(restoreBackup(backup as never)).rejects.toThrow(/incompatible schema/i);
+      } finally {
+        databasePrototype.transaction = originalTransaction;
+      }
+
+      // One committed write is the incoming restore; the second is rollback.
+      // Reaching the later database's schema error proves the first await
+      // completed, and this count makes both commits explicit regression evidence.
+      expect(completedIterraRestoreTransactions).toBe(2);
+      expect(localStorage.getItem('personal')).toBe('before');
+      expect(localStorage.getItem('replacement')).toBeNull();
+      expect(await readNativeStore('ink-notes-storage')).toEqual({ notes: [{ id: 'personal-ink', title: 'Before restore' }] });
+      expect(await readNativeStore('syllabus.folio.v1')).toEqual({
+        terms: { fall: { id: 'fall', name: 'Fall' } }, courses: {}, commitments: {}, blocks: {},
+        links: {}, reviews: {}, dismissed: {}, activeTermId: 'fall',
+      });
+      expect((await readNativeSnapshot('ink-notes-storage')).generation).toBeGreaterThan(nativeGenerationBefore);
+      restoredIterra = await createDatabase('iterra', 'records', null);
+      restoredNotes = await createDatabase('ModularAINotesDB', 'notes', 'id');
+      const iterraRecords = await getRecords(restoredIterra, 'records');
+      const noteRecords = await getRecords(restoredNotes, 'notes');
+      expect(iterraRecords).toEqual([{ value: 'before' }]);
+      expect(noteRecords).toEqual([{ id: 'personal', value: 'before' }]);
+      restoredIterra.close();
+      restoredNotes.close();
+    } finally {
+      iterra.close();
+      notes.close();
+      restoredIterra?.close();
+      restoredNotes?.close();
+      await deleteDatabase('iterra');
+      await deleteDatabase('ModularAINotesDB');
+    }
   });
 });
 

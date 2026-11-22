@@ -51,6 +51,50 @@ function startFocus(overrides: Partial<TodayWorkspaceProps>, label: string) {
   return new URL(onGo.mock.calls[0][0], 'https://iterra.test');
 }
 
+it('puts course setup first for new students and keeps that guidance for saved unfiled work', () => {
+  const onEnter = vi.fn<(id: string) => void>();
+  const render = (entities: StoreEntity[] = []) => act(() => {
+    root.render(
+      <TodayWorkspace presences={{}} shared={{}} indexes={{}} entities={entities} feed={[]}
+        onEnter={onEnter} onGo={vi.fn()} />,
+    );
+  });
+  const primary = (button: HTMLButtonElement) => button.className.includes('bg-[var(--color-accent)]');
+
+  render();
+  const starter = host.querySelector<HTMLElement>('[aria-label="Get started"]');
+  expect(starter?.textContent).toContain('Start with your courses');
+  const setup = [...(starter?.querySelectorAll('button') ?? [])]
+    .find(button => button.textContent?.includes('Set Up Courses')) as HTMLButtonElement | undefined;
+  expect(setup).toBeDefined();
+  expect(primary(setup!)).toBe(true);
+  expect(primary([...starter!.querySelectorAll('button')]
+    .find(button => button.textContent?.includes('New Note')) as HTMLButtonElement)).toBe(false);
+
+  const addTask = [...host.querySelectorAll('button')]
+    .find(button => button.textContent?.includes('Add a Study Task in Planning')) as HTMLButtonElement;
+  const addCourses = [...host.querySelectorAll('button')]
+    .find(button => button.textContent?.includes('Add Courses in Planning')) as HTMLButtonElement;
+  expect(primary(addTask)).toBe(false);
+  expect(primary(addCourses)).toBe(false);
+  act(() => setup!.click());
+  expect(onEnter).toHaveBeenCalledWith('syllabus');
+
+  render([{
+    id: 'saved-note', key: 'ink:note:saved-note', app: 'ink', type: 'note',
+    title: 'Biology notes', url: '/apps/ink/?note=saved-note', data: {}, updatedAt: Date.now(),
+  }]);
+  const savedWorkResume = host.querySelector<HTMLElement>('[aria-label="Pick up where you left off"]');
+  expect(savedWorkResume?.textContent).toContain('Biology notes');
+  expect(savedWorkResume?.textContent).toContain('Set up courses to organize this saved work');
+  const savedSetup = [...savedWorkResume!.querySelectorAll('button')]
+    .find(button => button.textContent?.includes('Set Up Courses')) as HTMLButtonElement;
+  const continueWork = [...savedWorkResume!.querySelectorAll('button')]
+    .find(button => button.textContent?.includes('Continue in')) as HTMLButtonElement;
+  expect(primary(savedSetup)).toBe(false);
+  expect(primary(continueWork)).toBe(true);
+});
+
 it('launches the exact scheduled block with canonical duration and course and commitment bindings', () => {
   const now = Date.now();
   const url = startFocus({
