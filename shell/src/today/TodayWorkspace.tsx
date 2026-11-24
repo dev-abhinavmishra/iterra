@@ -25,6 +25,7 @@ import { studyCourses } from '../integration/studyPlan';
 import { todayISO } from '../apps/rhythm/lib/dates';
 import { subscribeShelf, togglePin, type ShelfPin } from '../shelf';
 import { Badge, Button, Dialog, EmptyState, SectionHeader } from '../ui/primitives';
+import { TodayPixelGarden, type GardenTheme } from './TodayPixelGarden';
 import {
   ObjectRow,
   type WorkspaceObject,
@@ -70,6 +71,7 @@ export interface TodayWorkspaceProps {
   feed: FeedItem[];
   intakes?: Record<string, IntakeWait>;
   activeCourseFilter?: string;
+  theme?: GardenTheme;
   selectedObject?: WorkspaceObject | null;
   onSelectObject?: (obj: WorkspaceObject) => void;
   onEnter: (id: string) => void;
@@ -85,6 +87,7 @@ export function TodayWorkspace({
   feed,
   intakes,
   activeCourseFilter = '',
+  theme = 'paper',
   selectedObject,
   onSelectObject,
   onEnter,
@@ -686,7 +689,8 @@ export function TodayWorkspace({
   };
 
   return (
-    <div className="terrain-map min-h-full">
+    <div className="terrain-map today-workspace min-h-full">
+      <TodayPixelGarden theme={theme} />
       {amountRoutine && (
         <Dialog open title="Log routine amount" subtitle={amountRoutine.title} onClose={() => { if (!checkingRoutine) setAmountRoutine(null); }}>
           <form className="space-y-3" onSubmit={event => {
@@ -710,7 +714,7 @@ export function TodayWorkspace({
         </Dialog>
       )}
       <h1 className="sr-only">Today — workspace overview</h1>
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Toast / action notification */}
         {notice && (
           <div

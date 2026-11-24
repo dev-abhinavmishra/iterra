@@ -235,6 +235,12 @@ body {
   background-size: 64px 64px;
 }
 
+.today-workspace {
+  position: relative;
+  isolation: isolate;
+  background-image: none;
+}
+
 /* ── Embedded Module Workspace Mode (.it-workspace-mode) ──────────────────
    When modules are mounted inside Iterra's unified workspace shell, suppress
    redundant standalone mastheads/wordmarks while keeping their functional

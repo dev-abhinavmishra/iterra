@@ -1,0 +1,182 @@
+.today-pixel-garden {
+  --garden-sky-a: #e8efdf;
+  --garden-sky-b: #dce9dc;
+  --garden-cloud: #f7f4e9;
+  --garden-sun: #dfaa58;
+  --garden-hill: #b2c6a4;
+  --garden-hill-back: #98b293;
+  --garden-wall: #d4cdb8;
+  --garden-wall-cap: #b9ad92;
+  --garden-path: #e4dac4;
+  --garden-step: #cbbd9e;
+  --garden-pot: #a77658;
+  --garden-pot-rim: #885d49;
+  --garden-leaf: #72936a;
+  --garden-leaf-dark: #4c7356;
+  --garden-bench: #80634d;
+  --garden-bench-highlight: #a98462;
+  --garden-flower: #d49b75;
+  position: absolute;
+  z-index: 0;
+  inset: 0 0 auto;
+  height: clamp(310px, 48vw, 430px);
+  overflow: hidden;
+  pointer-events: none;
+  contain: paint;
+  opacity: .68;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 58%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 58%, transparent 100%);
+}
+
+.today-pixel-garden[data-theme='graphite'] {
+  --garden-sky-a: #28343a;
+  --garden-sky-b: #344947;
+  --garden-cloud: #5c6960;
+  --garden-sun: #d6a66c;
+  --garden-hill: #536d59;
+  --garden-hill-back: #405b4d;
+  --garden-wall: #343b3b;
+  --garden-wall-cap: #50544b;
+  --garden-path: #3c4140;
+  --garden-step: #4f5148;
+  --garden-pot: #785646;
+  --garden-pot-rim: #624638;
+  --garden-leaf: #668267;
+  --garden-leaf-dark: #45634d;
+  --garden-bench: #63503f;
+  --garden-bench-highlight: #80664b;
+  --garden-flower: #b98568;
+  opacity: .48;
+}
+
+.today-pixel-garden[data-daypart='morning'] {
+  --garden-sky-a: #eadbbd;
+  --garden-sky-b: #e6e8d6;
+  --garden-sun: #d18b4a;
+  --garden-flower: #d28d67;
+}
+
+.today-pixel-garden[data-daypart='daytime'] {
+  --garden-sky-a: #dcebdc;
+  --garden-sky-b: #cfe3d6;
+  --garden-sun: #edbd62;
+  --garden-flower: #d49b75;
+}
+
+.today-pixel-garden[data-daypart='evening'] {
+  --garden-sky-a: #e9c9a9;
+  --garden-sky-b: #ddcbb4;
+  --garden-cloud: #f0dfc9;
+  --garden-sun: #d78259;
+  --garden-hill: #a1ad91;
+  --garden-hill-back: #859d83;
+  --garden-flower: #c47c60;
+}
+
+.today-pixel-garden[data-theme='graphite'][data-daypart='morning'] {
+  --garden-sky-a: #41444a;
+  --garden-sky-b: #3b514d;
+  --garden-sun: #d4a16a;
+}
+
+.today-pixel-garden[data-theme='graphite'][data-daypart='daytime'] {
+  --garden-sky-a: #344547;
+  --garden-sky-b: #344c46;
+  --garden-sun: #d7b476;
+}
+
+.today-pixel-garden[data-theme='graphite'][data-daypart='evening'] {
+  --garden-sky-a: #493d40;
+  --garden-sky-b: #464741;
+  --garden-cloud: #675c53;
+  --garden-sun: #cf835b;
+  --garden-hill: #5a6551;
+  --garden-hill-back: #465844;
+}
+
+.today-pixel-garden[data-daypart='night'] {
+  --garden-sky-a: #c4d2ce;
+  --garden-sky-b: #b6c8c1;
+  --garden-cloud: #d8dfd4;
+  --garden-sun: #e9cf8c;
+  --garden-hill: #9db29f;
+  --garden-hill-back: #849f91;
+  --garden-wall: #c3c9b8;
+  --garden-wall-cap: #a4b2a1;
+  --garden-path: #d2d3c2;
+  --garden-stars: #f3e3a4;
+  --garden-flower: #a991b0;
+}
+
+.today-pixel-garden[data-theme='graphite'][data-daypart='night'] {
+  --garden-sky-a: #222c3c;
+  --garden-sky-b: #283a40;
+  --garden-cloud: #3b4750;
+  --garden-sun: #e1d49d;
+  --garden-hill: #455e57;
+  --garden-hill-back: #354b48;
+  --garden-wall: #30383b;
+  --garden-wall-cap: #454e4c;
+  --garden-path: #38403f;
+  --garden-step: #484b46;
+  --garden-stars: #e6d796;
+  --garden-flower: #9a83a7;
+}
+
+.today-pixel-garden__scene {
+  display: block;
+  width: 100%;
+  height: 100%;
+  shape-rendering: crispEdges;
+}
+
+.garden-sky { fill: url(#garden-sky-gradient); fill: var(--garden-sky-a); }
+.garden-clouds { fill: var(--garden-cloud); opacity: .58; }
+.garden-sun { fill: var(--garden-sun); }
+.garden-moon { display: none; fill: var(--garden-sun); }
+.garden-stars { display: none; fill: var(--garden-stars, var(--garden-cloud)); opacity: .86; }
+.garden-hills { fill: var(--garden-hill); }
+.garden-hill-back { fill: var(--garden-hill-back); }
+.garden-wall { fill: var(--garden-wall); }
+.garden-wall-cap { fill: var(--garden-wall-cap); }
+.garden-path { fill: var(--garden-path); }
+.garden-path-line { fill: var(--garden-wall-cap); opacity: .7; }
+.garden-step { fill: var(--garden-step); }
+.garden-pot { fill: var(--garden-pot); }
+.garden-pot-rim { fill: var(--garden-pot-rim); }
+.garden-leaf { fill: var(--garden-leaf); }
+.garden-leaf-dark, .garden-vines { fill: var(--garden-leaf-dark); }
+.garden-flower { fill: var(--garden-flower); }
+.garden-bench { fill: var(--garden-bench); }
+.garden-bench-highlight { fill: var(--garden-bench-highlight); }
+
+.today-pixel-garden[data-daypart='morning'] .garden-sun { transform: translate(-480px, 108px); }
+.today-pixel-garden[data-daypart='daytime'] .garden-sun { transform: translate(-230px, -8px); }
+.today-pixel-garden[data-daypart='evening'] .garden-sun { transform: translate(130px, 100px); }
+.today-pixel-garden[data-daypart='night'] .garden-sun { display: none; }
+.today-pixel-garden[data-daypart='night'] .garden-moon,
+.today-pixel-garden[data-daypart='night'] .garden-stars { display: initial; }
+.today-pixel-garden[data-daypart='night'] .garden-clouds { opacity: .36; }
+
+.today-pixel-garden__veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--color-paper) 8%, transparent), transparent 44%, var(--color-paper) 100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .today-pixel-garden__scene { animation: garden-arrive 900ms ease-out both; }
+  .today-pixel-garden .garden-sun,
+  .today-pixel-garden .garden-moon { transition: transform 600ms ease, fill 600ms ease; }
+}
+
+@keyframes garden-arrive {
+  from { opacity: .65; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .today-pixel-garden { height: 340px; opacity: .56; }
+  .today-pixel-garden[data-theme='graphite'] { opacity: .4; }
+  .today-pixel-garden__scene { width: 155%; max-width: none; transform: translateX(-17%); }
+}

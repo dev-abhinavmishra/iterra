@@ -1247,6 +1247,7 @@ export default function App() {
                   feed={feed}
                   intakes={intakes}
                   activeCourseFilter={courseFilter}
+                  theme={theme}
                   selectedObject={resolvedObject}
                   onSelectObject={handleSelectObject}
                   onEnter={enter}
