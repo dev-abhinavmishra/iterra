@@ -359,7 +359,7 @@
   letter-spacing: 0.12em;
   color: rgb(255 255 255 / 0.92);
   padding: 14px 7px;
-  border-radius: 5px 0 0 5px;
+  border-radius: 0 5px 5px 0;
   box-shadow: var(--shadow-tab);
   cursor: pointer;
   position: relative;
@@ -367,10 +367,10 @@
   transform: translateX(0);
 }
 .it-place-syllabus .ctab:hover {
-  transform: translateX(-4px);
+  transform: translateX(6px);
 }
 .it-place-syllabus .ctab--on {
-  transform: translateX(-6px);
+  transform: translateX(8px);
   filter: brightness(1.12) saturate(1.1);
 }
 .it-place-syllabus .ctab:focus-visible {
