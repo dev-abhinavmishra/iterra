@@ -350,6 +350,12 @@
 }
 
 /* ── Course tabs on the semester spine ────────────────────────── */
+.it-place-syllabus .syllabus-course-tabs {
+  scrollbar-width: none;
+}
+.it-place-syllabus .syllabus-course-tabs::-webkit-scrollbar {
+  display: none;
+}
 .it-place-syllabus .ctab {
   writing-mode: vertical-rl;
   text-orientation: mixed;
@@ -367,10 +373,10 @@
   transform: translateX(0);
 }
 .it-place-syllabus .ctab:hover {
-  transform: translateX(6px);
+  transform: translateX(8px);
 }
 .it-place-syllabus .ctab--on {
-  transform: translateX(8px);
+  transform: translateX(12px);
   filter: brightness(1.12) saturate(1.1);
 }
 .it-place-syllabus .ctab:focus-visible {
@@ -636,6 +642,7 @@
     gap: 6px;
     overflow-x: auto;
     overflow-y: hidden;
+    margin-right: 0;
     padding: 0 10px 0 0;
   }
 
