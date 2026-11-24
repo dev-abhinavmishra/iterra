@@ -10,6 +10,7 @@ interface SettingsViewProps {
   onUpdateSettings: (newSettings: AppSettings) => void;
   onClearData: () => void;
   onNotesChanged?: () => void;
+  embedded?: boolean;
 }
 
 const formatBytes = (n: number) => {
@@ -37,7 +38,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
     </section>
 );
 
-const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings, onClearData, onNotesChanged }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings, onClearData, onNotesChanged, embedded = false }) => {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [storage, setStorage] = useState<{ usage: number; quota: number } | null>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -71,10 +72,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings,
   ];
 
   return (
-    <main className="flex-1 flex flex-col min-w-0 relative bg-paper overflow-y-auto custom-scrollbar page-lines lg:pl-[76px]">
-      <header className="shrink-0 h-14 border-b border-line flex items-center px-4 md:px-6">
-        <h1 className="font-serif text-xl text-ink ink-write ink-underline">Settings</h1>
-      </header>
+    <main className={`flex-1 flex flex-col min-w-0 relative bg-paper overflow-y-auto custom-scrollbar page-lines ${embedded ? '' : 'lg:pl-[76px]'}`}>
+      {!embedded && (
+        <header className="shrink-0 h-14 border-b border-line flex items-center px-4 md:px-6">
+          <h1 className="font-serif text-xl text-ink ink-write ink-underline">Settings</h1>
+        </header>
+      )}
 
       <div className="max-w-2xl mx-auto w-full px-4 md:px-6 py-8 space-y-6">
 

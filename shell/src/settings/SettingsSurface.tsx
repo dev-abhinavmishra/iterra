@@ -7,6 +7,7 @@ import { formatRelativeTime } from '../ui/ObjectRow';
 import { useWorkspaceTheme } from '../ui/theme';
 import { ACCENTS, type Accent } from '../ui/accent';
 import { WorkspaceAccount } from './WorkspaceAccount';
+import { hasToolSettings, ToolSettings } from './toolSettings';
 import { DataCoverage } from './DataCoverage';
 import type { DataStatus } from './dataStatus';
 import {
@@ -22,19 +23,8 @@ import { demoRowCount, isDemoLoaded, removeDemoData, seedDemoSemester } from '..
 
 /* Central settings — the one doorway for terrain preferences and every
    tool's settings. Per-app settings chrome is hidden while integrated;
-   each row here deep-links straight into that tool's settings view so
-   nothing is unreachable, it just isn't duplicated across eight apps. */
-
-const SETTINGS_TARGET: Record<string, string> = {
-  timer: '#/p/timer?settings',
-  ink: '#/p/ink?settings',
-  rhythm: '#/p/rhythm?settings',
-  proof: '#/p/proof?settings',
-  syllabus: '#/p/syllabus?settings',
-  gradestack: '#/p/gradestack?p=settings',
-  margin: '#/p/margin?settings',
-  flashcards: '#/p/flashcards?settings',
-};
+   tool rows stay inside this surface and mount only the selected tool's
+   settings panel, so nothing is duplicated across eight apps. */
 
 const SETTINGS_NOTE: Record<string, string> = {
   timer: 'Session defaults, sound, motion',
@@ -47,14 +37,19 @@ const SETTINGS_NOTE: Record<string, string> = {
   flashcards: 'Keyboard shortcuts',
 };
 
-export function SettingsSurface({ onGo, dataStatus, accent, onAccentChange }: {
+export function SettingsSurface({ onGo, query = '', dataStatus, accent, onAccentChange }: {
   onGo: (url: string) => void;
+  query?: string;
   dataStatus: DataStatus;
   accent: Accent;
   onAccentChange: (accent: Accent) => void;
 }) {
   const [theme, setTheme] = useWorkspaceTheme();
   const dark = theme === 'graphite';
+  const selectedTool = useMemo(() => {
+    const tool = new URLSearchParams(query).get('tool');
+    return hasToolSettings(tool) ? tool : null;
+  }, [query]);
 
   return (
     <div className="mx-auto max-w-[720px] px-6 py-8">
@@ -143,31 +138,35 @@ export function SettingsSurface({ onGo, dataStatus, accent, onAccentChange }: {
       {/* Tools */}
       <section className="pt-6">
         <SectionHeader title="Tool settings" />
-        <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-          {/* only tools that actually own a settings view — Boxed has none,
-              so it stays out of this list rather than opening the app */}
-          {PLACES.filter((p) => SETTINGS_TARGET[p.id]).map((p, i) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => onGo(SETTINGS_TARGET[p.id] || `#/p/${p.id}`)}
-              className={`group flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer ${
-                i > 0 ? 'border-t border-[var(--color-line)]' : ''
-              }`}
-            >
-              <span className="h-4 w-4 shrink-0 text-[var(--color-accent)] [&>svg]:h-full [&>svg]:w-full">
-                {p.glyph}
-              </span>
-              <span className="w-24 shrink-0 text-[13px] font-medium text-[var(--color-ink)]">
-                {p.label}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-[12px] text-[var(--color-mute)]">
-                {SETTINGS_NOTE[p.id] || p.shortDesc}
-              </span>
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[var(--color-faint)] group-hover:text-[var(--color-accent)] transition-colors" />
-            </button>
-          ))}
-        </div>
+        {selectedTool ? (
+          <ToolSettings tool={selectedTool} onBack={() => onGo('#/settings')} />
+        ) : (
+          <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
+            {/* only tools that actually own a settings view — Boxed has none,
+                so it stays out of this list rather than opening the app */}
+            {PLACES.filter((p) => hasToolSettings(p.id)).map((p, i) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => onGo(`#/settings?tool=${p.id}`)}
+                className={`group flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--color-sheet-hover)] cursor-pointer ${
+                  i > 0 ? 'border-t border-[var(--color-line)]' : ''
+                }`}
+              >
+                <span className="h-4 w-4 shrink-0 text-[var(--color-accent)] [&>svg]:h-full [&>svg]:w-full">
+                  {p.glyph}
+                </span>
+                <span className="w-24 shrink-0 text-[13px] font-medium text-[var(--color-ink)]">
+                  {p.label}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-[12px] text-[var(--color-mute)]">
+                  {SETTINGS_NOTE[p.id] || p.shortDesc}
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[var(--color-faint)] group-hover:text-[var(--color-accent)] transition-colors" />
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Getting started */}
