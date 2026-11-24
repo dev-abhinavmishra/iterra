@@ -114,12 +114,11 @@ export const refreshUsage = async (): Promise<void> => {
     }
 };
 
-/** Signal that the limit was hit, so listeners (App) can open the limit modal. */
+/** Legacy hook: free-usage quotas were removed, so nothing calls this and it
+    intentionally does NOT dispatch 'usage-limit-reached' — the upgrade modal
+    must never open. Kept exported so older listeners compile harmlessly. */
 export const triggerUpgrade = (): void => {
-    setUsageState({ reachedLimit: true, remaining: 0 });
-    if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('usage-limit-reached'));
-    }
+    /* no-op */
 };
 
 /** React hook for subscribing to usage state. */

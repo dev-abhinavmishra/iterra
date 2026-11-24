@@ -1,6 +1,9 @@
-import { getUserId, getAccessToken, setUsageState, triggerUpgrade } from './usageService';
+import { getUserId, getAccessToken, setUsageState } from './usageService';
 
-// Thrown when the caller has exhausted their daily free quota.
+// Legacy error types kept for backwards compatibility — free-usage quotas
+// were removed, so the server never emits LIMIT_REACHED anymore and these
+// are never thrown. Callers that still `instanceof`-check them simply never
+// match; real HTTP errors surface through the normal !res.ok paths.
 export class LimitReachedError extends Error {
     isLimit = true;
     constructor() {
@@ -9,20 +12,11 @@ export class LimitReachedError extends Error {
     }
 }
 
-/* Named daily buckets carry their own caps server-side (transcribe/title —
-   see api/_usage.ts). A bucket 429 is an endpoint-scoped failure: it must
-   NOT zero the main badge or open the upgrade modal, so it gets its own
-   error type carrying a user-facing message. */
-const BUCKET_MESSAGES: Record<string, string> = {
-    transcribe: "Today's transcription limit is reached — it resets tomorrow.",
-    title: 'Title suggestions are done for today — they reset tomorrow.',
-};
-
 export class BucketLimitError extends Error {
     isLimit = true;
     bucket: string;
     constructor(bucket: string) {
-        super(BUCKET_MESSAGES[bucket] || `Today's ${bucket} limit is reached — it resets tomorrow.`);
+        super(`Today's ${bucket} limit is reached — it resets tomorrow.`);
         this.name = 'BucketLimitError';
         this.bucket = bucket;
     }
@@ -30,9 +24,8 @@ export class BucketLimitError extends Error {
 
 const readUsageHeaders = (res: Response) => {
     /* 'main' is the shared AI pool the badge shows. Bucketed responses report
-       THEIR bucket's counter (transcribe=30/day, title=60/day) — feeding
-       those numbers into the global state would flash the wrong limit (e.g.
-       29/30 after one recording) until the next main-quota call. */
+       THEIR bucket's counter — feeding those numbers into the global state
+       would flash the wrong limit until the next main-quota call. */
     const bucket = res.headers.get('x-usage-bucket');
     if (bucket && bucket !== 'main') return;
     const used = res.headers.get('x-usage-used');
@@ -48,11 +41,13 @@ const readUsageHeaders = (res: Response) => {
 
 /**
  * fetch wrapper that:
- *  - attaches the anonymous x-user-id header used for daily limiting
+ *  - attaches the anonymous x-user-id header (kept for server-side metrics;
+ *    quotas are disabled server-side unless USAGE_LIMITS_ENABLED=1)
  *  - keeps the client usage store in sync via response headers (main pool only)
- *  - converts a 429 LIMIT_REACHED on the main pool into a LimitReachedError
- *    and opens the upgrade modal; a NAMED-bucket 429 throws BucketLimitError
- *    instead — the global notice would be a lie, the main pool may be full
+ *  - attaches the Supabase JWT when signed in
+ *
+ * 429 responses are returned to the caller like any other error — nothing is
+ * converted into a limit error or routed to the upgrade modal.
  */
 export const apiFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
     const headers = new Headers(options.headers || {});
@@ -65,22 +60,6 @@ export const apiFetch = async (url: string, options: RequestInit = {}): Promise<
     const res = await fetch(url, { ...options, headers });
 
     readUsageHeaders(res);
-
-    if (res.status === 429) {
-        let body: any = null;
-        try {
-            body = await res.clone().json();
-        } catch {
-            /* ignore */
-        }
-        if (body?.error === 'LIMIT_REACHED') {
-            const bucket = typeof body.bucket === 'string' && body.bucket !== 'main' ? body.bucket : null;
-            if (bucket) throw new BucketLimitError(bucket);
-            if (body.usage) setUsageState(body.usage);
-            triggerUpgrade();
-            throw new LimitReachedError();
-        }
-    }
 
     return res;
 };

@@ -45,6 +45,22 @@ export const envInt = (name: string, fallback: number): number => {
 
 export const DAILY_LIMIT = envInt('DAILY_FREE_LIMIT', 15);
 
+/* Free-usage quotas are REMOVED: callers are never capped unless the
+   deployment explicitly opts back in with USAGE_LIMITS_ENABLED=1, which
+   restores the daily/monthly enforcement below (DAILY_FREE_LIMIT, the
+   TRANSCRIBE/TITLE buckets, the IP pin and the user_limits RPC cap).
+   While disabled every ledger still counts — usage headers and /api/usage
+   stay accurate — but reserveLimit never denies and reports an
+   effectively-unlimited pool. Read lazily so tests/env changes apply. */
+export const UNLIMITED_USES = 1000000;
+export const usageLimitsEnabled = (): boolean => process.env.USAGE_LIMITS_ENABLED === '1';
+
+/** Reported usage when quotas are disabled: real `used`, infinite headroom. */
+const unlimit = (s: UsageStatus): UsageStatus =>
+    usageLimitsEnabled()
+        ? s
+        : { used: s.used, limit: UNLIMITED_USES, remaining: Math.max(0, UNLIMITED_USES - s.used), reachedLimit: false };
+
 /* The IP pin's pool is bigger than a single id's: one machine may legitimately
    mint several anon ids (reinstalls, cleared storage), so it's bounded at
    limit × multiplier rather than the id limit. */
@@ -398,9 +414,9 @@ export const getUsageFor = async (
     /* The pin's pool: tighter = fewer calls until a deny. */
     if (opts.ip && (opts.isAnon || !authed)) {
         const pin = counterStatus(await dailyRead(pinKey(bucket, opts.ip), day), ipLimit);
-        if (pin.remaining < status.remaining) return pin;
+        if (pin.remaining < status.remaining) return unlimit(pin);
     }
-    return status;
+    return unlimit(status);
 };
 
 /**
@@ -421,6 +437,13 @@ export const reserveLimit = async (
     const limit = opts.limit && opts.limit > 0 ? Math.floor(opts.limit) : DAILY_LIMIT;
     const ipLimit = opts.ipLimit && opts.ipLimit > 0 ? Math.floor(opts.ipLimit) : limit * ANON_IP_LIMIT_MULT;
     res.setHeader('x-usage-bucket', bucket || 'main');
+
+    /* Quotas off by default: every ledger is charged against an
+       effectively-unlimited ceiling so nothing can deny. USAGE_LIMITS_ENABLED=1
+       restores the configured limits verbatim. */
+    const enabled = usageLimitsEnabled();
+    const effLimit = enabled ? limit : UNLIMITED_USES;
+    const effIpLimit = enabled ? ipLimit : UNLIMITED_USES;
 
     const { userId, authed, isAnon, ip } = await resolveUser(req);
     const sb = getSupabase();
@@ -446,10 +469,10 @@ export const reserveLimit = async (
     // 1. The IP pin.
     if (pinned) {
         const key = pinKey(bucket, ip);
-        const r = await dailyConsume(key, day, ipLimit);
-        if (!r.allowed) return deny(counterStatus(r.count, ipLimit));
+        const r = await dailyConsume(key, day, effIpLimit);
+        if (!r.allowed) return deny(counterStatus(r.count, effIpLimit));
         charged.push({ kind: 'daily', key });
-        statuses.push(counterStatus(r.count, ipLimit));
+        statuses.push(counterStatus(r.count, effIpLimit));
     }
 
     // 2. The uid ledger — monthly RPC for the authed main quota, daily
@@ -458,7 +481,10 @@ export const reserveLimit = async (
     if (authed && sb && !bucket) {
         const r = await authedConsume(sb, userId, estimateTokens(req.body));
         if (r) {
-            if (!r.allowed) return deny(r.status);
+            /* The project's monthly RPC carries its own cap; when quotas are
+               disabled a deny is ignored — the use is still recorded (stats
+               stay accurate) and the caller is never turned away. */
+            if (!r.allowed && enabled) return deny(r.status);
             charged.push({ kind: 'monthly', uid: userId });
             statuses.push(r.status);
             monthlyCharged = true;
@@ -468,13 +494,13 @@ export const reserveLimit = async (
     }
     if (!monthlyCharged) {
         const key = uidKey(bucket, userId);
-        const r = await dailyConsume(key, day, limit);
-        if (!r.allowed) return deny(counterStatus(r.count, limit));
+        const r = await dailyConsume(key, day, effLimit);
+        if (!r.allowed) return deny(counterStatus(r.count, effLimit));
         charged.push({ kind: 'daily', key });
-        statuses.push(counterStatus(r.count, limit));
+        statuses.push(counterStatus(r.count, effLimit));
     }
 
-    sendUsageHeaders(res, statuses.reduce((a, b) => (b.remaining < a.remaining ? b : a)));
+    sendUsageHeaders(res, unlimit(statuses.reduce((a, b) => (b.remaining < a.remaining ? b : a))));
 
     return {
         userId,

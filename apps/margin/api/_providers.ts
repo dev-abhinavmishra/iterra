@@ -3,9 +3,15 @@
 // Every provider below exposes an OpenAI-compatible /chat/completions endpoint,
 // so we can rotate across them with a single request shape. When one provider is
 // rate-limited (HTTP 429) or has a transient server error, we transparently move
-// on to the next configured provider. Only FREE models are used.
+// on to the next configured provider.
 //
-// Order matters: the most reliable free provider is tried first.
+// Order matters: Gemini (Google AI Studio) is PRIMARY — it has the most
+// generous free-tier RPM/RPD of the configured providers (gemma-4-31b-it and
+// the flash-lite tier run ~15 RPM / hundreds-to-thousands RPD vs ~20 RPD for
+// the flash chat models). Groq/NVIDIA/OpenRouter remain as fallbacks.
+//
+// NOTE: gemini-2.5-flash is deprecated (Google routes it to gemini-3.6-flash
+// and only grants ~20 RPD on the free tier) — do NOT use it as a default.
 
 export type ChatMessage = { role: string; content: any };
 
@@ -20,6 +26,21 @@ interface ProviderDef {
 }
 
 const PROVIDERS: ProviderDef[] = [
+    {
+        id: 'gemini',
+        label: 'Gemini',
+        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
+        apiKey: process.env.GEMINI_API_KEY,
+        /* gemma-4-31b-it: the user's requested high-throughput pick — Google
+           serves it free-tier-only on AI Studio with the largest RPD allowance
+           of the chat models (~15 RPM, up to ~1.5K RPD per project). Override
+           with GEMINI_MODEL for a different Gemini/Gemma model. */
+        model: process.env.GEMINI_MODEL || 'gemma-4-31b-it',
+        /* gemini-3.5-flash-lite: highest free-tier RPM/RPD of the Gemini chat
+           models (15 RPM / 500 RPD) and natively multimodal, so it stays fast
+           even when the primary model's daily quota is spent. */
+        visionModel: process.env.GEMINI_VISION_MODEL || 'gemini-3.5-flash-lite',
+    },
     {
         id: 'groq',
         label: 'Groq',
@@ -42,20 +63,12 @@ const PROVIDERS: ProviderDef[] = [
         label: 'OpenRouter',
         baseURL: 'https://openrouter.ai/api/v1',
         apiKey: process.env.OPENROUTER_API_KEY,
-        model: process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free',
-        visionModel: process.env.OPENROUTER_VISION_MODEL || 'meta-llama/llama-3.2-11b-vision-instruct:free',
+        model: process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct',
+        visionModel: process.env.OPENROUTER_VISION_MODEL || 'meta-llama/llama-3.2-11b-vision-instruct',
         extraHeaders: {
             'HTTP-Referer': 'https://modularaistack.vercel.app',
             'X-Title': 'Margin',
         },
-    },
-    {
-        id: 'gemini',
-        label: 'Gemini',
-        baseURL: 'https://generativelanguage.googleapis.com/v1beta/openai',
-        apiKey: process.env.GEMINI_API_KEY,
-        model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
-        visionModel: process.env.GEMINI_VISION_MODEL || 'gemini-2.0-flash',
     },
 ];
 
@@ -81,7 +94,7 @@ export async function chatCompletion(
         throw new Error(
             opts.vision
                 ? 'No vision-capable AI provider is configured.'
-                : 'No AI providers are configured. Set at least one of GROQ_API_KEY, NVIDIA_API_KEY, OPENROUTER_API_KEY or GEMINI_API_KEY.'
+                : 'No AI providers are configured. Set at least one of GEMINI_API_KEY, GROQ_API_KEY, NVIDIA_API_KEY or OPENROUTER_API_KEY.'
         );
     }
 

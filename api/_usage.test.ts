@@ -91,6 +91,11 @@ const fake = vi.hoisted(() => {
 vi.mock('@supabase/supabase-js', () => ({ createClient: () => fake.client }));
 
 describe('reserveLimit bucket scoping', () => {
+    /* Quotas are disabled by default; these tests exercise the enforcement
+       machinery, so they opt back in explicitly. */
+    beforeEach(() => vi.stubEnv('USAGE_LIMITS_ENABLED', '1'));
+    afterEach(() => vi.unstubAllEnvs());
+
     it('marks bucketed responses with x-usage-bucket and sends the bucket in the 429 body', async () => {
         const req = mkReq({ headers: { 'x-user-id': 'u-bucket-test' } });
         // drain a tiny bucket
@@ -176,6 +181,7 @@ describe('authed path (mocked Supabase)', () => {
         fake.counters.clear();
         fake.monthly.clear();
         delete process.env.VERCEL;
+        vi.stubEnv('USAGE_LIMITS_ENABLED', '1');
     });
     afterEach(() => vi.unstubAllEnvs());
 
@@ -302,5 +308,29 @@ describe('authed path (mocked Supabase)', () => {
         expect(t).toBeNull();
         expect(res.statusCode).toBe(429);
         expect(res.body.bucket).toBe('transcribe');
+    });
+});
+
+describe('usage limits disabled by default', () => {
+    afterEach(() => vi.unstubAllEnvs());
+
+    it('never denies, even past every configured limit, and reports an unlimited pool', async () => {
+        delete process.env.USAGE_LIMITS_ENABLED;
+        const req = mkReq({ headers: { 'x-user-id': 'u-unlimited' } });
+        for (let i = 0; i < 5; i++) {
+            const res = mkRes();
+            const t = await reserveLimit(req, res, { bucket: 'transcribe', limit: 1, ipLimit: 1 });
+            expect(t).not.toBeNull();
+            expect(res.statusCode).not.toBe(429);
+            expect(Number(res.headers['x-usage-limit'])).toBeGreaterThanOrEqual(1000000);
+        }
+    });
+
+    it('getUsageFor reports effectively-unlimited numbers', async () => {
+        delete process.env.USAGE_LIMITS_ENABLED;
+        const s = await getUsageFor('u-unlimited-2', false, { bucket: 'title', limit: 2 });
+        expect(s.limit).toBeGreaterThanOrEqual(1000000);
+        expect(s.remaining).toBeGreaterThanOrEqual(1000000);
+        expect(s.reachedLimit).toBe(false);
     });
 });
