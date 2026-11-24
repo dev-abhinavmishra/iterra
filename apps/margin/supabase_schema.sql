@@ -240,3 +240,19 @@ end $$;
 
 -- Live note: the deployed `increment_usage` was also patched to lock its row
 -- (`select ... for update`) so concurrent calls can't race past requests_cap.
+
+-- Generic document sync (decks, quizzes, settings, per-note version snapshots)
+-- — the /api/margin-docs routes upsert whole JSON payloads per (user, key).
+create table if not exists margin_docs (
+    user_id    text        not null,
+    doc_key    text        not null,
+    payload    jsonb       not null,
+    updated_at timestamptz not null default now(),
+    primary key (user_id, doc_key)
+);
+alter table margin_docs enable row level security;
+
+drop policy if exists margin_docs_owner on margin_docs;
+create policy margin_docs_owner on margin_docs for all
+    using (user_id = auth.uid()::text)
+    with check (user_id = auth.uid()::text);

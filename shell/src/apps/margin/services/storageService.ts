@@ -5,6 +5,7 @@ import { NOTES_STORE, SETTINGS_STORE, VERSIONS_STORE, DECKS_STORE, QUIZZES_STORE
 
 export const initDB = async (): Promise<void> => {
     (await openDB()).close();
+    ensureDocsPulled();
 };
 
 // Cloud Sync Helpers
@@ -386,9 +387,11 @@ export const getAllNotes = async (): Promise<Note[]> => {
 
 export const saveSettings = async (settings: AppSettings): Promise<void> => {
     await tx(SETTINGS_STORE, 'readwrite', s => s.put({ id: 'app_settings', ...settings }));
+    scheduleDocPush('settings');
 };
 
 export const getSettings = async (): Promise<AppSettings | null> => {
+    ensureDocsPulled();
     const result = await tx(SETTINGS_STORE, 'readonly', s => s.get('app_settings'));
     if (result) {
         const { id, ...settings } = result as any;
@@ -424,9 +427,13 @@ export const deleteNotesBefore = async (date: Date): Promise<number> => {
 };
 
 export const clearAllNotes = async (): Promise<void> => {
+    /* version docs are per-note — collect their keys BEFORE the wipe so
+       each remote 'ver:<id>' doc gets an empty push afterwards */
+    const versionedNotes = [...new Set((await getAllNoteVersions().catch(() => [] as NoteVersion[])).map(v => v.noteId))];
     await tx(NOTES_STORE, 'readwrite', s => s.clear());
     await tx(VERSIONS_STORE, 'readwrite', s => s.clear());
     mediaCache.clear();
+    for (const noteId of versionedNotes) scheduleDocPush(`ver:${noteId}`);
     /* Awaited, and owed if it fails: the '*' marker is persisted BEFORE the
        request, so an offline/5xx clear can't be followed by a pull that
        resurrects the wiped library — getAllNotes flushes owed deletes first. */
@@ -454,23 +461,31 @@ export const saveNoteVersion = async (note: Note): Promise<void> => {
             await tx(VERSIONS_STORE, 'readwrite', s => s.delete(v.id));
         }
     }
+    scheduleDocPush(`ver:${note.id}`);
 };
 
 export const getNoteVersions = async (noteId: string): Promise<NoteVersion[]> => {
+    ensureDocsPulled();
     const all = await tx(VERSIONS_STORE, 'readonly', s => s.getAll() as IDBRequest<NoteVersion[]>);
     return all
         .filter(v => v.noteId === noteId)
         .sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
 };
 
-export const getAllNoteVersions = async (): Promise<NoteVersion[]> =>
-    tx(VERSIONS_STORE, 'readonly', s => s.getAll() as IDBRequest<NoteVersion[]>);
+export const getAllNoteVersions = async (): Promise<NoteVersion[]> => {
+    ensureDocsPulled();
+    return tx(VERSIONS_STORE, 'readonly', s => s.getAll() as IDBRequest<NoteVersion[]>);
+};
 
 /* Restore version records verbatim (backup import) — unlike saveNoteVersion,
    which mints a fresh id/timestamp. */
 export const putNoteVersions = async (versions: NoteVersion[]): Promise<void> => {
     for (const v of versions) {
         await tx(VERSIONS_STORE, 'readwrite', s => s.put(v));
+    }
+    /* one doc per note — a backup can span many, so push each touched key */
+    for (const noteId of new Set(versions.map(v => v.noteId))) {
+        scheduleDocPush(`ver:${noteId}`);
     }
 };
 
@@ -479,35 +494,228 @@ export const deleteNoteVersions = async (noteId: string): Promise<void> => {
     for (const v of all) {
         await tx(VERSIONS_STORE, 'readwrite', s => s.delete(v.id));
     }
+    scheduleDocPush(`ver:${noteId}`);
 };
 
 /* ---------- Study: decks & quizzes ---------- */
 
 export const saveDeck = async (deck: Deck): Promise<void> => {
     await tx(DECKS_STORE, 'readwrite', s => s.put(deck));
+    scheduleDocPush('decks');
 };
 
 export const getAllDecks = async (): Promise<Deck[]> => {
+    ensureDocsPulled();
     const decks = await tx(DECKS_STORE, 'readonly', s => s.getAll() as IDBRequest<Deck[]>);
     return (decks || []).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const deleteDeck = async (id: string): Promise<void> => {
     await tx(DECKS_STORE, 'readwrite', s => s.delete(id));
+    scheduleDocPush('decks');
 };
 
 export const saveQuiz = async (quiz: Quiz): Promise<void> => {
     await tx(QUIZZES_STORE, 'readwrite', s => s.put(quiz));
+    scheduleDocPush('quizzes');
 };
 
 export const getAllQuizzes = async (): Promise<Quiz[]> => {
+    ensureDocsPulled();
     const quizzes = await tx(QUIZZES_STORE, 'readonly', s => s.getAll() as IDBRequest<Quiz[]>);
     return (quizzes || []).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const deleteQuiz = async (id: string): Promise<void> => {
     await tx(QUIZZES_STORE, 'readwrite', s => s.delete(id));
+    scheduleDocPush('quizzes');
 };
+
+/* ---------- Document sync: decks, quizzes, settings, note versions ----------
+   Notes sync row-by-row through /api/notes; everything else Margin stores
+   rides /api/margin-docs — a per-user JSON doc store keyed 'settings',
+   'decks', 'quizzes' and 'ver:<noteId>' (that note's version snapshots).
+   Payloads are whole collections: tiny, and a delete is just an absent id.
+
+   Merge rule per doc: a dirty local doc pushes this device's state; a
+   clean local doc yields to a newer remote rev; a dirty doc pulled
+   against a newer remote merges remote + local items by id (local wins
+   same-id conflicts) and pushes the union back — neither device's
+   additions are lost. */
+
+type DocState = { rev: number; dirty: boolean };
+const DOC_SYNC_KEY = 'margin.docSync.v1';
+const docStates = (): Record<string, DocState> => {
+    try {
+        const v = JSON.parse(localStorage.getItem(DOC_SYNC_KEY) || '{}');
+        return v && typeof v === 'object' ? v : {};
+    } catch { return {}; }
+};
+const writeDocStates = (s: Record<string, DocState>) => {
+    try { localStorage.setItem(DOC_SYNC_KEY, JSON.stringify(s)); } catch { /* quota — best-effort */ }
+};
+const docState = (key: string): DocState => docStates()[key] || { rev: 0, dirty: false };
+const setDocState = (key: string, s: DocState) => {
+    const all = docStates();
+    all[key] = s;
+    writeDocStates(all);
+};
+
+/* Local payload per doc key — raw IDB reads (not the public getters, which
+   trigger ensureDocsPulled and would re-enter the pull this feeds). */
+const localDocPayload = async (key: string): Promise<unknown> => {
+    if (key === 'settings') {
+        const row = await tx(SETTINGS_STORE, 'readonly', s => s.get('app_settings'));
+        if (!row) return undefined;
+        const { id, ...rest } = row as any;
+        return rest;
+    }
+    if (key === 'decks') {
+        return tx(DECKS_STORE, 'readonly', s => s.getAll() as IDBRequest<Deck[]>).then(r => r || []);
+    }
+    if (key === 'quizzes') {
+        return tx(QUIZZES_STORE, 'readonly', s => s.getAll() as IDBRequest<Quiz[]>).then(r => r || []);
+    }
+    if (key.startsWith('ver:')) {
+        return getNoteVersions(key.slice(4));
+    }
+    return undefined;
+};
+
+const RETRYABLE_DOC = (status: number) =>
+    !(status >= 400 && status < 500) || status === 401 || status === 403 || status === 408 || status === 429;
+
+/* One PUT attempt; the returned rev is the server's updated_at so later
+   pulls compare clocks on the same authority. */
+const putDoc = async (key: string, payload: unknown): Promise<void> => {
+    try {
+        const headers = await cloudHeaders();
+        if (!headers) { setDocState(key, { ...docState(key), dirty: true }); return; }
+        const res = await fetch('/api/margin-docs', {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({ key, payload }),
+        });
+        if (res.ok) {
+            const data = await res.json().catch(() => ({} as any));
+            const rev = Date.parse(data?.updated_at || '') || Date.now();
+            setDocState(key, { rev, dirty: false });
+            return;
+        }
+        const retryable = RETRYABLE_DOC(res.status);
+        setDocState(key, { ...docState(key), dirty: retryable });
+        if (!retryable) console.warn('[docSync] doc rejected deterministically — staying local:', key, res.status);
+    } catch {
+        setDocState(key, { ...docState(key), dirty: true });
+    }
+};
+
+const pushLocalDoc = async (key: string): Promise<void> => {
+    const payload = await localDocPayload(key).catch(() => undefined);
+    if (payload === undefined) return;
+    await putDoc(key, payload);
+};
+
+/* Union by id for array docs / shallow merge for the settings object —
+   local entries win conflicts because a dirty doc means this device holds
+   the newer intent. */
+const mergeDocPayloads = async (key: string, remote: unknown): Promise<unknown> => {
+    const local = await localDocPayload(key).catch(() => undefined);
+    if (local === undefined) return undefined;
+    if (key === 'settings') {
+        const r = remote && typeof remote === 'object' && !Array.isArray(remote) ? remote as object : {};
+        const l = local && typeof local === 'object' && !Array.isArray(local) ? local as object : {};
+        return { ...r, ...l };
+    }
+    const remoteArr = Array.isArray(remote) ? remote : [];
+    const localArr = Array.isArray(local) ? local : [];
+    const byId = new Map<string, any>();
+    for (const r of remoteArr) if (r && typeof r.id === 'string') byId.set(r.id, r);
+    for (const l of localArr) if (l && typeof l.id === 'string') byId.set(l.id, l);
+    return [...byId.values()];
+};
+
+const applyRemoteDoc = async (key: string, payload: unknown, rev: number): Promise<void> => {
+    try {
+        if (key === 'settings') {
+            if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+                await tx(SETTINGS_STORE, 'readwrite', s => s.put({ id: 'app_settings', ...(payload as object) }));
+            }
+        } else if (key === 'decks' || key === 'quizzes') {
+            const store = key === 'decks' ? DECKS_STORE : QUIZZES_STORE;
+            const items = (Array.isArray(payload) ? payload : []).filter(x => x && typeof x.id === 'string');
+            await tx(store, 'readwrite', s => s.clear());
+            for (const item of items) {
+                await tx(store, 'readwrite', s => s.put(item));
+            }
+        } else if (key.startsWith('ver:')) {
+            const noteId = key.slice(4);
+            const items = (Array.isArray(payload) ? payload : [])
+                .filter(v => v && typeof v.id === 'string' && v.noteId === noteId);
+            const existing = await getNoteVersions(noteId);
+            for (const v of existing) {
+                await tx(VERSIONS_STORE, 'readwrite', s => s.delete(v.id));
+            }
+            for (const v of items) {
+                await tx(VERSIONS_STORE, 'readwrite', s => s.put(v));
+            }
+        } else {
+            return; // unknown doc kind — leave the rev unset so a newer client can still claim it
+        }
+        setDocState(key, { rev, dirty: false });
+    } catch (err) {
+        console.warn('[docSync] apply failed:', key, err);
+    }
+};
+
+/* Whole-collection pushes are cheap but a backup import can fire dozens in
+   a row — trailing debounce collapses them into one PUT per doc. */
+const docPushTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const scheduleDocPush = (key: string) => {
+    setDocState(key, { ...docState(key), dirty: true });
+    const t = docPushTimers.get(key);
+    if (t !== undefined) clearTimeout(t);
+    docPushTimers.set(key, setTimeout(() => {
+        docPushTimers.delete(key);
+        void pushLocalDoc(key);
+    }, 800));
+};
+
+let docsPullInFlight = false;
+let docsPulled = false;
+const pullMarginDocs = async (): Promise<void> => {
+    if (docsPullInFlight || docsPulled) return;
+    docsPullInFlight = true;
+    try {
+        const headers = await cloudHeaders();
+        /* unsigned — leave docsPulled unset so a later trigger (post-sign-in
+           refresh, next getAll*) still gets its pull */
+        if (!headers) return;
+        const res = await fetch('/api/margin-docs', { headers });
+        if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) return;
+        const { docs } = await res.json();
+        docsPulled = true;
+        for (const [key, row] of Object.entries<any>(docs || {})) {
+            const rev = Date.parse(row?.updated_at || '') || 0;
+            const st = docState(key);
+            if (st.dirty) {
+                /* local changed since last sync — merge remote into it and
+                   push the union so the other device's items survive */
+                const merged = await mergeDocPayloads(key, row?.payload);
+                if (merged !== undefined) void putDoc(key, merged);
+                continue;
+            }
+            if (rev > st.rev) await applyRemoteDoc(key, row?.payload, rev);
+        }
+    } catch {
+        /* best-effort — the next trigger retries */
+    } finally {
+        docsPullInFlight = false;
+    }
+};
+/* Retry-friendly trigger: safe to call on every read — guarded, and an
+   unsigned session just leaves the pull for the next call. */
+const ensureDocsPulled = () => { void pullMarginDocs(); };
 
 /* ---------- Storage estimate ---------- */
 
