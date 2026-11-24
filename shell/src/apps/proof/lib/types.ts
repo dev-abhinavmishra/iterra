@@ -53,6 +53,21 @@ export type AnswerSpec =
 export type HintLevel = 0 | 1 | 2 | 3 | 4;
 // ladder: 1 concept cue → 2 setup cue → 3 next-step cue → 4 worked solution
 
+export type SolveAssistance = 'independent' | 'hint-assisted' | 'cue-assisted';
+
+export interface ErrorCue {
+  id: string;
+  text: string;
+  sourceAttemptId: string;
+  sourceErrorId?: string;
+  createdAt: ISODateTime;
+}
+
+export interface CueReveal {
+  cueId: string;
+  at: ISODateTime;
+}
+
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 
 export interface Problem {
@@ -63,6 +78,7 @@ export interface Problem {
   answerSpec: AnswerSpec;
   workedSolutionDoc: string;
   hints: string[]; // [concept, setup, nextStep] — level 4 is workedSolutionDoc
+  errorCues?: ErrorCue[]; // student-filed repair cues, offered as opt-in hints on retries
   tags: string[];
   difficulty: Difficulty;
   source?: string; // 'textbook ch.4', 'worksheet', 'gradestack', ...
@@ -90,6 +106,8 @@ export interface Attempt {
   resultSource?: 'auto' | 'self';
   hintLevel: HintLevel; // deepest ladder level revealed
   hintReveals: { level: HintLevel; at: ISODateTime }[];
+  cueReveals?: CueReveal[]; // problem.errorCues this attempt chose to show
+  solveAssistance?: SolveAssistance; // stamped only when the attempt is solved
   timerMinutes?: number; // actual focus minutes filed back from Timer
 }
 

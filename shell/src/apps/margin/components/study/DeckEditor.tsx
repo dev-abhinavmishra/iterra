@@ -144,8 +144,8 @@ const DeckEditor: React.FC<DeckEditorProps> = ({ deck: initialDeck, sourceNote, 
                         )}
 
                         {deck.cards.map((card, i) => (
+                            <React.Fragment key={card.id}>
                             <div
-                                key={card.id}
                                 className="grid grid-cols-[2rem_1fr_1fr_2.5rem] items-center gap-3 px-4 py-1.5 border-b border-line group"
                                 onBlur={e => rowBlur(e, () => commitCard(card.id))}
                             >
@@ -173,6 +173,16 @@ const DeckEditor: React.FC<DeckEditorProps> = ({ deck: initialDeck, sourceNote, 
                                     className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
                                 />
                             </div>
+                            {card.source && (
+                                <div className="px-4 pb-2 -mt-1 flex items-start gap-1.5">
+                                    <Icon name="format_quote" size={12} className="text-ink-3 mt-0.5 shrink-0" />
+                                    <p className="text-[11px] text-ink-3 leading-snug">
+                                        <span className="font-mono">AI · </span>
+                                        {card.source.excerpt ?? card.source.label}
+                                    </p>
+                                </div>
+                            )}
+                            </React.Fragment>
                         ))}
 
                         {draft && (

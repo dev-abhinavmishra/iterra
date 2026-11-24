@@ -12,9 +12,8 @@ import {
   Sparkles,
   Plus,
   PanelRightOpen,
-  Bookmark,
 } from 'lucide-react';
-import { PLACES, PLACE_MAP, formatEntityType } from '../places';
+import { PLACE_MAP, formatEntityType } from '../places';
 import type { Presence, SharedField, FeedItem, Entity, StoreEntity, IntakeWait } from '../hub';
 import { sendTo } from '../hub';
 import { isDemoLoaded, seedDemoSemester } from '../integration/demo';
@@ -24,7 +23,16 @@ import { canDraftNoteDeck, openNoteDeckDraft } from '../integration/ModalsHost';
 import { studyCourses } from '../integration/studyPlan';
 import { todayISO } from '../apps/rhythm/lib/dates';
 import { subscribeShelf, togglePin, type ShelfPin } from '../shelf';
-import { Badge, Button, Dialog, EmptyState, SectionHeader } from '../ui/primitives';
+import { Badge, Button, Dialog, Disclosure, EmptyState } from '../ui/primitives';
+import {
+  JournalMasthead,
+  JournalSection,
+  JournalTabs,
+  ToolsDirectory,
+  type TodayView,
+} from './TodayJournalChrome';
+import { FirstAssignmentDialog } from './FirstAssignmentDialog';
+import './today.css';
 import {
   ObjectRow,
   type WorkspaceObject,
@@ -32,9 +40,6 @@ import {
   iconForObjectType,
   formatRelativeTime,
 } from '../ui/ObjectRow';
-
-const STALE_MS = 35000;
-const isStale = (p: Presence | undefined) => !p || Date.now() - p.at > STALE_MS;
 
 /* seed + reload — mounted places hold their stores in memory, so only a
    reload rehydrates every surface from the seeded envelopes (the Settings
@@ -48,6 +53,23 @@ function loadSampleSemester() {
 function fmtClock(sec: number): string {
   const s = Math.max(0, Math.round(sec));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+/* 'Friday' for a due date inside the next week, 'today'/'tomorrow'/'yesterday'
+   adjacent, 'Fri, Nov 28' beyond — the reason line's plain-language day */
+function dayWord(ms: number, now: number): string {
+  const d = new Date(ms);
+  const startOfDay = (t: number) => {
+    const x = new Date(t);
+    x.setHours(0, 0, 0, 0);
+    return x.getTime();
+  };
+  const diff = Math.round((startOfDay(ms) - startOfDay(now)) / 86400000);
+  if (diff === 0) return 'today';
+  if (diff === 1) return 'tomorrow';
+  if (diff === -1) return 'yesterday';
+  if (diff > 1 && diff <= 6) return d.toLocaleDateString('en-US', { weekday: 'long' });
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 function focusMinutes(item: WorkspaceObject) {
@@ -100,6 +122,11 @@ export function TodayWorkspace({
   useEffect(() => subscribeShelf(setPins), []);
 
   const [feedExpanded, setFeedExpanded] = useState(false);
+  const [firstAssignmentOpen, setFirstAssignmentOpen] = useState(false);
+  const [view, setView] = useState<TodayView>('day');
+  useEffect(() => {
+    setFeedExpanded(false);
+  }, [activeCourseFilter]);
 
   const [notice, setNotice] = useState<{ text: string; url?: string } | null>(null);
   const notify = (text: string, url?: string) => {
@@ -171,7 +198,17 @@ export function TodayWorkspace({
   const proofSession = shared.session?.v as { topic?: string; minutes?: number; active?: boolean } | undefined;
   const proofSessionLive =
     !!proofSession?.active && !!shared.session?.at && now - shared.session.at < 5 * 60 * 1000;
-  const hasStudyCourses = useMemo(() => studyCourses(entities).length > 0, [entities]);
+  const studyCourseEntities = useMemo(() => studyCourses(entities), [entities]);
+  const hasStudyCourses = studyCourseEntities.length > 0;
+  const firstAssignmentCourses = useMemo(
+    () => studyCourseEntities
+      .map((course) => ({
+        code: course.course || String(course.data?.code || ''),
+        name: course.title || course.course || 'Course',
+      }))
+      .filter((course) => course.code.trim().length > 0),
+    [studyCourseEntities],
+  );
   const showStarterCards = !hasStudyCourses && !focusLive && !proofSessionLive;
 
   const timerCtl = (op: 'pause' | 'resume' | 'finish') => {
@@ -387,6 +424,40 @@ export function TodayWorkspace({
     return null;
   }, [scheduledWork, now]);
 
+  /* The reason beside the first action — why this is what's next. A booked
+     slip says when it's planned; a bare commitment admits it has no study
+     block yet, which is what routes its action to Planning. */
+  const primaryReason = useMemo(() => {
+    const p = scheduledWork.primary;
+    if (!p) return null;
+    if (p.type === 'commitment') {
+      const raw = p.dueAt;
+      const ms = typeof raw === 'number' ? raw : raw ? Date.parse(String(raw)) : NaN;
+      if (Number.isNaN(ms)) return `${p.title} · no study block yet`;
+      const when = `${ms <= now ? 'was due' : 'due'} ${dayWord(ms, now)}`;
+      return `${p.title} · ${when} · no study block yet`;
+    }
+    const plannedDate = typeof p.data?.plannedDate === 'string' ? p.data.plannedDate : null;
+    if (!plannedDate) return null;
+    const todayKey = todayISO(new Date(now));
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowKey = todayISO(tomorrow);
+    const when = plannedDate === todayKey ? 'today'
+      : plannedDate === tomorrowKey ? 'tomorrow'
+      : new Date(`${plannedDate}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const start = typeof p.data?.plannedStart === 'string' && p.data.plannedStart.trim()
+      ? ` · ${p.data.plannedStart.trim()}` : '';
+    return `Booked ${when}${start}`;
+  }, [scheduledWork.primary, now]);
+
+  /* 'Start ___' names the course when known, else the assignment itself */
+  const primaryStartName = scheduledWork.primary
+    ? scheduledWork.primary.course || scheduledWork.primary.title
+    : '';
+  const primaryMinutes = scheduledWork.primary ? focusMinutes(scheduledWork.primary) : undefined;
+  const focusName = fv.course || fv.label || '';
+
   /* ── 4. Review & Follow-Up: Due cards, due problems, open routines ── */
   const reviewItems = useMemo(() => {
     const items: {
@@ -569,6 +640,9 @@ export function TodayWorkspace({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allObjects, entities, presences, shared.register, now, courseFilterLow, checkInDay]);
 
+  /* due work with nothing booked — the empty Next up state offers Planning */
+  const hasUnscheduledDue = !scheduledWork.primary && reviewItems.length > 0;
+
   /* ── 5. Course Overview: Grouped by course with real counts ── */
   const courseGroups = useMemo(() => {
     const map = new Map<
@@ -658,6 +732,12 @@ export function TodayWorkspace({
       .slice(0, 8);
   }, [allObjects]);
 
+  const visibleFeed = useMemo(
+    () => feed.filter((f) => matchesCourseFilter(f.course)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [feed, courseFilterLow],
+  );
+
   const startBoundTimer = (item: WorkspaceObject) => {
     const mins = focusMinutes(item) ?? 25;
     const course = item.course || '';
@@ -685,8 +765,23 @@ export function TodayWorkspace({
     onGo(url);
   };
 
+  /* A workspace with no courses, objects, pins, feed, or live session gets
+     one welcoming setup panel instead of five stacked empty cards. Partial
+     data still gets the per-section treatments in the mosaic below. */
+  const isEmptyWorkspace =
+    showStarterCards &&
+    !courseFilterLow &&
+    !resumeObject &&
+    !scheduledWork.primary &&
+    recentWork.length === 0 &&
+    reviewItems.length === 0 &&
+    courseGroups.length === 0 &&
+    pins.length === 0 &&
+    weekStrip === null &&
+    visibleFeed.length === 0;
+
   return (
-    <div className="terrain-map min-h-full">
+    <div className="today-journal terrain-map min-h-full">
       {amountRoutine && (
         <Dialog open title="Log routine amount" subtitle={amountRoutine.title} onClose={() => { if (!checkingRoutine) setAmountRoutine(null); }}>
           <form className="space-y-3" onSubmit={event => {
@@ -709,13 +804,23 @@ export function TodayWorkspace({
           </form>
         </Dialog>
       )}
-      <h1 className="sr-only">Today — workspace overview</h1>
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-        {/* Toast / action notification */}
+      <FirstAssignmentDialog
+        open={firstAssignmentOpen}
+        onClose={() => setFirstAssignmentOpen(false)}
+        courses={firstAssignmentCourses}
+      />
+      <div className="today-wrap">
+        <JournalMasthead courseLabel={activeCourseFilter || undefined} />
+        <JournalTabs
+          view={view}
+          onChange={setView}
+          counts={{ courses: courseGroups.length, journal: recentWork.length + visibleFeed.length }}
+        />
+
         {notice && (
           <div
             role="status"
-            className="anim-rise flex items-center justify-between gap-3 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-3.5 py-2 text-[12.5px] text-[var(--color-accent)]"
+            className="anim-rise mt-4 flex items-center justify-between gap-3 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-3.5 py-2 text-[12.5px] text-[var(--color-accent)]"
           >
             <span className="font-medium">{notice.text}</span>
             {notice.url && (
@@ -730,649 +835,696 @@ export function TodayWorkspace({
           </div>
         )}
 
-        {/* ── 1. ACTIVE SESSION BANNER (shown when Timer or Proof session is live) ── */}
-        {focusLive && (
-          <section
-            aria-label="Active focus session"
-            className="anim-rise rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)]/75 p-4 shadow-sm"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <span
-                  className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                    fv.paused ? 'bg-[var(--color-warn)]' : 'bg-[var(--color-accent)] live-dot'
-                  }`}
-                />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent)]">
-                      {fv.paused ? 'Focus Session Paused' : 'Active Focus Session'}
-                    </span>
-                    {fv.course && (
-                      <Badge
-                        tone="accent"
-                        onClick={() => onGo(`#/c/${encodeURIComponent(fv.course!)}`)}
-                      >
-                        {fv.course}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="mt-0.5 text-[15px] font-semibold text-[var(--color-ink)] truncate">
-                    {fv.label || 'Focus Session'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 print:hidden">
-                <div className="rounded-[5px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] px-3 py-1 font-mono text-[16px] font-semibold tabular-nums text-[var(--color-ink)]">
-                  {fmtClock(focusSecLeft)}
-                  {typeof fv.totalMin === 'number' && (
-                    <span className="ml-1.5 text-[11px] font-normal text-[var(--color-faint)]">
-                      / {fv.totalMin}m
-                    </span>
-                  )}
-                </div>
-
-                {fv.running ? (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<Pause className="h-3.5 w-3.5" />}
-                    onClick={() => timerCtl('pause')}
-                  >
-                    Pause
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    icon={<Play className="h-3.5 w-3.5" />}
-                    onClick={() => timerCtl('resume')}
-                  >
-                    Resume
-                  </Button>
-                )}
-
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={<Check className="h-3.5 w-3.5" />}
-                  onClick={() => timerCtl('finish')}
-                >
-                  Finish &amp; Log
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEnter('timer')}
-                >
-                  Open Timer →
-                </Button>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {!focusLive && proofSessionLive && (
-          <section
-            aria-label="Active calculation session"
-            className="anim-rise flex flex-wrap items-center justify-between gap-3 rounded-[6px] border border-[var(--color-accent)] bg-[var(--color-accent-soft)]/70 px-4 py-3"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="live-dot h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-              <span className="font-mono text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-                Active Practice Session
-              </span>
-              <span className="text-[13.5px] font-semibold text-[var(--color-ink)]">
-                {proofSession?.topic || 'Calculation practice'}
-                {proofSession?.minutes ? ` · ${proofSession.minutes}m` : ''}
-              </span>
-            </div>
-            <Button variant="primary" size="xs" onClick={() => onEnter('proof')}>
-              Return to Calculations →
-            </Button>
-          </section>
-        )}
-
-        {!focusLive && !proofSessionLive && (
-          <PlanFromToday entities={entities} courseFilter={activeCourseFilter} onGo={onGo} />
-        )}
-
-        {/* ── Pinned Shelf Strip (when items are pinned) ── */}
-        {pins.length > 0 && (
-          <section aria-label="Pinned items" className="flex flex-wrap items-center gap-1.5">
-            <span className="mr-1 inline-flex items-center gap-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
-              <Bookmark className="h-3 w-3 text-[var(--color-accent)]" />
-              Pinned
-            </span>
-            {pins.slice(0, 8).map((p) => (
-              <div
-                key={p.url}
-                className="inline-flex items-center rounded-[5px] border border-[var(--color-line)] bg-[var(--color-sheet)] text-[12px]"
-              >
-                <button
-                  type="button"
-                  onClick={() => onGo(p.url)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 text-left hover:text-[var(--color-accent)] cursor-pointer"
-                >
-                  <span className="font-mono text-[10px] uppercase text-[var(--color-faint)]">
-                    {PLACE_MAP[p.app]?.label || p.app}
-                  </span>
-                  <span className="max-w-[180px] truncate font-medium text-[var(--color-ink)]">
-                    {p.title}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => togglePin(p)}
-                  aria-label={`Unpin ${p.title}`}
-                  title="Unpin from shelf"
-                  className="border-l border-[var(--color-line)] px-1.5 py-1 text-[10px] text-[var(--color-faint)] hover:text-[var(--color-bad)] cursor-pointer"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </section>
-        )}
-
-        {/* ── Primary Workstation Grid: Left (Resume + Next Up + Recent) / Right (Review + Courses) ── */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Left Column (7 cols on lg) */}
-          <div className="space-y-6 lg:col-span-7">
-            {/* ── 2. RESUME WORKING ── */}
-            {(resumeObject || showStarterCards) && <section aria-label={showStarterCards && !resumeObject ? 'Get started' : 'Pick up where you left off'}>
-              <SectionHeader title={showStarterCards && !resumeObject ? 'Get started' : 'Pick up where you left off'} />
-              {resumeObject ? (
-                <div className="rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] border border-[var(--color-line)] bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
-                        {iconForObjectType(resumeObject.type, resumeObject.app)}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="font-mono text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-                            {formatEntityType(resumeObject.type)}
-                          </span>
-                          <span className="text-[var(--color-faint)]">·</span>
-                          <span className="text-[11.5px] text-[var(--color-mute)]">
-                            {PLACE_MAP[resumeObject.app]?.label || resumeObject.app}
-                          </span>
-                          {resumeObject.course && (
-                            <Badge
-                              tone="accent"
-                              onClick={() => onGo(`#/c/${encodeURIComponent(resumeObject.course!)}`)}
-                            >
-                              {resumeObject.course}
-                            </Badge>
-                          )}
-                          {resumeObject.updatedAt ? (
-                            <span className="text-[11px] text-[var(--color-faint)]">
-                              · {formatRelativeTime(resumeObject.updatedAt)}
-                            </span>
-                          ) : null}
-                        </div>
-                        <h3 className="mt-1 text-[16px] font-semibold text-[var(--color-ink)] leading-snug">
-                          {resumeObject.title}
-                        </h3>
-                        {resumeObject.sub && (
-                          <p className="mt-0.5 text-[12.5px] text-[var(--color-mute)]">{resumeObject.sub}</p>
-                        )}
-                        {showStarterCards && (
-                          <p className="mt-1 text-[12px] text-[var(--color-mute)]">
-                            Set up courses to organize this saved work and build a study plan.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {onSelectObject && (
-                      <Button
-                        variant="ghost"
-                        size="xs"
-                        icon={<PanelRightOpen className="h-3.5 w-3.5" />}
-                        onClick={() => onSelectObject(resumeObject)}
-                      >
-                        Details
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="mt-3.5 flex flex-wrap items-center gap-2 border-t border-[var(--color-line)] pt-3">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      icon={<ArrowUpRight className="h-3.5 w-3.5" />}
-                      onClick={() => {
-                        onSelectObject?.(resumeObject);
-                        onGo(resumeObject.url);
-                      }}
-                    >
-                      Continue in {PLACE_MAP[resumeObject.app]?.label || resumeObject.app}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={<Clock className="h-3.5 w-3.5" />}
-                      onClick={() => startBoundTimer(resumeObject)}
-                    >
-                      Start 25m Focus
-                    </Button>
-                    {showStarterCards && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        icon={<Calendar className="h-3.5 w-3.5" />}
-                        onClick={() => onEnter('syllabus')}
-                      >
-                        Set Up Courses
-                      </Button>
-                    )}
-                    {canDraftNoteDeck(resumeObject) && (
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        icon={<Layers className="h-3.5 w-3.5" />}
-                        onClick={() => void openNoteDeckDraft(resumeObject, notify)}
-                      >
-                        Create Flashcards
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <EmptyState
-                  icon={<FileText className="h-4 w-4" />}
-                  title="Start with your courses"
-                  description="Add your courses first. Then bring in deadlines so Today can suggest a realistic study session."
-                  actions={
-                    <>
-                      <Button variant="primary" size="xs" icon={<Calendar className="h-3.5 w-3.5" />} onClick={() => onEnter('syllabus')}>
-                        Set Up Courses
-                      </Button>
-                      <Button variant="secondary" size="xs" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => onEnter('ink')}>
-                        New Note
-                      </Button>
-                      <Button variant="secondary" size="xs" icon={<Sparkles className="h-3.5 w-3.5" />} onClick={() => onEnter('margin')}>
-                        Import Study Material
-                      </Button>
-                      <Button variant="secondary" size="xs" icon={<Layers className="h-3.5 w-3.5" />} onClick={() => onEnter('flashcards')}>
-                        Create Deck
-                      </Button>
-                    </>
-                  }
-                />
-              )}
-            </section>}
-
-            {/* ── 3. NEXT UP (Scheduled Work) ── */}
-            {(scheduledWork.primary || showStarterCards) && <section aria-label="Next up scheduled work">
-              <SectionHeader title="Next Up"
-                action={
-                  <button
-                    type="button"
-                    onClick={() => onEnter('syllabus')}
-                    className="text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
-                  >
-                    Open Planning →
-                  </button>
-                }
-              />
-              {scheduledWork.primary ? (
-                <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                  <div className="p-4 bg-[var(--color-accent-soft)]/35 border-b border-[var(--color-line)]">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <Badge tone="accent">Scheduled Next</Badge>
-                          {primaryLate && <Badge tone="warn">{primaryLate}</Badge>}
-                          {scheduledWork.primary.course && (
-                            <Badge
-                              tone="neutral"
-                              onClick={() =>
-                                onGo(`#/c/${encodeURIComponent(scheduledWork.primary!.course!)}`)
-                              }
-                            >
-                              {scheduledWork.primary.course}
-                            </Badge>
-                          )}
-                          {scheduledWork.primary.type === 'block' && focusMinutes(scheduledWork.primary) !== undefined && (
-                            <span className="font-mono text-[11px] text-[var(--color-mute)]">
-                              {focusMinutes(scheduledWork.primary)}m block
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="mt-1.5 text-[15px] font-semibold text-[var(--color-ink)]">
-                          {scheduledWork.primary.title}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Button
-                          variant="primary"
-                          size="xs"
-                          icon={<Play className="h-3 w-3" />}
-                          onClick={() => startBoundTimer(scheduledWork.primary!)}
-                        >
-                          Start {focusMinutes(scheduledWork.primary) ?? 25}m Focus
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="xs"
-                          onClick={() => {
-                            onSelectObject?.(scheduledWork.primary!);
-                            onGo(scheduledWork.primary!.url);
-                          }}
-                        >
-                          {scheduledWork.primary.type === 'commitment' ? 'Open Commitment' : 'Open Block'}
-                        </Button>
-                        {scheduledWork.primary.type === 'commitment' && (
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            title="File this commitment done — off-clock work, no timer"
-                            onClick={() => {
-                              const o = scheduledWork.primary!;
-                              void sendTo({
-                                  to: 'syllabus',
-                                  action: 'commitment.done',
-                                  entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                  payload: { commitmentId: o.id },
-                                })
-                                .then((r: any) => {
-                                  if (!r?.ok) {
-                                    notify('Couldn’t file it — Planning may still be starting.');
-                                    return;
-                                  }
-                                  notify(
-                                    r.toast ||
-                                      (r.delivered === 'direct'
-                                        ? `Done — ${o.title}`
-                                        : 'Marked done — Planning applies it on next open.'),
-                                    r.delivered === 'direct' ? undefined : r.url,
-                                  );
-                                });
-                            }}
-                          >
-                            Mark done
-                          </Button>
-                        )}
-                        {scheduledWork.primary.type === 'block' && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              title="Push this slip to tomorrow — stays planned, not missed"
-                              onClick={() => {
-                                const o = scheduledWork.primary!;
-                                void sendTo({
-                                    to: 'syllabus',
-                                    action: 'block.defer',
-                                    entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                    payload: { blockId: o.id },
-                                  })
-                                  .then((r: any) => {
-                                    if (!r?.ok) {
-                                      notify('Couldn’t push it — Planning may still be starting.');
-                                      return;
-                                    }
-                                    notify(
-                                      r.toast ||
-                                        (r.delivered === 'direct'
-                                          ? `Pushed to tomorrow — ${o.title}`
-                                          : 'Push queued — Planning applies it on next open.'),
-                                      r.delivered === 'direct' ? undefined : r.url,
-                                    );
-                                  });
-                              }}
-                            >
-                              Tomorrow
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="xs"
-                              title="Stamp this slip done — off-clock work, no timer"
-                              onClick={() => {
-                                const o = scheduledWork.primary!;
-                                void sendTo({
-                                    to: 'syllabus',
-                                    action: 'block.done',
-                                    entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                    payload: { blockId: o.id },
-                                  })
-                                  .then((r: any) => {
-                                    if (!r?.ok) {
-                                      notify('Couldn’t mark it done — Planning may still be starting.');
-                                      return;
-                                    }
-                                    notify(
-                                      r.toast ||
-                                        (r.delivered === 'direct'
-                                          ? `Done — ${o.title}`
-                                          : 'Marked done — Planning applies it on next open.'),
-                                      r.delivered === 'direct' ? undefined : r.url,
-                                    );
-                                  });
-                              }}
-                            >
-                              Mark done
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  {scheduledWork.queue.length > 0 && (
+        <div
+          role="tabpanel"
+          id="today-panel"
+          aria-labelledby={`today-tab-${view}`}
+          className="today-panel"
+        >
+          {view === 'day' && (
+            <div className="today-day">
+              {isEmptyWorkspace ? (
+                <JournalSection label="Get started" title="Begin the journal" kicker="First page">
+                  <div className="today-setup">
                     <div>
-                      {scheduledWork.queue.map((item) => (
-                        <ObjectRow
-                          key={item.key}
-                          item={item}
-                          compact
-                          selected={selectedObject?.key === item.key}
-                          onOpen={onGo}
-                          onSelectContext={onSelectObject}
-                          onNotify={notify}
-                          primaryActionLabel="Focus"
-                          onPrimaryAction={startBoundTimer}
-                        />
-                      ))}
+                      <h3 className="today-setup-title">Add your first assignment</h3>
+                      <p className="today-setup-copy">
+                        File one deadline and Today can show it as due work — no full schedule import required. Set up courses or load the sample semester when you want the whole plan.
+                      </p>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <EmptyState
-                  compact
-                  icon={<Calendar className="h-4 w-4" />}
-                  title="No study blocks scheduled for today"
-                  description="Add a study task in Planning. If you're new, Planning helps you set up a course first."
-                  actions={
-                    <>
-                      <Button variant={showStarterCards ? 'secondary' : 'primary'} size="xs" onClick={() => onGo('#/p/syllabus?p=today')}>
-                        Add a Study Task in Planning
+                    <div className="today-actions">
+                      <Button variant="primary" size="sm" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setFirstAssignmentOpen(true)}>
+                        Add your first assignment
                       </Button>
-                      <Button variant="secondary" size="xs" onClick={() => onEnter('timer')}>
-                        Open Timer
+                      <Button variant="secondary" size="sm" icon={<Calendar className="h-3.5 w-3.5" />} onClick={() => onEnter('syllabus')}>
+                        Set up courses
                       </Button>
-                    </>
-                  }
-                />
-              )}
-            </section>}
-
-            {/* ── 6. RECENT WORK ── */}
-            {(recentWork.length > 0 || showStarterCards) && <section aria-label="Recent work">
-              <SectionHeader title="Recent Work"
-                count={recentWork.length}
-                action={
-                  <button
-                    type="button"
-                    onClick={() => onGo('#/library')}
-                    className="text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
-                  >
-                    Browse All in Library →
-                  </button>
-                }
-              />
-              {recentWork.length > 0 ? (
-                <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                  {recentWork.map((item) => (
-                    <ObjectRow
-                      key={item.key}
-                      item={item}
-                      selected={selectedObject?.key === item.key}
-                      onOpen={onGo}
-                      onSelectContext={onSelectObject}
-                      onNotify={notify}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  compact
-                  title="No recent work yet"
-                  description="Notes, flashcard decks, study sheets, problems, and assessments you create will appear here with direct links."
-                  actions={
-                    <>
-                      <Button variant="secondary" size="xs" onClick={() => onEnter('ink')}>
-                        Write a Note
-                      </Button>
-                      <Button variant="secondary" size="xs" onClick={() => onEnter('flashcards')}>
-                        Build a Deck
-                      </Button>
-                      <Button variant="secondary" size="xs" onClick={() => onEnter('proof')}>
-                        Add a Calculation Problem
-                      </Button>
-                    </>
-                  }
-                />
-              )}
-            </section>}
-          </div>
-
-          {/* Right Column (5 cols on lg): Review + Course Overview + Recent Activity */}
-          <div className="space-y-6 lg:col-span-5">
-            {/* ── 4. REVIEW & FOLLOW-UP ── */}
-            <section aria-label="Review and follow-up">
-              <SectionHeader title="Review Queue"
-                count={reviewItems.length}
-              />
-              {reviewItems.length > 0 ? (
-                <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                  {reviewItems.map((rev) => (
-                    <div
-                      key={rev.id}
-                      className="flex items-center justify-between gap-3 px-3.5 py-2.5 hover:bg-[var(--color-sheet-hover)] transition-colors"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-warn)]">
-                            {rev.typeLabel}
-                          </span>
-                          {rev.course && (
-                            <Badge
-                              tone="accent"
-                              onClick={() => onGo(`#/c/${encodeURIComponent(rev.course!)}`)}
-                            >
-                              {rev.course}
-                            </Badge>
+                      <Disclosure label="Other ways to start">
+                        <div className="today-actions today-more">
+                          <Button variant="secondary" size="xs" onClick={() => onGo('#/p/syllabus?p=today')}>
+                            Add a study task
+                          </Button>
+                          <Button variant="secondary" size="xs" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => onEnter('ink')}>
+                            New note
+                          </Button>
+                          <Button variant="secondary" size="xs" icon={<Sparkles className="h-3.5 w-3.5" />} onClick={() => onEnter('margin')}>
+                            Import material
+                          </Button>
+                          <Button variant="secondary" size="xs" icon={<Layers className="h-3.5 w-3.5" />} onClick={() => onEnter('flashcards')}>
+                            Create deck
+                          </Button>
+                          <Button variant="ghost" size="xs" onClick={() => onGo('#/c/unfiled')}>
+                            Unfiled items
+                          </Button>
+                          {!isDemoLoaded() && (
+                            <Button variant="ghost" size="xs" icon={<Sparkles className="h-3.5 w-3.5" />} onClick={loadSampleSemester}>
+                              Load sample semester
+                            </Button>
                           )}
                         </div>
-                        <div className="mt-0.5 truncate text-[13.5px] font-medium text-[var(--color-ink)]">
-                          {rev.title}
-                        </div>
-                        <div className="text-[11.5px] text-[var(--color-mute)]">{rev.detail}</div>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {rev.id.startsWith('followup:') && rev.object && (
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            title="Dismiss this follow-up — the source stays untouched"
-                            onClick={() => {
-                              const t = readFollowUpTasks()[rev.object!.key];
-                              if (!t) {
-                                notify('That follow-up record is gone.');
-                                return;
-                              }
-                              void saveFollowUpTask({ ...t, status: 'dismissed', updatedAt: Date.now() })
-                                .then(() => notify('Follow-up dismissed.'))
-                                .catch(() => notify('Couldn’t dismiss it — try again.'));
-                            }}
-                          >
-                            Dismiss
-                          </Button>
-                        )}
-                        {rev.object && onSelectObject && (
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            onClick={() => onSelectObject(rev.object!)}
-                            title="Show in details panel"
-                          >
-                            <PanelRightOpen className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="primary"
-                          size="xs"
-                          disabled={rev.inlineCheck && !!checkingRoutine}
-                          onClick={() => {
-                            if (rev.inlineCheck && rev.object) {
-                              if (rev.object.data?.measure === 'check') void checkIn(rev.object);
-                              else { setAmountError(''); setAmountRoutine(rev.object); }
-                              return;
-                            }
-                            if (rev.object) onSelectObject?.(rev.object);
-                            onGo(rev.url);
-                          }}
-                        >
-                          {rev.actionLabel}{rev.inlineCheck ? '' : ' →'}
-                        </Button>
-                      </div>
+                      </Disclosure>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                </JournalSection>
               ) : (
-                <EmptyState
-                  compact
-                  icon={<Layers className="h-4 w-4" />}
-                  title="No cards or reviews due right now"
-                  description="Create flashcards from your notes, add practice problems, or log today's attendance routines."
-                  actions={
-                    <>
-                      <Button variant="secondary" size="xs" onClick={() => onEnter('flashcards')}>
-                        Open Flashcards
-                      </Button>
-                      <Button variant="secondary" size="xs" onClick={() => onEnter('proof')}>
-                        Open Calculations
-                      </Button>
-                      <Button variant="secondary" size="xs" onClick={() => onEnter('rhythm')}>
-                        Open Attendance
-                      </Button>
-                    </>
-                  }
-                />
-              )}
-            </section>
+                <>
+                  {focusLive && (
+                    <section aria-label="Active focus session" className="today-banner anim-rise">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${fv.paused ? 'bg-[var(--color-warn)]' : 'bg-[var(--color-accent)] live-dot'}`} />
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent)]">
+                              {fv.paused ? 'Focus paused' : 'Focus live'}
+                            </span>
+                            {fv.course && (
+                              <Badge tone="accent" onClick={() => onGo(`#/c/${encodeURIComponent(fv.course!)}`)}>
+                                {fv.course}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="today-banner-title truncate">{fv.label || 'Focus session'}</div>
+                        </div>
+                      </div>
+                      <div className="today-actions print:hidden">
+                        <span className="today-clock">
+                          {fmtClock(focusSecLeft)}
+                          {typeof fv.totalMin === 'number' && (
+                            <span className="ml-1.5 text-[11px] font-normal text-[var(--color-faint)]">/ {fv.totalMin}m</span>
+                          )}
+                        </span>
+                        {fv.running ? (
+                          <Button variant="secondary" size="sm" icon={<Pause className="h-3.5 w-3.5" />} onClick={() => timerCtl('pause')}>Pause</Button>
+                        ) : (
+                          <Button variant="primary" size="sm" icon={<Play className="h-3.5 w-3.5" />} onClick={() => timerCtl('resume')}>
+                            Resume{focusName ? ` ${focusName}` : ''}
+                          </Button>
+                        )}
+                        <Button variant="secondary" size="sm" icon={<Check className="h-3.5 w-3.5" />} onClick={() => timerCtl('finish')}>Finish &amp; log</Button>
+                        <Button variant="ghost" size="sm" onClick={() => onEnter('timer')}>Open timer</Button>
+                      </div>
+                    </section>
+                  )}
 
-            {/* ── 5. COURSE OVERVIEW ── */}
-            <section aria-label="Course overview">
-              <SectionHeader title="Course Overview"
-                count={courseGroups.length}
-                action={
-                  <button
-                    type="button"
-                    onClick={() => onGo('#/courses')}
-                    className="text-[12px] font-medium text-[var(--color-accent)] hover:underline cursor-pointer"
-                  >
-                    All Courses →
+                  {!focusLive && proofSessionLive && (
+                    <section aria-label="Active calculation session" className="today-banner anim-rise">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <span className="live-dot h-2 w-2 rounded-full bg-[var(--color-accent)]" />
+                        <span className="font-mono text-[10.5px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">Practice live</span>
+                        <span className="truncate text-[13.5px] font-semibold text-[var(--color-ink)]">
+                          {proofSession?.topic || 'Calculation practice'}
+                          {proofSession?.minutes ? ` · ${proofSession.minutes}m` : ''}
+                        </span>
+                      </div>
+                      <Button variant="primary" size="xs" onClick={() => onEnter('proof')}>Return to calculations</Button>
+                    </section>
+                  )}
+
+                  <div className="today-day-grid">
+                    <div className="today-day-main">
+                      <JournalSection
+                        label="Next up scheduled work"
+                        title="Next up"
+                        kicker="Today's slip"
+                        count={scheduledWork.primary ? scheduledWork.queue.length + 1 : 0}
+                        action={(
+                          <button type="button" className="today-section-action" onClick={() => onEnter('syllabus')}>
+                            Open Planning →
+                          </button>
+                        )}
+                      >
+                        {scheduledWork.primary ? (
+                          <div>
+                            <div className="today-primary">
+                              <div className="today-primary-head">
+                                <div className="min-w-0">
+                                  <div className="today-actions">
+                                    {scheduledWork.primary.type === 'commitment' ? (
+                                      <Badge tone="neutral">Due · no study block</Badge>
+                                    ) : (
+                                      <Badge tone="accent">Scheduled next</Badge>
+                                    )}
+                                    {primaryLate && <Badge tone="warn">{primaryLate}</Badge>}
+                                    {scheduledWork.primary.course && (
+                                      <Badge tone="neutral" onClick={() => onGo(`#/c/${encodeURIComponent(scheduledWork.primary!.course!)}`)}>
+                                        {scheduledWork.primary.course}
+                                      </Badge>
+                                    )}
+                                    {scheduledWork.primary.type === 'block' && focusMinutes(scheduledWork.primary) !== undefined && (
+                                      <span className="today-meta">{focusMinutes(scheduledWork.primary)}m block</span>
+                                    )}
+                                  </div>
+                                  <h3 className="today-primary-title">{scheduledWork.primary.title}</h3>
+                                  {primaryReason && <p className="today-primary-reason">{primaryReason}</p>}
+                                </div>
+                                <div className="today-primary-actions">
+                                  {scheduledWork.primary.type === 'commitment' ? (
+                                    <Button variant="primary" size="xs" icon={<Calendar className="h-3 w-3" />} onClick={() => onGo('#/p/syllabus?p=today')}>
+                                      Find time today
+                                    </Button>
+                                  ) : (
+                                    <Button variant="primary" size="xs" icon={<Play className="h-3 w-3" />} onClick={() => startBoundTimer(scheduledWork.primary!)}>
+                                      Start {primaryStartName} · {primaryMinutes ?? 25} min
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="secondary"
+                                    size="xs"
+                                    onClick={() => {
+                                      onSelectObject?.(scheduledWork.primary!);
+                                      onGo(scheduledWork.primary!.url);
+                                    }}
+                                  >
+                                    {scheduledWork.primary.type === 'commitment' ? 'Open commitment' : 'Open block'}
+                                  </Button>
+                                  {scheduledWork.primary.type === 'commitment' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="xs"
+                                      title="Start a focus session now without booking a study block"
+                                      onClick={() => startBoundTimer(scheduledWork.primary!)}
+                                    >
+                                      {primaryMinutes ?? 25}m focus
+                                    </Button>
+                                  )}
+                                  {scheduledWork.primary.type === 'commitment' && (
+                                    <Button
+                                      variant="ghost"
+                                      size="xs"
+                                      title="File this commitment done — off-clock work, no timer"
+                                      onClick={() => {
+                                        const o = scheduledWork.primary!;
+                                        void sendTo({
+                                          to: 'syllabus',
+                                          action: 'commitment.done',
+                                          entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                          payload: { commitmentId: o.id },
+                                        }).then((r: any) => {
+                                          if (!r?.ok) {
+                                            notify('Couldn’t file it — Planning may still be starting.');
+                                            return;
+                                          }
+                                          notify(
+                                            r.toast ||
+                                              (r.delivered === 'direct'
+                                                ? `Done — ${o.title}`
+                                                : 'Marked done — Planning applies it on next open.'),
+                                            r.delivered === 'direct' ? undefined : r.url,
+                                          );
+                                        });
+                                      }}
+                                    >
+                                      Mark done
+                                    </Button>
+                                  )}
+                                  {scheduledWork.primary.type === 'block' && (
+                                    <>
+                                      <Button
+                                        variant="ghost"
+                                        size="xs"
+                                        title="Push this slip to tomorrow — stays planned, not missed"
+                                        onClick={() => {
+                                          const o = scheduledWork.primary!;
+                                          void sendTo({
+                                            to: 'syllabus',
+                                            action: 'block.defer',
+                                            entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                            payload: { blockId: o.id },
+                                          }).then((r: any) => {
+                                            if (!r?.ok) {
+                                              notify('Couldn’t push it — Planning may still be starting.');
+                                              return;
+                                            }
+                                            notify(
+                                              r.toast ||
+                                                (r.delivered === 'direct'
+                                                  ? `Pushed to tomorrow — ${o.title}`
+                                                  : 'Push queued — Planning applies it on next open.'),
+                                              r.delivered === 'direct' ? undefined : r.url,
+                                            );
+                                          });
+                                        }}
+                                      >
+                                        Tomorrow
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="xs"
+                                        title="Stamp this slip done — off-clock work, no timer"
+                                        onClick={() => {
+                                          const o = scheduledWork.primary!;
+                                          void sendTo({
+                                            to: 'syllabus',
+                                            action: 'block.done',
+                                            entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+                                            payload: { blockId: o.id },
+                                          }).then((r: any) => {
+                                            if (!r?.ok) {
+                                              notify('Couldn’t mark it done — Planning may still be starting.');
+                                              return;
+                                            }
+                                            notify(
+                                              r.toast ||
+                                                (r.delivered === 'direct'
+                                                  ? `Done — ${o.title}`
+                                                  : 'Marked done — Planning applies it on next open.'),
+                                              r.delivered === 'direct' ? undefined : r.url,
+                                            );
+                                          });
+                                        }}
+                                      >
+                                        Mark done
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            {scheduledWork.queue.length > 0 && (
+                              <div className="today-queue">
+                                <div className="today-list">
+                                  {scheduledWork.queue.map((item) => (
+                                    <ObjectRow
+                                      key={item.key}
+                                      item={item}
+                                      compact
+                                      selected={selectedObject?.key === item.key}
+                                      onOpen={onGo}
+                                      onSelectContext={onSelectObject}
+                                      onNotify={notify}
+                                      primaryActionLabel="Focus"
+                                      onPrimaryAction={startBoundTimer}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <EmptyState
+                            compact
+                            icon={<Calendar className="h-4 w-4" />}
+                            title={hasUnscheduledDue ? 'Due work has no study block yet' : 'No study block scheduled'}
+                            description={hasUnscheduledDue
+                              ? 'Something needs attention below — find time for it in Planning.'
+                              : "Plan a session from your deadlines, or open Planning to file today's slip."}
+                            actions={
+                              <>
+                                {hasUnscheduledDue && (
+                                  <Button variant="primary" size="xs" onClick={() => onGo('#/p/syllabus?p=today')}>Find time today</Button>
+                                )}
+                                <Button variant={hasUnscheduledDue ? 'secondary' : 'primary'} size="xs" onClick={() => setView('plans')}>Plan a session</Button>
+                                <Button variant="secondary" size="xs" onClick={() => onGo('#/p/syllabus?p=today')}>Add a study task</Button>
+                                <Button variant="ghost" size="xs" onClick={() => onEnter('timer')}>Open timer</Button>
+                              </>
+                            }
+                          />
+                        )}
+                      </JournalSection>
+
+                      <JournalSection
+                        label="Review and follow-up"
+                        title="Needs attention"
+                        kicker="Review queue"
+                        count={reviewItems.length}
+                      >
+                        {reviewItems.length > 0 ? (
+                          <div className="today-list">
+                            {reviewItems.map((rev) => (
+                              <div key={rev.id} className="today-review-row">
+                                <div className="today-review-main">
+                                  <div className="today-actions">
+                                    <span className="today-meta" style={{ color: 'var(--color-warn)' }}>{rev.typeLabel}</span>
+                                    {rev.course && (
+                                      <Badge tone="accent" onClick={() => onGo(`#/c/${encodeURIComponent(rev.course!)}`)}>
+                                        {rev.course}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="today-review-title">{rev.title}</div>
+                                  <div className="today-review-detail">{rev.detail}</div>
+                                </div>
+                                <div className="today-actions today-review-actions">
+                                  {rev.id.startsWith('followup:') && rev.object && (
+                                    <Button
+                                      variant="ghost"
+                                      size="xs"
+                                      title="Dismiss this follow-up — the source stays untouched"
+                                      onClick={() => {
+                                        const t = readFollowUpTasks()[rev.object!.key];
+                                        if (!t) {
+                                          notify('That follow-up record is gone.');
+                                          return;
+                                        }
+                                        void saveFollowUpTask({ ...t, status: 'dismissed', updatedAt: Date.now() })
+                                          .then(() => notify('Follow-up dismissed.'))
+                                          .catch(() => notify('Couldn’t dismiss it — try again.'));
+                                      }}
+                                    >
+                                      Dismiss
+                                    </Button>
+                                  )}
+                                  {rev.object && onSelectObject && (
+                                    <Button
+                                      variant="ghost"
+                                      size="xs"
+                                      aria-label={`Show details for ${rev.title}`}
+                                      title="Show in details panel"
+                                      onClick={() => onSelectObject(rev.object!)}
+                                    >
+                                      <PanelRightOpen className="h-3.5 w-3.5" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="primary"
+                                    size="xs"
+                                    disabled={rev.inlineCheck && !!checkingRoutine}
+                                    onClick={() => {
+                                      if (rev.inlineCheck && rev.object) {
+                                        if (rev.object.data?.measure === 'check') void checkIn(rev.object);
+                                        else { setAmountError(''); setAmountRoutine(rev.object); }
+                                        return;
+                                      }
+                                      if (rev.object) onSelectObject?.(rev.object);
+                                      onGo(rev.url);
+                                    }}
+                                  >
+                                    {rev.actionLabel}{rev.inlineCheck ? '' : ' →'}
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <EmptyState
+                            compact
+                            icon={<Layers className="h-4 w-4" />}
+                            title="Nothing due right now"
+                            description="Due cards, problems, routines, and follow-ups will collect here."
+                            actions={
+                              <>
+                                <Button variant="secondary" size="xs" onClick={() => onEnter('flashcards')}>Flashcards</Button>
+                                <Button variant="ghost" size="xs" onClick={() => onEnter('proof')}>Calculations</Button>
+                                <Button variant="ghost" size="xs" onClick={() => onEnter('rhythm')}>Attendance</Button>
+                              </>
+                            }
+                          />
+                        )}
+                      </JournalSection>
+                    </div>
+
+                    <aside className="today-day-aside" aria-label="Resume and context">
+                      {(resumeObject || showStarterCards) && (
+                        <JournalSection
+                          label={showStarterCards && !resumeObject ? 'Get started' : 'Pick up where you left off'}
+                          title={resumeObject ? 'Resume' : 'Get started'}
+                          kicker="Pick up"
+                          action={resumeObject && onSelectObject ? (
+                            <button type="button" className="today-section-action" onClick={() => onSelectObject(resumeObject)}>
+                              Details
+                            </button>
+                          ) : undefined}
+                        >
+                          {resumeObject ? (
+                            <div className="today-resume">
+                              <div className="today-resume-head">
+                                <div className="flex min-w-0 items-start gap-3">
+                                  <span className="today-resume-icon">{iconForObjectType(resumeObject.type, resumeObject.app)}</span>
+                                  <div className="min-w-0">
+                                    <div className="today-actions">
+                                      <span className="today-meta" style={{ color: 'var(--color-accent)' }}>{formatEntityType(resumeObject.type)}</span>
+                                      <span className="today-meta">{PLACE_MAP[resumeObject.app]?.label || resumeObject.app}</span>
+                                      {resumeObject.course && (
+                                        <Badge tone="accent" onClick={() => onGo(`#/c/${encodeURIComponent(resumeObject.course!)}`)}>
+                                          {resumeObject.course}
+                                        </Badge>
+                                      )}
+                                      {resumeObject.updatedAt ? <span className="today-meta">{formatRelativeTime(resumeObject.updatedAt)}</span> : null}
+                                    </div>
+                                    <h3 className="today-resume-title">{resumeObject.title}</h3>
+                                    {resumeObject.sub && <p className="today-resume-sub">{resumeObject.sub}</p>}
+                                    {showStarterCards && (
+                                      <p className="today-resume-note">Set up courses to organize this saved work and build a study plan.</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="today-resume-actions">
+                                <Button
+                                  variant="primary"
+                                  size="xs"
+                                  icon={<ArrowUpRight className="h-3.5 w-3.5" />}
+                                  onClick={() => {
+                                    onSelectObject?.(resumeObject);
+                                    onGo(resumeObject.url);
+                                  }}
+                                >
+                                  Continue in {PLACE_MAP[resumeObject.app]?.label || resumeObject.app}
+                                </Button>
+                                <Button variant="secondary" size="xs" icon={<Clock className="h-3.5 w-3.5" />} onClick={() => startBoundTimer(resumeObject)}>
+                                  25m focus
+                                </Button>
+                                {showStarterCards && (
+                                  <Button variant="secondary" size="xs" icon={<Calendar className="h-3.5 w-3.5" />} onClick={() => onEnter('syllabus')}>
+                                    Set up courses
+                                  </Button>
+                                )}
+                                {canDraftNoteDeck(resumeObject) && (
+                                  <Button variant="ghost" size="xs" icon={<Layers className="h-3.5 w-3.5" />} onClick={() => void openNoteDeckDraft(resumeObject, notify)}>
+                                    Flashcards
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <EmptyState
+                              compact
+                              icon={<FileText className="h-4 w-4" />}
+                              title="Start with your courses"
+                              description="Add courses in Planning, then deadlines can become a realistic study session."
+                              actions={
+                                <>
+                                  <Button variant="primary" size="xs" onClick={() => onEnter('syllabus')}>Set up courses</Button>
+                                  <Button variant="secondary" size="xs" onClick={() => onGo('#/c/unfiled')}>Unfiled items</Button>
+                                </>
+                              }
+                            />
+                          )}
+                        </JournalSection>
+                      )}
+
+                      {weekStrip && (
+                        <JournalSection
+                          label="Minutes logged this week"
+                          title="This week"
+                          kicker="Ledger"
+                          action={(
+                            <span className="today-meta">
+                              {weekStrip.total >= 60
+                                ? `${Math.floor(weekStrip.total / 60)}h${weekStrip.total % 60 ? ` ${weekStrip.total % 60}m` : ''}`
+                                : `${weekStrip.total}m`} logged
+                            </span>
+                          )}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => onGo('#/p/timer?p=stats')}
+                            title="Open the session ledger"
+                            className="today-week-days"
+                          >
+                            {weekStrip.days.map((d, i) => (
+                              <span key={i} className="today-week-day">
+                                <span
+                                  className="today-week-bar"
+                                  style={{
+                                    height: `${Math.max(2, Math.round((d.mins / weekStrip.max) * 28))}px`,
+                                    opacity: d.mins ? (d.today ? 1 : 0.45) : 0.15,
+                                  }}
+                                />
+                                <span className={`today-week-label ${d.today ? 'is-today' : ''}`}>{d.label}</span>
+                              </span>
+                            ))}
+                          </button>
+                        </JournalSection>
+                      )}
+
+                      {pins.length > 0 && (
+                        <JournalSection label="Pinned items" title="Pinned" kicker="Shelf">
+                          <div className="today-pins">
+                            {pins.slice(0, 8).map((p) => (
+                              <span key={p.url} className="today-pin">
+                                <button type="button" onClick={() => onGo(p.url)} className="today-pin-open">
+                                  <span className="today-meta">{PLACE_MAP[p.app]?.label || p.app}</span>
+                                  <span className="max-w-[180px] truncate font-medium text-[var(--color-ink)]">{p.title}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => togglePin(p)}
+                                  aria-label={`Unpin ${p.title}`}
+                                  title="Unpin from shelf"
+                                  className="today-pin-remove"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        </JournalSection>
+                      )}
+                    </aside>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {view === 'plans' && (
+            <div className="today-plans">
+              {hasStudyCourses ? (
+                <>
+                  <PlanFromToday entities={entities} courseFilter={activeCourseFilter} onGo={onGo} />
+                  <JournalSection label="Planning desk" title="Planning desk" kicker="Syllabus &amp; timer">
+                    <div className="today-list">
+                      <button type="button" className="today-link-row" onClick={() => onEnter('syllabus')}>
+                        <span>Open Planning</span>
+                        <ArrowUpRight className="h-3.5 w-3.5 text-[var(--color-faint)]" />
+                      </button>
+                      <button type="button" className="today-link-row" onClick={() => onEnter('timer')}>
+                        <span>Open Timer</span>
+                        <ArrowUpRight className="h-3.5 w-3.5 text-[var(--color-faint)]" />
+                      </button>
+                      <button type="button" className="today-link-row" onClick={() => onEnter('boxed')}>
+                        <span>Open Daily Board</span>
+                        <ArrowUpRight className="h-3.5 w-3.5 text-[var(--color-faint)]" />
+                      </button>
+                    </div>
+                  </JournalSection>
+                </>
+              ) : (
+                <JournalSection label="Session planner" title="Plan a study session" kicker="Planner">
+                  <EmptyState
+                    icon={<Calendar className="h-4 w-4" />}
+                    title="Courses come first"
+                    description="The session planner needs at least one course before it can turn deadlines into a study block."
+                    actions={
+                      <>
+                        <Button variant="primary" size="xs" icon={<Calendar className="h-3.5 w-3.5" />} onClick={() => onEnter('syllabus')}>
+                          Set up courses
+                        </Button>
+                        <Button variant="secondary" size="xs" onClick={() => onGo('#/c/unfiled')}>Unfiled items</Button>
+                        {!isDemoLoaded() && (
+                          <Button variant="ghost" size="xs" icon={<Sparkles className="h-3.5 w-3.5" />} onClick={loadSampleSemester}>
+                            Load sample semester
+                          </Button>
+                        )}
+                      </>
+                    }
+                  />
+                </JournalSection>
+              )}
+            </div>
+          )}
+
+          {view === 'journal' && (
+            <div className="today-plans">
+              <JournalSection
+                label="Recent work"
+                title="Recent work"
+                kicker="Journal"
+                count={recentWork.length}
+                action={(
+                  <button type="button" className="today-section-action" onClick={() => onGo('#/library')}>
+                    Browse Library →
                   </button>
-                }
-              />
+                )}
+              >
+                {recentWork.length > 0 ? (
+                  <div className="today-object-list">
+                    {recentWork.map((item) => (
+                      <ObjectRow
+                        key={item.key}
+                        item={item}
+                        selected={selectedObject?.key === item.key}
+                        onOpen={onGo}
+                        onSelectContext={onSelectObject}
+                        onNotify={notify}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    compact
+                    icon={<FileText className="h-4 w-4" />}
+                    title="No recent work yet"
+                    description="Notes, decks, sheets, problems, and assessments you create will appear here with direct links."
+                    actions={
+                      <>
+                        <Button variant="primary" size="xs" onClick={() => onEnter('ink')}>Write a note</Button>
+                        <Button variant="secondary" size="xs" onClick={() => onEnter('flashcards')}>Build a deck</Button>
+                        <Button variant="ghost" size="xs" onClick={() => onEnter('proof')}>Add a problem</Button>
+                      </>
+                    }
+                  />
+                )}
+              </JournalSection>
+
+              <JournalSection
+                label="Recent workspace activity"
+                title="Activity"
+                kicker="Across the terrain"
+                count={visibleFeed.length}
+              >
+                {visibleFeed.length > 0 ? (
+                  <div className="today-list">
+                    {visibleFeed.slice(0, feedExpanded ? 30 : 5).map((f, idx) => (
+                      <button
+                        key={`${f.at}:${f.app}:${idx}`}
+                        type="button"
+                        onClick={() => (f.url ? onGo(f.url) : onEnter(f.app))}
+                        className="today-activity-row"
+                      >
+                        <span className="today-activity-app">{PLACE_MAP[f.app]?.label || f.app}</span>
+                        <span className="today-activity-text">{f.text}</span>
+                        {f.course && <Badge tone="neutral">{f.course}</Badge>}
+                        <span className="today-activity-time">{formatRelativeTime(f.at)}</span>
+                      </button>
+                    ))}
+                    {visibleFeed.length > 5 && (
+                      <button
+                        type="button"
+                        onClick={() => setFeedExpanded((x) => !x)}
+                        className="today-more-button"
+                      >
+                        {feedExpanded ? 'Show less' : `Show ${visibleFeed.length - 5} more updates`}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <EmptyState
+                    compact
+                    icon={<Clock className="h-4 w-4" />}
+                    title="No activity yet"
+                    description="Actions across the terrain will collect here as you work."
+                  />
+                )}
+              </JournalSection>
+            </div>
+          )}
+
+          {view === 'courses' && (
+            <JournalSection
+              label="Course overview"
+              title="Courses"
+              kicker="Course lens"
+              count={courseGroups.length}
+              action={(
+                <button type="button" className="today-section-action" onClick={() => onGo('#/courses')}>
+                  All Courses →
+                </button>
+              )}
+            >
               {courseGroups.length > 0 ? (
-                <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
+                <div className="today-list">
                   {courseGroups.map((cg) => {
                     const summaryParts: string[] = [];
                     if (cg.tasks > 0) summaryParts.push(`${cg.tasks} open task${cg.tasks === 1 ? '' : 's'}`);
@@ -1384,52 +1536,31 @@ export function TodayWorkspace({
                         `Latest: ${cg.latestGrade.title}${cg.latestGrade.pct != null ? ` (${cg.latestGrade.pct}%)` : ''}`,
                       );
                     }
-
                     return (
-                      <div
-                        key={cg.key}
-                        className="p-3.5 hover:bg-[var(--color-sheet-hover)] transition-colors"
-                      >
-                        <div className="flex items-start justify-between gap-2">
+                      <div key={cg.key} className="today-course-row">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
                           <button
                             type="button"
                             onClick={() => onGo(`#/c/${encodeURIComponent(cg.code)}`)}
                             className="min-w-0 flex-1 text-left cursor-pointer group"
                           >
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-[12px] font-semibold uppercase tracking-wider text-[var(--color-accent)] group-hover:underline">
-                                {cg.code}
-                              </span>
-                              {cg.name && (
-                                <span className="truncate text-[13px] font-medium text-[var(--color-ink)]">
-                                  {cg.name}
-                                </span>
-                              )}
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="today-course-code group-hover:underline">{cg.code}</span>
+                              {cg.name && <span className="today-course-name">{cg.name}</span>}
                             </div>
-                            <p className="mt-1 text-[11.5px] text-[var(--color-mute)]">
-                              {summaryParts.length > 0
-                                ? summaryParts.join(' · ')
-                                : 'Registered course workspace'}
+                            <p className="today-course-summary">
+                              {summaryParts.length > 0 ? summaryParts.join(' · ') : 'Registered course workspace'}
                             </p>
                             {cg.nextItem && (
-                              <div className="mt-1.5 text-[11.5px] text-[var(--color-ink)] truncate">
-                                <span className="font-mono text-[10px] uppercase text-[var(--color-faint)] mr-1.5">
-                                  Next:
-                                </span>
+                              <div className="today-course-next">
+                                <span className="today-meta mr-1.5">Next</span>
                                 {cg.nextItem.title}
                               </div>
                             )}
                           </button>
-
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Button
-                              variant="secondary"
-                              size="xs"
-                              onClick={() => onGo(`#/c/${encodeURIComponent(cg.code)}`)}
-                            >
-                              Workspace →
-                            </Button>
-                          </div>
+                          <Button variant="secondary" size="xs" onClick={() => onGo(`#/c/${encodeURIComponent(cg.code)}`)}>
+                            Workspace →
+                          </Button>
                         </div>
                       </div>
                     );
@@ -1440,166 +1571,34 @@ export function TodayWorkspace({
                   compact
                   icon={<BookOpen className="h-4 w-4" />}
                   title="No courses filed yet"
-                  description="Add your semester courses in Planning to group notes, decks, problems, and assessments under dedicated course workspaces."
+                  description="Add semester courses in Planning to group notes, decks, problems, and assessments under course workspaces."
                   actions={
                     <>
                       <Button variant={showStarterCards ? 'secondary' : 'primary'} size="xs" onClick={() => onEnter('syllabus')}>
-                        Add Courses in Planning
+                        Add courses in Planning
                       </Button>
-                      <Button variant="secondary" size="xs" onClick={() => onGo('#/c/unfiled')}>
-                        View Unfiled Items
-                      </Button>
-                      {/* first-run affordance — the demo pack lands a real
-                          semester through the same stores; removable in one
-                          pass from Settings → Sample semester */}
+                      <Button variant="secondary" size="xs" onClick={() => onGo('#/c/unfiled')}>Unfiled items</Button>
                       {!isDemoLoaded() && (
                         <Button variant="ghost" size="xs" icon={<Sparkles className="h-3.5 w-3.5" />} onClick={loadSampleSemester}>
-                          Or load a sample semester
+                          Load sample semester
                         </Button>
                       )}
                     </>
                   }
                 />
               )}
-            </section>
+            </JournalSection>
+          )}
 
-            {/* ── This Week — session minutes by day (only when any logged) ── */}
-            {weekStrip && (
-              <section aria-label="Minutes logged this week">
-                <SectionHeader
-                  title="This Week"
-                  action={
-                    <span className="font-mono text-[10px] text-[var(--color-faint)]">
-                      {weekStrip.total >= 60
-                        ? `${Math.floor(weekStrip.total / 60)}h${weekStrip.total % 60 ? ` ${weekStrip.total % 60}m` : ''} logged`
-                        : `${weekStrip.total}m logged`}
-                    </span>
-                  }
-                />
-                <button
-                  type="button"
-                  onClick={() => onGo('#/p/timer?p=stats')}
-                  title="Open the session ledger"
-                  className="flex w-full cursor-pointer items-end gap-1.5 rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-3.5 pb-2 pt-3 text-left hover:border-[var(--color-line-2)]"
-                >
-                  {weekStrip.days.map((d, i) => (
-                    <span key={i} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-                      <span
-                        className="w-full max-w-[18px] rounded-[2px] bg-[var(--color-accent)] transition-all"
-                        style={{
-                          height: `${Math.max(2, Math.round((d.mins / weekStrip.max) * 28))}px`,
-                          opacity: d.mins ? (d.today ? 1 : 0.45) : 0.15,
-                        }}
-                      />
-                      <span
-                        className={`font-mono text-[9px] uppercase ${
-                          d.today ? 'font-bold text-[var(--color-accent)]' : 'text-[var(--color-faint)]'
-                        }`}
-                      >
-                        {d.label}
-                      </span>
-                    </span>
-                  ))}
-                </button>
-              </section>
-            )}
-
-            {/* ── Recent Activity Stream (only when real activity exists) ── */}
-            {(() => {
-              const visible = feed.filter((f) => matchesCourseFilter(f.course));
-              return visible.length > 0 && (
-              <section aria-label="Recent workspace activity">
-                <SectionHeader title="Recent Activity" />
-                <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-                  {visible.slice(0, feedExpanded ? 30 : 5).map((f, idx) => (
-                    <button
-                      key={`${f.at}:${f.app}:${idx}`}
-                      type="button"
-                      onClick={() => (f.url ? onGo(f.url) : onEnter(f.app))}
-                      className="flex w-full items-baseline justify-between gap-2 px-3.5 py-2 text-left text-[12px] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
-                    >
-                      <span className="w-24 shrink-0 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-accent)] truncate">
-                        {PLACE_MAP[f.app]?.label || f.app}
-                      </span>
-                      <span className="min-w-0 flex-1 truncate text-[var(--color-ink)]">{f.text}</span>
-                      {f.course && <Badge tone="neutral">{f.course}</Badge>}
-                      <span className="shrink-0 font-mono text-[10px] text-[var(--color-faint)]">
-                        {formatRelativeTime(f.at)}
-                      </span>
-                    </button>
-                  ))}
-                  {visible.length > 5 && (
-                    <button
-                      type="button"
-                      onClick={() => setFeedExpanded((x) => !x)}
-                      className="w-full px-3.5 py-1.5 text-left font-mono text-[10px] uppercase tracking-wider text-[var(--color-faint)] hover:text-[var(--color-accent)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
-                    >
-                      {feedExpanded ? 'Show less' : `Show ${visible.length - 5} more updates`}
-                    </button>
-                  )}
-                </div>
-              </section>
-              );
-            })()}
-          </div>
+          {view === 'tools' && (
+            <ToolsDirectory
+              presences={presences}
+              mounted={mounted}
+              intakes={intakes}
+              onEnter={onEnter}
+            />
+          )}
         </div>
-
-        {/* ── 7. SPECIALIZED TOOLS DIRECTORY STRIP (Compact, functional names first) ── */}
-        <section aria-label="Workspace tools" className="pt-2 border-t border-[var(--color-line)]">
-          <SectionHeader title="Tools" />
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-            {PLACES.map((p) => {
-              const pres = presences[p.id];
-              const stale = isStale(pres);
-              const liveLines = !stale && pres?.summary ? p.today(pres.summary) : [];
-              const waiting = intakes?.[p.id];
-              const isWarm = mounted.includes(p.id);
-
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => onEnter(p.id)}
-                  title={`${p.app} — ${p.tagline}`}
-                  className="place-card group flex flex-col justify-between rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] p-3 text-left hover:border-[var(--color-accent)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="h-5 w-5 shrink-0 text-[var(--color-accent)]">
-                          {p.glyph}
-                        </span>
-                        <span className="text-[13.5px] font-semibold text-[var(--color-ink)] group-hover:text-[var(--color-accent)] truncate">
-                          {p.label}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {waiting && waiting.count > 0 && (
-                          <Badge tone={waiting.stuck ? 'bad' : 'warn'}>
-                            {waiting.count} queued
-                          </Badge>
-                        )}
-                        {isWarm && (
-                          <span
-                            className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]"
-                            title="Active in memory"
-                          />
-                        )}
-                        <ArrowUpRight className="h-3.5 w-3.5 text-[var(--color-faint)] group-hover:text-[var(--color-accent)]" />
-                      </div>
-                    </div>
-                    <div className="mt-0.5 font-mono text-[10px] text-[var(--color-faint)]">
-                      {p.place}
-                    </div>
-                    <p className="mt-1.5 text-[11.5px] leading-snug text-[var(--color-mute)]">
-                      {liveLines.length > 0 ? liveLines[0].text : p.shortDesc}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
       </div>
     </div>
   );

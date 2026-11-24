@@ -1,6 +1,6 @@
 import { PLACE_MAP } from './places';
 
-export type WorkspaceSection = 'today' | 'courses' | 'library' | 'place' | 'settings';
+export type WorkspaceSection = 'today' | 'courses' | 'library' | 'place' | 'settings' | 'welcome';
 
 export interface ParsedRoute {
   place: string;
@@ -20,7 +20,8 @@ function attachMeta(
 }
 
 /* hash routing:
-   '' or '#/'       → Today workspace (section: 'today')
+   '' or '#/welcome' → Mosaic landing page (section: 'welcome')
+   '#/' or '#/today' → Today workspace (section: 'today')
    '#/courses'      → Courses directory (section: 'courses')
    '#/c/<key>'      → Course workspace (section: 'courses', course: '<key>')
    '#/library'      → Unified library browser (section: 'library')
@@ -29,6 +30,20 @@ function attachMeta(
 */
 export function parseHash(hash: string): ParsedRoute {
   const h = hash.replace(/^#\/?/, '');
+  /* '' vs '#/' both strip to '' — the bare URL is the front door (landing)
+     while '#/' stays the in-app home (Today), so older '#/' links and the
+     Home button/shortcut keep landing on the workspace. */
+  if (h === '') {
+    return attachMeta({ place: '', course: '' }, '', hash === '#/' ? 'today' : 'welcome');
+  }
+  if (h === 'welcome' || h.startsWith('welcome?')) {
+    const q = h.includes('?') ? h.slice(h.indexOf('?') + 1) : '';
+    return attachMeta({ place: '', course: '' }, q, 'welcome');
+  }
+  if (h === 'today' || h.startsWith('today?')) {
+    const q = h.includes('?') ? h.slice(h.indexOf('?') + 1) : '';
+    return attachMeta({ place: '', course: '' }, q, 'today');
+  }
   if (h === 'settings' || h.startsWith('settings?')) {
     const q = h.includes('?') ? h.slice(h.indexOf('?') + 1) : '';
     return attachMeta({ place: '', course: '' }, q, 'settings');

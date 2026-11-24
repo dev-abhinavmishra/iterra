@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useWorkbench, selectErrorsFor } from '../store';
 import type { Attempt, AttemptResult, ErrorCategory } from '../lib/types';
 import { autoCheck } from '../lib/checking';
+import { SOLVE_ASSISTANCE_LABELS } from '../lib/cues';
 import { flashcardsCardsLink, inkNoteMarkdown, misconceptionCard } from '../lib/links';
 import { openDeep } from '../lib/iterra';
 import { cn, fmtDateTime } from '../lib/utils';
@@ -255,6 +256,7 @@ export function CompareView({
                   </div>
                   <div className="mt-1 text-[10.5px] text-[var(--color-ink-faint)]">
                     confidence {attempt.confidence}/5 · hints to level {attempt.hintLevel}
+                    {attempt.solveAssistance && ` · solved ${SOLVE_ASSISTANCE_LABELS[attempt.solveAssistance]}`}
                     {verdict?.detail ? ` · ${verdict.detail}` : ''}
                   </div>
                 </div>
@@ -375,6 +377,7 @@ export function CompareView({
               Filing this record schedules a retry on the spaced queue
               {finalResult !== 'correct' ? ' (miss → due tomorrow)' : ' (success → interval grows)'} —
               {attempt.result ? ' and keeps your grade.' : ' your self-grade will be stamped.'}
+              {repairCue.trim() ? ' A non-empty cue is offered as a hint on the next attempt.' : ''}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <button className="btn btn--correct" onClick={fileRecord} disabled={!category || (category === 'custom' && !customLabel.trim())}>

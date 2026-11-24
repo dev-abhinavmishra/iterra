@@ -548,3 +548,126 @@ html[data-theme='graphite'] body {
   --color-bad:         #e06c60;
   --color-bad-soft:    #301c1b;
 }
+
+/* ── Liquid Glass (glassy-liquid engine) ─────────────────────────────────
+   `.it-glass-fallback` is the pre-glass paint; where the engine attaches it
+   adds `.it-glassed`, which strips the host's own paint so the lensing layer
+   is the only surface. */
+.it-glass-fallback {
+  background: var(--color-sheet);
+  background: #fbf9f4cc;
+}
+@supports (color: color-mix(in lab, red, red)) {
+  .it-glass-fallback {
+    background: color-mix(in srgb, var(--color-sheet) 80%, transparent);
+  }
+}
+.it-glass-fallback {
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--color-line);
+  box-shadow: 0 12px 32px -18px rgb(0 0 0 / 0.3);
+}
+.it-glassed {
+  background: transparent !important;
+  border-color: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  /* gel give — surfaces compress a touch under press */
+  transition: transform 0.16s cubic-bezier(0.3, 1.4, 0.4, 1);
+}
+.it-glassed:active { transform: scale(0.975); }
+
+/* Liquid glass — translucent sheet over whatever sits beneath, blurred and
+   edged with a specular top highlight. Falls back to an opaque sheet where
+   backdrop-filter is unavailable. */
+.it-glass {
+  position: relative;
+  background-color: color-mix(in srgb, var(--color-sheet) 58%, transparent);
+  background-color: #fbf9f494;
+  border-color: color-mix(in srgb, var(--color-line-2) 60%, transparent);
+  border-color: #b8ad9399;
+  -webkit-backdrop-filter: blur(14px) saturate(1.35);
+  backdrop-filter: blur(14px) saturate(1.35);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-sheet) 55%, #ffffff 45%),
+    0 10px 28px -18px rgb(22 44 26 / 0.4);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .it-glass { background-color: var(--color-sheet); }
+}
+html[data-theme='graphite'] .it-glass {
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--color-sheet) 45%, #ffffff 12%),
+    0 10px 28px -18px rgb(0 0 0 / 0.55);
+}
+
+/* mosaic hero — gentle breathing zoom + a light cinematic grade so the
+   pixel scene reads as artwork, not a raw canvas */
+@keyframes iterra-mosaic-breathe {
+  from { transform: scale(1.015); }
+  to { transform: scale(1.055); }
+}
+.mosaic-pixelated {
+  animation: iterra-mosaic-breathe 18s ease-in-out infinite alternate;
+  filter: saturate(1.1) contrast(1.045);
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  background: linear-gradient(#58aede, #a8d8c8 45%, #e8c89a);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mosaic-pixelated { animation: none; filter: none; }
+}
+
+/* living mosaic — the landing's pixel motifs slowly cycle the palette;
+   motion doesn't change the information, only the mood */
+@keyframes iterra-pixel-drift {
+  0%, to { background-color: #6fbf9f; }
+  16.6% { background-color: #2e8f8a; }
+  33.3% { background-color: #f2e3bd; }
+  50% { background-color: #e8924f; }
+  66.6% { background-color: #2b5440; }
+  83.3% { background-color: #dfeee4; }
+}
+.pixel-drift { animation: iterra-pixel-drift 9s ease-in-out infinite; }
+@keyframes iterra-float {
+  0%, to { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+.anim-float { animation: iterra-float 7s ease-in-out infinite; }
+
+/* Landing motion: a light sweep across the pixel landscape, a staged
+   introduction, and responsive depth on the tool mosaic. */
+.landing-aurora { position:absolute; inset:-30%; overflow:hidden; pointer-events:none; }
+.landing-aurora span {
+  position:absolute; width:45%; height:130%; top:-15%; opacity:.19;
+  transform:rotate(24deg) translateX(-180%);
+  background:linear-gradient(90deg,transparent,rgba(194,255,211,.55),transparent);
+  animation:landing-light-pass 15s ease-in-out infinite;
+}
+.landing-aurora span:nth-child(2) { left:28%; animation-delay:-5s; opacity:.11; }
+.landing-aurora span:nth-child(3) { left:56%; animation-delay:-10s; opacity:.14; }
+@keyframes landing-light-pass {
+  0%,12% { transform:rotate(24deg) translateX(-180%); }
+  70%,to { transform:rotate(24deg) translateX(300%); }
+}
+@keyframes landing-arrive {
+  0% { opacity:.15; transform:translateY(22px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.landing-intro > * { animation:landing-arrive .7s cubic-bezier(.16,1,.3,1) both; }
+.landing-intro > :nth-child(2) { animation-delay:90ms; }
+.landing-intro > :nth-child(3) { animation-delay:.18s; }
+.landing-intro > :nth-child(4) { animation-delay:.26s; }
+.landing-intro > :nth-child(5) { animation-delay:.34s; }
+.landing-place { transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s,border-color .25s; }
+.landing-place:hover,.landing-place:focus-visible { transform:translateY(-5px); }
+.landing-place img { transition:transform .7s cubic-bezier(.2,.8,.2,1); }
+.landing-place:hover img,.landing-place:focus-visible img { transform:scale(1.045); }
+@media (prefers-reduced-motion: reduce) {
+  .landing-aurora { display:none; }
+  .landing-intro > * { animation:none !important; }
+  .landing-place,.landing-place img { transition:none !important; transform:none !important; }
+}

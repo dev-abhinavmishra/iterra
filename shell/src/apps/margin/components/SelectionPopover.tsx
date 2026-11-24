@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { runAction, parseJsonArray } from '../services/aiService';
 import { createDeck } from '../services/studyService';
+import GeneratedReviewModal from './study/GeneratedReviewModal';
+import { GeneratedCardItem, normalizeGeneratedCards } from '../services/generatedStudy';
 import type { Note } from '../types';
 import { Icon, Spinner } from './ui/primitives';
 import { placeActive } from '../../active';
@@ -28,6 +30,9 @@ const HIDDEN: PopState = { visible: false, top: 0, left: 0, below: false, text: 
 const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }) => {
     const [pop, setPop] = useState<PopState>(HIDDEN);
     const [mode, setMode] = useState<Mode>('idle');
+    /* Standalone 'Cards' drafts wait here for the review modal — generated
+       cards are never persisted unreviewed. */
+    const [pendingCards, setPendingCards] = useState<GeneratedCardItem[] | null>(null);
     const [sentUrl, setSentUrl] = useState<string | null>(null);
     /* a declined delivery carries the handler's reason (res.toast) —
        'Sent' alone would lie about what happened */
@@ -117,15 +122,14 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
         setMode('busy');
         try {
             const res = await runAction('flashcards', pop.text);
-            const cards = parseJsonArray<{ front?: string; back?: string }>(res.content)
-                .filter(c => c && typeof c.front === 'string' && typeof c.back === 'string')
-                .map(c => ({ front: c.front as string, back: c.back as string }));
+            const cards = normalizeGeneratedCards(parseJsonArray(res.content));
             if (cards.length === 0) {
                 flash('error', false);
                 return;
             }
             /* Integrated: the deck belongs to the Flashcards place — margin
-               only generates the cards. Standalone keeps its own store. */
+               only generates the cards. Standalone keeps its own store and
+               gates the save behind the same editable review. */
             if ((window as any).__iterraIntegrated) {
                 const it = (window as unknown as { iterra?: any }).iterra;
                 const out = await it?.send?.({
@@ -145,12 +149,33 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                 setSentUrl(out?.url ?? null);
                 flash('sent', true);
             } else {
-                await createDeck('From selection', cards);
-                flash('saved', true);
+                /* The selection itself is the honest locator — cards were
+                   generated from exactly this text. */
+                const sel = pop.text;
+                const source = {
+                    label: note?.title ? `${note.title} · selection` : 'selection',
+                    excerpt: sel.length > 200 ? `${sel.slice(0, 197)}…` : sel,
+                };
+                setPendingCards(cards.map(c => ({ ...c, source: c.source ?? source })));
+                hide();
+                window.getSelection()?.removeAllRanges();
+                return;
             }
             window.getSelection()?.removeAllRanges();
         } catch {
             flash('error', false);
+        }
+    };
+
+    const confirmCardReview = async (kept: GeneratedCardItem[]) => {
+        setPendingCards(null);
+        try {
+            await createDeck(note?.title ? `Cards — ${note.title}` : 'From selection', kept);
+            try {
+                window.dispatchEvent(new CustomEvent('iterra:toast', { detail: { text: 'Deck saved' } }));
+            } catch { /* toast is best-effort */ }
+        } catch (e) {
+            console.error('Save deck failed', e);
         }
     };
 
@@ -254,6 +279,7 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
         hover:text-ink hover:bg-[var(--card-2)] transition-colors disabled:opacity-40 disabled:pointer-events-none`;
 
     return (
+        <>
         <AnimatePresence>
             {pop.visible && (
                 <motion.div
@@ -333,6 +359,15 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                 </motion.div>
             )}
         </AnimatePresence>
+        <GeneratedReviewModal
+            kind="deck"
+            open={pendingCards !== null}
+            items={pendingCards ?? []}
+            sourceLabel={note?.title ? `from ${note.title}` : 'from selection'}
+            onClose={() => setPendingCards(null)}
+            onConfirm={kept => { void confirmCardReview(kept); }}
+        />
+        </>
     );
 };
 

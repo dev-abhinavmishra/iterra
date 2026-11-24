@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useWorkbench } from '../store';
 import type { Attachment, Attempt, WorkStep } from '../lib/types';
 import { autoCheck, answerKind } from '../lib/checking';
+import { attemptErrorCues, latestErrorCue } from '../lib/cues';
 import { timerDeepLink } from '../lib/links';
 import { openDeep } from '../lib/iterra';
 import { cn, fmtElapsed, uid } from '../lib/utils';
@@ -45,6 +46,7 @@ export function AttemptDesk({
   const updateStep = useWorkbench((s) => s.updateStep);
   const removeStep = useWorkbench((s) => s.removeStep);
   const revealHint = useWorkbench((s) => s.revealHint);
+  const revealCue = useWorkbench((s) => s.revealCue);
   const submitAttempt = useWorkbench((s) => s.submitAttempt);
   const setTimerUrl = useWorkbench((s) => s.setTimerUrl);
 
@@ -134,6 +136,9 @@ export function AttemptDesk({
 
   const kind = answerKind(problem.answerSpec);
   const revealedHints = attempt.hintReveals.map((h) => h.level).filter((l) => l <= 3);
+  const errorCue = latestErrorCue(problem);
+  const revealedCues = attemptErrorCues(attempt, problem);
+  const cueShown = !!errorCue && revealedCues.some((cue) => cue.id === errorCue.id);
   const step = attempt.work[activeStep] ?? attempt.work[attempt.work.length - 1];
 
   return (
@@ -187,6 +192,20 @@ export function AttemptDesk({
                 </div>
               )}
             </div>
+
+            {/* error cues the student chose to reveal */}
+            {revealedCues.length > 0 && (
+              <div className="space-y-2 border-b border-[var(--color-rule)] px-6 py-3">
+                {revealedCues.map((cue) => (
+                  <div key={cue.id} className="hint-pane px-3 py-2">
+                    <div className="mono mb-1 text-[9.5px] font-semibold uppercase tracking-[0.12em] text-[var(--color-hint-deep)]">
+                      error cue — your repair note
+                    </div>
+                    <DocView doc={cue.text} className="text-[13px]" />
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* hints revealed so far */}
             {revealedHints.length > 0 && (
@@ -321,6 +340,19 @@ export function AttemptDesk({
             <div className="border-b border-[var(--color-rule)] px-4 py-3">
               <div className="kicker mb-2">Hints</div>
               <div className="space-y-1.5">
+                {errorCue && (
+                  <button
+                    className={cn('btn btn--hint w-full !justify-start !py-1.5 text-left', cueShown && 'opacity-60')}
+                    disabled={submitted || cueShown}
+                    onClick={() => revealCue(attempt.id, errorCue.id)}
+                    title={cueShown ? 'error cue already shown' : 'show the repair cue filed on your last miss'}
+                  >
+                    <span className="inline-flex items-center gap-1.5">
+                      <Lightbulb size={12} />
+                      {cueShown ? 'error cue — shown' : 'Show hint — error cue'}
+                    </span>
+                  </button>
+                )}
                 {([1, 2, 3] as const).map((lvl) => {
                   const used = revealedHints.includes(lvl);
                   const hasText = !!problem.hints[lvl - 1]?.trim();

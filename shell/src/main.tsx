@@ -6,6 +6,9 @@ import App, { ShellBoundary } from './App';
 import { placeHashFromAppUrl } from './route';
 import { registerIntegrationCommands } from './integration/commands';
 import { ensureIntegrationMigrations, installCrossTabSync } from './integration/migration';
+/* glassy-liquid web components (gl-fx layers etc.) — the engine creates these
+   elements imperatively, but registering keeps declarative pieces upgraded */
+import 'glassy-liquid/elements';
 
 /* One document, one terrain — app-to-app links can't open real windows
    anymore. Apps call iterra.open('/apps/<p>/…') (the hub posts
@@ -115,3 +118,4 @@ createRoot(document.getElementById('root')!).render(
     </ShellBoundary>
   </StrictMode>,
 );
+

@@ -35,7 +35,7 @@ import {
   recordWorkflowHandoff,
   setActiveSessionInContext,
 } from './context';
-import { reviewQuestions } from '../apps/gradestack/lib/review';
+import { reviewCardBack, reviewCardFront, reviewQuestions } from '../apps/gradestack/lib/review';
 import type { Scan, Test } from '../apps/gradestack/store';
 import { boxedFocusUrl, parseBoxedFocus, type BoxedFocusTarget } from './boxedFocus';
 import { checkSessionPlan, writeStudySession, type SessionChecklist } from './studySessionState';
@@ -143,6 +143,21 @@ async function putHubEntityRequired(entity: Record<string, unknown>): Promise<Re
 function todayLocalISO(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function addDaysLocalISO(iso: string, days: number): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, (m || 1) - 1, (d || 1) + days);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+}
+
+function endOfLocalDayISO(iso: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!match) return null;
+  const [y, m, d] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const dt = new Date(y, m - 1, d, 23, 59, 0, 0);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+  return dt.toISOString();
 }
 
 function uid(prefix = ''): string {
@@ -902,6 +917,212 @@ export async function handleScheduleReviewBlock(
       plannedDate,
       plannedStart,
       plannedMinutes,
+    },
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMMAND 2B: createCommitment (manual first-run assignment entry)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+export interface CreateCommitmentInput {
+  title: string;
+  course?: string | null;
+  courseId?: string | null;
+  courseName?: string | null;
+  type?: string | null;
+  dueAt?: string | null;
+  dueDate?: string | null;
+  estimatedMinutes?: number | null;
+  weight?: number | null;
+  detail?: string | null;
+  idempotencyKey?: string;
+}
+
+const COMMITMENT_TYPES = ['assignment', 'exam', 'quiz', 'reading', 'project', 'lab', 'custom'] as const;
+
+export async function handleCreateCommitment(
+  input: CreateCommitmentInput,
+): Promise<
+  CommandResult<{
+    commitmentId: string;
+    commitmentRef: string;
+    courseId: string;
+    course: string;
+    courseName: string;
+    dueAt: string;
+    estimatedMinutes: number;
+  }>
+> {
+  const title = String(input?.title ?? '').trim();
+  if (!title) {
+    return { ok: false, commandId: '', code: 'INVALID_TITLE', error: 'An assignment title is required.' };
+  }
+
+  const rawDueAt = String(input?.dueAt ?? '').trim();
+  const rawDueDate = String(input?.dueDate ?? '').trim();
+  let dueAt = '';
+  if (rawDueAt) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(rawDueAt)) {
+      dueAt = endOfLocalDayISO(rawDueAt) || '';
+    } else {
+      const ms = Date.parse(rawDueAt);
+      if (!Number.isNaN(ms)) dueAt = new Date(ms).toISOString();
+    }
+  } else if (rawDueDate) {
+    dueAt = endOfLocalDayISO(rawDueDate) || '';
+  }
+  if (!dueAt) {
+    return { ok: false, commandId: '', code: 'INVALID_DUE', error: 'A valid due date is required.' };
+  }
+
+  const type = COMMITMENT_TYPES.includes(input?.type as any) ? String(input!.type) : 'assignment';
+  const estimatedMinutes = input?.estimatedMinutes == null
+    ? 60
+    : Math.max(1, Math.min(2400, Math.round(Number(input.estimatedMinutes) || 0)));
+  const weight = input?.weight == null
+    ? (type === 'exam' ? 25 : type === 'project' ? 20 : 10)
+    : Math.max(0, Math.min(100, Number(input.weight) || 0));
+
+  const courseIdInput = String(input?.courseId ?? '').trim();
+  const courseText = String(input?.course ?? '').trim();
+  const courseNameInput = String(input?.courseName ?? '').trim();
+  const courseRef = courseIdInput || courseText || courseNameInput
+    ? {
+        courseId: courseIdInput || undefined,
+        course: courseText || courseNameInput || undefined,
+        code: courseText || undefined,
+      }
+    : 'GEN';
+  const courseInfo = await resolveCanonicalCourse(courseRef, {
+    createIfMissing: true,
+    courseName: courseNameInput || courseText || 'General Study',
+  });
+  if (!courseInfo) {
+    return { ok: false, commandId: '', code: 'COURSE_NOT_FOUND', error: 'Could not resolve or create the course for this assignment.' };
+  }
+
+  const wrapper = await readNativeWrapper('syllabus.folio.v1');
+  const st = wrapper.state;
+  st.terms = st.terms || {};
+  st.courses = st.courses || {};
+  st.commitments = st.commitments || {};
+  st.blocks = st.blocks || {};
+  st.links = st.links || {};
+
+  const nowIso = new Date().toISOString();
+  const today = todayLocalISO();
+  let termId = st.activeTermId || Object.keys(st.terms)[0] || 't_default';
+  if (!st.terms[termId]) {
+    st.terms[termId] = {
+      id: termId,
+      name: 'Current Term',
+      startDate: today,
+      endDate: addDaysLocalISO(today, 105),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+      createdAt: nowIso,
+    };
+  }
+  st.activeTermId = termId;
+
+  if (!st.courses[courseInfo.localId]) {
+    st.courses[courseInfo.localId] = {
+      id: courseInfo.localId,
+      termId,
+      code: courseInfo.code,
+      name: courseInfo.name,
+      color: 'teal',
+      archived: false,
+      createdAt: nowIso,
+    };
+  }
+
+  const commitmentId = uid('k_');
+  st.commitments[commitmentId] = {
+    id: commitmentId,
+    courseId: courseInfo.localId,
+    type,
+    title,
+    detail: String(input?.detail ?? '').trim() || undefined,
+    dueAt,
+    weight,
+    estimatedMinutes,
+    loggedMinutes: 0,
+    status: 'open',
+    pinned: false,
+    dependencies: [],
+    createdAt: nowIso,
+  };
+
+  await writeNativeWrapper('syllabus.folio.v1', st, wrapper);
+  syncLiveStore('__syllabusFolioStore', st);
+  notifyStoreChange('syllabus');
+
+  const courseEnt = await putHubEntity({
+    app: 'syllabus',
+    type: 'course',
+    id: courseInfo.localId,
+    title: courseInfo.name,
+    course: courseInfo.code,
+    url: courseInfo.code ? `#/c/${encodeURIComponent(courseInfo.code)}` : '/apps/syllabus/',
+    data: {
+      code: courseInfo.code,
+      termId: st.courses[courseInfo.localId]?.termId || termId,
+      color: st.courses[courseInfo.localId]?.color || 'teal',
+    },
+  });
+
+  const commitmentRef = `syllabus:commitment:${commitmentId}`;
+  const url = `/apps/syllabus/?commitment=${encodeURIComponent(commitmentId)}`;
+  const commitmentEnt = await putHubEntity({
+    app: 'syllabus',
+    type: 'commitment',
+    id: commitmentId,
+    courseId: courseInfo.courseId,
+    course: courseInfo.code,
+    title,
+    sub: type,
+    url,
+    data: {
+      type,
+      dueAt,
+      status: 'open',
+      estimatedMinutes,
+      loggedMinutes: 0,
+      weight,
+      pinned: false,
+    },
+  });
+
+  const evPayload = {
+    commitmentId,
+    commitmentRef,
+    courseId: courseInfo.courseId,
+    course: courseInfo.code,
+    courseName: courseInfo.name,
+    title,
+    dueAt,
+    estimatedMinutes,
+    text: `commitment filed: ${title}`,
+    url,
+  };
+  await emitHubEvent('commitmentFiled', evPayload);
+
+  return {
+    ok: true,
+    commandId: '',
+    ref: commitmentRef,
+    entity: commitmentEnt || courseEnt,
+    event: evPayload,
+    url,
+    data: {
+      commitmentId,
+      commitmentRef,
+      courseId: courseInfo.courseId,
+      course: courseInfo.code,
+      courseName: courseInfo.name,
+      dueAt,
+      estimatedMinutes,
     },
   };
 }
@@ -2505,6 +2726,8 @@ export interface CreateTargetedReviewInput {
   course?: string | null;
   /** Optional explicit question -> topic mapping */
   questionTopics?: Record<number, string>;
+  /** Optional explicit question number -> prompt/text for review cards */
+  questionPrompts?: Record<number, string>;
   /** User-identified follow-up topics when question mappings are absent */
   selectedTopics?: string[];
   selectedQuestions?: number[];
@@ -2556,11 +2779,15 @@ export async function handleCreateTargetedReview(
     ...rawTest?.questionTopics,
     ...(input.questionTopics || {}),
   };
+  const mergedQuestionPrompts: Record<number, string> = {
+    ...rawTest?.questionPrompts,
+    ...(input.questionPrompts || {}),
+  };
   const { state: grades } = readZustandWrapper('gradestack-storage');
   const scanIds = input.scanIds ? new Set(input.scanIds) : null;
   const selectedQuestions = new Set(input.selectedQuestions ?? []);
   const selected = rawTest && selectedQuestions.size
-    ? reviewQuestions({ ...rawTest, questionTopics: mergedQuestionTopics },
+    ? reviewQuestions({ ...rawTest, questionTopics: mergedQuestionTopics, questionPrompts: mergedQuestionPrompts },
         (Array.isArray(grades.scans) ? grades.scans as Scan[] : [])
           .filter(scan => !scanIds || scanIds.has(scan.id)))
       .filter(question => selectedQuestions.has(question.number))
@@ -2572,14 +2799,30 @@ export async function handleCreateTargetedReview(
   const topics = [...new Set([...selected.map(question => question.topic || `Question ${question.number}`), ...manualTopics])];
   const reviewKind = input.reviewKind || 'syllabus-block';
   const needsDeck = reviewKind !== 'syllabus-block';
+  const synthesizingCards = !input.cards?.length;
   const cards: CandidateCard[] = input.cards?.length ? input.cards : selected.map(question => ({
     id: `question-${question.number}`,
-    q: `Question ${question.number} from ${assessObj.title}${question.topic ? ` · ${question.topic}` : ''}`,
-    a: `Answer key: ${question.answer}`,
-    ex: 'Retry the question on the original assessment before revealing the answer.',
+    q: reviewCardFront(question),
+    a: reviewCardBack(question),
+    ex: `Question ${question.number} from ${assessObj.title}${question.topic ? ` · ${question.topic}` : ''}.`,
   }));
   if (selected.length !== selectedQuestions.size) {
     return { ok: false, commandId: '', code: 'REVIEW_CHANGED', error: 'The graded answers changed. Reopen the review to refresh the suggestions.' };
+  }
+  // A card built from "Q7 → C" alone is not practicable without the answer
+  // sheet. Refuse to synthesize deck cards until every selected missed
+  // question carries prompt text (test.questionPrompts, input.questionPrompts,
+  // or explicit input.cards from the review UI).
+  if (needsDeck && synthesizingCards) {
+    const missingPrompts = selected.filter(question => !question.prompt?.trim()).map(question => question.number);
+    if (missingPrompts.length > 0) {
+      return {
+        ok: false,
+        commandId: '',
+        code: 'REVIEW_PROMPTS_REQUIRED',
+        error: `Question text is missing for question${missingPrompts.length > 1 ? 's' : ''} ${missingPrompts.join(', ')}. Add the prompt before creating review cards — a question number and answer letter alone is not enough to practice.`,
+      };
+    }
   }
   if (needsDeck && !cards.some(card => card.q.trim() && card.a.trim())) {
     return { ok: false, commandId: '', code: 'REVIEW_CARDS_REQUIRED', error: 'Select a missed question with an answer key, or create a study block for your topics.' };
@@ -2621,6 +2864,9 @@ export async function handleCreateTargetedReview(
             courseId,
             ...(Object.keys(mergedQuestionTopics).length > 0
               ? { questionTopics: mergedQuestionTopics }
+              : {}),
+            ...(Object.keys(mergedQuestionPrompts).length > 0
+              ? { questionPrompts: mergedQuestionPrompts }
               : {}),
           }
         : t,
@@ -3051,6 +3297,7 @@ export function registerIntegrationCommands(): void {
 
   it.commands.register('createDeckFromSelection', handleCreateDeckFromSelection);
   it.commands.register('scheduleReviewBlock', handleScheduleReviewBlock);
+  it.commands.register('createCommitment', handleCreateCommitment);
   it.commands.register('attachMaterialToBlock', handleAttachMaterialToBlock);
   it.commands.register('startFocusSession', handleStartFocusSession);
   it.commands.register('recordSessionOutcome', handleRecordSessionOutcome);
@@ -3075,6 +3322,7 @@ export async function execCommand<T = Record<string, unknown>>(
   const handlers: Record<string, (inp: any) => Promise<CommandResult<any>>> = {
     createDeckFromSelection: handleCreateDeckFromSelection,
     scheduleReviewBlock: handleScheduleReviewBlock,
+    createCommitment: handleCreateCommitment,
     attachMaterialToBlock: handleAttachMaterialToBlock,
     startFocusSession: handleStartFocusSession,
     recordSessionOutcome: handleRecordSessionOutcome,

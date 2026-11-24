@@ -218,7 +218,7 @@ function ProblemRow({
 }) {
   const archiveProblem = useWorkbench((s) => s.archiveProblem);
   const res = lastResult(attempts);
-  const unaided = attempts.filter((a) => a.result && a.hintLevel === 0);
+  const unaided = attempts.filter((a) => a.result && a.hintLevel === 0 && !a.cueReveals?.length && a.solveAssistance !== 'cue-assisted');
   const unaidedHits = unaided.filter((a) => a.result === 'correct').length;
   return (
     <li className="py-3">

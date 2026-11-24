@@ -15,13 +15,15 @@ import Highlight from '@tiptap/extension-highlight';
 import clsx from 'clsx';
 import {
   Bold, Italic, Strikethrough, Code, List, ListOrdered, Quote,
-  Heading1, Heading2, Highlighter, Underline as UnderlineIcon, Send,
+  Heading1, Heading2, Highlighter, Underline as UnderlineIcon, Send, Layers,
 } from 'lucide-react';
 import { useStore } from '../../store';
 import { sanitizeDoc } from '../../lib/notes';
+import { anchorFromSelection, posForAnchor, type AnchorPoint } from '../../lib/resume';
 import { InkBlot, PenNib } from '../../lib/ink';
 import { penOf, type PenId } from '../../lib/pens';
 import { CreateDeckModal } from '../../../../integration/components';
+import { RecallCardModal } from './RecallCardModal';
 
 const WIKILINK_RE = /\[\[([^\][\n]+)\]\]/g;
 
@@ -197,6 +199,10 @@ interface RichEditorProps {
   onEditorReady?: (editor: Editor | null) => void;
   headingAnchors?: boolean;
   typewriter?: boolean;
+  /** Where the pen rested when the desk was last closed — jumped to when
+      resumeNonce ticks (the user asked for it via the resume chip). */
+  resumeAnchor?: AnchorPoint | null;
+  resumeNonce?: number;
 }
 
 /** Tag top-level headings with focus-heading-N ids, matching the outline's
@@ -260,11 +266,18 @@ export const RichEditor: React.FC<RichEditorProps> = ({
   onEditorReady,
   headingAnchors = false,
   typewriter = false,
+  resumeAnchor = null,
+  resumeNonce = 0,
 }) => {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastResumeNonce = useRef(0);
   const [suggest, setSuggest] = useState<SuggestUI | null>(null);
   const suggestRef = useRef<SuggestUI | null>(null);
   const [sendOpen, setSendOpen] = useState(false);
+  const [recallDraft, setRecallDraft] = useState<{
+    text: string; noteId: string; title: string; fullText: string;
+  } | null>(null);
   const [deckDraft, setDeckDraft] = useState<{
     text: string; noteId: string; title: string; fullText: string; rev: number; course?: string; courseId?: string;
   } | null>(null);
@@ -302,6 +315,23 @@ export const RichEditor: React.FC<RichEditorProps> = ({
     };
     suggestRef.current = next;
     setSuggest(next);
+  };
+
+  /* File where the pen is resting so a later session can offer to pick up
+     the thread. Debounced — selection fires per keystroke, the anchor only
+     needs to be roughly right. */
+  const recordAnchor = (editor: Editor) => {
+    if (!latest.current.editable) return;
+    if (anchorTimerRef.current) clearTimeout(anchorTimerRef.current);
+    anchorTimerRef.current = setTimeout(() => {
+      anchorTimerRef.current = null;
+      try {
+        const point = anchorFromSelection(editor.state.selection.$from);
+        const noteId = useStore.getState().activeNoteId;
+        if (!point || !noteId) return;
+        useStore.getState().setResumeAnchor({ noteId, ...point, at: Date.now() });
+      } catch { /* a selection mid-transaction can be unresolvable — skip */ }
+    }, 800);
   };
 
   const moveSuggest = (delta: number) => {
@@ -375,6 +405,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({
     onSelectionUpdate: ({ editor }) => {
       if (latest.current.typewriter) markCurrentBlock(editor);
       refreshSuggest(editor);
+      recordAnchor(editor);
     },
     onCreate: ({ editor }) => {
       if (latest.current.typewriter) markCurrentBlock(editor);
@@ -384,6 +415,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({
       if (typewriter) markCurrentBlock(editor);
       if (headingAnchors) assignHeadingIds(editor.view.dom);
       refreshSuggest(editor);
+      recordAnchor(editor);
       if (!editable) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
@@ -411,6 +443,17 @@ export const RichEditor: React.FC<RichEditorProps> = ({
     if (editor && headingAnchors) assignHeadingIds(editor.view.dom);
     return () => onEditorReady?.(null);
   }, [editor, onEditorReady, headingAnchors]);
+
+  /* "Where you left off" — the chip asked for this jump by bumping
+     resumeNonce; place the caret at the saved anchor once per request. */
+  useEffect(() => {
+    if (!editor || !resumeNonce || resumeNonce === lastResumeNonce.current) return;
+    lastResumeNonce.current = resumeNonce;
+    if (!resumeAnchor) return;
+    const pos = posForAnchor(editor.state.doc, resumeAnchor);
+    if (pos == null) return;
+    editor.chain().focus().setTextSelection(pos).scrollIntoView().run();
+  }, [editor, resumeNonce, resumeAnchor]);
 
   // On unmount, flush any pending save so the last keystrokes aren't lost.
   useEffect(() => () => {
@@ -445,6 +488,20 @@ export const RichEditor: React.FC<RichEditorProps> = ({
           <Btn active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} icon={List} title="List" />
           <Btn active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} icon={ListOrdered} title="Numbered list" />
           <Btn active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()} icon={Quote} title="Quote" />
+          <Btn
+            active={false}
+            onClick={() => {
+              const { from, to: selTo } = editor.state.selection;
+              const sel = editor.state.doc.textBetween(from, selTo, '\n').trim();
+              if (!sel) return;
+              const st = useStore.getState();
+              const page = st.notes.find(n => n.id === st.activeNoteId);
+              if (!page) return;
+              setRecallDraft({ text: sel, noteId: page.id, title: page.title || 'Untitled note', fullText: editor.getText() });
+            }}
+            icon={Layers}
+            title="Make recall card"
+          />
           {!!(window as unknown as { iterra?: { send?: unknown } }).iterra?.send && (
             <>
               <span className="w-px h-4 bg-paper/15 mx-1" />
@@ -544,6 +601,17 @@ export const RichEditor: React.FC<RichEditorProps> = ({
           <p className="px-3.5 py-1.5 border-t border-line font-mono text-2xs text-ink-ghost">↵ links · esc keeps writing</p>
         </div>
       )}
+
+      {recallDraft && (() => {
+        const page = useStore.getState().notes.find(n => n.id === recallDraft.noteId);
+        return page ? (
+          <RecallCardModal
+            note={page}
+            selection={recallDraft.text}
+            onClose={() => setRecallDraft(null)}
+          />
+        ) : null;
+      })()}
 
       {deckDraft && (
         <CreateDeckModal

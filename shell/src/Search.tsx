@@ -6,6 +6,7 @@ import { sendTo, readFeed, subscribeFeed, type FeedItem, type SendResult } from 
 import { subscribeShelf, togglePin, type ShelfPin } from './shelf';
 import { iconForObjectType } from './ui/ObjectRow';
 import { canDraftNoteDeck, openNoteDeckDraft } from './integration/ModalsHost';
+import { objectMetaLine } from './courses/objectMeta';
 
 interface Hit {
   app: string;
@@ -60,6 +61,7 @@ export function Search({
   useEffect(() => subscribeFeed(setFeed), []);
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
+  /* the palette floats over the whole workspace — prime glass surface */
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
 
@@ -170,7 +172,14 @@ export function Search({
         kind: 'command',
         label: 'Open Today — the day’s plan and stirs',
         sub: 'Command · Workspace',
-        url: '#/',
+        url: '#/today',
+      },
+      {
+        app: 'terrain',
+        kind: 'command',
+        label: 'Take the tour — mosaic overview of the terrain',
+        sub: 'Command · Workspace',
+        url: '#/welcome',
       },
       {
         app: 'rhythm',
@@ -200,7 +209,7 @@ export function Search({
               kind: 'command' as const,
               label: 'Toggle details panel',
               sub: 'Command · Workspace',
-              url: '#/',
+              url: '#/today',
               run: () => onToggleContext(),
             },
           ]
@@ -212,7 +221,7 @@ export function Search({
               kind: 'command' as const,
               label: 'Switch workspace theme (Paper / Graphite)',
               sub: 'Command · Appearance',
-              url: '#/',
+              url: '#/today',
               run: () => onToggleTheme(),
             },
           ]
@@ -256,9 +265,7 @@ export function Search({
         app: e.app,
         kind: 'entity',
         label: e.title,
-        sub: [formatEntityType(e.type), PLACE_MAP[e.app]?.label || e.app, e.sub, e.course, e.topic]
-          .filter(Boolean)
-          .join(' · '),
+        sub: objectMetaLine({ course: e.course, type: e.type, app: e.app, detail: e.sub, topic: e.topic }),
         url: e.url || `#/p/${e.app}`,
         key: e.course || e.topic || undefined,
         uat: e.updatedAt || 0,
@@ -276,9 +283,7 @@ export function Search({
           app,
           kind: 'entity',
           label: e.title,
-          sub: [formatEntityType(e.t), PLACE_MAP[app]?.label || app, e.sub, e.course, e.topic]
-            .filter(Boolean)
-            .join(' · '),
+          sub: objectMetaLine({ course: e.course, type: e.t, app, detail: e.sub, topic: e.topic }),
           url: e.url || `#/p/${app}`,
           key: e.course || e.topic || undefined,
           stype: e.t,
@@ -446,14 +451,14 @@ export function Search({
 
   return (
     <div
-      className="anim-fade fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-[10vh] p-4 backdrop-blur-[1px]"
+      className="anim-fade fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-[10vh] p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Global search and command palette"
     >
       <div
-        className="anim-rise w-full max-w-2xl overflow-hidden rounded-[8px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-2xl"
+        className="border border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-xl anim-rise w-full max-w-2xl overflow-hidden rounded-[20px]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5 border-b border-[var(--color-line)] px-4 py-3">

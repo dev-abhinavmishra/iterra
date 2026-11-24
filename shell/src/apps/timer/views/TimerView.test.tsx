@@ -123,7 +123,7 @@ it('submits an existing session row when a restored tab must finish the shared s
   }
 });
 
-it('waits for the outcome write, retries the same session, then opens Planning without filing again', async () => {
+it('waits for the outcome write, retries the same session, then files back without filing again', async () => {
   vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
   const open = vi.fn();
   vi.stubGlobal('iterra', { open, isFramed: () => true });
@@ -147,18 +147,19 @@ it('waits for the outcome write, retries the same session, then opens Planning w
     now.mockReturnValue(361_000);
     await act(async () => vi.advanceTimersByTime(50));
     expect(document.body.querySelector('[role=status]')?.textContent).toContain('Saving your focus session');
-    expect(button('Open in Planning')).toBeUndefined();
+    expect(button('Mark prep complete')).toBeUndefined();
     expect(button('Continue')).toBeUndefined();
 
     await act(async () => resolveFirst({ ok: false, commandId: 'failed', error: 'Failed' }));
     expect(document.body.querySelector('[role=alert]')?.textContent).toContain('Retry saving');
-    expect(button('Open in Planning')).toBeUndefined();
+    expect(button('Mark prep complete')).toBeUndefined();
+    expect(button('Continue')).toBeUndefined();
     await act(async () => button('Retry save')?.click());
     expect(command).toHaveBeenCalledTimes(2);
     expect(command.mock.calls[1]).toEqual(command.mock.calls[0]);
     expect(getSessions()).toHaveLength(1);
 
-    await act(async () => button('Open in Planning')?.click());
+    await act(async () => button('Mark prep complete')?.click());
     expect(open).toHaveBeenCalledExactlyOnceWith('/apps/syllabus/?block=b1');
   } finally {
     act(() => root.unmount());
@@ -338,6 +339,147 @@ it('treats a conflicting recorded outcome as terminal and dismisses only its own
     await act(async () => [...document.body.querySelectorAll('button')]
       .find((button) => button.textContent?.trim() === 'Dismiss')?.click());
     expect(getPendingSessionOutcomes()).toHaveLength(0);
+  } finally {
+    act(() => root.unmount());
+    host.remove();
+    localStorage.clear();
+    now.mockRestore();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  }
+});
+
+it('reports minutes recorded — not assignment completion — with course-aware actions for a bound session', async () => {
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+  const open = vi.fn();
+  vi.stubGlobal('iterra', { open, isFramed: () => true });
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+  const now = vi.spyOn(Date, 'now').mockReturnValue(60_000);
+  const command = vi.mocked(execCommand);
+  command.mockReset();
+  command.mockResolvedValue({ ok: true, commandId: 'saved', url: '/apps/syllabus/?block=b1' });
+  const host = document.createElement('div');
+  document.body.append(host);
+  const root = createRoot(host);
+  const button = (text: string) =>
+    [...document.body.querySelectorAll('button')].find((element) => element.textContent?.trim() === text);
+
+  try {
+    await act(async () => {
+      root.render(
+        <TimerView
+          active={false}
+          linkQuery="from=syllabus&intent=quiz%20prep&minutes=5&autostart=1&block=b1&course=Biology&courseId=syllabus%3Acourse%3Abio&commitment=c1"
+        />,
+      );
+    });
+    now.mockReturnValue(361_000);
+    await act(async () => vi.advanceTimersByTime(50));
+    await act(async () => { await Promise.resolve(); });
+
+    // time banked is reported separately from the assignment itself
+    expect(document.body.textContent).toContain('5 MINUTES RECORDED FOR BIOLOGY · QUIZ PREP');
+    expect(document.body.textContent).toContain('SAVED TO TIMER · PLANNING · BIOLOGY');
+    expect(document.body.textContent).not.toContain('TIME WELL KEPT');
+    expect(button('Mark prep complete')).toBeDefined();
+    expect(button('Plan another block')).toBeDefined();
+    expect(button('Return to Biology')).toBeDefined();
+    expect(button('Back to Today')).toBeUndefined();
+    expect(button('Open in Planning')).toBeUndefined();
+
+    await act(async () => button('Mark prep complete')?.click());
+    expect(open).toHaveBeenCalledExactlyOnceWith('/apps/syllabus/?block=b1');
+  } finally {
+    act(() => root.unmount());
+    host.remove();
+    localStorage.clear();
+    now.mockRestore();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  }
+});
+
+it('files an early finish as recorded minutes and offers Plan another block / Return to course', async () => {
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+  const open = vi.fn();
+  vi.stubGlobal('iterra', { open, isFramed: () => true });
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+  const now = vi.spyOn(Date, 'now').mockReturnValue(60_000);
+  const command = vi.mocked(execCommand);
+  command.mockReset();
+  command.mockResolvedValue({ ok: true, commandId: 'saved', url: '/apps/syllabus/?block=b1' });
+  const host = document.createElement('div');
+  document.body.append(host);
+  const root = createRoot(host);
+  const button = (text: string) =>
+    [...document.body.querySelectorAll('button')].find((element) => element.textContent?.trim() === text);
+
+  try {
+    await act(async () => {
+      root.render(
+        <TimerView
+          active={false}
+          linkQuery="from=syllabus&intent=Read%20chapters&minutes=20&autostart=1&block=b1&course=Biology"
+        />,
+      );
+    });
+    // one minute banked, then finish early — the student still has chapters left
+    now.mockReturnValue(120_000);
+    await act(async () => vi.advanceTimersByTime(50));
+    await act(async () => window.dispatchEvent(new CustomEvent('timer:control', { detail: { op: 'finish' } })));
+    await act(async () => { await Promise.resolve(); });
+
+    expect(command).toHaveBeenCalledWith('recordSessionOutcome', expect.objectContaining({ outcome: 'partial' }));
+    expect(document.body.textContent).toContain('1 MINUTE RECORDED FOR BIOLOGY · READ CHAPTERS');
+    // a partial run must not claim the prep is complete
+    expect(button('Mark prep complete')).toBeUndefined();
+    expect(button('File time → Planning')).toBeDefined();
+
+    await act(async () => button('Plan another block')?.click());
+    expect(open).toHaveBeenCalledWith('#/p/syllabus?p=today');
+  } finally {
+    act(() => root.unmount());
+    host.remove();
+    localStorage.clear();
+    now.mockRestore();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  }
+});
+
+it('reports a canceled run as under one minute with no study time banked', async () => {
+  vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true);
+  vi.stubGlobal('iterra', { open: vi.fn(), isFramed: () => true });
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+  const now = vi.spyOn(Date, 'now').mockReturnValue(60_000);
+  const command = vi.mocked(execCommand);
+  command.mockReset();
+  command.mockResolvedValue({ ok: true, commandId: 'saved', url: '/apps/syllabus/?block=b1' });
+  const host = document.createElement('div');
+  document.body.append(host);
+  const root = createRoot(host);
+  const button = (text: string) =>
+    [...document.body.querySelectorAll('button')].find((element) => element.textContent?.trim() === text);
+
+  try {
+    await act(async () => {
+      root.render(
+        <TimerView
+          active={false}
+          linkQuery="from=syllabus&intent=Read&minutes=20&autostart=1&block=b1&course=Biology"
+        />,
+      );
+    });
+    // finish before the first tick banks any seconds — elapsed < 1 minute
+    await act(async () => window.dispatchEvent(new CustomEvent('timer:control', { detail: { op: 'finish' } })));
+    await act(async () => { await Promise.resolve(); });
+
+    expect(command).toHaveBeenCalledWith('recordSessionOutcome', expect.objectContaining({ outcome: 'canceled' }));
+    expect(document.body.textContent).toContain('UNDER ONE MINUTE — NO STUDY TIME BANKED');
+    expect(document.body.textContent).not.toContain('MINUTES RECORDED');
+    expect(button('Mark prep complete')).toBeUndefined();
+    expect(button('File time → Planning')).toBeUndefined();
+    expect(button('Plan another block')).toBeDefined();
   } finally {
     act(() => root.unmount());
     host.remove();

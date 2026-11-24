@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useFolio, beginBulkFeed, endBulkFeed, stir } from '../store';
 import { Field, FInput, FSelect } from '../components/Field';
-import { addDaysISO, stampDate } from '../lib/utils';
+import { execCommand } from '../../../integration/commands';
+import { addDaysISO, stampDate, todayISO } from '../lib/utils';
 import { nextCourseColor, COURSE_COLORS, courseColorVar } from '../lib/colors';
 import type { CourseColor } from '../lib/types';
 import { ArrowRight, Plus } from 'lucide-react';
@@ -34,7 +35,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     { code: '', name: '', color: 'hunter' },
     { code: '', name: '', color: 'navy' },
   ]);
-  const [step, setStep] = useState<'term' | 'courses'>('term');
+  const [step, setStep] = useState<'term' | 'courses' | 'assignment'>('term');
+  const [assignment, setAssignment] = useState({ title: '', course: '', due: todayISO(), minutes: '60' });
+  const [assignmentError, setAssignmentError] = useState('');
+  const [assignmentBusy, setAssignmentBusy] = useState(false);
 
   const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
   const nameRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -91,6 +95,39 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     onDone();
   };
 
+  const fileAssignment = async () => {
+    if (!assignment.title.trim() || !assignment.due || assignmentBusy) return;
+    const estimatedMinutes = assignment.minutes.trim() ? Number(assignment.minutes) : undefined;
+    if (estimatedMinutes !== undefined && (!Number.isFinite(estimatedMinutes) || estimatedMinutes <= 0)) {
+      setAssignmentError('Enter an estimate greater than zero minutes, or leave it blank.');
+      return;
+    }
+    setAssignmentBusy(true);
+    setAssignmentError('');
+    try {
+      const result = await execCommand<{ commitmentId: string; course?: string }>('createCommitment', {
+        title: assignment.title.trim(),
+        course: assignment.course.trim() || undefined,
+        dueDate: assignment.due,
+        estimatedMinutes,
+      });
+      if (!result.ok) {
+        setAssignmentError(result.error || 'Could not file the assignment. Try again.');
+        setAssignmentBusy(false);
+        return;
+      }
+      stir(
+        `commitment filed: ${assignment.title.trim()}`,
+        `/apps/syllabus/?commitment=${encodeURIComponent(result.data?.commitmentId ?? '')}`,
+        result.data?.course,
+      );
+      onDone();
+    } catch {
+      setAssignmentError('Could not file the assignment. Try again.');
+      setAssignmentBusy(false);
+    }
+  };
+
   return (
     <div className="onboarding-root min-h-full flex items-center justify-center p-4">
       <div className="onboarding-card sheet w-full max-w-2xl p-6 sm:p-9 animate-[sheet-in_0.34s_cubic-bezier(0.2,0.8,0.3,1)_both]">
@@ -139,7 +176,69 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 Continue to courses <ArrowRight size={13} />
               </button>
             </div>
+            <div className="mt-4">
+              <button type="button" className="btn btn--ghost" onClick={() => setStep('assignment')}>
+                Just add one assignment
+              </button>
+            </div>
           </section>
+        )}
+
+        {step === 'assignment' && (
+          <form
+            aria-label="Add one assignment"
+            onSubmit={(e) => { e.preventDefault(); void fileAssignment(); }}
+          >
+            <div className="hrule kicker mb-5">ONE ASSIGNMENT · NO FULL SCHEDULE NEEDED</div>
+            <p className="text-[12.5px] text-[color:var(--color-ink-soft)] mb-4">
+              File a single deadline now. You can add the rest of your courses later.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field label="Assignment title" className="sm:col-span-2">
+                <FInput
+                  autoFocus
+                  value={assignment.title}
+                  onChange={(e) => setAssignment((a) => ({ ...a, title: e.target.value }))}
+                  placeholder="Biology quiz"
+                  required
+                />
+              </Field>
+              <Field label="Course" hint="optional">
+                <FInput
+                  value={assignment.course}
+                  onChange={(e) => setAssignment((a) => ({ ...a, course: e.target.value }))}
+                  placeholder="BIO 101 or Biology"
+                />
+              </Field>
+              <Field label="Due date">
+                <FInput
+                  type="date"
+                  value={assignment.due}
+                  onChange={(e) => setAssignment((a) => ({ ...a, due: e.target.value }))}
+                  required
+                />
+              </Field>
+              <Field label="Estimated minutes" hint="optional">
+                <FInput
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={assignment.minutes}
+                  onChange={(e) => setAssignment((a) => ({ ...a, minutes: e.target.value }))}
+                  placeholder="60"
+                />
+              </Field>
+            </div>
+            {assignmentError && <p role="alert" className="mono text-[10px] text-[color:var(--color-late)] mt-3">{assignmentError}</p>}
+            <div className="onboarding-actions mt-6 flex items-center justify-between">
+              <button type="button" className="btn btn--ghost" onClick={goTerm} disabled={assignmentBusy}>
+                Back
+              </button>
+              <button type="submit" className="btn" disabled={assignmentBusy || !assignment.title.trim() || !assignment.due}>
+                {assignmentBusy ? 'Filing…' : 'File assignment'}
+              </button>
+            </div>
+          </form>
         )}
 
         {step === 'courses' && (

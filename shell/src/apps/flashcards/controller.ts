@@ -7,6 +7,7 @@ import LZString from 'lz-string';
 import { placeActive } from '../active';
 import { isIntegrated, onTerrainTheme, terrainIsDark, toggleTerrainTheme } from '../theme';
 import { wireFlashcardsAdapter } from './iterra-adapter';
+import { recommendSession, repeatMissed } from './recommend';
 
 let mounted = false;
 let lastQuery = undefined;
@@ -66,6 +67,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     write: { order: [], idx: 0, correct: 0, checked: false, missed: [] },
     search: '',
     libSearch: '',
+    cardFilter: null,   // Set<cardId> | null — Cards tab narrowed to flagged prompts
   };
   
   function loadStore() {
@@ -644,6 +646,30 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const due = d.cards.filter(c => c.status !== 'mastered').length;
     return { total, starred, mastered, learning, due };
   }
+
+  /* one recommended session per deck — the reason is the label itself
+     ("12 cards due · about 4 min"), surfaced as the primary deck action */
+  function renderRecCta(d) {
+    const btn = $('rec-cta');
+    if (!btn) return;
+    const rec = recommendSession(d);
+    if (!rec) { btn.hidden = true; btn.textContent = ''; return; }
+    btn.hidden = false;
+    btn.textContent = `Review · ${rec.label}`;
+    btn.title = `${rec.label} — start a review session`;
+  }
+
+  /* "Edit these N prompts" — narrow the Cards tab to the repeatedly
+     missed prompts so the student can fix the wording, not re-find it */
+  function openPromptEditor(ids) {
+    state.cardFilter = new Set(ids);
+    state.mode = 'cards';
+    state.search = '';
+    const s = $('card-search');
+    if (s) s.value = '';
+    renderAll();
+    toast(`${ids.length} flagged prompt${ids.length === 1 ? '' : 's'} — click the pencil on a row to fix it`);
+  }
   
   // ids the library has ever painted — the deal-in animation is an entrance,
   // not a per-render flourish: only rows the library hasn't shown yet slide
@@ -668,12 +694,16 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     els.deckList.innerHTML = ids.map(id => {
       const d = state.decks[id];
       const s = deckStats(d);
+      const rec = recommendSession(d);
+      const dueChip = rec
+        ? `<span class="dr-due" data-due="${id}" title="${esc(rec.label)} — start a review now">${rec.due > rec.count ? `first ${rec.count} of ${rec.due} due` : `${rec.due} due`} · ~${rec.minutes}m →</span>`
+        : '';
       const fresh = !_libShown.has(id);
       return `
         <div class="deck-row ${fresh ? 'dr-in ' : ''}${id === state.currentId ? 'active' : ''}" data-deck="${id}"${fresh ? ` style="animation-delay:${Math.min(ids.indexOf(id), 11) * 22}ms"` : ''}>
           <button class="dr-main">
             <span class="dr-title">${d.course ? `<span class="dr-course">${esc(d.course)}</span>` : ''}${esc(d.title)}</span>
-            <span class="dr-meta"><span>${s.total} card${s.total === 1 ? '' : 's'}${s.starred ? ` · ${s.starred}★` : ''}</span><span>${s.due ? `<span class="dr-due" data-due="${id}" title="Review the due cards now">${s.due} due →</span>` : ''}<span>${relTime(d.lastStudiedAt)}</span></span></span>
+            <span class="dr-meta"><span>${s.total} card${s.total === 1 ? '' : 's'}${s.starred ? ` · ${s.starred}★` : ''}</span><span>${dueChip}<span>${relTime(d.lastStudiedAt)}</span></span></span>
             <span class="dr-bar"><i style="width:${s.total ? (s.mastered / s.total * 100) : 0}%"></i></span>
           </button>
           <button class="dr-kebab" data-kebab="${id}" title="Deck actions" aria-label="Actions for ${esc(d.title)}">⋮</button>
@@ -792,6 +822,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   function selectDeck(id, mode) {
     state.currentId = id;
     state.mode = mode || 'review';
+    state.cardFilter = null;
     try { localStorage.setItem(LAST_KEY, id); } catch {}
     const d = deck();
     if (d) { d.lastStudiedAt = Date.now(); saveStore(); }
@@ -941,6 +972,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       `<span>${relTime(d.lastStudiedAt)}</span>` +
       (d.flipped ? `<span>sides swapped</span>` : '') +
       proofCtxSpan(d);
+    renderRecCta(d);
     renderDeckBridge(d);
   }
   
@@ -1298,8 +1330,9 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       if (known) {
         L.known++;
         L.queue.shift();
+        c.misses = 0;
       } else {
-        if (!L.missed.includes(c.id)) L.missed.push(c.id);
+        if (!L.missed.includes(c.id)) { L.missed.push(c.id); c.misses = (c.misses || 0) + 1; }
         L.queue.push(L.queue.shift());  // requeue to end
         if (L.passes > L.total * 12) { L.queue = []; }  // safety valve
       }
@@ -1313,6 +1346,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     if (!L.celebrated) { L.celebrated = true; setTimeout(() => celebrateSet(pct), 140); }
     const masteredNow = L.known;
     const stillNeed = deck().cards.filter(c => L.missed.includes(c.id) && c.status !== 'mastered').length;
+    const flagged = repeatMissed(deck(), L.missed);
     openModal(`
       <h3>Session complete</h3>
       <p class="modal-sub">${esc(deck().title)} · learn mode</p>
@@ -1323,8 +1357,11 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       </div>
       <div class="modal-actions">
         <button class="btn ghost" data-close>Done</button>
+        ${flagged.length ? `<button class="btn" id="edit-missed">Edit these ${flagged.length} prompt${flagged.length === 1 ? '' : 's'}</button>` : ''}
         ${L.missed.length ? '<button class="btn primary" id="again-missed">Review missed again</button>' : ''}
       </div>`);
+    const emp = $('edit-missed');
+    if (emp) emp.addEventListener('click', () => { closeModal(); openPromptEditor(flagged); });
     const again = $('again-missed');
     if (again) again.addEventListener('click', () => {
       closeModal();
@@ -1417,8 +1454,8 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const ok = chosen === right;
     Q.answeredId = c.id;
     Q.answeredPick = chosen;
-    if (ok) { Q.correct++; c.status = 'mastered'; }
-    else { c.status = 'learning'; Q.missed.push(c.id); }
+    if (ok) { Q.correct++; c.status = 'mastered'; c.misses = 0; }
+    else { c.status = 'learning'; Q.missed.push(c.id); c.misses = (c.misses || 0) + 1; }
     saveStore();
     markQuizAnswered(c, true);
   }
@@ -1448,6 +1485,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const Q = state.quiz;
     const pct = Q.order.length ? Math.round(Q.correct / Q.order.length * 100) : 0;
     if (!Q.celebrated) { Q.celebrated = true; setTimeout(() => celebrateSet(pct), 140); }
+    const flagged = repeatMissed(deck(), Q.missed);
     openModal(`
       <h3>Quiz results</h3>
       <p class="modal-sub">${esc(deck().title)} · ${Q.order.length} questions</p>
@@ -1458,9 +1496,12 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       </div>
       <div class="modal-actions">
         <button class="btn ghost" data-close>Done</button>
+        ${flagged.length ? `<button class="btn" id="edit-missed">Edit these ${flagged.length} prompt${flagged.length === 1 ? '' : 's'}</button>` : ''}
         ${Q.missed.length ? '<button class="btn" id="quiz-missed">Retry missed</button>' : ''}
         <button class="btn primary" id="quiz-restart">Restart quiz</button>
       </div>`);
+    const emp = $('edit-missed');
+    if (emp) emp.addEventListener('click', () => { closeModal(); openPromptEditor(flagged); });
     $('quiz-restart').addEventListener('click', () => {
       closeModal();
       state.quiz = { order: shuffleInPlace(studyCards(deck()).map(c => c.id)), idx: 0, correct: 0, answered: false, missed: [] };
@@ -1582,7 +1623,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       fb.className = 'write-feedback no';
       fb.innerHTML = `The answer: <span class="expected">${esc(expected)}</span>`;
       c.status = 'learning';
-      if (!W.missed.includes(c.id)) W.missed.push(c.id);
+      if (!W.missed.includes(c.id)) { W.missed.push(c.id); c.misses = (c.misses || 0) + 1; }
       markWriteChecked(c);
       saveStore(); renderLibrary(); renderMeta();
       return;
@@ -1601,6 +1642,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       input.classList.remove('ok-flash'); void input.offsetWidth; input.classList.add('ok-flash');
       sprinkleFrom(input);
       c.status = 'mastered';
+      c.misses = 0;
       W.correct++;
     } else {
       fb.className = 'write-feedback no';
@@ -1609,7 +1651,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         : `Answer: <span class="expected">${esc(expected)}</span>`;
       c.status = 'learning';
       if (almost) W.correct++;  // count near-misses as known-ish
-      else if (!W.missed.includes(c.id)) W.missed.push(c.id);
+      else if (!W.missed.includes(c.id)) { W.missed.push(c.id); c.misses = (c.misses || 0) + 1; }
     }
     markWriteChecked(c);
     $('write-score').textContent = `${W.correct} right`;
@@ -1620,6 +1662,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const W = state.write;
     const pct = W.order.length ? Math.round(W.correct / W.order.length * 100) : 0;
     if (!W.celebrated) { W.celebrated = true; setTimeout(() => celebrateSet(pct), 140); }
+    const flagged = repeatMissed(deck(), W.missed);
     openModal(`
       <h3>Writing results</h3>
       <p class="modal-sub">${esc(deck().title)} · ${W.order.length} cards</p>
@@ -1630,9 +1673,12 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       </div>
       <div class="modal-actions">
         <button class="btn ghost" data-close>Done</button>
+        ${flagged.length ? `<button class="btn" id="edit-missed">Edit these ${flagged.length} prompt${flagged.length === 1 ? '' : 's'}</button>` : ''}
         ${W.missed.length ? '<button class="btn" id="write-missed">Retry missed</button>' : ''}
         <button class="btn primary" id="write-restart">Go again</button>
       </div>`);
+    const emp = $('edit-missed');
+    if (emp) emp.addEventListener('click', () => { closeModal(); openPromptEditor(flagged); });
     $('write-restart').addEventListener('click', () => {
       closeModal();
       state.write = { order: shuffleInPlace(studyCards(deck()).map(c => c.id)), idx: 0, correct: 0, checked: false, missed: [] };
@@ -1653,13 +1699,15 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const table = $('card-table');
     const q = norm(state.search);
     const starOnly = $('star-all-view')?.classList.contains('on');
+    const filter = state.cardFilter;
     const rows = d.cards
       .map((c, i) => ({ c, i }))
-      .filter(({ c }) => (!starOnly || c.starred)
+      .filter(({ c }) => (!filter || filter.has(c.id))
+        && (!starOnly || c.starred)
         && (!q || norm(c.q).includes(q) || norm(c.a).includes(q) || norm(c.ex).includes(q)));
   
     if (!rows.length) {
-      table.innerHTML = `<div class="card-row" style="grid-template-columns:1fr"><span class="cell def">${q ? 'No cards match that filter.' : 'No cards yet — add one below.'}</span></div>`;
+      table.innerHTML = `<div class="card-row" style="grid-template-columns:1fr"><span class="cell def">${q || filter ? 'No cards match that filter.' : 'No cards yet — add one below.'}</span></div>`;
     } else {
       table.innerHTML = rows.map(({ c, i }) => `
         <div class="card-row" data-id="${c.id}" draggable="true">
@@ -1683,6 +1731,12 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     wireEditorRows(table);
     wireDrag(table);
     wireCardSources(table, d);
+    const fp = $('card-filter-pill');
+    if (fp) {
+      const n = filter ? d.cards.reduce((k, c) => k + (filter.has(c.id) ? 1 : 0), 0) : 0;
+      fp.hidden = !n;
+      fp.textContent = n ? `${n} flagged · show all` : '';
+    }
   }
   
   function wireEditorRows(table) {
@@ -1756,6 +1810,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       `<span>${relTime(d.lastStudiedAt)}</span>` +
       (d.flipped ? `<span>sides swapped</span>` : '');
     els.cardsTabCount.textContent = `(${s.total})`;
+    renderRecCta(d);
   }
   
   /* ---------------- import / export / share ---------------- */
@@ -1947,7 +2002,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       title: d.title,
       flipped: !!d.flipped,
       lastStudiedAt: d.lastStudiedAt || 0,
-      cards: d.cards.map(c => ({ q: c.q, a: c.a, ex: c.ex, starred: !!c.starred, status: c.status || 'new' })),
+      cards: d.cards.map(c => ({ q: c.q, a: c.a, ex: c.ex, starred: !!c.starred, status: c.status || 'new', misses: c.misses || 0 })),
     }));
     const stamp = new Date().toISOString().slice(0, 10);
     download(`flashcards_library_${stamp}.json`,
@@ -1986,7 +2041,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       if (!row || !Array.isArray(row.cards)) { skipped++; continue; }
       const cards = row.cards.map(c => ({
         q: diacritics(c.q || ''), a: diacritics(c.a || ''), ex: diacritics(c.ex || c.note || ''),
-        starred: !!c.starred, status: c.status,
+        starred: !!c.starred, status: c.status, misses: c.misses,
       })).filter(c => c.q && c.a);
       if (!cards.length) { skipped++; continue; }
       const fp = deckFingerprint(row.title || 'Deck', cards);
@@ -1996,6 +2051,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         const nc = newCard(c.q, c.a, c.ex);
         nc.starred = c.starred;
         if (['new', 'learning', 'mastered'].includes(c.status)) nc.status = c.status;
+        if (Number.isFinite(c.misses) && c.misses > 0) nc.misses = c.misses;
         return nc;
       }));
       d.flipped = !!row.flipped;
@@ -2225,6 +2281,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       resetSessions(); renderAll();
       if (state.starredOnly) toast('Studying starred cards only');
     });
+    $('rec-cta')?.addEventListener('click', () => { state.mode = 'review'; renderAll(); });
     wireMenu();
   
     // mode tabs
@@ -2310,7 +2367,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       const W = state.write, c = writeCard();
       slideCard($('write-wrap'), 1, () => {
         if (c) {
-          if (!W.missed.includes(c.id)) W.missed.push(c.id);
+          if (!W.missed.includes(c.id)) { W.missed.push(c.id); c.misses = (c.misses || 0) + 1; }
           c.status = 'learning';
           saveStore(); renderLibrary(); renderMeta();
         }
@@ -2320,6 +2377,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   
     // editor stage
     $('card-search').addEventListener('input', e => { state.search = e.target.value; renderEditor(); });
+    $('card-filter-pill')?.addEventListener('click', () => { state.cardFilter = null; renderEditor(); });
     $('star-all-view').addEventListener('click', function () {
       this.classList.toggle('on');
       renderEditor();

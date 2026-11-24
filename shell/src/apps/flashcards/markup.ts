@@ -130,6 +130,7 @@ export const FLASHCARDS_MARKUP = `<div class="app">
           <div id="fc-source-banner" class="fc-source-banner"></div>
         </div>
         <div class="deck-actions">
+          <button class="btn small primary" id="rec-cta" hidden></button>
           <button class="pill" id="starred-filter" title="Study starred cards only (*)"><i class="dot"></i>Starred only</button>
           <button class="btn small ghost" id="share-btn" title="Copy a static snapshot URL of this deck">Snapshot link</button>
           <div class="menu-wrap">
@@ -278,6 +279,7 @@ export const FLASHCARDS_MARKUP = `<div class="app">
           <div class="editor-toolbar">
             <input class="search-input" id="card-search" placeholder="filter cards…" aria-label="Filter cards">
             <div class="spacer"></div>
+            <button class="btn small" id="card-filter-pill" hidden></button>
             <button class="btn small" id="star-all-view" title="Show only starred rows">Starred</button>
             <button class="btn small ghost" id="reset-progress">Reset progress</button>
           </div>

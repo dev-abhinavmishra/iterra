@@ -9,7 +9,9 @@ import type {
   ErrorRecord,
   Problem,
   ReviewState,
+  SolveAssistance,
 } from './types';
+import { usedHintAssistance } from './cues';
 
 export interface GradedAttempt extends Attempt {
   result: AttemptResult;
@@ -19,9 +21,9 @@ export function graded(attempts: Attempt[]): GradedAttempt[] {
   return attempts.filter((a): a is GradedAttempt => a.result != null);
 }
 
-/** Unaided success: graded correct with hintLevel 0 (solution never revealed). */
+/** Unaided success: graded correct with no hint surface used. */
 export function unaidedSuccess(attempts: Attempt[]): { hits: number; of: number; rate: number | null } {
-  const g = graded(attempts).filter((a) => a.hintLevel === 0);
+  const g = graded(attempts).filter((a) => !usedHintAssistance(a));
   const hits = g.filter((a) => a.result === 'correct').length;
   return { hits, of: g.length, rate: g.length ? hits / g.length : null };
 }
@@ -37,6 +39,24 @@ export function hintLevelSuccess(attempts: Attempt[]): { level: number; hits: nu
     byLevel.set(a.hintLevel, b);
   }
   return [1, 2, 3, 4].map((level) => ({ level, ...(byLevel.get(level) ?? { hits: 0, of: 0 }) }));
+}
+
+/** Correct solves split by the assistance stamped when they were solved. */
+export function solveAssistanceCounts(
+  attempts: Attempt[],
+): { assistance: SolveAssistance; solves: number }[] {
+  const counts: Record<SolveAssistance, number> = {
+    independent: 0,
+    'hint-assisted': 0,
+    'cue-assisted': 0,
+  };
+  for (const a of graded(attempts)) {
+    if (a.result === 'correct' && a.solveAssistance) counts[a.solveAssistance] += 1;
+  }
+  return (['independent', 'hint-assisted', 'cue-assisted'] as SolveAssistance[]).map((assistance) => ({
+    assistance,
+    solves: counts[assistance],
+  }));
 }
 
 /** Confidence calibration: predicted vs actual success, per confidence band. */
@@ -117,7 +137,7 @@ export function topicCoverage(
     .map(([topic, v]) => {
       const tAttempts = g.filter((a) => v.ids.has(a.problemId));
       const attempted = new Set(tAttempts.map((a) => a.problemId)).size;
-      const unaided = tAttempts.filter((a) => a.hintLevel === 0);
+      const unaided = tAttempts.filter((a) => !usedHintAssistance(a));
       const unaidedHits = unaided.filter((a) => a.result === 'correct').length;
       return {
         topic,

@@ -85,9 +85,17 @@ Use the primitives — do not re-roll buttons/inputs/dialogs:
 Flat by default — depth comes from surface shifts (`sheet` over `paper`) and
 1px `line` borders. Shadows only on floating layers: dialogs/menus
 (`shadow-xl`/`shadow-2xl`), primary button gets a hairline `0 1px 0` shade.
-No glassmorphism, no glows, no gradient meshes. `.terrain-map` may draw a
+No glows, no gradient meshes. `.terrain-map` may draw a
 64px hairline grid behind workspaces — background texture only, never behind
 dense content columns.
+
+**Exception — the Today landing (`.it-landing`):** the `#/` workspace home is
+a glass observatory over a green landscape. `.it-glass` surfaces and the
+`.it-hero` mosaic tiles use translucent `sheet` fills + `backdrop-filter`
+blur/saturate with a specular top edge; `.it-landing` re-declares the
+semantic tokens toward moss so the whole page reads greener in both themes.
+Glass stays scoped to this page — never leak it into place chrome or dense
+work surfaces.
 
 ## 7. Do's and Don'ts
 
@@ -101,8 +109,8 @@ dense content columns.
   rhythm pads) while sharing the atlas chrome around them.
 
 **Don't**
-- No gradients, purple or otherwise. No neon, no glass cards, no drop-shadow
-  depth on static surfaces.
+- No neon, no glass cards outside the `.it-landing` exception above, no
+  drop-shadow depth on static surfaces.
 - No Inter/Roboto/system stack as the chosen face; no emoji in UI chrome.
 - No blinking/animated status dots except `live-dot` for true live state.
 - No nested card-on-card decoration — use border or tonal shift (max depth 2).
@@ -148,8 +156,8 @@ dense content columns.
 Bias toward: token-driven surfaces, serif display moments, mono provenance
 labels, flat depth, quiet chrome that lets the eight instruments shine.
 Reject: fixed-palette utilities (`stone-*`, `bg-white`, `emerald-*`) anywhere
-outside `.it-place-*` internals; new fonts; gradient/glass/neon motifs;
-animated decorations; shadow depth on static cards.
+outside `.it-place-*` internals; new fonts; neon motifs; glass outside the
+`.it-landing` scope; animated decorations; shadow depth on static cards.
 
 Self-check before shipping: does every color reference a `--color-*` token?
 Does it stay legible with `data-theme="graphite"`? Does Escape/Tab/focus work?

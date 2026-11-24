@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Quiz } from '../../types';
+import { Note, Quiz } from '../../types';
 import { Btn, Icon, IconBtn, ProgressBar } from '../ui/primitives';
 import { recordQuizAttempt, correctOptionIndex } from '../../services/studyService';
 import { placeActive } from '../../../active';
 
 interface QuizRunnerProps {
     quiz: Quiz;
+    /** The note the quiz was generated from, when known — shown as honest
+        provenance ("AI · <title>"). Never a fabricated locator. */
+    sourceNote?: Note;
     onExit: (quiz: Quiz) => void;
 }
 
@@ -13,7 +16,7 @@ const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 /* One question at a time: pick → reveal → next. Each completed run is
    persisted as an attempt via recordQuizAttempt. */
-const QuizRunner: React.FC<QuizRunnerProps> = ({ quiz: initialQuiz, onExit }) => {
+const QuizRunner: React.FC<QuizRunnerProps> = ({ quiz: initialQuiz, sourceNote, onExit }) => {
     const [quiz, setQuiz] = useState(initialQuiz);
     const quizRef = useRef(quiz);
     quizRef.current = quiz;
@@ -122,6 +125,11 @@ const QuizRunner: React.FC<QuizRunnerProps> = ({ quiz: initialQuiz, onExit }) =>
             <header className="h-14 shrink-0 border-b border-line flex items-center px-4 gap-3">
                 <IconBtn icon="arrow_back" title="Back to quizzes" onClick={exit} />
                 <span className="font-serif text-lg text-ink truncate">{quiz.title || 'Untitled quiz'}</span>
+                {sourceNote && (
+                    <span className="font-mono text-[10px] text-ink-3 hidden sm:inline truncate">
+                        AI · {sourceNote.title || 'untitled note'}
+                    </span>
+                )}
                 <span className="flex-1" />
                 <span className="font-mono text-xs text-ink-3">{idx + 1}/{total}</span>
             </header>
@@ -133,6 +141,11 @@ const QuizRunner: React.FC<QuizRunnerProps> = ({ quiz: initialQuiz, onExit }) =>
                     <div key={idx} className="rise">
                         <p className="font-mono text-[11px] text-ink-3 mb-2">question {idx + 1}</p>
                         <h2 className="font-serif text-xl sm:text-2xl leading-snug text-ink">{question.question}</h2>
+                        {question.source && (
+                            <p className="font-mono text-[10px] text-ink-3 mt-2 leading-snug">
+                                AI · {question.source.excerpt ?? question.source.label}
+                            </p>
+                        )}
                     </div>
 
                     {/* answer sheet — ruled like the back of a card */}

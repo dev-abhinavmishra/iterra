@@ -55,6 +55,19 @@ export type Draft = {
   savedAt: number; // when that version was last touched
 };
 
+/** Where the pen was last resting — which page, which textblock (in document
+ *  order), and the caret's offset inside it. Text offsets survive edits far
+ *  better than raw ProseMirror positions; a stale anchor simply fails to
+ *  resolve and the chip goes away. `dismissed` keeps a "not now" answer from
+ *  nagging on every reopen; the next caret move files a fresh anchor. */
+export type ResumeAnchor = {
+  noteId: string;
+  block: number;
+  offset: number;
+  at: number;
+  dismissed?: boolean;
+};
+
 const DRAFT_GAP = 30 * 60 * 1000;
 const DRAFT_LIMIT = 12;
 
@@ -65,6 +78,7 @@ type AppState = {
   folders: Folder[];
   drafts: Record<string, Draft[]>;
   activeNoteId: string | null;
+  resumeAnchor: ResumeAnchor | null;
   activeFolder: string;
   searchQuery: string;
   sortOrder: SortOrder;
@@ -84,6 +98,8 @@ type AppState = {
   ensureDailyNote: () => string;
   togglePin: (id: string) => void;
   setActiveNote: (id: string | null) => void;
+  setResumeAnchor: (anchor: Omit<ResumeAnchor, 'dismissed'> | null) => void;
+  dismissResumeAnchor: () => void;
   setSearchQuery: (query: string) => void;
   setActiveFolder: (folder: string) => void;
   setSortOrder: (order: SortOrder) => void;
@@ -150,6 +166,7 @@ export const useStore = create<AppState>()(
       drafts: {},
       writeSeq: 0,
       activeNoteId: 'welcome',
+      resumeAnchor: null,
       activeFolder: 'All Notes',
       searchQuery: '',
       sortOrder: 'modified',
@@ -358,6 +375,14 @@ export const useStore = create<AppState>()(
           }
         }
       },
+      /* a fresh caret position is a fresh offer — writing the anchor clears
+         any earlier "not now" so the resume chip can surface again later */
+      setResumeAnchor: (anchor) => set({
+        resumeAnchor: anchor ? { ...anchor, dismissed: false } : null,
+      }),
+      dismissResumeAnchor: () => set(state =>
+        state.resumeAnchor ? { resumeAnchor: { ...state.resumeAnchor, dismissed: true } } : {}
+      ),
       setSearchQuery: (query) => set({ searchQuery: query }),
       setActiveFolder: (folder) => set({ activeFolder: folder }),
       setSortOrder: (order) => set({ sortOrder: order }),
@@ -490,6 +515,7 @@ export const useStore = create<AppState>()(
           folders: state.folders ?? [],
           drafts: (state as { drafts?: Record<string, Draft[]> }).drafts ?? {},
           activeNoteId: state.activeNoteId ?? null,
+          resumeAnchor: (state as { resumeAnchor?: ResumeAnchor | null }).resumeAnchor ?? null,
           activeFolder: state.activeFolder ?? 'All Notes',
           sortOrder: state.sortOrder ?? 'modified',
           prefs: {
@@ -515,6 +541,7 @@ export const useStore = create<AppState>()(
         folders: state.folders,
         drafts: state.drafts,
         activeNoteId: state.activeNoteId,
+        resumeAnchor: state.resumeAnchor,
         activeFolder: state.activeFolder,
         sortOrder: state.sortOrder,
         prefs: state.prefs,

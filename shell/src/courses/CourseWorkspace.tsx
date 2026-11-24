@@ -30,10 +30,12 @@ import {
 } from '../ui/primitives';
 import {
   ObjectRow,
+  iconForObjectType,
   type WorkspaceObject,
   toWorkspaceObject,
 } from '../ui/ObjectRow';
 import { WorkspaceChainView } from '../integration/components';
+import { buildLinkedWorkGroups, linkedWorkLabel } from './linkedWork';
 
 export type CourseTab = 'overview' | 'materials' | 'practice' | 'schedule' | 'results';
 
@@ -42,9 +44,11 @@ interface RawLink {
   from: string;
   to: string;
   kind?: string;
+  canonicalKind?: string;
 }
 
 export interface CourseWorkspaceProps {
+  query?: string;
   course: string;
   indexes: Record<string, Entity[]>;
   entities: StoreEntity[];
@@ -58,6 +62,7 @@ export interface CourseWorkspaceProps {
 }
 
 export function CourseWorkspace({
+  query = '',
   course,
   indexes,
   entities,
@@ -69,14 +74,18 @@ export function CourseWorkspace({
   onEnter,
   onHome,
 }: CourseWorkspaceProps) {
-  const [activeTab, setActiveTab] = useState<CourseTab>('overview');
+  const requestedTab = new URLSearchParams(query).get('tab');
+  const activeTab: CourseTab = requestedTab === 'materials' || requestedTab === 'practice' ||
+    requestedTab === 'schedule' || requestedTab === 'results' ? requestedTab : 'overview';
+  const setActiveTab = (tab: CourseTab) => {
+    const params = new URLSearchParams(query);
+    if (tab === 'overview') params.delete('tab');
+    else params.set('tab', tab);
+    const suffix = params.toString();
+    onGo(`#/c/${encodeURIComponent(course)}${suffix ? '?' + suffix : ''}`);
+  };
   const key = course.toLowerCase();
   const unfiled = key === 'unfiled';
-
-  // Reset to overview when switching courses
-  useEffect(() => {
-    setActiveTab('overview');
-  }, [course]);
 
   const courseEnt = useMemo(
     () =>
@@ -328,6 +337,15 @@ export function CourseWorkspace({
     }
     return map;
   }, [allLinks, entities]);
+
+  // Linked work grouped under quiz/commitment/assessment rows — built only
+  // from links that already exist (scheduledFor/derivedFrom/…) plus a
+  // quiz's own sourceNoteId provenance, so a Biology quiz can carry its
+  // study block, lecture note, and review deck with it.
+  const linkedByKey = useMemo(
+    () => buildLinkedWorkGroups({ anchors: courseObjects, entities, indexes, links: allLinks }),
+    [courseObjects, entities, indexes, allLinks],
+  );
 
   // Course-level backlinks
   const courseBacklinks = useMemo(() => {
@@ -605,6 +623,7 @@ export function CourseWorkspace({
 
   const renderObjectWithRelationships = (item: WorkspaceObject, primaryActionLabel?: string, onPrimaryAction?: (w: WorkspaceObject) => void) => {
     const rels = relationshipsByKey.get(item.key) || [];
+    const linked = linkedByKey.get(item.key) || [];
     return (
       <div key={item.key} className="border-b border-[var(--color-line)] last:border-b-0">
         <ObjectRow
@@ -617,6 +636,34 @@ export function CourseWorkspace({
           onPrimaryAction={onPrimaryAction}
           contextCourse={course}
         />
+        {linked.length > 0 && (
+          <div className="border-t border-dashed border-[var(--color-line)] bg-[var(--color-paper)]/30 px-3.5 py-1.5 pl-12">
+            <div className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
+              Linked work
+            </div>
+            <div className="space-y-0.5">
+              {linked.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => onGo(c.url)}
+                  title={c.sub || c.title}
+                  className="flex w-full items-center gap-2 rounded-[4px] px-1.5 py-1 text-left hover:bg-[var(--color-accent-soft)] cursor-pointer"
+                >
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center text-[var(--color-accent)]">
+                    {iconForObjectType(c.type, c.app)}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[var(--color-ink)]">
+                    {c.title}
+                  </span>
+                  <span className="shrink-0 font-mono text-[10px] text-[var(--color-faint)]">
+                    {linkedWorkLabel(c)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
         {rels.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 bg-[var(--color-paper)]/45 px-3.5 py-1.5 pl-12 border-t border-dashed border-[var(--color-line)]">
             {rels.slice(0, 4).map((r, idx) => (

@@ -168,6 +168,14 @@ const ReviewSession: React.FC<ReviewSessionProps> = ({ deck: initialDeck, onExit
                             <div className="flex-1 overflow-y-auto custom-scrollbar px-8 py-10 flex items-center justify-center card-ruled">
                                 <p className="font-serif text-lg sm:text-xl leading-relaxed text-ink text-center">{card.back}</p>
                             </div>
+                            {card.source && (
+                                <div className="px-8 pb-2 flex items-start justify-center gap-1.5">
+                                    <Icon name="format_quote" size={12} className="text-ink-3 mt-0.5 shrink-0" />
+                                    <p className="font-mono text-[10px] text-ink-3 text-center leading-snug">
+                                        AI · {card.source.excerpt ?? card.source.label}
+                                    </p>
+                                </div>
+                            )}
                             <div className="h-8 border-t border-line flex items-center justify-center">
                                 <span className="font-mono text-[10px] text-ink-3">grade it — keys 1–4</span>
                             </div>

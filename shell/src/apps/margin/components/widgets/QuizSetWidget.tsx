@@ -3,19 +3,32 @@ import { Btn, Icon } from '../ui/primitives';
 import { createQuiz, correctOptionIndex } from '../../services/studyService';
 import { sanitizeHtml } from '../../services/sanitize';
 import { QuizQuestion } from '../../types';
+import GeneratedReviewModal from '../study/GeneratedReviewModal';
+import { normalizeGeneratedQuestions } from '../../services/generatedStudy';
 
 interface QuizSetWidgetProps {
     data: any;
 }
 
+/* Ask-corpus provenance — same honesty rule as the card widget: mark the
+   material AI-generated, cite only what the payload actually carries. */
+const widgetSourceLabel = (data: any): string => {
+    if (typeof data?.sourceLabel === 'string' && data.sourceLabel.trim()) return data.sourceLabel;
+    if (typeof data?.noteTitle === 'string' && data.noteTitle.trim()) return `AI-generated · ${data.noteTitle}`;
+    return 'AI-generated · your library';
+};
+
 /* Index-card quiz: paper option buttons with letter keys. Selecting an option
-   flips the card to reveal correct/incorrect after "Check answers". */
+   flips the card to reveal correct/incorrect after "Check answers".
+   Saving is gated by an editable review — generated questions are drafts
+   until the user keeps them. */
 const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
-    const questions: QuizQuestion[] = data.questions || (Array.isArray(data) ? data : []);
+    const questions: QuizQuestion[] = normalizeGeneratedQuestions(data);
     const [selected, setSelected] = useState<Record<number, number>>({});
     const [checked, setChecked] = useState(false);
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [reviewOpen, setReviewOpen] = useState(false);
 
     const answered = Object.keys(selected).length;
     const score = questions.reduce(
@@ -28,15 +41,15 @@ const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
         setSelected(prev => ({ ...prev, [qi]: oi }));
     };
 
-    const handleSave = async () => {
-        if (saved || saving || questions.length === 0) return;
+    const persist = async (kept: QuizQuestion[]) => {
+        if (saved || saving || kept.length === 0) return;
         setSaving(true);
         try {
             /* Integrated: quizzes save as a Flashcards deck — each question
                becomes a card (front: question + options, back: the answer). */
             if ((window as any).__iterraIntegrated) {
                 const it = (window as unknown as { iterra?: any }).iterra;
-                const cards = questions.map(q => {
+                const cards = kept.map(q => {
                     const ci = correctOptionIndex(q.options, q.answer);
                     const opts = (q.options || []).map((o, i) =>
                         `${String.fromCharCode(65 + i)}. ${o}`).join('\n');
@@ -52,13 +65,14 @@ const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
                     payload: { cards, deckTitle: data.title || 'Quiz from Ask' },
                 });
             } else {
-                await createQuiz(data.title || 'Quiz from Ask', questions);
+                await createQuiz(data.title || 'Quiz from Ask', kept);
             }
             setSaved(true);
         } catch (e) {
             console.error('Save quiz failed', e);
         } finally {
             setSaving(false);
+            setReviewOpen(false);
         }
     };
 
@@ -70,7 +84,9 @@ const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-line">
                 <div className="min-w-0">
                     <h4 className="font-serif text-base text-ink truncate">{data.title || 'Quiz'}</h4>
-                    <p className="font-mono text-[10px] text-ink-3 mt-0.5">{questions.length} questions</p>
+                    <p className="font-mono text-[10px] text-ink-3 mt-0.5">
+                        {questions.length} questions · AI-generated
+                    </p>
                 </div>
                 <Icon name="quiz" size={18} className="text-ink-3" />
             </div>
@@ -81,7 +97,14 @@ const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
                     <div key={qi}>
                         <div className="flex gap-3 mb-2.5">
                             <span className="font-mono text-[10px] text-ink-3 mt-1 shrink-0 w-5">{String(qi + 1).padStart(2, '0')}</span>
-                            <p className="text-sm font-medium text-ink leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.question) }} />
+                            <div className="min-w-0">
+                                <p className="text-sm font-medium text-ink leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.question) }} />
+                                {q.source && (
+                                    <p className="font-mono text-[10px] text-ink-3 mt-1 leading-snug">
+                                        AI · {q.source.excerpt ?? q.source.label}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-8">
                             {q.options?.map((opt, oi) => {
@@ -133,14 +156,23 @@ const QuizSetWidget: React.FC<QuizSetWidgetProps> = ({ data }) => {
                     )}
                     <Btn
                         size="sm"
-                        onClick={handleSave}
+                        onClick={() => setReviewOpen(true)}
                         disabled={saved || saving || questions.length === 0}
-                        icon={saved ? 'check' : 'bookmark_add'}
+                        icon={saved ? 'check' : 'rate_review'}
                     >
-                        {saved ? (integrated ? 'Saved to Flashcards' : 'Saved to Study') : saving ? 'Saving…' : (integrated ? 'Save to Flashcards' : 'Save to Study')}
+                        {saved ? (integrated ? 'Saved to Flashcards' : 'Saved to Study') : saving ? 'Saving…' : 'Review & save'}
                     </Btn>
                 </div>
             </div>
+
+            <GeneratedReviewModal
+                kind="quiz"
+                open={reviewOpen}
+                items={questions}
+                sourceLabel={widgetSourceLabel(data)}
+                onClose={() => setReviewOpen(false)}
+                onConfirm={kept => { void persist(kept); }}
+            />
         </div>
     );
 };

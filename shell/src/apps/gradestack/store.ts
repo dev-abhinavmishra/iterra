@@ -49,6 +49,10 @@ export interface Test {
   /* question → topic map, written back by the createTargetedReview command
      so follow-up review work can reuse it next time */
   questionTopics?: Record<number, string>;
+  /* question number → prompt/text when the assessment source provides it.
+     Review cards need the actual question wording to be practicable without
+     the original answer sheet; scans never carry prompts. */
+  questionPrompts?: Record<number, string>;
 }
 
 export interface Scan {

@@ -5,9 +5,11 @@ import DeckGrid from '../components/study/DeckGrid';
 import DeckEditor from '../components/study/DeckEditor';
 import ReviewSession from '../components/study/ReviewSession';
 import QuizRunner from '../components/study/QuizRunner';
-import { createDeck, createQuiz, correctOptionIndex, dueCards, getAllDecks, getAllQuizzes, totalDue } from '../services/studyService';
+import GeneratedReviewModal from '../components/study/GeneratedReviewModal';
+import { createDeck, createQuiz, dueCards, getAllDecks, getAllQuizzes, totalDue } from '../services/studyService';
 import { deleteQuiz } from '../services/storageService';
 import { parseJsonArray, runAction } from '../services/aiService';
+import { normalizeGeneratedCards, normalizeGeneratedQuestions, sourceForItem, sourceLabelFor, GeneratedCardItem } from '../services/generatedStudy';
 
 interface StudyViewProps {
     notes: Note[];
@@ -25,6 +27,12 @@ type Screen =
 
 type GenTarget = 'deck' | 'quiz';
 
+/* Generated material waits here for user review — edit/discard per item —
+   before createDeck/createQuiz persists anything. */
+type PendingReview =
+    | { kind: 'deck'; title: string; sourceNote: Note; items: GeneratedCardItem[] }
+    | { kind: 'quiz'; title: string; sourceNote: Note; items: QuizQuestion[] };
+
 const usableNotes = (notes: Note[]): Note[] =>
     notes.filter(n => (n.transcript && n.transcript.trim()) || (n.content && n.content.trim()));
 
@@ -37,6 +45,7 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
     const [picking, setPicking] = useState<GenTarget | null>(null);
     const [generating, setGenerating] = useState(false);
     const [genError, setGenError] = useState<string | null>(null);
+    const [review, setReview] = useState<PendingReview | null>(null);
 
     const refresh = useCallback(async () => {
         const [d, q] = await Promise.all([getAllDecks(), getAllQuizzes()]);
@@ -95,36 +104,31 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
             if (target === 'deck') {
                 const res = await runAction('flashcards', text);
                 if (res.error) { setGenError(res.error); return; }
-                const cards = parseJsonArray<{ front?: string; back?: string }>(res.content)
-                    .filter(c => typeof c?.front === 'string' && typeof c?.back === 'string' && c.front.trim() && c.back.trim());
-                if (cards.length === 0) {
+                const items = normalizeGeneratedCards(parseJsonArray(res.content))
+                    .map(c => ({
+                        ...c,
+                        source: sourceForItem(`${c.front}\n${c.back}`, note) ?? c.source,
+                    }));
+                if (items.length === 0) {
                     setGenError("Couldn't make cards from that note. Try another one.");
                 } else {
-                    const deck = await createDeck(note.title || 'Untitled deck', cards as { front: string; back: string }[], note.id);
-                    await refresh();
+                    /* nothing persists yet — the review modal gates the deck. */
                     setPicking(null);
-                    setScreen({ kind: 'edit', deck });
+                    setReview({ kind: 'deck', title: note.title || 'Untitled deck', sourceNote: note, items });
                 }
             } else {
                 const res = await runAction('quiz', text);
                 if (res.error) { setGenError(res.error); return; }
-                const questions = parseJsonArray<QuizQuestion>(res.content)
-                    .filter(q => typeof q?.question === 'string' && Array.isArray(q?.options)
-                        && q.options.length >= 2 && typeof q?.answer === 'string')
-                    // Keep only questions whose answer resolves to an option;
-                    // normalize to the option's exact text so grading can't miss.
-                    .map(q => {
-                        const i = correctOptionIndex(q.options, q.answer);
-                        return i === -1 ? null : { ...q, answer: q.options[i] };
-                    })
-                    .filter((q): q is QuizQuestion => q !== null);
-                if (questions.length === 0) {
+                const items = normalizeGeneratedQuestions(parseJsonArray(res.content))
+                    .map(q => ({
+                        ...q,
+                        source: sourceForItem(`${q.question}\n${q.answer}`, note) ?? q.source,
+                    }));
+                if (items.length === 0) {
                     setGenError("Couldn't make a quiz from that note. Try another one.");
                 } else {
-                    const quiz = await createQuiz(note.title || 'Untitled quiz', questions, note.id);
-                    await refresh();
                     setPicking(null);
-                    setScreen({ kind: 'quiz', quiz });
+                    setReview({ kind: 'quiz', title: note.title || 'Untitled quiz', sourceNote: note, items });
                 }
             }
         } catch (e) {
@@ -132,6 +136,43 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
             setGenError('Something went wrong. Try again.');
         } finally {
             setGenerating(false);
+        }
+    };
+
+    /* ---- review → persist ---- */
+
+    /* review-modal failures surface as a toast — genError renders inside the
+       (now closed) pick modal, so it would be invisible here. The review
+       stays open so the user's edits aren't lost. */
+    const reviewToast = (text: string) => {
+        try {
+            window.dispatchEvent(new CustomEvent('iterra:toast', { detail: { text } }));
+        } catch { /* no host listener — console already has the error */ }
+    };
+
+    const confirmDeckReview = async (cards: GeneratedCardItem[]) => {
+        if (!review || review.kind !== 'deck') return;
+        try {
+            const deck = await createDeck(review.title, cards, review.sourceNote.id);
+            await refresh();
+            setReview(null);
+            setScreen({ kind: 'edit', deck });
+        } catch (e) {
+            console.error('Save generated deck failed', e);
+            reviewToast('Could not save the deck — your review is still open. Try again.');
+        }
+    };
+
+    const confirmQuizReview = async (questions: QuizQuestion[]) => {
+        if (!review || review.kind !== 'quiz') return;
+        try {
+            const quiz = await createQuiz(review.title, questions, review.sourceNote.id);
+            await refresh();
+            setReview(null);
+            setScreen({ kind: 'quiz', quiz });
+        } catch (e) {
+            console.error('Save generated quiz failed', e);
+            reviewToast('Could not save the quiz — your review is still open. Try again.');
         }
     };
 
@@ -178,6 +219,7 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
             <main className="flex-1 flex flex-col min-w-0 bg-paper">
                 <QuizRunner
                     quiz={screen.quiz}
+                    sourceNote={notes.find(n => n.id === screen.quiz.sourceNoteId)}
                     onExit={() => { setScreen({ kind: 'browse' }); refresh(); }}
                 />
             </main>
@@ -323,6 +365,29 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                     )}
                 </div>
             </Modal>
+
+            {/* generated-material review — edit/discard before anything
+                persists to a deck or quiz */}
+            {review?.kind === 'deck' && (
+                <GeneratedReviewModal
+                    kind="deck"
+                    open
+                    items={review.items}
+                    sourceLabel={`from ${sourceLabelFor(review.sourceNote)}`}
+                    onClose={() => setReview(null)}
+                    onConfirm={confirmDeckReview}
+                />
+            )}
+            {review?.kind === 'quiz' && (
+                <GeneratedReviewModal
+                    kind="quiz"
+                    open
+                    items={review.items}
+                    sourceLabel={`from ${sourceLabelFor(review.sourceNote)}`}
+                    onClose={() => setReview(null)}
+                    onConfirm={confirmQuizReview}
+                />
+            )}
         </main>
     );
 };

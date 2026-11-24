@@ -5,7 +5,9 @@ import { openDeep } from '../lib/iterra';
 import {
   unaidedSuccess, hintLevelSuccess, calibration, calibrationGap,
   errorRecurrence, retrySuccessAfterDelay, topicCoverage, totals,
+  solveAssistanceCounts,
 } from '../lib/metrics';
+import { SOLVE_ASSISTANCE_LABELS } from '../lib/cues';
 import { fmtDate, fmtMinutes } from '../lib/utils';
 import { HINT_LABELS } from '../components/ProofRail';
 import type { HintLevel } from '../lib/types';
@@ -19,6 +21,7 @@ export function ProgressView() {
 
   const t = totals(attempts, problems);
   const unaided = unaidedSuccess(attempts);
+  const solves = solveAssistanceCounts(attempts);
   const hints = hintLevelSuccess(attempts);
   const cal = calibration(attempts);
   const gap = calibrationGap(attempts);
@@ -67,6 +70,18 @@ export function ProgressView() {
                   <td className="mono">{retry.of}</td>
                   <td className="mono">{pct(retry.rate)}</td>
                 </tr>
+              </tbody>
+            </table>
+            <div className="kicker mb-2 mt-4">correct solves — by assistance</div>
+            <table className="met-table">
+              <thead><tr><th>solve</th><th>count</th></tr></thead>
+              <tbody>
+                {solves.map((s) => (
+                  <tr key={s.assistance}>
+                    <td>{SOLVE_ASSISTANCE_LABELS[s.assistance]}</td>
+                    <td className="mono">{s.solves}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </section>

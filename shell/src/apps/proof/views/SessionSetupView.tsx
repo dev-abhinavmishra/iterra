@@ -319,7 +319,7 @@ function SessionRunner({
                 <div className="mt-0.5 flex gap-1.5">
                   {p && <span className="chip chip--blue !text-[8.5px]">{p.topic}</span>}
                   {p && <DiffMeter level={p.difficulty as 1 | 2 | 3 | 4 | 5} className="!h-[8px]" />}
-                  {att && <span className="chip !text-[8.5px]">{att.hintLevel > 0 ? `h${att.hintLevel}` : 'unaided'}</span>}
+                  {att && <span className="chip !text-[8.5px]">{att.hintLevel > 0 ? `h${att.hintLevel}` : att.cueReveals?.length || att.solveAssistance === 'cue-assisted' ? 'cue' : 'unaided'}</span>}
                 </div>
               </div>
               {isNext && (

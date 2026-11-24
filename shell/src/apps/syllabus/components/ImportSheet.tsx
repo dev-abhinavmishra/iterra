@@ -203,8 +203,8 @@ export function ImportSheet({ initial, courseId, onClose }: {
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               <button className="btn" onClick={() => {
                 onClose();
-                if (window.iterra?.open) window.iterra.open('#/');
-                else window.location.hash = '/';
+                if (window.iterra?.open) window.iterra.open('#/today');
+                else window.location.hash = '/today';
               }}>See Today’s plan</button>
               <button className="btn btn--ghost" onClick={onClose}>Keep planning</button>
             </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { unaidedSuccess, hintLevelSuccess, calibrationGap, errorRecurrence, topicCoverage, totals } from './metrics';
+import { unaidedSuccess, hintLevelSuccess, calibrationGap, errorRecurrence, topicCoverage, totals, solveAssistanceCounts } from './metrics';
 import type { Attempt, ErrorRecord, Problem } from './types';
 
 const att = (patch: Partial<Attempt>): Attempt => ({
@@ -15,14 +15,29 @@ const att = (patch: Partial<Attempt>): Attempt => ({
 });
 
 describe('metrics', () => {
-  it('unaided success counts only hintLevel-0 attempts', () => {
+  it('unaided success counts only attempts with no hint surface', () => {
     const a = att({ result: 'correct', hintLevel: 0 });
     const b = att({ result: 'correct', hintLevel: 2 });
     const c = att({ result: 'incorrect', hintLevel: 0 });
-    const r = unaidedSuccess([a, b, c]);
+    const cue = att({ result: 'correct', hintLevel: 0, cueReveals: [{ cueId: 'c1', at: 't' }] });
+    const r = unaidedSuccess([a, b, c, cue]);
     expect(r.of).toBe(2);
     expect(r.hits).toBe(1);
     expect(r.rate).toBe(0.5);
+  });
+  it('solveAssistanceCounts separates stamped correct solves', () => {
+    const r = solveAssistanceCounts([
+      att({ result: 'correct', solveAssistance: 'independent' }),
+      att({ result: 'correct', solveAssistance: 'cue-assisted' }),
+      att({ result: 'correct', solveAssistance: 'cue-assisted' }),
+      att({ result: 'incorrect', solveAssistance: 'hint-assisted' }),
+      att({ result: 'correct' }),
+    ]);
+    expect(r).toEqual([
+      { assistance: 'independent', solves: 1 },
+      { assistance: 'hint-assisted', solves: 0 },
+      { assistance: 'cue-assisted', solves: 2 },
+    ]);
   });
   it('hint-level success separates by level', () => {
     const a = att({ result: 'correct', hintLevel: 1 });

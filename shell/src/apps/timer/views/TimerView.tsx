@@ -732,8 +732,15 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
         const result = await submitOutcome(input);
         if (result.ok) {
           retryCompletionRef.current = null;
-          if (boxedTarget) setCompletionSave({ state: 'saved', url: result.url, outcome: sess ? 'partial' : 'canceled' });
-          else resetTimer();
+          /* a bound session keeps its completion board — the takeover
+             reports the minutes actually banked (partial/canceled) instead
+             of the run silently resetting. Standalone stays a quiet reset:
+             there is no Planning result to file back to. */
+          if (boxedTarget || (syllabus && inTerrain())) {
+            setCompletionSave({ state: 'saved', url: result.url, outcome: sess ? 'partial' : 'canceled' });
+          } else {
+            resetTimer();
+          }
           return;
         }
         setCompletionSave({
@@ -840,6 +847,34 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
      tick lit behind a bezel engraved '60' */
   const dialMax = Math.min(180, Math.max(60, Math.ceil(setMinutes / 30) * 30));
 
+  /* ---------- bound focus completion ----------
+     The end of a bound session reports minutes banked, not assignment
+     completion — '20 minutes recorded for Biology quiz prep' leaves room
+     for 'two chapters left'. Only a saved, non-boxed, terrain-bound focus
+     session gets the informative board; unbound/boxed/standalone keep the
+     classic takeover. */
+  const hasBinding = !!(syllabus?.block || syllabus?.commitmentId || syllabus?.courseId ||
+    syllabus?.course || syllabus?.material || syllabus?.returnUrl);
+  const boundSaved = done === 'focus' && !isBreak && !boxedTarget && hasBinding &&
+    inTerrain() && completionSave?.state === 'saved';
+  const outcomeKind = completionSave?.state === 'saved' ? completionSave.outcome : undefined;
+  const savedUrl = completionSave?.state === 'saved' ? completionSave.url : undefined;
+  /* minutes actually run — on a completed session the countdown sits at
+     zero so this is the full preset; on an early finish it's the partial */
+  const elapsedMin = Math.max(0, Math.round((cd.totalMs - cd.remainingMs) / 60000));
+  const sessionWhat = intent.trim() || label || 'focus';
+  /* a canonical 'app:course:id' key is never a display label — prefer the
+     resolved dossier code over it */
+  const rawCourse = syllabus?.course && !syllabus.course.includes(':') ? syllabus.course : null;
+  const courseLabel = rawCourse || boundCode;
+  const recordedFor = courseLabel
+    ? (sessionWhat.toLowerCase() !== courseLabel.toLowerCase() ? `${courseLabel} · ${sessionWhat}` : courseLabel)
+    : sessionWhat;
+  const canFileBack = !!(syllabus && (syllabus.block || syllabus.commitmentId) &&
+    savedUrl?.startsWith('/apps/syllabus/'));
+  const dossierCode = boundCode ?? (courseLabel && !courseLabel.includes(':') ? courseLabel : null);
+  const returnLabel = courseLabel && !courseLabel.includes(':') ? courseLabel : dossierCode;
+
   /* ======================= RENDER ======================= */
   return (
     <div className="flex-1 w-full flex flex-col items-center justify-center px-4 md:px-8 py-6 relative">
@@ -904,7 +939,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                     onClick={() =>
                       (window as any).iterra?.open?.(
                         boxedTarget ? boxedFocusUrl(boxedTarget) : syllabus.from === 'terrain'
-                          ? (syllabus.course ? `#/c/${encodeURIComponent(syllabus.course)}` : '#/')
+                          ? (syllabus.course ? `#/c/${encodeURIComponent(syllabus.course)}` : '#/today')
                           : `/apps/${syllabus.from}/`,
                       )
                     }
@@ -1295,7 +1330,18 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                         {!completionSave.durable && !completionSave.conflict && ' A retry copy could not be saved, so keep Timer open and retry before leaving.'}
                       </span>
                     : done === 'break' ? 'BOARD READY — NEXT DEPARTURE AWAITS' : thenBreak > 0 ? `RECESS ${thenBreak}M BOARDING` :
-                      completionSave?.outcome === 'canceled' ? 'UNDER ONE MINUTE' : boxedTarget ? 'FOCUS TIME SAVED' : 'TIME WELL KEPT'}
+                      boundSaved ? (
+                        <span className="block">
+                          <span className="block">
+                            {outcomeKind === 'canceled'
+                              ? 'UNDER ONE MINUTE — NO STUDY TIME BANKED'
+                              : `${elapsedMin} MINUTE${elapsedMin === 1 ? '' : 'S'} RECORDED${recordedFor ? ` FOR ${recordedFor.toUpperCase()}` : ''}`}
+                          </span>
+                          <span className="block mt-3" style={{ letterSpacing: '0.2em', opacity: 0.7 }}>
+                            {`SAVED TO TIMER${savedUrl?.startsWith('/apps/syllabus/') ? ' · PLANNING' : ''}${boundCode ? ` · ${boundCode.toUpperCase()}` : ''}`}
+                          </span>
+                        </span>
+                      ) : completionSave?.outcome === 'canceled' ? 'UNDER ONE MINUTE' : boxedTarget ? 'FOCUS TIME SAVED' : 'TIME WELL KEPT'}
               </motion.p>
               <motion.div
                 initial={{ opacity: 0, y: 16 }}
@@ -1322,20 +1368,44 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                     <KeyButton variant={boxedTarget ? 'dark' : 'signal'} className="px-10 py-4 text-sm" onClick={() => { setDone(null); resetTimer(); }}>
                       Continue
                     </KeyButton>
-                    {!boxedTarget && completionSave?.state === 'saved' && thenBreak === 0 && (
-                      <KeyButton className="px-6 py-4 text-sm" onClick={() => { resetTimer(); openTerrain('#/'); }}>
-                        Back to Today
-                      </KeyButton>
-                    )}
-                    {completionSave?.state === 'saved' && (syllabus?.block || syllabus?.commitmentId) && completionSave.url?.startsWith('/apps/syllabus/') && (
-                      <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus}>
-                        Open in Planning
-                      </KeyButton>
-                    )}
-                    {!inTerrain() && !completionSave && syllabus?.block && syllabus?.returnUrl && (
-                      <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus} title="Return to Syllabus and file this time">
-                        File back → Syllabus
-                      </KeyButton>
+                    {boundSaved ? (
+                      <>
+                        {/* time banked ≠ assignment done — 'Mark prep complete'
+                            only when a completed outcome can file back; a
+                            partial files its minutes, a canceled run has
+                            nothing to file */}
+                        {canFileBack && outcomeKind !== 'canceled' && (
+                          <KeyButton variant="signal" className="px-10 py-4 text-sm" onClick={fileBackToSyllabus}>
+                            {outcomeKind === 'partial' ? 'File time → Planning' : 'Mark prep complete'}
+                          </KeyButton>
+                        )}
+                        <KeyButton className="px-6 py-4 text-sm" onClick={() => { resetTimer(); openTerrain('#/p/syllabus?p=today'); }}>
+                          Plan another block
+                        </KeyButton>
+                        {dossierCode && returnLabel && (
+                          <KeyButton className="px-6 py-4 text-sm" onClick={() => { resetTimer(); openTerrain(`#/c/${encodeURIComponent(dossierCode)}`); }}>
+                            {`Return to ${returnLabel}`}
+                          </KeyButton>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {!boxedTarget && completionSave?.state === 'saved' && thenBreak === 0 && (
+                          <KeyButton className="px-6 py-4 text-sm" onClick={() => { resetTimer(); openTerrain('#/today'); }}>
+                            Back to Today
+                          </KeyButton>
+                        )}
+                        {completionSave?.state === 'saved' && (syllabus?.block || syllabus?.commitmentId) && completionSave.url?.startsWith('/apps/syllabus/') && (
+                          <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus}>
+                            Open in Planning
+                          </KeyButton>
+                        )}
+                        {!inTerrain() && !completionSave && syllabus?.block && syllabus?.returnUrl && (
+                          <KeyButton className="px-10 py-4 text-sm" onClick={fileBackToSyllabus} title="Return to Syllabus and file this time">
+                            File back → Syllabus
+                          </KeyButton>
+                        )}
+                      </>
                     )}
                   </>
                 )}

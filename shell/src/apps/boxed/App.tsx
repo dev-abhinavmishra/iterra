@@ -6,7 +6,7 @@ import { StudyEntities } from '../../integration/StudySessionPlan';
 import { boxedFocusMinutes, parseBoxedFocus } from '../../integration/boxedFocus';
 import { execCommand } from '../../integration/commands';
 import { Dialog } from '../../ui/primitives';
-import { fitPriorities, planningForDay } from './planning';
+import { commitmentPriority, fitPriorities, planningForDay, planningMeta, type PlanningPriority } from './planning';
 import type { StoreEntity } from '../../hub';
 
 type Zone = 'dump' | 'top';
@@ -78,6 +78,8 @@ export default function App({ query = '' }: { query?: string }) {
   const [showPlanning, setShowPlanning] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [toast, setToast] = useState('');
+  const [fitRemainder, setFitRemainder] = useState<string[]>([]);
+  const [linkedCommitment, setLinkedCommitment] = useState<string | null>(null);
   const [returnedBlock, setReturnedBlock] = useState<string | null>(null);
   const [startingFocus, setStartingFocus] = useState(false);
   const [focusNotice, setFocusNotice] = useState<{ message: string; openTimer?: boolean } | null>(null);
@@ -86,6 +88,7 @@ export default function App({ query = '' }: { query?: string }) {
   const planningToggleRef = useRef<HTMLButtonElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const cancelEditRef = useRef(false);
+  const commitmentHandled = useRef<string | null>(null);
   const resizeRef = useRef<{ blockId: string; pointerY: number; duration: number } | null>(null);
   const [resizePreview, setResizePreview] = useState<{ blockId: string; duration: number } | null>(null);
   const presenceStateRef = useRef<{ state: State; now: Date } | null>({ state, now });
@@ -95,6 +98,14 @@ export default function App({ query = '' }: { query?: string }) {
   const { busy: planningBusy, priorities: planningPriorities } = useMemo(
     () => planningForDay(entities, state.date), [entities, state.date],
   );
+  const commitmentSources = useMemo(() => {
+    const sources = new Map<string, PlanningPriority>();
+    for (const row of entities) {
+      const priority = commitmentPriority(row);
+      if (priority) sources.set(priority.id, priority);
+    }
+    return sources;
+  }, [entities]);
   const suggested = useMemo(() => {
     const included = new Set(Object.values(board.tasks).map(task => task.commitmentId));
     return planningPriorities.filter(task => !included.has(task.id)).slice(0, 3);
@@ -104,6 +115,7 @@ export default function App({ query = '' }: { query?: string }) {
   const dumpItems = board.dumpOrder.map((id) => board.tasks[id]).filter(Boolean);
   const topItems = board.topOrder.map((id) => board.tasks[id]).filter(Boolean);
   const blocks = Object.values(board.blocks).filter((block) => board.tasks[block.taskId]).sort((a, b) => a.start.localeCompare(b.start));
+  const isFreshBoard = !dumpItems.length && !topItems.length && !blocks.length && !planningPriorities.length && !planningBusy.length;
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const today = state.date === todayKey(now);
   const canUsePlanning = state.date >= todayKey(now) && suggested.length > 0;
@@ -172,6 +184,10 @@ export default function App({ query = '' }: { query?: string }) {
     block?.focus({ preventScroll: true });
   }, [returnedBlock, state.date, query]);
 
+  useEffect(() => {
+    if (isFreshBoard) inputRef.current?.focus();
+  }, [isFreshBoard]);
+
   const startFocus = async (block: Block) => {
     const task = board.tasks[block.taskId];
     if (!task || focusStarting.current) return;
@@ -229,7 +245,7 @@ export default function App({ query = '' }: { query?: string }) {
     setDraft('');
     inputRef.current?.focus();
   };
-  const addPlanningTask = (priority: typeof suggested[number]) => {
+  const addPlanningTask = useCallback((priority: PlanningPriority) => {
     const id = newId('task');
     const task: Task = { id, title: priority.title, zone: 'top', createdAt: Date.now(),
       commitmentId: priority.id, estimateMin: priority.estimateMin };
@@ -237,7 +253,37 @@ export default function App({ query = '' }: { query?: string }) {
       if (Object.values(old.tasks).some(existing => existing.commitmentId === priority.id)) return old;
       return { ...old, tasks: { ...old.tasks, [id]: task }, topOrder: [...old.topOrder, id] };
     });
-  };
+  }, [boardEdit]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(query);
+    const commitmentId = params.get('commitment')?.trim() || null;
+    if (!commitmentId) {
+      commitmentHandled.current = null;
+      return;
+    }
+    const source = commitmentSources.get(commitmentId);
+    if (!source) {
+      commitmentHandled.current = null;
+      return;
+    }
+    if (commitmentHandled.current === commitmentId) return;
+    commitmentHandled.current = commitmentId;
+    if (!Object.values(board.tasks).some((task) => task.commitmentId === commitmentId)) addPlanningTask(source);
+    setLinkedCommitment(commitmentId);
+  }, [query, commitmentSources, addPlanningTask, board.tasks]);
+
+  useEffect(() => {
+    if (!linkedCommitment) return;
+    const task = Object.values(board.tasks).find((item) => item.commitmentId === linkedCommitment);
+    if (!task) return;
+    const block = Object.values(board.blocks).find((item) => item.taskId === task.id);
+    setLinkedCommitment(null);
+    if (!block || new URLSearchParams(query).get('focusBlock')) return;
+    setSelectedZone('time');
+    setReturnedBlock(block.id);
+  }, [linkedCommitment, board.tasks, board.blocks, query]);
+
   const updateTask = (taskId: string, title: string) => {
     const nextTitle = title.trim();
     if (nextTitle) boardEdit('Task updated', (old) => ({ ...old, tasks: { ...old.tasks, [taskId]: { ...old.tasks[taskId], title: nextTitle } } }));
@@ -286,10 +332,14 @@ export default function App({ query = '' }: { query?: string }) {
     setScheduleFor(null);
   };
   const unscheduled = topItems.filter(task => !blocks.some(block => block.taskId === task.id));
+  const leftoverTasks = unscheduled.filter(task => fitRemainder.includes(task.id));
   const fitUnscheduled = () => {
     const first = today ? Math.max(dayStart * 60, nowMinutes) : dayStart * 60;
     const busy = [...planningBusy, ...blocks.map(block => ({ start: minutes(block.start), end: minutes(block.end) }))];
     const placements = fitPriorities(unscheduled, busy, first, dayEnd * 60);
+    const placed = new Set(placements.map(placement => placement.taskId));
+    const remaining = unscheduled.filter(task => !placed.has(task.id));
+    setFitRemainder(remaining.map(task => task.id));
     if (!placements.length) {
       setToast('No priority fits in the remaining time.');
       return;
@@ -299,9 +349,57 @@ export default function App({ query = '' }: { query?: string }) {
       const id = newId('block');
       additions[id] = { id, taskId, start: timeAt(start), end: timeAt(end), status: 'planned' };
     }
-    const remaining = unscheduled.length - placements.length;
-    boardEdit(`Scheduled ${placements.length} ${placements.length === 1 ? 'priority' : 'priorities'}${remaining ? ` · ${remaining} did not fit` : ''}`,
+    boardEdit(`Scheduled ${placements.length} ${placements.length === 1 ? 'priority' : 'priorities'}${remaining.length ? ` · ${remaining.length} did not fit` : ''}`,
       old => ({ ...old, blocks: { ...old.blocks, ...additions } }));
+  };
+  const moveLeftoversToTomorrow = () => {
+    const moving = leftoverTasks.map(task => board.tasks[task.id]).filter((task): task is Task => Boolean(task));
+    if (!moving.length) {
+      setFitRemainder([]);
+      return;
+    }
+    const nextDate = parseDate(state.date);
+    nextDate.setDate(nextDate.getDate() + 1);
+    const targetDate = todayKey(nextDate);
+    const target = state.days[targetDate] || EMPTY;
+    const { busy: targetPlanningBusy } = planningForDay(entities, targetDate);
+    const targetBlocks = Object.values(target.blocks).filter(block => target.tasks[block.taskId]);
+    const busy = [...targetPlanningBusy, ...targetBlocks.map(block => ({ start: minutes(block.start), end: minutes(block.end) }))];
+    const first = targetDate === todayKey(now) ? Math.max(dayStart * 60, nowMinutes) : dayStart * 60;
+    const placements = fitPriorities(moving, busy, first, dayEnd * 60);
+    const placed = new Set(placements.map(placement => placement.taskId));
+    const remaining = moving.filter(task => !placed.has(task.id));
+    const additions: Record<string, Block> = {};
+    for (const { taskId, start, end } of placements) {
+      const id = newId('block');
+      additions[id] = { id, taskId, start: timeAt(start), end: timeAt(end), status: 'planned' };
+    }
+    const movingIds = new Set(moving.map(task => task.id));
+    const currentNext: Board = {
+      ...board,
+      tasks: Object.fromEntries(Object.entries(board.tasks).filter(([id]) => !movingIds.has(id))),
+      dumpOrder: board.dumpOrder.filter(id => !movingIds.has(id)),
+      topOrder: board.topOrder.filter(id => !movingIds.has(id)),
+      blocks: Object.fromEntries(Object.entries(board.blocks).filter(([, block]) => !movingIds.has(block.taskId))),
+    };
+    const targetTasks = { ...target.tasks };
+    const targetTop = [...target.topOrder];
+    for (const task of moving) {
+      targetTasks[task.id] = { ...task, zone: 'top' };
+      if (!targetTop.includes(task.id)) targetTop.push(task.id);
+    }
+    const targetNext: Board = { ...target, tasks: targetTasks, topOrder: targetTop, blocks: { ...target.blocks, ...additions } };
+    setFitRemainder(remaining.map(task => task.id));
+    setState(old => ({
+      ...old,
+      date: targetDate,
+      days: { ...old.days, [old.date]: currentNext, [targetDate]: targetNext },
+      past: [...old.past, snapshot(old)].slice(-50),
+      future: [],
+    }));
+    setToast(remaining.length
+      ? `Moved ${moving.length} to ${shortDate(targetDate)} · ${remaining.length} still did not fit`
+      : `Moved ${moving.length} to ${shortDate(targetDate)}`);
   };
   const unschedule = (taskId: string) => boardEdit('Returned to lists', (old) => ({ ...old, blocks: Object.fromEntries(Object.entries(old.blocks).filter(([, block]) => block.taskId !== taskId)) }));
   const updateBlock = (blockId: string, patch: Partial<Block>) => boardEdit('', (old) => ({ ...old, blocks: { ...old.blocks, [blockId]: { ...old.blocks[blockId], ...patch } } }));
@@ -392,14 +490,23 @@ export default function App({ query = '' }: { query?: string }) {
     if (free == null) { setToast('No free slot remains in this day'); return; }
     scheduleTask(block.taskId, free, duration);
   };
+  const commitmentTaskMeta = (task: Task) => {
+    if (!task.commitmentId) return '';
+    const source = commitmentSources.get(task.commitmentId);
+    if (!source) return '';
+    return [source.course, planningMeta({ due: source.due, estimateMin: task.estimateMin ?? source.estimateMin }, now)]
+      .filter(Boolean).join(' · ');
+  };
 
   const renderTaskRow = (task: Task, index: number, zone: Zone) => {
     const block = Object.values(board.blocks).find((item) => item.taskId === task.id);
+    const meta = commitmentTaskMeta(task);
     return <div className={`boxed-task ${block ? 'has-block' : ''}`} draggable onDragStart={(event) => handleDragStart(event, { taskId: task.id, ...(block ? { blockId: block.id } : {}) })}>
       <span className="boxed-grip" aria-hidden="true"><GripVertical size={15} /></span>
       {zone === 'top' && <span className="boxed-rank">{index + 1}</span>}
       {editingId === task.id ? <input autoFocus value={editText} aria-label="Edit task title" onChange={(event) => setEditText(event.target.value)} onBlur={() => { if (cancelEditRef.current) { cancelEditRef.current = false; return; } if (editText !== task.title) updateTask(task.id, editText); else setEditingId(null); }} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') { cancelEditRef.current = true; setEditingId(null); setEditText(task.title); } }} /> : <button className={`boxed-task-title ${block?.status === 'done' ? 'task-done' : ''}`} onClick={() => { setEditingId(task.id); setEditText(task.title); }} onKeyDown={(event) => { if (zone === 'top' && event.altKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) { event.preventDefault(); reorderTop(task.id, index + (event.key === 'ArrowUp' ? -1 : 1)); } }} title="Edit task title">{task.title}</button>}
       {block && <span className="boxed-time-chip"><Clock3 size={12} />{formatRange(block)}</span>}
+      {meta && <span className="boxed-task-meta">{meta}</span>}
       {zone === 'top' && !block && <span className="boxed-unscheduled">Unscheduled</span>}
       <div className="boxed-row-actions">
         {task.commitmentId && <button aria-label={`Open ${task.title} in Planning`} title="Open in Planning" onClick={() => window.iterra?.open(`/apps/syllabus/?commitment=${encodeURIComponent(task.commitmentId!)}`)}><ArrowUpRight size={15} /></button>}
@@ -440,6 +547,11 @@ export default function App({ query = '' }: { query?: string }) {
           {unscheduled.length > 0 && state.date >= todayKey(now) && (
             <button type="button" className="boxed-suggest" onClick={fitUnscheduled}>Fit unscheduled priorities</button>
           )}
+          {leftoverTasks.length > 0 && state.date >= todayKey(now) && (
+            <button type="button" className="boxed-suggest" onClick={moveLeftoversToTomorrow}>
+              Move {leftoverTasks.length} leftover{leftoverTasks.length === 1 ? '' : 's'} to tomorrow
+            </button>
+          )}
           {canUsePlanning && (
             <div className="boxed-planning">
               <button ref={planningToggleRef} type="button" className="boxed-suggest" aria-expanded={showPlanning} onClick={() => setShowPlanning(open => !open)}>
@@ -447,7 +559,7 @@ export default function App({ query = '' }: { query?: string }) {
               </button>
               {showPlanning && <ul className="boxed-planning-list">
                 {suggested.map(task => <li key={task.id}>
-                  <div><b>{task.title}</b><span>{[task.course, Number.isFinite(task.due) ? `Due ${new Date(task.due).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : '', task.estimateMin ? `${task.estimateMin} min` : ''].filter(Boolean).join(' · ')}</span></div>
+                  <div><b>{task.title}</b><span>{[task.course, planningMeta(task, now)].filter(Boolean).join(' · ')}</span></div>
                   <button type="button" aria-label={`Add ${task.title} to Top Items`} onClick={() => addPlanningTask(task)}><Plus size={14} aria-hidden="true" /> Add</button>
                 </li>)}
               </ul>}
@@ -465,7 +577,9 @@ export default function App({ query = '' }: { query?: string }) {
           }}>Add from Planning</button>}
           <div className="boxed-list boxed-dump-list" role="list" aria-label="Brain Dump">
             {dumpItems.map((task, index) => <div key={task.id} role="listitem">{renderTaskRow(task, index, 'dump')}</div>)}
-            {!dumpItems.length && <div className="boxed-empty"><b>Mind clear.</b><span>Start anywhere. Rank or schedule items when you are ready.</span></div>}
+            {!dumpItems.length && (isFreshBoard
+              ? <div className="boxed-empty"><b>Start with a brain dump.</b><span>Dump tasks, rank the top, fit them into the day.</span></div>
+              : <div className="boxed-empty"><b>Mind clear.</b><span>Start anywhere. Rank or schedule items when you are ready.</span></div>)}
           </div>
         </section>
       </section>

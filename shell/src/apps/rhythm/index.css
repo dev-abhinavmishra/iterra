@@ -258,6 +258,7 @@
    Every recorded day is a pad on the grid. State lives in the
    SHAPE first: full = lit pad, minimum = smaller lit pad,
    partial = half-lit, missed = hollow pad with a rest dot,
+   unrecorded = dashed pad (today, still open),
    exception = muted (struck) pad, paused = hold bars,
    unscheduled = an empty slot, future = unprogrammed slot.      */
 .it-place-rhythm .pad {
@@ -279,6 +280,7 @@
 .it-place-rhythm .pad--minimum { --pad-color: var(--color-acc-ochre); --pad-rgb: var(--acc-ochre-rgb); filter: drop-shadow(0 0 3px rgb(var(--pad-rgb) / 0.4)); }
 .it-place-rhythm .pad--partial { --pad-color: var(--color-amber); --pad-rgb: var(--amber-rgb); filter: drop-shadow(0 0 3px rgb(var(--pad-rgb) / 0.3)); }
 .it-place-rhythm .pad--missed { --pad-color: var(--color-ink-faint); }
+.it-place-rhythm .pad--unrecorded { --pad-color: var(--color-ink-soft); }
 .it-place-rhythm .pad--exception { --pad-color: var(--color-ink-soft); }
 .it-place-rhythm .pad--paused { --pad-color: var(--color-ink-faint); }
 .it-place-rhythm .pad--unscheduled,

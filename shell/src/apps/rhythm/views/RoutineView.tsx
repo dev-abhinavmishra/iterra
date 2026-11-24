@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { useRegister } from '../store';
 import type { Entry, Routine, RoutineAccent } from '../lib/types';
 import { bandFor, BAND_NOTE } from '../lib/bands';
-import { completedWeekStarts, dayState, routineWeek } from '../lib/register';
+import { completedWeekStarts, DAY_STATE_LABEL, dayState, routineWeek } from '../lib/register';
 import {
   addDaysISO,
   dateOfInstant,
@@ -185,12 +185,15 @@ export function RoutineView({ routineId }: { routineId: string }) {
         {/* ── This measure + history stats ────────────────────────── */}
         <section className="panel p-4" aria-label="record">
           <div className="kicker mb-2">This measure</div>
+          <p className="mono mb-1 text-[10px] uppercase text-ink-faint">
+            today — {DAY_STATE_LABEL[dayState(r, today, s.entries, s.exceptions, today)]}
+          </p>
           <div className="mb-3 grid grid-cols-7 gap-1">
             {weekDates.map((d, i) => {
               const state = dayState(r, d, s.entries, s.exceptions, today);
               return (
                 <div key={d} className={cx('flex flex-col items-center gap-0.5 rounded-[3px] py-0.5', i === play && 'step--play', d === today && 'step--now')}>
-                  <Pad state={state} accent={r.accent} size={24} title={`${fmtDayFull(d)} — ${state}`} />
+                  <Pad state={state} accent={r.accent} size={24} title={`${fmtDayFull(d)} — ${DAY_STATE_LABEL[state]}`} />
                   <span className="mono text-[8.5px] uppercase text-ink-faint">{fmtDay(d)}</span>
                 </div>
               );

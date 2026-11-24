@@ -1,14 +1,65 @@
 import type { StoreEntity } from '../../hub';
 
 export interface TimeRange { start: number; end: number }
+export interface PlanningPriority { id: string; title: string; course?: string; due: number; estimateMin?: number }
 type Priority = { id: string; estimateMin?: number };
-type PlanningPriority = { id: string; title: string; course?: string; due: number; estimateMin?: number };
 
 const minuteOfDay = (time: string) => {
   const match = /^(\d{2}):([0-5]\d)$/.exec(time);
   if (!match || Number(match[1]) > 24 || (match[1] === '24' && match[2] !== '00')) return NaN;
   return Number(match[1]) * 60 + Number(match[2]);
 };
+
+const dueValue = (value: unknown) => {
+  if (typeof value === 'string') {
+    const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (dateOnly) return new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3])).getTime();
+    return Date.parse(value);
+  }
+  return Number(value ?? NaN);
+};
+
+function planningEstimateMin(data: StoreEntity['data']) {
+  const estimate = typeof data?.estimatedMinutes === 'number' ? data.estimatedMinutes : 0;
+  const logged = typeof data?.loggedMinutes === 'number' && Number.isFinite(data.loggedMinutes) ? Math.max(0, data.loggedMinutes) : 0;
+  const remaining = estimate - logged;
+  return Number.isFinite(estimate) && estimate > 0
+    ? Math.max(15, Math.min(120, Math.ceil(remaining / 15) * 15)) : undefined;
+}
+
+export function commitmentPriority(row: StoreEntity): PlanningPriority | undefined {
+  const title = row.title?.trim();
+  if (row.app !== 'syllabus' || row.type !== 'commitment' || !title) return;
+  return { id: row.id, title, course: row.course, due: dueValue(row.data?.dueAt), estimateMin: planningEstimateMin(row.data) };
+}
+
+function startOfDay(time: number) {
+  const date = new Date(time);
+  date.setHours(0, 0, 0, 0);
+  return date.getTime();
+}
+
+export function dueDayLabel(due: number, now = new Date()) {
+  if (!Number.isFinite(due)) return '';
+  const diff = Math.round((startOfDay(due) - startOfDay(now.getTime())) / 86400000);
+  if (diff === 0) return 'today';
+  if (diff === 1) return 'tomorrow';
+  if (diff === -1) return 'yesterday';
+  if (diff > 1 && diff <= 6) return new Date(due).toLocaleDateString('en-US', { weekday: 'long' });
+  return new Date(due).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+export function planningMeta(priority: { due?: number; estimateMin?: number }, now = new Date()) {
+  const parts: string[] = [];
+  if (typeof priority.due === 'number' && Number.isFinite(priority.due)) {
+    const label = dueDayLabel(priority.due, now);
+    if (label) parts.push(`${startOfDay(priority.due) < startOfDay(now.getTime()) ? 'was due' : 'due'} ${label}`);
+  }
+  if (typeof priority.estimateMin === 'number' && Number.isFinite(priority.estimateMin) && priority.estimateMin > 0) {
+    parts.push(`~${priority.estimateMin}m`);
+  }
+  return parts.join(' · ');
+}
 
 export function planningForDay(entities: StoreEntity[], date: string) {
   const busy: TimeRange[] = [];
@@ -32,13 +83,7 @@ export function planningForDay(entities: StoreEntity[], date: string) {
     const title = row.title?.trim();
     if (row.app !== 'syllabus' || row.type !== 'commitment' || data?.status !== 'open' ||
         !title || alreadyScheduled.has(row.id) || archivedCourses.has(row.courseId ?? '')) continue;
-    const due = typeof data.dueAt === 'string' ? Date.parse(data.dueAt) : Number(data.dueAt ?? NaN);
-    const estimate = typeof data.estimatedMinutes === 'number' ? data.estimatedMinutes : 0;
-    const logged = typeof data.loggedMinutes === 'number' && Number.isFinite(data.loggedMinutes) ? Math.max(0, data.loggedMinutes) : 0;
-    const remaining = estimate - logged;
-    const estimateMin = Number.isFinite(estimate) && estimate > 0
-      ? Math.max(15, Math.min(120, Math.ceil(remaining / 15) * 15)) : undefined;
-    priorities.push({ id: row.id, title, course: row.course, due, estimateMin });
+    priorities.push({ id: row.id, title, course: row.course, due: dueValue(data.dueAt), estimateMin: planningEstimateMin(data) });
   }
   priorities.sort((a, b) => (Number.isFinite(a.due) ? a.due : Infinity) - (Number.isFinite(b.due) ? b.due : Infinity) ||
     a.title.localeCompare(b.title) || a.id.localeCompare(b.id));

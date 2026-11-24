@@ -1,5 +1,7 @@
-import { useMemo } from 'react';
+import { useIterraGlass } from '../ui/glass';
+import { useMemo, useState } from 'react';
 import { BookOpen, Plus, ArrowUpRight, FolderOpen } from 'lucide-react';
+import './workspace-atlas.css';
 import type { Entity, StoreEntity } from '../hub';
 import { Badge, Button, EmptyState, SectionHeader } from '../ui/primitives';
 
@@ -14,6 +16,8 @@ export function CoursesIndex({
   onGo: (url: string) => void;
   onEnter: (place: string) => void;
 }) {
+  const actionLens = useIterraGlass<HTMLDivElement>('actions');
+  const [search, setSearch] = useState('');
   const { courses, unfiledCount } = useMemo(() => {
     const map = new Map<
       string,
@@ -131,22 +135,14 @@ export function CoursesIndex({
     };
   }, [entities, indexes]);
 
+  const needle = search.trim().toLowerCase();
+  const visible = courses.filter(c => [c.code, c.name].some(value => value?.toLowerCase().includes(needle)));
   return (
     <div className="terrain-map min-h-full">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--color-line)] pb-4">
-          <div>
-            <div className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent)]">
-              Directory
-            </div>
-            <h1 className="font-place text-[24px] font-semibold text-[var(--color-ink)]">
-              Course Workspaces
-            </h1>
-            <p className="mt-0.5 text-[13px] text-[var(--color-mute)]">
-              Each course workspace brings together its schedule, study materials, practice decks, calculations, and results.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
+        <header className="study-masthead course-masthead">
+          <div><h1>Your courses</h1><p>Open a course, or jump straight to its materials, practice, schedule, or results.</p></div>
+          <div ref={actionLens} className="study-action-lens it-lens flex items-center gap-2">
             <Button
               variant="primary"
               size="sm"
@@ -156,61 +152,39 @@ export function CoursesIndex({
               Manage Courses in Planning
             </Button>
           </div>
-        </div>
+        </header>
 
         {courses.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {courses.map((c) => (
-              <button
-                key={c.key}
-                type="button"
-                onClick={() => onGo(`#/c/${encodeURIComponent(c.code)}`)}
-                className="place-card group flex flex-col justify-between rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-4 text-left hover:border-[var(--color-accent)] cursor-pointer"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[13px] font-semibold uppercase tracking-wider text-[var(--color-accent)]">
-                      {c.code}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      {c.dueCards > 0 && <Badge tone="warn">{c.dueCards} due</Badge>}
-                      <ArrowUpRight className="h-4 w-4 text-[var(--color-faint)] group-hover:text-[var(--color-accent)]" />
-                    </div>
+          <>
+            <div className="study-filter-line">
+              <label htmlFor="course-search">Find a course</label>
+              <input id="course-search" type="search" placeholder="Course name or code" value={search} onChange={e => setSearch(e.target.value)} />
+              <span role="status">{visible.length} of {courses.length} courses</span>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {visible.map(c => {
+                const url = `#/c/${encodeURIComponent(c.code)}`;
+                return <article className="study-course" key={c.key}>
+                  <a className="study-course-title" href={url}>
+                    <span className="study-code">{c.code}</span>
+                    <h2>{c.name || c.code}</h2>
+                    {c.dueCards > 0 && <Badge tone="warn">{c.dueCards} cards due</Badge>}
+                    <ArrowUpRight size={17} aria-hidden="true" />
+                  </a>
+                  <div className="study-course-links">
+                    {([['materials', 'Materials', c.materials], ['practice', 'Practice', c.practice],
+                      ['schedule', 'Schedule', c.schedule], ['results', 'Results', c.results]] as const).map(([tab, label, count]) => (
+                      <a key={tab} href={url + '?tab=' + tab} aria-label={c.code + ' ' + label + ', ' + count}>
+                        <strong>{count}</strong><span>{label}</span>
+                      </a>
+                    ))}
                   </div>
-                  <h2 className="mt-1 text-[16px] font-semibold text-[var(--color-ink)]">
-                    {c.name || `${c.code} Workspace`}
-                  </h2>
-                </div>
-
-                <div className="mt-4 grid grid-cols-4 gap-2 border-t border-[var(--color-line)] pt-3 text-center">
-                  <div>
-                    <div className="font-mono text-[13px] font-semibold text-[var(--color-ink)]">
-                      {c.materials}
-                    </div>
-                    <div className="text-[10px] text-[var(--color-faint)]">Materials</div>
-                  </div>
-                  <div>
-                    <div className="font-mono text-[13px] font-semibold text-[var(--color-ink)]">
-                      {c.practice}
-                    </div>
-                    <div className="text-[10px] text-[var(--color-faint)]">Practice</div>
-                  </div>
-                  <div>
-                    <div className="font-mono text-[13px] font-semibold text-[var(--color-ink)]">
-                      {c.schedule}
-                    </div>
-                    <div className="text-[10px] text-[var(--color-faint)]">Schedule</div>
-                  </div>
-                  <div>
-                    <div className="font-mono text-[13px] font-semibold text-[var(--color-ink)]">
-                      {c.results}
-                    </div>
-                    <div className="text-[10px] text-[var(--color-faint)]">Results</div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
+                </article>;
+              })}
+            </div>
+            {visible.length === 0 && <EmptyState title="No matching courses" description="Try another name or course code."
+              actions={<Button onClick={() => setSearch('')}>Clear search</Button>} />}
+          </>
         ) : (
           <EmptyState
             icon={<BookOpen className="h-4 w-4" />}

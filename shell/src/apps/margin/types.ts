@@ -82,10 +82,21 @@ export interface LiveTranscriptChunk {
 
 /* ---------- Study domain ---------- */
 
+/* Honest provenance for AI-generated study items. `label` describes the
+   source note/selection; `excerpt` is a verbatim passage lifted from the
+   source text — only ever set when real source text matched, never
+   fabricated. The pipeline returns no page/timestamp locators, so callers
+   must not invent them. */
+export interface GeneratedSource {
+  label: string;
+  excerpt?: string;
+}
+
 export interface Flashcard {
   id: string;
   front: string;
   back: string;
+  source?: GeneratedSource;
   // SM-2 scheduling fields
   ease: number;        // ease factor, starts 2.5
   interval: number;    // days
@@ -106,6 +117,7 @@ export interface QuizQuestion {
   question: string;
   options: string[];
   answer: string;      // the correct option text (matches widget format)
+  source?: GeneratedSource;
 }
 
 export interface Quiz {

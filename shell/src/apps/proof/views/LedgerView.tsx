@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useWorkbench } from '../store';
 import type { Attempt } from '../lib/types';
 import { errorRecurrence } from '../lib/metrics';
+import { SOLVE_ASSISTANCE_LABELS } from '../lib/cues';
 import { docToText } from '../lib/doc';
 import { cn, fmtDateTime } from '../lib/utils';
 import { Field } from '../components/Field';
@@ -119,6 +120,17 @@ export function LedgerView({ onAttempt, goView }: { onAttempt: (a: Attempt) => v
             const p = problems[e.problemId];
             const a = attempts[e.attemptId];
             const due = reviews[e.problemId]?.dueAt;
+            const retrySolve = Object.values(attempts)
+              .filter((x) =>
+                x.problemId === e.problemId &&
+                x.id !== e.attemptId &&
+                x.result === 'correct' &&
+                x.solveAssistance &&
+                (x.submittedAt ?? x.startedAt) > e.createdAt,
+              )
+              .sort((x, y) => (x.submittedAt ?? x.startedAt).localeCompare(y.submittedAt ?? y.startedAt))
+              .pop();
+            const retryAssistance = retrySolve?.solveAssistance;
             return (
               <li key={e.id} className="py-3">
                 <div className="flex items-start gap-3">
@@ -142,6 +154,7 @@ export function LedgerView({ onAttempt, goView }: { onAttempt: (a: Attempt) => v
                       {p && ` · ${p.topic}`}
                       {due && ` · retry due ${fmtDateTime(due)}`}
                       {a && ` · conf ${a.confidence}/5 · h${a.hintLevel}`}
+                      {retryAssistance && ` · retry solved ${SOLVE_ASSISTANCE_LABELS[retryAssistance]}`}
                     </div>
                   </div>
                   {p && (

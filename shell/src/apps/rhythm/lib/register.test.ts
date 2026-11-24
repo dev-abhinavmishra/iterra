@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bandFor } from './bands';
-import { checkInCounts, dayState, exceptionFor, isPausedOn, recentMissedCheckIns, routineCheckIn, routineWeek, weeklyScorecard } from './register';
+import { DAY_STATE_LABEL, checkInCounts, dayState, dayVerdict, exceptionFor, isPausedOn, recentMissedCheckIns, routineCheckIn, routineWeek, weeklyScorecard } from './register';
 import type { DayException, Entry, Experiment, Routine } from './types';
 
 const TODAY = '2026-10-11'; // a Sunday
@@ -40,6 +40,33 @@ describe('dayState', () => {
     expect(dayState(r, '2026-10-07', {}, NO_EXC, TODAY)).toBe('missed'); // Wed, past
     expect(dayState(r, '2026-10-10', {}, NO_EXC, TODAY)).toBe('unscheduled'); // Sat, not a weekday
     expect(dayState(r, '2026-10-12', {}, NO_EXC, TODAY)).toBe('future'); // tomorrow
+  });
+
+  it('today scheduled-empty is unrecorded — never silently missed', () => {
+    const sun = mkRoutine({ weekdays: [0] }); // TODAY (2026-10-11) is a Sunday
+    expect(dayState(sun, TODAY, {}, NO_EXC, TODAY)).toBe('unrecorded');
+    expect(dayState(sun, '2026-10-04', {}, NO_EXC, TODAY)).toBe('missed'); // prior Sunday, passed
+    // an entry still wins — logged today reads as done, not open
+    expect(dayState(sun, TODAY, { a: entry(sun.id, TODAY) }, NO_EXC, TODAY)).toBe('full');
+  });
+
+  it('dayVerdict buckets the states into honest verdicts', () => {
+    expect(dayVerdict('full')).toBe('done');
+    expect(dayVerdict('minimum')).toBe('done');
+    expect(dayVerdict('partial')).toBe('partial');
+    expect(dayVerdict('missed')).toBe('missed');
+    expect(dayVerdict('exception')).toBe('excused');
+    expect(dayVerdict('paused')).toBe('excused');
+    expect(dayVerdict('unrecorded')).toBe('unrecorded');
+    expect(dayVerdict('unscheduled')).toBe('unscheduled');
+    expect(dayVerdict('future')).toBe('upcoming');
+    // every state carries a text label — surfaces never lean on color alone
+    for (const s of ['full', 'minimum', 'partial', 'missed', 'unrecorded', 'exception', 'paused', 'unscheduled', 'future'] as const) {
+      expect(DAY_STATE_LABEL[s]).toBeTruthy();
+    }
+    expect(DAY_STATE_LABEL.unrecorded).toBe('not logged yet');
+    expect(DAY_STATE_LABEL.missed).toBe('missed');
+    expect(DAY_STATE_LABEL.exception).toBe('excused');
   });
 
   it('an entry on an unscheduled day still counts', () => {
@@ -85,6 +112,22 @@ describe('check-in shortcuts', () => {
     const done = mkRoutine({ id: 'done' });
     expect(recentMissedCheckIns([measured, skipped, done], { done: entry(done.id, date) }, exceptions, TODAY))
       .toEqual([{ routine: measured, date }]);
+  });
+
+  it('open today and passed misses both stay pending; excused days do not', () => {
+    const sun = mkRoutine({ id: 'sun', weekdays: [0] });
+    const open = routineCheckIn(sun, TODAY, {}, NO_EXC, TODAY);
+    expect(open.state).toBe('unrecorded');
+    expect(open.pending).toBe(true);
+    const past = routineCheckIn(sun, '2026-10-04', {}, NO_EXC, TODAY);
+    expect(past.state).toBe('missed');
+    expect(past.pending).toBe(true);
+    const excused: Record<string, DayException> = {
+      x: { id: 'x', routineId: sun.id, date: '2026-10-04', kind: 'travel', createdAt: '2026-10-04T00:00:00Z' },
+    };
+    const calm = routineCheckIn(sun, '2026-10-04', {}, excused, TODAY);
+    expect(calm.state).toBe('exception');
+    expect(calm.pending).toBe(false);
   });
 });
 

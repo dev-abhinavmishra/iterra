@@ -49,6 +49,7 @@
 .boxed-task input { flex: 1; min-width: 0; border: 0; border-bottom: 1px solid var(--color-accent); outline: 0; color: var(--boxed-ink); background: transparent; font: 12px var(--font-sans); }
 .boxed-time-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 5px; color: var(--color-accent); background: var(--color-accent-soft); border-radius: 2px; font-size: 9px; white-space: nowrap; }
 .boxed-unscheduled { color: var(--color-faint); font: 9px var(--font-mono); white-space: nowrap; }
+.boxed-task-meta { max-width: 32%; overflow: hidden; color: var(--color-faint); font: 9px var(--font-mono); text-overflow: ellipsis; white-space: nowrap; }
 .boxed-row-actions { display: flex; align-items: center; gap: 1px; }
 .boxed-row-actions button { width: 24px; height: 26px; display: inline-grid; place-items: center; padding: 0; color: var(--color-mute); background: transparent; border: 0; border-radius: 3px; cursor: pointer; }
 .boxed-row-actions button:hover { color: var(--color-accent); background: var(--color-accent-soft); }

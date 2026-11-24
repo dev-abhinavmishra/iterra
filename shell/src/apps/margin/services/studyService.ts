@@ -1,4 +1,4 @@
-import { Deck, Flashcard, Quiz, QuizQuestion } from '../types';
+import { Deck, Flashcard, GeneratedSource, Quiz, QuizQuestion } from '../types';
 import { getAllDecks, saveDeck, getAllQuizzes, saveQuiz } from './storageService';
 
 /* SM-2-style scheduling. Grade: 0 = forgot, 1 = hard, 2 = good, 3 = easy. */
@@ -25,10 +25,11 @@ export const gradeCard = (card: Flashcard, grade: 0 | 1 | 2 | 3): Flashcard => {
     return { ...card, ease, interval, reps, lapses, due: due.toISOString() };
 };
 
-export const newCard = (front: string, back: string): Flashcard => ({
+export const newCard = (front: string, back: string, source?: GeneratedSource): Flashcard => ({
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     front,
     back,
+    ...(source ? { source } : {}),
     ease: 2.5,
     interval: 0,
     due: new Date().toISOString(),
@@ -36,13 +37,13 @@ export const newCard = (front: string, back: string): Flashcard => ({
     lapses: 0,
 });
 
-export const createDeck = async (title: string, cards: { front: string; back: string }[], sourceNoteId?: string): Promise<Deck> => {
+export const createDeck = async (title: string, cards: { front: string; back: string; source?: GeneratedSource }[], sourceNoteId?: string): Promise<Deck> => {
     const deck: Deck = {
         id: `deck-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         title,
         sourceNoteId,
         createdAt: new Date().toISOString(),
-        cards: cards.map(c => newCard(c.front, c.back)),
+        cards: cards.map(c => newCard(c.front, c.back, c.source)),
     };
     await saveDeck(deck);
     return deck;

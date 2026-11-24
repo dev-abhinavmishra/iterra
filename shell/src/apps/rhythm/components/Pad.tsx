@@ -6,6 +6,7 @@
 //   minimum     ▪ smaller lit pad — a real hit at the smaller bar
 //   partial     ◧ pad half-lit
 //   missed      □ hollow pad with a rest — programmed, didn't sound
+//   unrecorded  ▨ dashed pad — scheduled today, still open, not yet judged
 //   exception   ⊠ muted pad — day taken out of the pattern, not erased
 //   paused      ‖ hold bars — channel parked
 //   unscheduled – an empty slot
@@ -66,6 +67,11 @@ const GLYPHS: Record<DayState, React.ReactNode> = {
     <svg viewBox="0 0 26 26" width="100%" height="100%" aria-hidden="true">
       <rect x="3.5" y="3.5" width="19" height="19" rx="4.5" fill="none" stroke={S} strokeWidth="1.5" opacity="0.6" />
       <path d="M10.5 13h5" stroke={S} strokeWidth="1.7" strokeLinecap="round" opacity="0.8" />
+    </svg>
+  ),
+  unrecorded: (
+    <svg viewBox="0 0 26 26" width="100%" height="100%" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="19" height="19" rx="4.5" fill="none" stroke={S} strokeWidth="1.5" strokeDasharray="3.2 2.6" opacity="0.75" />
     </svg>
   ),
   exception: (

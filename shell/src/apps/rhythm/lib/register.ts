@@ -22,10 +22,58 @@ export type DayState =
   | 'partial' // something logged, below the per-day bar
   | 'minimum' // logged via the minimum version — a real mark, smaller bar
   | 'missed' // scheduled, day has passed, nothing logged
+  | 'unrecorded' // scheduled, is today — not yet judgeable, still open
   | 'exception' // excused — travel/exam/etc.; outside the ledger's judgment
   | 'paused' // inside a recorded pause interval
   | 'unscheduled' // not one of the routine's weekdays
   | 'future'; // hasn't happened yet (scheduled or not)
+
+/** The honest bucket a DayState rolls up to — the vocabulary the product
+    review asks surfaces to speak: a missed day, an excused day, and a day
+    that simply isn't judgeable yet are three different facts. */
+export type DayVerdict =
+  | 'done'
+  | 'partial'
+  | 'missed'
+  | 'excused' // exception or pause interval — deliberately not a miss
+  | 'unrecorded'
+  | 'unscheduled'
+  | 'upcoming';
+
+export function dayVerdict(state: DayState): DayVerdict {
+  switch (state) {
+    case 'full':
+    case 'minimum':
+      return 'done';
+    case 'partial':
+      return 'partial';
+    case 'missed':
+      return 'missed';
+    case 'exception':
+    case 'paused':
+      return 'excused';
+    case 'unrecorded':
+      return 'unrecorded';
+    case 'unscheduled':
+      return 'unscheduled';
+    case 'future':
+      return 'upcoming';
+  }
+}
+
+/** Text labels for every day state — surfaces must say the word, never
+    lean on pad color/shape alone. */
+export const DAY_STATE_LABEL: Record<DayState, string> = {
+  full: 'complete',
+  minimum: 'met at minimum',
+  partial: 'partial',
+  missed: 'missed',
+  unrecorded: 'not logged yet',
+  exception: 'excused',
+  paused: 'paused',
+  unscheduled: 'not scheduled',
+  future: 'upcoming',
+};
 
 export function routineWeekdays(routine: Routine): number[] {
   // Empty weekday list means "any day" — every day is a routine day.
@@ -101,6 +149,8 @@ export function dayState(
   // Past/today scheduled day with nothing logged.
   const created = dateOfInstant(routine.createdAt);
   if (diffDaysISO(created, date) > 0) return 'unscheduled'; // before it existed
+  // Today is still open — 'missed' is only ever a day that has passed.
+  if (diffDaysISO(date, today) === 0) return 'unrecorded';
   return 'missed';
 }
 
@@ -109,13 +159,17 @@ export function routineCheckIn(
   date: ISODate,
   entries: Record<string, Entry>,
   exceptions: Record<string, DayException>,
+  today: ISODate = todayISO(),
 ) {
-  const state = dayState(routine, date, entries, exceptions, date);
+  const state = dayState(routine, date, entries, exceptions, today);
   const scheduled = routine.status === 'active' && isScheduled(routine, date) &&
     date >= dateOfInstant(routine.createdAt) && !exceptionFor(exceptions, routine.id, date) && !isPausedOn(routine, date);
   const target = perDayBar(routine);
   const value = valueOn(entries, routine.id, date);
-  return { date, state, scheduled, target, value, pending: scheduled && (state === 'missed' || state === 'partial') };
+  // 'unrecorded' (today, still open) is pending alongside missed/partial —
+  // a check-in is owed until the day is judged or excused.
+  const pending = scheduled && (state === 'missed' || state === 'partial' || state === 'unrecorded');
+  return { date, state, scheduled, target, value, pending };
 }
 
 export function checkInCounts(routines: Routine[], entries: Record<string, Entry>, exceptions: Record<string, DayException>, date: ISODate) {

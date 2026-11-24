@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRegister } from '../store';
 import type { Routine } from '../lib/types';
-import { dayState, isScheduled, perDayBar, recentMissedCheckIns, routineCheckIn, routineWeek } from '../lib/register';
+import { DAY_STATE_LABEL, dayState, isScheduled, perDayBar, recentMissedCheckIns, routineCheckIn, routineWeek } from '../lib/register';
 import { bandFor } from '../lib/bands';
 import { addDaysISO, fmtDay, fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekStartISO } from '../lib/dates';
 import { folioInbox, planFolio, type FolioCommitment } from '../lib/iterra-adapter';
@@ -49,6 +49,7 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
   const [frictionKind, setFrictionKind] = useState<string>('tired');
   const [frictionNote, setFrictionNote] = useState('');
   const [exceptionOpen, setExceptionOpen] = useState(false);
+  const [excuseFor, setExcuseFor] = useState<{ routine: Routine; date: string } | null>(null);
   const [justStamped, setJustStamped] = useState<string | null>(null);
 
   /* a deep-linked routine pins to the top — ONCE. Snapshot the consumed
@@ -291,24 +292,35 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
 
       {recentMisses.length > 0 && (
         <details className="mt-6 border-y border-rule">
-          <summary className="cursor-pointer px-2 py-3 text-sm font-medium">Recent missing check-ins</summary>
-          <p className="px-2 pb-2 text-sm text-ink-faint">Log work you completed in the past three days.</p>
+          <summary className="cursor-pointer px-2 py-3 text-sm font-medium">Recent missed check-ins</summary>
+          <p className="px-2 pb-2 text-sm text-ink-faint">
+            Days that passed with nothing logged. Log work that happened, or excuse a day that shouldn't count — the record keeps whichever you choose.
+          </p>
           <ul className="max-h-72 overflow-y-auto px-2 pb-2">
             {recentMisses.map(({ routine, date }) => (
               <li key={`${routine.id}-${date}`} className="flex items-center justify-between gap-3 border-t border-rule py-2">
                 <div className="min-w-0">
                   <div className="break-words text-sm font-medium">{routine.name}</div>
-                  <div className="text-xs text-ink-faint">{fmtDayFull(date)}</div>
+                  <div className="text-xs text-ink-faint">
+                    {fmtDayFull(date)} · <span className="uppercase tracking-wide">{DAY_STATE_LABEL.missed}</span>
+                  </div>
                 </div>
-                <button
-                  className="btn btn--quiet shrink-0"
-                  aria-label={`Log ${routine.name} for ${fmtDayFull(date)}`}
-                  onClick={() => {
-                    setPastCheckIn({ routineId: routine.id, date });
-                    setPastAmount('');
-                    setPastError('');
-                  }}
-                >Log</button>
+                <div className="flex shrink-0 gap-1">
+                  <button
+                    className="btn btn--quiet"
+                    aria-label={`Log ${routine.name} for ${fmtDayFull(date)}`}
+                    onClick={() => {
+                      setPastCheckIn({ routineId: routine.id, date });
+                      setPastAmount('');
+                      setPastError('');
+                    }}
+                  >Log it anyway</button>
+                  <button
+                    className="btn btn--quiet"
+                    aria-label={`Excuse ${routine.name} for ${fmtDayFull(date)}`}
+                    onClick={() => setExcuseFor({ routine, date })}
+                  >Excuse it</button>
+                </div>
               </li>
             ))}
           </ul>
@@ -449,6 +461,22 @@ export function TodayView({ openRoutine }: { openRoutine: (id: string) => void }
         />
       )}
 
+      {excuseFor && (
+        <ExceptionSheet
+          routines={[excuseFor.routine]}
+          fixedRoutineId={excuseFor.routine.id}
+          date={excuseFor.date}
+          onClose={() => setExcuseFor(null)}
+          onAdd={(routineId, kind, noteText) => {
+            addException({ routineId, date: excuseFor.date, kind: kind as never, note: noteText });
+            setRecoveryStatus(
+              `${excuseFor.routine.name} — ${fmtDayFull(excuseFor.date)} excused. It stays on the tape and is never counted as a miss.`,
+            );
+            setExcuseFor(null);
+          }}
+        />
+      )}
+
       {/* hidden live region for screen-reader hit confirmations */}
       <div aria-live="polite" className="sr-only">
         {justStamped ? `${routines[justStamped]?.name ?? 'Routine'} hit` : ''}
@@ -537,7 +565,7 @@ function RoutineRow({
             accent={r.accent}
             size={30}
             hit={justStamped}
-            title={done ? state : `hit ${r.name}`}
+            title={done ? DAY_STATE_LABEL[state] : `hit ${r.name}`}
           />
         </button>
 
@@ -563,6 +591,11 @@ function RoutineRow({
               </span>
             )}
           </div>
+          {!done && (state === 'missed' || state === 'unrecorded' || state === 'exception' || state === 'paused') && (
+            <div className="mono mt-0.5 text-[10px] uppercase tracking-wide text-ink-faint">
+              {DAY_STATE_LABEL[state]}
+            </div>
+          )}
         </div>
 
         {/* this week's measure — seven steps, playhead sweeping */}
@@ -665,7 +698,7 @@ export function MeasureStrip({ routine, weekStart, today, size = 15 }: { routine
             key={d}
             className={cx('flex items-center justify-center rounded-[3px]', i === play && 'step--play', i === todayIdx && 'step--now')}
             style={{ width: size + 4, height: size + 4 }}
-            title={`${fmtDayFull(d)} — ${st}`}
+            title={`${fmtDayFull(d)} — ${DAY_STATE_LABEL[st]}`}
           >
             <Pad state={st} accent={routine.accent} size={size} />
           </span>
@@ -725,18 +758,25 @@ function TodayPace() {
 
 function ExceptionSheet({
   routines,
+  fixedRoutineId,
+  date,
   onClose,
   onAdd,
 }: {
   routines: Routine[];
+  /** When set, the sheet excuses one named routine on one named date —
+      the "Excuse it" recovery path for a missed day — and hides the picker. */
+  fixedRoutineId?: string;
+  date?: string;
   onClose: () => void;
   onAdd: (routineId: string | 'all', kind: string, note?: string) => void;
 }) {
-  const [routineId, setRoutineId] = useState<string>('all');
-  const [kind, setKind] = useState('travel');
+  const [routineId, setRoutineId] = useState<string>(fixedRoutineId ?? 'all');
+  const [kind, setKind] = useState(fixedRoutineId ? 'other' : 'travel');
   const [note, setNote] = useState('');
+  const fixedRoutine = fixedRoutineId ? routines.find((r) => r.id === fixedRoutineId) : undefined;
   return (
-    <Sheet title="Mute today — an exception" onClose={onClose}>
+    <Sheet title={fixedRoutine ? `Excuse ${fixedRoutine.name}${date ? ` — ${fmtDayFull(date)}` : ''}` : 'Mute today — an exception'} onClose={onClose}>
       <form
         className="space-y-4"
         onSubmit={(e) => {
@@ -748,16 +788,18 @@ function ExceptionSheet({
           Travel, exams, and sick days happen. An exception mutes the step — it stays on the
           tape, and it is never counted as a miss.
         </p>
-        <Field label="Applies to">
-          <select className="f-select" value={routineId} onChange={(e) => setRoutineId(e.target.value)}>
-            <option value="all">Every channel today</option>
-            {routines.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-        </Field>
+        {!fixedRoutineId && (
+          <Field label="Applies to">
+            <select className="f-select" value={routineId} onChange={(e) => setRoutineId(e.target.value)}>
+              <option value="all">Every channel today</option>
+              {routines.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         <Field label="Kind">
           <select className="f-select" value={kind} onChange={(e) => setKind(e.target.value)}>
             {Object.entries(EXCEPTION_LABEL).map(([k, l]) => (

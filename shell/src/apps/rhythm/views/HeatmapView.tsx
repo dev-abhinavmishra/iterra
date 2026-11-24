@@ -8,7 +8,7 @@
 import { useMemo, useState } from 'react';
 import { useRegister } from '../store';
 import type { Entry, ISODate, Routine } from '../lib/types';
-import { dayState, exceptionFor, isScheduled, type DayState } from '../lib/register';
+import { DAY_STATE_LABEL, dayState, exceptionFor, isScheduled, perDayBar, type DayState } from '../lib/register';
 import { addDaysISO, diffDaysISO, fmtDay, fmtDayFull, todayISO, weekStartISO } from '../lib/dates';
 import { cx, WEEKDAY_NAMES } from '../lib/utils';
 import { usePlayhead } from '../lib/playhead';
@@ -18,16 +18,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { FRICTION_LABEL, EXCEPTION_LABEL } from '../lib/utils';
 import { APP_DISPLAY, evidenceUrl } from '../lib/links';
 
-const STATE_WORD: Record<DayState, string> = {
-  full: 'complete',
-  minimum: 'met at minimum',
-  partial: 'partial',
-  missed: 'missed',
-  exception: 'excused',
-  paused: 'paused',
-  unscheduled: 'not scheduled',
-  future: 'upcoming',
-};
+const STATE_WORD = DAY_STATE_LABEL;
 
 export function HeatmapView({ openRoutine }: { openRoutine: (id: string) => void }) {
   const routines = useRegister((s) => s.routines);
@@ -133,7 +124,7 @@ export function HeatmapView({ openRoutine }: { openRoutine: (id: string) => void
       {/* ── Legend — shapes first, words attached ────────────────── */}
       <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-rule pt-3">
         <span className="kicker">Legend</span>
-        {(['full', 'minimum', 'partial', 'missed', 'exception', 'paused'] as DayState[]).map((s) => (
+        {(['full', 'minimum', 'partial', 'missed', 'unrecorded', 'exception', 'paused'] as DayState[]).map((s) => (
           <span key={s} className="flex items-center gap-1.5">
             <Pad state={s} size={18} />
             <span className="text-[11px] text-ink-soft">{STATE_WORD[s]}</span>
@@ -391,6 +382,15 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
         </div>
       )}
 
+      {/* a missed day offers recovery, not just a verdict: backfill the
+          entry (recorded late, honestly dated) or excuse the day */}
+      {state === 'missed' && !ex && (
+        <div className="mb-4 border-t border-rule pt-3">
+          <div className="kicker mb-1.5">Missed — pick it back up</div>
+          <BackfillForm routine={routine} date={date} onDone={onClose} />
+        </div>
+      )}
+
       {/* todayISO(), never toISOString() — civil dates are local, not UTC */}
       {!ex && diffDaysISO(todayISO(), date) >= 0 && (
         <button
@@ -404,5 +404,54 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
         </button>
       )}
     </Sheet>
+  );
+}
+
+// ── Backfill — record a missed day after the fact ────────────────────────────
+// The entry keeps the missed date and source 'manual'; createdAt stays now,
+// so the tape shows it was logged late — honest, never rewritten as on-time.
+
+function BackfillForm({ routine, date, onDone }: { routine: Routine; date: ISODate; onDone: () => void }) {
+  const checkIn = useRegister((s) => s.checkIn);
+  const measured = routine.measure !== 'check';
+  const [amount, setAmount] = useState(measured ? String(perDayBar(routine)) : '');
+  const [err, setErr] = useState('');
+  const unitLabel = routine.measure === 'duration' ? 'min' : routine.unit || routine.measure;
+
+  return (
+    <form
+      className="flex flex-wrap items-center gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const value = measured ? Number(amount) : 1;
+        if (!Number.isFinite(value) || value <= 0) {
+          setErr('Enter a positive amount.');
+          return;
+        }
+        const entry = checkIn(routine.id, { date, value });
+        if (!entry) {
+          setErr('This day already has a check-in.');
+          return;
+        }
+        onDone();
+      }}
+    >
+      {measured && (
+        <>
+          <input
+            className="f-input !w-24 text-center"
+            inputMode="decimal"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            aria-label={`amount in ${unitLabel}`}
+          />
+          <span className="mono text-[11px] text-ink-soft">{unitLabel}</span>
+        </>
+      )}
+      <button type="submit" className="btn btn--primary !px-3 !py-1.5">
+        Log it anyway
+      </button>
+      {err && <span className="text-[12px] text-ink-soft">{err}</span>}
+    </form>
   );
 }

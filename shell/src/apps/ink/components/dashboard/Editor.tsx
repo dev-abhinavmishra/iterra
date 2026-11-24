@@ -24,12 +24,17 @@ import { PlacePortal } from '../../../portal';
 
 type SaveState = 'idle' | 'saving' | 'saved';
 
+/* Anchors older than this boot are leftovers from a previous session —
+   the resume chip only offers those, never a position the user just made. */
+const SESSION_START = Date.now();
+
 export const Editor: React.FC = () => {
   const {
     activeNoteId, notes, updateNote, updateNoteFolder, folders, setNoteTags,
     togglePin, duplicateNote, trashNote, setActiveNote, prefs, drafts,
-    restoreDraft,
+    restoreDraft, resumeAnchor, dismissResumeAnchor,
   } = useStore();
+  const [resumeNonce, setResumeNonce] = useState(0);
   const activeNote = notes.find(n => n.id === activeNoteId);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [editor, setEditor] = useState<TiptapEditor | null>(null);
@@ -157,9 +162,23 @@ export const Editor: React.FC = () => {
     prefs.editorTextSize !== 'md' && `pref-text-${prefs.editorTextSize}`
   );
 
+  /* "Where you left off" — a leftover anchor from before this boot earns a
+     subtle chip, never a yank: same page offers the caret jump, a different
+     page offers the note itself. Dismissal is persisted on the anchor. */
+  const resumeStale = !!resumeAnchor && !resumeAnchor.dismissed && resumeAnchor.at < SESSION_START;
+  const resumeTarget = resumeStale && resumeAnchor
+    ? notes.find(n => n.id === resumeAnchor.noteId && !n.trashedAt)
+    : undefined;
+  const resumeHere = !!resumeTarget && resumeTarget.id === activeNote?.id;
+  const jumpToResume = () => {
+    if (!resumeAnchor) return;
+    setResumeNonce(n => n + 1);
+    if (resumeAnchor.noteId !== activeNote?.id) setActiveNote(resumeAnchor.noteId);
+  };
+
   return (
     <div className={clsx(
-      'flex-col overflow-hidden',
+      'flex-col overflow-hidden relative',
       activeNote
         ? 'absolute inset-0 z-[60] flex md:static md:z-auto md:flex-1'
         : 'hidden md:flex md:flex-1'
@@ -448,6 +467,10 @@ export const Editor: React.FC = () => {
                 content={activeNote.content}
                 onUpdate={handleContentUpdate}
                 placeholder="Begin."
+                resumeAnchor={resumeAnchor?.noteId === activeNote.id
+                  ? { block: resumeAnchor.block, offset: resumeAnchor.offset }
+                  : null}
+                resumeNonce={resumeNonce}
               />
             </div>
           </div>
@@ -553,6 +576,28 @@ export const Editor: React.FC = () => {
             </button>
           </div>
         </section>
+      )}
+
+      {/* Resume — the desk remembers where the pen rested. A leftover anchor
+          earns one quiet offer; clicking jumps, × files it away for good. */}
+      {resumeTarget && (
+        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[80] flex items-center gap-1 pl-3 pr-1 py-1 bg-ink rounded-full shadow-pop">
+          <button
+            onClick={jumpToResume}
+            className="font-mono text-2xs text-paper/80 hover:text-paper transition-colors whitespace-nowrap"
+          >
+            {resumeHere
+              ? '⟲ where you left off'
+              : `⟲ resume “${resumeTarget.title || 'untitled'}”`}
+          </button>
+          <button
+            onClick={dismissResumeAnchor}
+            aria-label="Dismiss resume"
+            className="w-5 h-5 flex items-center justify-center rounded-full text-paper/40 hover:text-paper hover:bg-paper/10 transition-colors"
+          >
+            ×
+          </button>
+        </div>
       )}
 
       {/* The page, set plainly for paper — only exists when printing */}

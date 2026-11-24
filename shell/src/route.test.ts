@@ -14,13 +14,27 @@ const store: Record<string, string> = {};
 
 describe('parseHash', () => {
   // query/section are non-enumerable on the parsed route — assert fields directly
-  it('terrain on empty/root', () => {
-    for (const r of [parseHash(''), parseHash('#/')]) {
+  it('landing on bare url and welcome route', () => {
+    for (const r of [parseHash(''), parseHash('#'), parseHash('#/welcome')]) {
       expect(r.place).toBe('');
       expect(r.course).toBe('');
       expect(r.query).toBe('');
+      expect(r.section).toBe('welcome');
+    }
+  });
+  it('today workspace route — "#/" stays the in-app home', () => {
+    for (const r of [parseHash('#/'), parseHash('#/today'), parseHash('#/today?x=1')]) {
+      expect(r.place).toBe('');
       expect(r.section).toBe('today');
     }
+  });
+  it('today sample-preview query survives the parse', () => {
+    const r = parseHash('#/today?sample=1');
+    expect(r.place).toBe('');
+    expect(r.section).toBe('today');
+    expect(r.query).toBe('sample=1');
+    /* the bare Today route carries no query — the preview is opt-in only */
+    expect(parseHash('#/today').query).toBe('');
   });
   it('place route', () => {
     const r = parseHash('#/p/ink');

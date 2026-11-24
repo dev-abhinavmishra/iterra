@@ -2,25 +2,32 @@ import React, { useState } from 'react';
 import { sanitizeHtml } from '../../services/sanitize';
 import { Btn, Icon, IconBtn } from '../ui/primitives';
 import { createDeck } from '../../services/studyService';
+import GeneratedReviewModal from '../study/GeneratedReviewModal';
+import { GeneratedCardItem, normalizeGeneratedCards } from '../../services/generatedStudy';
 
 interface FlashcardWidgetProps {
     data: any;
 }
 
-const normalizeCards = (data: any): { front: string; back: string }[] => {
-    if (Array.isArray(data)) return data.filter(c => c && c.front && c.back);
-    if (Array.isArray(data?.cards)) return data.cards.filter((c: any) => c && c.front && c.back);
-    if (data?.front && data?.back) return [{ front: data.front, back: data.back }];
-    return [];
+/* Honest provenance for Ask-corpus widgets: the model sees many notes, so
+   the only truthful locator is "AI-generated" plus whatever label the
+   payload carries — never a guessed note or timestamp. */
+const widgetSourceLabel = (data: any): string => {
+    if (typeof data?.sourceLabel === 'string' && data.sourceLabel.trim()) return data.sourceLabel;
+    if (typeof data?.noteTitle === 'string' && data.noteTitle.trim()) return `AI-generated · ${data.noteTitle}`;
+    return 'AI-generated · your library';
 };
 
-/* Paper flashcard with a real 3D flip. Multiple cards page through one at a time. */
+/* Paper flashcard with a real 3D flip. Multiple cards page through one at a time.
+   Saving is gated by an editable review — generated cards are drafts until
+   the user keeps them. */
 const FlashcardWidget: React.FC<FlashcardWidgetProps> = ({ data }) => {
-    const cards = normalizeCards(data);
+    const cards = normalizeGeneratedCards(data);
     const [index, setIndex] = useState(0);
     const [flipped, setFlipped] = useState(false);
     const [saved, setSaved] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [reviewOpen, setReviewOpen] = useState(false);
 
     if (cards.length === 0) return null;
     const card = cards[Math.min(index, cards.length - 1)];
@@ -30,8 +37,8 @@ const FlashcardWidget: React.FC<FlashcardWidgetProps> = ({ data }) => {
         setIndex(i);
     };
 
-    const handleSave = async () => {
-        if (saved || saving) return;
+    const persist = async (kept: GeneratedCardItem[]) => {
+        if (saved || saving || kept.length === 0) return;
         setSaving(true);
         try {
             /* Integrated: save into the Flashcards place — margin's own Study
@@ -43,18 +50,19 @@ const FlashcardWidget: React.FC<FlashcardWidgetProps> = ({ data }) => {
                     action: 'cards.create',
                     entity: { app: 'margin', type: 'note', id: `ask-${Date.now()}`, title: data?.title || 'Cards from Ask' },
                     payload: {
-                        cards: cards.map(c => ({ q: c.front, a: c.back })),
+                        cards: kept.map(c => ({ q: c.front, a: c.back })),
                         deckTitle: data?.title || 'Cards from Ask',
                     },
                 });
             } else {
-                await createDeck(data?.title || 'Cards from Ask', cards);
+                await createDeck(data?.title || 'Cards from Ask', kept);
             }
             setSaved(true);
         } catch (e) {
             console.error('Save deck failed', e);
         } finally {
             setSaving(false);
+            setReviewOpen(false);
         }
     };
 
@@ -111,16 +119,26 @@ const FlashcardWidget: React.FC<FlashcardWidgetProps> = ({ data }) => {
                                 onClick={() => goto(index + 1)} />
                         </>
                     )}
+                    <span className="font-mono text-[10px] text-ink-3 ml-1">AI-generated</span>
                 </div>
                 <Btn
                     size="sm"
-                    onClick={handleSave}
+                    onClick={() => setReviewOpen(true)}
                     disabled={saved || saving}
-                    icon={saved ? 'check' : 'bookmark_add'}
+                    icon={saved ? 'check' : 'rate_review'}
                 >
-                    {saved ? (integrated ? 'Saved to Flashcards' : 'Saved to Study') : saving ? 'Saving…' : (integrated ? 'Save to Flashcards' : 'Save to Study')}
+                    {saved ? (integrated ? 'Saved to Flashcards' : 'Saved to Study') : saving ? 'Saving…' : 'Review & save'}
                 </Btn>
             </div>
+
+            <GeneratedReviewModal
+                kind="deck"
+                open={reviewOpen}
+                items={cards}
+                sourceLabel={widgetSourceLabel(data)}
+                onClose={() => setReviewOpen(false)}
+                onConfirm={kept => { void persist(kept); }}
+            />
         </div>
     );
 };

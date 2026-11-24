@@ -6,6 +6,7 @@ import type {
   Attempt,
   AttemptResult,
   Course,
+  ErrorCue,
   ErrorRecord,
   HintLevel,
   PracticeSession,
@@ -16,6 +17,7 @@ import type {
   WorkStep,
   WorkbenchData,
 } from '../lib/types';
+import { solveAssistanceFor } from '../lib/cues';
 import { nextReview, buildSessionList, newSession } from '../lib/schedule';
 import { parseInbound, type InboundLink } from '../lib/links';
 import { exportWorkbench, parseWorkbenchBackup } from '../lib/backup';
@@ -64,6 +66,7 @@ interface WorkbenchState extends WorkbenchData {
   updateStep: (attemptId: string, stepId: string, patch: Partial<WorkStep>) => void;
   removeStep: (attemptId: string, stepId: string) => void;
   revealHint: (attemptId: string) => void;
+  revealCue: (attemptId: string, cueId: string) => void;
   submitAttempt: (
     id: string,
     outcome: { result: AttemptResult; resultSource: 'auto' | 'self' },
@@ -104,6 +107,15 @@ function normalizeWorkbenchData<T extends Partial<WorkbenchData & { settings?: A
     p.tags = p.tags ?? [];
     p.hints = p.hints ?? [];
     p.attachments = p.attachments ?? [];
+    p.errorCues = ((p.errorCues ?? []) as Array<Partial<ErrorCue>>)
+      .map((cue, i) => ({
+        id: cue?.id ?? `cue_${i}_${uid('x_')}`,
+        text: cue?.text ?? '',
+        sourceAttemptId: cue?.sourceAttemptId ?? '',
+        sourceErrorId: cue?.sourceErrorId,
+        createdAt: cue?.createdAt ?? nowISO(),
+      }))
+      .filter((cue) => !!cue.text.trim());
     p.promptDoc = p.promptDoc ?? '';
     p.workedSolutionDoc = p.workedSolutionDoc ?? '';
     p.answerSpec = p.answerSpec ?? { kind: 'steps', steps: [] };
@@ -137,6 +149,12 @@ function normalizeWorkbenchData<T extends Partial<WorkbenchData & { settings?: A
     }
     a.confidence = Number.isFinite(a.confidence) ? a.confidence : 3;
     a.hintLevel = Number.isFinite(a.hintLevel) ? a.hintLevel : 0;
+    a.cueReveals = (a.cueReveals ?? [])
+      .map((reveal) => ({ cueId: reveal?.cueId ?? '', at: reveal?.at ?? nowISO() }))
+      .filter((reveal) => !!reveal.cueId);
+    if (a.solveAssistance != null && !['independent', 'hint-assisted', 'cue-assisted'].includes(a.solveAssistance)) {
+      delete a.solveAssistance;
+    }
   }
   for (const sess of Object.values(s.sessions || {})) {
     sess.problemIds = sess.problemIds ?? [];
@@ -159,6 +177,33 @@ function normalizeWorkbenchData<T extends Partial<WorkbenchData & { settings?: A
     e.divergentSteps = e.divergentSteps ?? [];
   }
   return s;
+}
+
+function errorCueFor(rec: ErrorRecord, existing?: ErrorCue): ErrorCue | null {
+  const text = rec.repairCue?.trim();
+  if (!text) return null;
+  return {
+    id: existing?.id ?? `cue_${rec.id}`,
+    text,
+    sourceAttemptId: rec.attemptId,
+    sourceErrorId: rec.id,
+    createdAt: existing?.createdAt ?? rec.createdAt,
+  };
+}
+
+function problemWithErrorCue(problem: Problem | undefined, rec: ErrorRecord): Problem | undefined {
+  if (!problem) return problem;
+  const cues = [...(problem.errorCues ?? [])];
+  const idx = cues.findIndex((cue) => cue.sourceErrorId === rec.id);
+  const cue = errorCueFor(rec, idx >= 0 ? cues[idx] : undefined);
+  if (!cue && idx < 0) return problem;
+  if (cue) {
+    if (idx >= 0) cues[idx] = cue;
+    else cues.push(cue);
+  } else {
+    cues.splice(idx, 1);
+  }
+  return { ...problem, errorCues: cues };
 }
 
 const EMPTY_DATA = (): WorkbenchData => ({
@@ -328,7 +373,19 @@ export const useWorkbench = create<WorkbenchState>()(
         return attempt;
       },
       updateAttempt: (id, patch) =>
-        set((s) => ({ attempts: { ...s.attempts, [id]: { ...s.attempts[id], ...patch } } })),
+        set((s) => {
+          const a = s.attempts[id];
+          if (!a) return s;
+          const next = { ...a, ...patch };
+          if ('result' in patch) {
+            if (next.result === 'correct' && !next.solveAssistance) {
+              next.solveAssistance = solveAssistanceFor(next);
+            } else if (next.result !== 'correct') {
+              delete next.solveAssistance;
+            }
+          }
+          return { attempts: { ...s.attempts, [id]: next } };
+        }),
       addStep: (attemptId, step) => {
         const ws: WorkStep = { id: uid('w_'), text: '', ...step };
         set((s) => {
@@ -381,21 +438,38 @@ export const useWorkbench = create<WorkbenchState>()(
             },
           };
         }),
+      revealCue: (attemptId, cueId) =>
+        set((s) => {
+          const a = s.attempts[attemptId];
+          if (!a || a.submittedAt) return s;
+          const cue = s.problems[a.problemId]?.errorCues?.find((c) => c.id === cueId);
+          if (!cue || (a.cueReveals ?? []).some((r) => r.cueId === cueId)) return s;
+          return {
+            attempts: {
+              ...s.attempts,
+              [attemptId]: {
+                ...a,
+                cueReveals: [...(a.cueReveals ?? []), { cueId, at: nowISO() }],
+              },
+            },
+          };
+        }),
       submitAttempt: (id, outcome) =>
         set((s) => {
           const a = s.attempts[id];
           if (!a) return s;
-          return {
-            attempts: {
-              ...s.attempts,
-              [id]: {
-                ...a,
-                submittedAt: nowISO(),
-                result: outcome.result,
-                resultSource: outcome.resultSource,
-              },
-            },
+          const next = {
+            ...a,
+            submittedAt: nowISO(),
+            result: outcome.result,
+            resultSource: outcome.resultSource,
           };
+          if (outcome.result === 'correct' && !next.solveAssistance) {
+            next.solveAssistance = solveAssistanceFor(next);
+          } else if (outcome.result !== 'correct') {
+            delete next.solveAssistance;
+          }
+          return { attempts: { ...s.attempts, [id]: next } };
         }),
       fileError: (e) => {
         const a = get().attempts[e.attemptId];
@@ -405,16 +479,40 @@ export const useWorkbench = create<WorkbenchState>()(
           problemId: a?.problemId ?? '',
           createdAt: nowISO(),
         };
-        set((s) => ({ errors: { ...s.errors, [rec.id]: rec } }));
+        set((s) => {
+          const problems = { ...s.problems };
+          const p = rec.problemId ? s.problems[rec.problemId] : undefined;
+          const synced = problemWithErrorCue(p, rec);
+          if (synced) problems[synced.id] = synced;
+          return { errors: { ...s.errors, [rec.id]: rec }, problems };
+        });
         return rec;
       },
       updateError: (id, patch) =>
-        set((s) => ({ errors: { ...s.errors, [id]: { ...s.errors[id], ...patch } } })),
+        set((s) => {
+          const prev = s.errors[id];
+          if (!prev) return s;
+          const next = { ...prev, ...patch };
+          const problems = { ...s.problems };
+          const p = next.problemId ? s.problems[next.problemId] : undefined;
+          const synced = problemWithErrorCue(p, next);
+          if (synced) problems[synced.id] = synced;
+          return { errors: { ...s.errors, [id]: next }, problems };
+        }),
       deleteError: (id) =>
         set((s) => {
+          const prev = s.errors[id];
           const errors = { ...s.errors };
           delete errors[id];
-          return { errors };
+          const problems = { ...s.problems };
+          const p = prev?.problemId ? s.problems[prev.problemId] : undefined;
+          if (p) {
+            problems[p.id] = {
+              ...p,
+              errorCues: (p.errorCues ?? []).filter((cue) => cue.sourceErrorId !== id),
+            };
+          }
+          return { errors, problems };
         }),
 
       // ── reviews ──

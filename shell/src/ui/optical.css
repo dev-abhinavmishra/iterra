@@ -1,0 +1,14 @@
+/* Optical accents use the live scene only along the control's curved rim. */
+.it-lens[data-optical="on"] { background: transparent; border-color: transparent; }
+.it-search-lens { border-radius: 9px; }
+.atlas-controls.it-lens { right: 12%; bottom: 15%; border-radius: 16px; background: #173c2d; }
+.atlas-controls.it-lens[data-optical="on"] { background: transparent; }
+.atlas-controls.it-lens button { color: #ffefd0; border-radius: 12px; }
+.atlas-controls.it-lens button:hover { background: rgb(190 221 178 / .14); }
+.study-masthead .study-action-lens { max-width: 100%; gap: 0; border-radius: 12px; padding: 3px; background: #254632; border: 1px solid #88a98b; }
+.study-masthead .study-action-lens[data-optical="on"] { background: transparent; border-color: transparent; }
+.study-masthead .study-action-lens button { border: 0; background: transparent; color: #f1f5e5; box-shadow: none; }
+.study-masthead .study-action-lens button + button { border-inline-start: 1px solid #91af9166; border-radius: 0; }
+.study-masthead .study-action-lens button:hover { background: rgb(194 226 178 / .15); color: white; }
+.it-lens:focus-visible,.it-lens button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+@media (forced-colors: active) { .it-lens { border: 1px solid ButtonText; } }

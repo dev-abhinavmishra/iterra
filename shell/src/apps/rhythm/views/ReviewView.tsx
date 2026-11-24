@@ -114,6 +114,9 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
                         : `${w.actual}/${w.effectiveTarget} ${unitLabel} · ${w.sessions} sessions`}
                   </div>
                 </div>
+                <span className="mono text-[10px] uppercase text-ink-faint">
+                  {w.exempt ? 'excused' : w.hit ? 'met' : w.inProgress ? 'in progress' : 'missed'}
+                </span>
                 <Lamp band={band.band} />
                 <label className="flex items-center gap-1.5 text-[11px] text-ink-soft">
                   <input

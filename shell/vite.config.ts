@@ -86,6 +86,8 @@ export default defineConfig(({ mode }) => {
 
     return {
         plugins: [react(), tailwindcss(), devApiPlugin()],
+        // Linked packages must share the same React dispatcher as the shell.
+        resolve: { dedupe: ['react', 'react-dom'] },
         build: {
             // The release build uses this source-keyed graph to generate the
             // service-worker's core/tool/feature precache policy. Keep hashed
