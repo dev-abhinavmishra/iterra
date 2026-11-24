@@ -83,7 +83,7 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
         setScreen(dueCards(deck).length > 0 ? { kind: 'review', deck } : { kind: 'edit', deck });
     };
 
-    /* ---- generate from a note ---- */
+    /* ---- generate from a material ---- */
 
     const pickNote = async (note: Note) => {
         if (!picking || generating) return;
@@ -98,7 +98,7 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                 const cards = parseJsonArray<{ front?: string; back?: string }>(res.content)
                     .filter(c => typeof c?.front === 'string' && typeof c?.back === 'string' && c.front.trim() && c.back.trim());
                 if (cards.length === 0) {
-                    setGenError("Couldn't make cards from that note. Try another one.");
+                    setGenError("Couldn't make cards from that material. Try another one.");
                 } else {
                     const deck = await createDeck(note.title || 'Untitled deck', cards as { front: string; back: string }[], note.id);
                     await refresh();
@@ -119,7 +119,7 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                     })
                     .filter((q): q is QuizQuestion => q !== null);
                 if (questions.length === 0) {
-                    setGenError("Couldn't make a quiz from that note. Try another one.");
+                    setGenError("Couldn't make a quiz from that material. Try another one.");
                 } else {
                     const quiz = await createQuiz(note.title || 'Untitled quiz', questions, note.id);
                     await refresh();
@@ -201,7 +201,7 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                     onChange={v => setTab(v as 'decks' | 'quizzes')}
                 />
                 <Btn size="sm" icon="note_stack" onClick={() => { setGenError(null); setPicking(tab === 'decks' ? 'deck' : 'quiz'); }}>
-                    From note
+                    From material
                 </Btn>
             </header>
 
@@ -214,11 +214,11 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                             <EmptyState
                                 icon="style"
                                 title="No decks yet"
-                                body="Decks are flashcards on a spaced schedule. Make one from a note, or start blank."
+                                body="Decks are flashcards on a spaced schedule. Make one from a material, or start blank."
                                 action={
                                     <div className="flex items-center gap-2">
                                         <Btn variant="primary" onClick={newDeck}>New deck</Btn>
-                                        <Btn onClick={() => { setGenError(null); setPicking('deck'); }}>From a note</Btn>
+                                        <Btn onClick={() => { setGenError(null); setPicking('deck'); }}>From a material</Btn>
                                     </div>
                                 }
                             />
@@ -234,8 +234,8 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                         <EmptyState
                             icon="quiz"
                             title="No quizzes yet"
-                            body="Quizzes are made from a note — a handful of multiple-choice questions."
-                            action={<Btn variant="primary" onClick={() => { setGenError(null); setPicking('quiz'); }}>From a note</Btn>}
+                            body="Quizzes are made from a material — a handful of multiple-choice questions."
+                            action={<Btn variant="primary" onClick={() => { setGenError(null); setPicking('quiz'); }}>From a material</Btn>}
                         />
                     ) : (
                         <Card className="divide-y divide-[var(--line)]">
@@ -277,14 +277,14 @@ const StudyView: React.FC<StudyViewProps> = ({ notes, onOpenNote, request, onReq
                 </div>
             </div>
 
-            {/* pick a note to generate from */}
+            {/* pick a material to generate from */}
             <Modal open={picking !== null} onClose={() => { if (!generating) setPicking(null); }} width="max-w-lg">
                 <div className="p-5">
                     <h3 className="font-serif text-lg text-ink">
-                        {picking === 'quiz' ? 'Make a quiz from a note' : 'Make a deck from a note'}
+                        {picking === 'quiz' ? 'Make a quiz from a material' : 'Make a deck from a material'}
                     </h3>
                     <p className="text-sm text-ink-2 mt-1">
-                        Pick the note to work from — the transcript is used when there is one.
+                        Pick the material to work from — the transcript is used when there is one.
                     </p>
                     <Divider className="my-4" />
                     {generating ? (

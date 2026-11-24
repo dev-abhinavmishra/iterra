@@ -1,13 +1,11 @@
 import React from 'react';
 import { View } from '../types';
-import { useUsage } from '../services/usageService';
-import { Icon, Kbd, ProgressBar } from './ui/primitives';
+import { Icon, Kbd } from './ui/primitives';
 import { isIntegrated } from '../../theme';
 
 interface SidebarProps {
     currentView: View;
     onChangeView: (view: View) => void;
-    onUpgrade: () => void;
     onOpenPalette: () => void;
 }
 
@@ -22,7 +20,7 @@ const CardMark: React.FC = () => (
 );
 
 const ALL_NAV: { view: View; icon: string; label: string }[] = [
-    { view: View.LIBRARY, icon: 'note_stack', label: 'Notes' },
+    { view: View.LIBRARY, icon: 'note_stack', label: 'Materials' },
     { view: View.RECORDER, icon: 'mic', label: 'Record' },
     { view: View.ANALYSIS, icon: 'forum', label: 'Ask' },
     { view: View.STUDY, icon: 'style', label: 'Study' },
@@ -34,50 +32,13 @@ const NAV = (window as any).__iterraIntegrated
     ? ALL_NAV.filter(n => n.view !== View.STUDY)
     : ALL_NAV;
 
-/* Library filters and the note editor all live under "Notes". */
+/* The shelf, its filters and the read-only material view all live under
+   "Materials". */
 const isActive = (nav: View, current: View): boolean =>
     nav === current ||
     (nav === View.LIBRARY && (current === View.BOOKMARKS || current === View.HISTORY || current === View.EDITOR));
 
-const UsageMeter: React.FC<{ onUpgrade: () => void }> = ({ onUpgrade }) => {
-    const usage = useUsage();
-    const pct = usage.limit > 0 ? Math.min(100, Math.round((usage.used / usage.limit) * 100)) : 0;
-    const low = usage.remaining <= 3;
-    const empty = usage.remaining <= 0;
-
-    return (
-        <>
-            {/* Icon rail: just the remaining count. */}
-            <button
-                onClick={onUpgrade}
-                title={`${usage.remaining} of ${usage.limit} free uses left today`}
-                className="lg:hidden mx-auto w-9 h-9 flex items-center justify-center rounded-[var(--r)] border border-line-2 bg-card-2 hover:border-[var(--ink-3)] transition-colors"
-            >
-                <span className={`font-mono text-[11px] ${empty ? 'text-bad' : low ? 'text-warn' : 'text-ink-2'}`}>
-                    {usage.remaining}
-                </span>
-            </button>
-
-            {/* Full rail: labeled meter, opens the limit explainer. */}
-            <button
-                onClick={onUpgrade}
-                title="About the daily limit"
-                className="hidden lg:block w-full text-left rounded-[var(--r)] border border-line bg-card-2 px-3 py-2.5 mb-2 hover:border-[var(--ink-3)] transition-colors"
-            >
-                <div className="flex items-center justify-between mb-2">
-                    <span className="font-mono text-[10px] text-ink-3">free uses today</span>
-                    <span className={`font-mono text-[11px] ${empty ? 'text-bad' : low ? 'text-warn' : 'text-ink-2'}`}>
-                        {usage.remaining}/{usage.limit}
-                    </span>
-                </div>
-                <ProgressBar value={pct} />
-                <span className="block mt-1.5 font-mono text-[10px] text-ink-3">resets daily</span>
-            </button>
-        </>
-    );
-};
-
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, onUpgrade, onOpenPalette }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, onOpenPalette }) => {
     const navButton = (item: { view: View; icon: string; label: string }) => {
         const active = isActive(item.view, currentView);
         return (
@@ -139,7 +100,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView, onUpgrade,
             </nav>
 
             <div className="border-t border-line p-2 lg:p-3">
-                <UsageMeter onUpgrade={onUpgrade} />
                 {/* settings live in the terrain's central surface when
                     integrated — still reachable via #/p/margin?settings */}
                 {!isIntegrated() && navButton({ view: View.SETTINGS, icon: 'settings', label: 'Settings' })}

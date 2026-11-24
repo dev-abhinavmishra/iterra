@@ -438,7 +438,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ notes, contextualAttachment
                     <IconBtn icon={sidebarOpen ? 'menu_open' : 'menu'} title="Toggle sessions" onClick={() => setSidebarOpen(o => !o)} />
                     <div className="h-4 w-px bg-[var(--line-2)] hidden md:block" />
                     <h1 className="font-serif text-xl text-ink ink-write ink-underline">Ask</h1>
-                    <span className="font-mono text-[10px] text-ink-3 ml-1">{notes.length} notes in context</span>
+                    <span className="font-mono text-[10px] text-ink-3 ml-1">{notes.length} materials in context</span>
                 </header>
 
                 {/* Messages */}
@@ -448,7 +448,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ notes, contextualAttachment
                             <div className="w-11 h-11 rounded-[var(--r-lg)] bg-card border border-line shadow-card flex items-center justify-center">
                                 <Icon name="forum" size={20} className="text-mark" />
                             </div>
-                            <h2 className="font-serif text-[26px] text-ink mt-5 ink-write ink-underline" style={{ '--ink-delay': '0.15s' } as React.CSSProperties}>Ask your notes</h2>
+                            <h2 className="font-serif text-[26px] text-ink mt-5 ink-write ink-underline" style={{ '--ink-delay': '0.15s' } as React.CSSProperties}>Ask your materials</h2>
                             <p className="text-[13px] text-ink-2 mt-2.5 max-w-md leading-relaxed">
                                 Quiz yourself, build timelines, compare ideas, or pull out takeaways — across your whole library.
                             </p>

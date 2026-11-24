@@ -119,7 +119,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
                         className={note.isBookmarked ? '' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'}
                         onClick={(e) => { stop(e); onTogglePin(note); }} />
                     <span className="flex items-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-100">
-                        <IconBtn icon="arrow_forward" title="Open" onClick={(e) => { stop(e); onOpen(note); }} />
+                        <IconBtn icon="arrow_forward" title="View" onClick={(e) => { stop(e); onOpen(note); }} />
                         <IconBtn icon="delete" title="Delete" danger onClick={(e) => { stop(e); onDelete(note); }} />
                     </span>
                 </span>
@@ -179,7 +179,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
                 <div className={`flex items-center justify-between gap-2 px-4 ${compact ? 'py-2' : 'py-2.5'} bg-[var(--card)]`}>
                     <span className="font-mono text-[11px] text-ink-3 truncate">{metaLine(note)}</span>
                     <span className="flex items-center shrink-0 -mr-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-100">
-                        <IconBtn icon="arrow_forward" title="Open" size={16}
+                        <IconBtn icon="arrow_forward" title="View" size={16}
                             onClick={(e) => { stop(e); onOpen(note); }} />
                         <IconBtn icon="delete" title="Delete" danger size={16}
                             onClick={(e) => { stop(e); onDelete(note); }} />

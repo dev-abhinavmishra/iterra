@@ -60,9 +60,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, notes, o
     }, [open]);
 
     const actions: ActionItem[] = useMemo(() => ([
-        { kind: 'action', id: 'new', icon: 'edit_note', label: 'New note', run: onNewNote },
+        /* Authoring starts in the Notes app — margin's palette hands off
+           through inkHandoff instead of opening a local editor. */
+        { kind: 'action', id: 'new', icon: 'edit_note', label: 'New note in Notes', run: onNewNote },
         { kind: 'action', id: 'record', icon: 'mic', label: 'Record', run: () => onNavigate(View.RECORDER) },
-        { kind: 'action', id: 'notes', icon: 'note_stack', label: 'Go to Notes', run: () => onNavigate(View.LIBRARY) },
+        { kind: 'action', id: 'notes', icon: 'note_stack', label: 'Go to Materials', run: () => onNavigate(View.LIBRARY) },
         { kind: 'action', id: 'ask', icon: 'forum', label: 'Go to Ask', run: () => onNavigate(View.ANALYSIS) },
         /* decks+quizzes live in the Flashcards place when integrated — the
            Study view itself stays reachable via ?deck=/?quiz= deep links */
@@ -164,8 +166,8 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, notes, o
                                 value={query}
                                 onChange={e => { setQuery(e.target.value); setActive(0); }}
                                 onKeyDown={onKeyDown}
-                                placeholder="Search notes and commands…"
-                                aria-label="Search notes and commands"
+                                placeholder="Search materials and commands…"
+                                aria-label="Search materials and commands"
                                 className="flex-1 bg-transparent outline-none text-sm text-ink placeholder:text-ink-3 font-sans"
                             />
                             <Kbd>esc</Kbd>
@@ -199,7 +201,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onClose, notes, o
                             {visibleNotes.length > 0 && (
                                 <>
                                     <div className="px-3.5 pt-2 pb-1 font-mono text-[10px] text-ink-3">
-                                        {query.trim() ? 'notes' : 'recent notes'}
+                                        {query.trim() ? 'materials' : 'recent materials'}
                                     </div>
                                     {visibleNotes.map(n => {
                                         rowIdx += 1;

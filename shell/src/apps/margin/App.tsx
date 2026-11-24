@@ -3,12 +3,11 @@ import { AnimatePresence, motion } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import LibraryView from './views/LibraryView';
 import RecorderView from './views/RecorderView';
-import EditorView from './views/EditorView';
+import MaterialView from './views/MaterialView';
 import AnalysisView from './views/AnalysisView';
 import StudyView from './views/StudyView';
 import SettingsView from './views/SettingsView';
 import StorageQuotaModal from './components/StorageQuotaModal';
-import UpgradeModal from './components/UpgradeModal';
 import BootSplash from './components/BootSplash';
 import CommandPalette from './components/CommandPalette';
 import SelectionPopover from './components/SelectionPopover';
@@ -17,6 +16,7 @@ import { onTerrainTheme } from '../theme';
 import { initDB, getAllNotes, saveNote, deleteNote, getSettings, saveSettings, migrateFromLocalStorage, deleteNotesBefore, clearAllNotes, saveNoteVersion } from './services/storageService';
 import { refreshUsage, initAuth } from './services/usageService';
 import { wireMargin, setMarginSource } from './iterra';
+import { newNoteInNotes } from './services/inkHandoff';
 import { placeActive } from '../active';
 import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 import './index.css';
@@ -25,7 +25,7 @@ const WELCOME_NOTE = (): Note => ({
     id: 'welcome',
     title: 'Getting started',
     date: new Date().toLocaleDateString(),
-    content: `<h1>Getting started</h1><p>This is your notebook. Everything you record or import lands here as a card — edit it, pin it, or turn it into study material.</p><h2>The pieces</h2><ul><li><b>Record</b> captures a lecture or voice memo, transcribes it, and structures it into a guide.</li><li><b>Notes</b> is the card index — every source lives here, searchable and sorted.</li><li><b>Ask</b> chats with your whole library at once and can draft quizzes and flashcards.</li><li><b>Flashcards</b> — decks live in the Cardfile app. Anything you send from here opens there for spaced review.</li></ul><h2>Useful moves</h2><ul><li>Press <b>⌘K</b> to jump anywhere, search, or start something new.</li><li>Select any text to ask about it, summarize it, or make flashcards from it.</li><li>Drop a PDF, Word doc, image, or audio file onto <b>Notes</b> to import it.</li></ul>`,
+    content: `<h1>Getting started</h1><p>This is your shelf for class materials. Everything you record or import lands here as a card — file it under a course, pin it, or send it to Notes to work on.</p><h2>The pieces</h2><ul><li><b>Record</b> captures a lecture or voice memo, transcribes it, and files the transcript here.</li><li><b>Materials</b> is the index — every source lives here, searchable, tagged, and sorted by course.</li><li><b>Notes</b> (the ink app) is where pages get written — "New note" and "Edit in Notes" hand off there.</li><li><b>Ask</b> chats with your whole library at once and can draft quizzes and flashcards.</li><li><b>Flashcards</b> — decks live in the Cardfile app. Anything you send from here opens there for spaced review.</li></ul><h2>Useful moves</h2><ul><li>Press <b>⌘K</b> to jump anywhere, search, or start something new.</li><li>Select any text to ask about it, summarize it, or make flashcards from it.</li><li>Drop a PDF, Word doc, image, or audio file onto <b>Materials</b> to import it.</li></ul>`,
     transcript: '',
     type: 'TEXT',
     tags: ['Guide'],
@@ -33,7 +33,7 @@ const WELCOME_NOTE = (): Note => ({
 });
 
 const viewKey = (v: View, activeNote: Note | null) =>
-    v === View.EDITOR ? `editor-${activeNote?.id}` : v;
+    v === View.EDITOR ? `material-${activeNote?.id}` : v;
 
 const App: React.FC<{ query?: string }> = ({ query = '' }) => {
     const rootRef = useRef<HTMLDivElement>(null);
@@ -42,7 +42,6 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
     const [currentView, setCurrentView] = useState<View>(View.LIBRARY);
     const [activeNote, setActiveNote] = useState<Note | null>(null);
     const [showQuotaModal, setShowQuotaModal] = useState(false);
-    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [paletteOpen, setPaletteOpen] = useState(false);
 
     const [settings, setSettingsState] = useState<AppSettings>({
@@ -62,12 +61,10 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
 
     const [contextualAttachments, setContextualAttachments] = useState<string[]>([]);
 
-    // Usage limit: sign in (anonymous), load current status, open modal when hit.
+    // Anonymous auth powers the cloud mirror; usage ledgers still count
+    // for metrics but nothing is capped (quotas removed server-side).
     useEffect(() => {
         initAuth().finally(() => refreshUsage());
-        const onLimit = () => setShowUpgradeModal(true);
-        window.addEventListener('usage-limit-reached', onLimit);
-        return () => window.removeEventListener('usage-limit-reached', onLimit);
     }, []);
 
     // Global ⌘K / Ctrl+K command palette — gated to this place being in front
@@ -83,8 +80,8 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
         return () => window.removeEventListener('keydown', onKey);
     }, []);
 
-    /* the terrain listens for 'iterra:select-object' — opening a note in the
-       editor puts it in the context panel like picking it in Search */
+    /* the terrain listens for 'iterra:select-object' — opening a material
+       puts it in the context panel like picking it in Search */
     useEffect(() => {
         if (!activeNote?.id || !(window as any).__iterraIntegrated) return;
         try {
@@ -140,7 +137,7 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
         setMarginSource(() => ({ notes }));
     }, [notes]);
 
-    // inbound: ?note=<id> opens that note in the editor; ?deck=<id> /
+    // inbound: ?note=<id> opens that material read-only; ?deck=<id> /
     // ?quiz=<id> land in Study on that item (unknown id stays browse).
     // ?source=<id> is rhythm's evidenceUrl contract for this app — a source
     // material id is a note id here.
@@ -203,7 +200,7 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
     }, [isLoaded, query]);
 
     // canonical store intake: a note created via 'note.create' is persisted
-    // by the adapter, then arrives here to join state and open in the editor
+    // by the adapter, then arrives here to join state and open on the shelf
     useEffect(() => {
         const onIntakeNote = (ev: Event) => {
             const note = (ev as CustomEvent<Note>).detail;
@@ -281,21 +278,12 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
         }
     };
 
+    /* "New note" is authoring — it belongs to the Notes app (ink). Margin
+       stores and organizes; inkHandoff seeds a blank ink page through the
+       hub (or opens ink directly when there's no hub). Nothing is created
+       locally, so backing out leaves nothing behind. */
     const handleNewNote = () => {
-        const note: Note = {
-            id: Date.now().toString(),
-            title: '',
-            date: new Date().toLocaleDateString(),
-            content: '',
-            transcript: '',
-            type: 'TEXT',
-            tags: [],
-            lastAccessed: new Date().toISOString(),
-        };
-        // Not persisted until the first real edit — backing out of an
-        // untouched note leaves nothing behind in the library.
-        setActiveNote(note);
-        setCurrentView(View.EDITOR);
+        newNoteInNotes();
     };
 
     const handleClearData = async () => {
@@ -350,7 +338,7 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                 );
             case View.EDITOR:
                 return activeNote ? (
-                    <EditorView
+                    <MaterialView
                         note={activeNote}
                         notes={notes}
                         onBack={() => setCurrentView(View.LIBRARY)}
@@ -359,7 +347,6 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                         onOpenNote={handleOpenNote}
                         contextualAttachments={contextualAttachments}
                         setContextualAttachments={setContextualAttachments}
-                        settings={settings}
                     />
                 ) : <LibraryView {...libraryProps} onImport={() => {}} />;
             case View.SETTINGS:
@@ -378,7 +365,6 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
             <Sidebar
                 currentView={currentView}
                 onChangeView={setCurrentView}
-                onUpgrade={() => setShowUpgradeModal(true)}
                 onOpenPalette={() => setPaletteOpen(true)}
             />
 
@@ -393,7 +379,7 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                     object="margin"
                     place="margin"
                     title="Study Materials"
-                    sub="Lecture recordings, imported documents, marginalia, and study sheets."
+                    sub="Your shelf for class materials — recordings, imports, and handouts, filed by course. Write in Notes."
                     className="mx-4 md:mx-6 mt-4 mb-3 shrink-0"
                 />
             )}
@@ -426,8 +412,6 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                     note={activeNote}
                 />
             )}
-
-            <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
 
             <StorageQuotaModal
                 isOpen={showQuotaModal}

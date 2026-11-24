@@ -147,8 +147,8 @@ export const PLACES: Place[] = [
     label: 'Study Materials',
     place: 'the Margin',
     app: 'Margin',
-    shortDesc: 'Recordings, imported documents, and study guides',
-    tagline: 'Lecture recordings, imported documents, marginalia, and study sheets.',
+    shortDesc: 'Store and organize recordings, documents, and class files',
+    tagline: 'Your shelf for class materials — recordings, imports, and handouts filed by course. Write in Notes.',
     glyph: (
       <svg viewBox="0 0 32 32" {...S}>
         <path d="M8 4v24" />

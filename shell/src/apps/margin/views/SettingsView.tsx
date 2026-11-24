@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { AppSettings } from '../types';
-import { Btn, Icon, Kbd, Modal, ProgressBar, Segmented, Select, Toggle } from '../components/ui/primitives';
+import { Btn, Icon, Kbd, Modal, ProgressBar, Segmented, Toggle } from '../components/ui/primitives';
 import { storageEstimate } from '../services/storageService';
 import { exportBackup, importBackup } from '../services/exportService';
 import { isIntegrated, setTerrainTheme, terrainIsDark } from '../../theme';
@@ -64,9 +64,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings,
     }
   };
 
+  /* The old "Editor" prefs (font size, page width, spellcheck) tuned the
+     in-app editor — margin no longer edits note content (Notes owns that),
+     so the section is gone. The AppSettings fields stay for back-compat
+     with stored settings blobs. */
   const shortcuts: { keys: string; action: string }[] = [
       { keys: '⌘K', action: 'Command palette' },
-      { keys: '⌘F', action: 'Find in note' },
       { keys: '1–4', action: 'Grade a review card' },
       { keys: 'Space', action: 'Flip the current card' },
   ];
@@ -101,45 +104,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings,
           </Row>
         </Section>
 
-        <Section title="Editor">
-          <Row title="Font size">
-            <Segmented
-                value={settings.editorFontSize || 'medium'}
-                onChange={v => update({ editorFontSize: v as AppSettings['editorFontSize'] })}
-                options={[
-                    { value: 'small', label: 'Small' },
-                    { value: 'medium', label: 'Medium' },
-                    { value: 'large', label: 'Large' },
-                ]}
-            />
-          </Row>
-          <Row title="Page width" hint="Narrow keeps a focused column; wide uses the desk.">
-            <Segmented
-                value={settings.editorWidth || 'narrow'}
-                onChange={v => update({ editorWidth: v as AppSettings['editorWidth'] })}
-                options={[
-                    { value: 'narrow', label: 'Narrow' },
-                    { value: 'wide', label: 'Wide' },
-                ]}
-            />
-          </Row>
-          <Row title="Spellcheck" hint="Underline misspellings while you type.">
-            <Toggle checked={settings.spellcheck !== false} onChange={v => update({ spellcheck: v })} />
-          </Row>
-        </Section>
-
-        <Section title="Notes">
-          <Row title="Default format" hint="How AI-structured notes are written.">
-            <Select
-                value={settings.defaultNoteFormat}
-                onChange={e => update({ defaultNoteFormat: e.target.value as AppSettings['defaultNoteFormat'] })}
-            >
-                <option value="Structured">Structured</option>
-                <option value="Summary">Summary</option>
-                <option value="Transcript">Transcript</option>
-            </Select>
-          </Row>
-          <Row title="Auto-generate titles" hint="Name sessions from their content.">
+        <Section title="Recording">
+          <Row title="Auto-generate titles" hint="Name recordings from their transcript.">
             <Toggle checked={settings.autoGenerateTitles} onChange={v => update({ autoGenerateTitles: v })} />
           </Row>
         </Section>
@@ -170,7 +136,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings,
                 </div>
             </div>
           </div>
-          <Row title="Clear all notes" hint="Permanently delete every note on this device.">
+          <Row title="Clear all materials" hint="Permanently delete every material on this device.">
             <Btn size="sm" variant="danger" onClick={() => setShowClearConfirm(true)}>Clear data</Btn>
           </Row>
         </Section>
@@ -200,9 +166,9 @@ const SettingsView: React.FC<SettingsViewProps> = ({ settings, onUpdateSettings,
 
       <Modal open={showClearConfirm} onClose={() => setShowClearConfirm(false)}>
         <div className="p-5">
-            <h3 className="font-serif text-lg text-ink">Clear all notes?</h3>
+            <h3 className="font-serif text-lg text-ink">Clear all materials?</h3>
             <p className="text-sm text-ink-2 mt-2 leading-relaxed">
-                Every note and transcript stored on this device will be deleted. Decks and quizzes stay. This can't be undone.
+                Every material and transcript stored on this device will be deleted. Decks and quizzes stay. This can't be undone.
             </p>
             <div className="flex justify-end gap-2 mt-5">
                 <Btn onClick={() => setShowClearConfirm(false)}>Cancel</Btn>

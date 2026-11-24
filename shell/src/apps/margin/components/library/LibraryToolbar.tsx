@@ -21,6 +21,13 @@ interface LibraryToolbarProps {
     tagFilter: string;
     onTagFilter: (v: string) => void;
     allTags: string[];
+    /* Course organization — the shelf's primary axis. `allCourses` lists the
+       course codes actually present so the filter never offers a dead end. */
+    allCourses: string[];
+    courseFilter: string;
+    onCourseFilter: (v: string) => void;
+    groupByCourse: boolean;
+    onGroupByCourse: (v: boolean) => void;
     sort: SortKey;
     onSort: (v: SortKey) => void;
     layout: CardLayout;
@@ -33,6 +40,7 @@ interface LibraryToolbarProps {
 
 const LibraryToolbar: React.FC<LibraryToolbarProps> = ({
     query, onQueryChange, typeFilter, onTypeFilter, tagFilter, onTagFilter, allTags,
+    allCourses, courseFilter, onCourseFilter, groupByCourse, onGroupByCourse,
     sort, onSort, layout, onLayout, canImport, onImportClick, onNewNote, onRecord,
 }) => (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
@@ -41,9 +49,9 @@ const LibraryToolbar: React.FC<LibraryToolbarProps> = ({
             <TextInput
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
-                placeholder="Search notes"
+                placeholder="Search materials"
                 className="pl-8"
-                aria-label="Search notes"
+                aria-label="Search materials"
             />
         </div>
 
@@ -54,6 +62,22 @@ const LibraryToolbar: React.FC<LibraryToolbarProps> = ({
                 </Chip>
             ))}
         </div>
+
+        {allCourses.length > 0 && (
+            <Select
+                value={courseFilter}
+                onChange={(e) => onCourseFilter(e.target.value)}
+                aria-label="Filter by course"
+                className="max-w-36"
+            >
+                <option value="">All courses</option>
+                {allCourses.map(c => <option key={c} value={c}>{c}</option>)}
+            </Select>
+        )}
+
+        <Chip active={groupByCourse} onClick={() => onGroupByCourse(!groupByCourse)}>
+            By course
+        </Chip>
 
         {allTags.length > 0 && (
             <Select
@@ -67,7 +91,7 @@ const LibraryToolbar: React.FC<LibraryToolbarProps> = ({
             </Select>
         )}
 
-        <Select value={sort} onChange={(e) => onSort(e.target.value as SortKey)} aria-label="Sort notes">
+        <Select value={sort} onChange={(e) => onSort(e.target.value as SortKey)} aria-label="Sort materials">
             <option value="recent">Recent</option>
             <option value="title">Title</option>
             <option value="oldest">Oldest</option>
@@ -87,7 +111,9 @@ const LibraryToolbar: React.FC<LibraryToolbarProps> = ({
             {canImport && (
                 <>
                     <Btn variant="quiet" size="md" icon="upload_file" onClick={onImportClick}>Import</Btn>
-                    <Btn variant="quiet" size="md" icon="note_add" onClick={onNewNote}>New note</Btn>
+                    {/* Authoring starts in the Notes app — this hands off
+                        through inkHandoff rather than opening a local editor. */}
+                    <Btn variant="quiet" size="md" icon="edit_note" onClick={onNewNote}>New in Notes</Btn>
                 </>
             )}
             <Btn variant="primary" size="md" icon="mic" onClick={onRecord}>Record</Btn>

@@ -3,7 +3,7 @@ import { Note, View } from '../types';
 import { getAllNotes, saveNote } from '../services/storageService';
 import { searchNotes } from '../services/searchService';
 import { exportNoteMarkdown } from '../services/exportService';
-import { Btn, Card, Divider, EmptyState, Modal } from '../components/ui/primitives';
+import { Btn, Card, Divider, EmptyState, Icon, Modal } from '../components/ui/primitives';
 import { placeActive } from '../../active';
 import NoteCard, { CardLayout } from '../components/library/NoteCard';
 import LibraryToolbar, { SortKey, TypeFilter } from '../components/library/LibraryToolbar';
@@ -46,6 +46,8 @@ const LibraryView: React.FC<LibraryViewProps> = ({
     const [query, setQuery] = useState('');
     const [typeFilter, setTypeFilter] = useState<TypeFilter>('ALL');
     const [tagFilter, setTagFilter] = useState('');
+    const [courseFilter, setCourseFilter] = useState('');
+    const [groupByCourse, setGroupByCourse] = useState(false);
     const [sort, setSort] = useState<SortKey>('recent');
     const [layout, setLayout] = useState<CardLayout>('grid');
     const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -96,12 +98,13 @@ const LibraryView: React.FC<LibraryViewProps> = ({
         if (query.trim()) result = searchNotes(result, query);
         if (typeFilter !== 'ALL') result = result.filter(n => n.type === typeFilter);
         if (tagFilter) result = result.filter(n => (n.tags || []).includes(tagFilter));
+        if (courseFilter) result = result.filter(n => n.course === courseFilter);
 
         if (filterView === View.HISTORY && sort === 'recent') {
             return [...result].sort((a, b) => accessedKey(b) - accessedKey(a));
         }
         return [...result].sort(SORTERS[sort]);
-    }, [patchedNotes, filterView, query, typeFilter, tagFilter, sort]);
+    }, [patchedNotes, filterView, query, typeFilter, tagFilter, courseFilter, sort]);
 
     const pinned = useMemo(
         () => (filterView ? [] : visibleNotes.filter(n => n.isBookmarked)),
@@ -117,6 +120,35 @@ const LibraryView: React.FC<LibraryViewProps> = ({
         patchedNotes.forEach(n => (n.tags || []).forEach(t => tags.add(t)));
         return Array.from(tags).sort((a, b) => a.localeCompare(b));
     }, [patchedNotes]);
+
+    /* Course codes actually on the shelf — the filter and the grouped
+       sections only ever offer courses that have materials filed under
+       them, so an empty shelf doesn't sprout dead dropdown entries. */
+    const allCourses = useMemo(() => {
+        const courses = new Set<string>();
+        patchedNotes.forEach(n => { if (n.course) courses.add(n.course); });
+        return Array.from(courses).sort((a, b) => a.localeCompare(b));
+    }, [patchedNotes]);
+
+    /* "By course" shelves the unpinned cards under their course headings —
+       the organizing view. Pinned materials stay pinned on top regardless;
+       'No course' collects the unsorted remainder at the end. */
+    const courseSections = useMemo(() => {
+        if (filterView || !groupByCourse) return null;
+        const map = new Map<string, Note[]>();
+        for (const n of unpinned) {
+            const key = n.course || '';
+            const list = map.get(key) || [];
+            list.push(n);
+            map.set(key, list);
+        }
+        const ordered = [...map.keys()].sort((a, b) => {
+            if (!a) return 1;      // 'No course' sinks to the bottom
+            if (!b) return -1;
+            return a.localeCompare(b);
+        });
+        return ordered.map(key => ({ course: key, notes: map.get(key)! }));
+    }, [filterView, groupByCourse, unpinned]);
 
     /* ---- selection ---- */
     const selectionActive = selected.size > 0;
@@ -202,10 +234,10 @@ const LibraryView: React.FC<LibraryViewProps> = ({
     const pageTitle =
         filterView === View.BOOKMARKS ? 'Pinned'
             : filterView === View.HISTORY ? 'Recently viewed'
-                : 'Notes';
+                : 'Materials';
 
-    const filtersActive = Boolean(query.trim()) || typeFilter !== 'ALL' || Boolean(tagFilter);
-    const clearFilters = () => { setQuery(''); setTypeFilter('ALL'); setTagFilter(''); };
+    const filtersActive = Boolean(query.trim()) || typeFilter !== 'ALL' || Boolean(tagFilter) || Boolean(courseFilter);
+    const clearFilters = () => { setQuery(''); setTypeFilter('ALL'); setTagFilter(''); setCourseFilter(''); };
 
     const cardProps = {
         layout, compact: compactMode, selectionActive,
@@ -236,7 +268,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                 <EmptyState
                     icon="search_off"
                     title="Nothing matches"
-                    body="No notes match this search or filter set."
+                    body="No materials match this search or filter set."
                     action={<Btn variant="quiet" onClick={clearFilters}>Clear filters</Btn>}
                 />
             );
@@ -246,7 +278,7 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                 <EmptyState
                     icon="keep"
                     title="Nothing pinned"
-                    body="Pin a note and it stays at the top of your index."
+                    body="Pin a material and it stays at the top of your shelf."
                 />
             );
         }
@@ -254,16 +286,16 @@ const LibraryView: React.FC<LibraryViewProps> = ({
             return (
                 <EmptyState
                     icon="history"
-                    title="No recently viewed notes"
-                    body="Open a note and it shows up here."
+                    title="No recently viewed materials"
+                    body="Open a material and it shows up here."
                 />
             );
         }
         return (
             <EmptyState
                 icon="note_stack"
-                title="No notes yet"
-                body="Record a lecture, drop a file to import, or start a blank note — everything lands here as a card."
+                title="No materials yet"
+                body="Record a lecture, drop a file to import, or start a note in Notes — everything lands here on the shelf."
                 action={
                     <div className="flex items-center gap-2">
                         <Btn variant="primary" icon="mic" onClick={() => onNavigate(View.RECORDER)}>Record a lecture</Btn>
@@ -285,11 +317,11 @@ const LibraryView: React.FC<LibraryViewProps> = ({
             <header className="shrink-0 h-14 border-b border-line flex items-baseline px-5 md:px-8 pt-4 gap-3">
                 <h1 key={pageTitle} className="font-serif text-[20px] text-ink leading-none ink-write ink-underline">{pageTitle}</h1>
                 <span className="font-mono text-[11px] text-ink-3">
-                    {visibleNotes.length} {visibleNotes.length === 1 ? 'note' : 'notes'}
+                    {visibleNotes.length} {visibleNotes.length === 1 ? 'material' : 'materials'}
                 </span>
                 <nav className="ml-auto flex items-center gap-1" aria-label="Library views">
                     {([
-                        { view: View.LIBRARY, label: 'All notes' },
+                        { view: View.LIBRARY, label: 'All' },
                         { view: View.BOOKMARKS, label: 'Pinned' },
                         { view: View.HISTORY, label: 'Recent' },
                     ] as const).map(v => (
@@ -310,6 +342,8 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                     query={query} onQueryChange={setQuery}
                     typeFilter={typeFilter} onTypeFilter={setTypeFilter}
                     tagFilter={tagFilter} onTagFilter={setTagFilter} allTags={allTags}
+                    allCourses={allCourses} courseFilter={courseFilter} onCourseFilter={setCourseFilter}
+                    groupByCourse={groupByCourse} onGroupByCourse={setGroupByCourse}
                     sort={sort} onSort={setSort}
                     layout={layout} onLayout={setLayout}
                     canImport={canImport}
@@ -335,11 +369,27 @@ const LibraryView: React.FC<LibraryViewProps> = ({
                                 {renderCards(pinned)}
                             </section>
                         )}
-                        {unpinned.length > 0 && (
+                        {courseSections ? (
+                            /* "By course" — each course gets its own shelf
+                               section; unpinned cards only, pinned stay above. */
+                            courseSections.map(section => (
+                                <section key={section.course || '__none__'}>
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <span className="font-hand text-[17px] text-ink-3 flex items-center gap-1.5">
+                                            <Icon name="school" size={14} />
+                                            {section.course || 'No course'}
+                                        </span>
+                                        <Divider className="flex-1" />
+                                        <span className="font-mono text-[10px] text-ink-3">{section.notes.length}</span>
+                                    </div>
+                                    {renderCards(section.notes)}
+                                </section>
+                            ))
+                        ) : unpinned.length > 0 && (
                             <section>
                                 {pinned.length > 0 && (
                                     <div className="flex items-center gap-3 mb-3">
-                                        <span className="font-hand text-[17px] text-ink-3">All notes</span>
+                                        <span className="font-hand text-[17px] text-ink-3">All materials</span>
                                         <Divider className="flex-1" />
                                     </div>
                                 )}
@@ -381,11 +431,11 @@ const LibraryView: React.FC<LibraryViewProps> = ({
             <Modal open={!!deleteTargets} onClose={() => setDeleteTargets(null)}>
                 <div className="p-5">
                     <h3 className="font-serif text-lg text-ink">
-                        Delete {deleteTargets && deleteTargets.length > 1 ? `${deleteTargets.length} notes` : 'this note'}?
+                        Delete {deleteTargets && deleteTargets.length > 1 ? `${deleteTargets.length} materials` : 'this material'}?
                     </h3>
                     <p className="text-sm text-ink-2 mt-1.5">
                         {deleteTargets && deleteTargets.length > 1
-                            ? 'They will be removed from your library permanently.'
+                            ? 'They will be removed from your shelf permanently.'
                             : `"${deleteTargets?.[0]?.title || 'Untitled'}" will be removed permanently.`}
                     </p>
                     <div className="flex justify-end gap-2 mt-5">
