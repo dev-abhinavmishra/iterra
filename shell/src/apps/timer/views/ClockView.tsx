@@ -167,7 +167,7 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
 
         {alarms.length === 0 ? (
           <div className="panel-wall p-6 text-sm text-ink-soft font-body leading-relaxed">
-            No calls on the board. Add an alarm and it will ring while this page is open.
+            No alarms yet. Add one and it'll ring while this page is open.
           </div>
         ) : (
           <div className="space-y-2">
@@ -259,11 +259,11 @@ export default function ClockView({ active = true, onRequestView, onTakeover }: 
                 name="alarm-label"
                 value={newLabel}
                 onChange={e => setNewLabel(e.target.value)}
-                placeholder="Label — e.g. Standup"
+                placeholder="Label — like Standup"
                 className="w-full mb-5 bg-board-inset bg-[#0F0C06] border border-[rgba(242,233,207,0.12)] rounded-lg px-4 py-2.5 text-sm text-flap-ink placeholder:text-flap-dim focus:outline-none focus:border-[rgba(242,233,207,0.3)] font-body"
               />
               <KeyButton variant="signal" className="w-full py-3.5 text-sm" onClick={addAlarm}>
-                Post alarm
+                Add alarm
               </KeyButton>
             </motion.div>
           </motion.div>

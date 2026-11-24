@@ -419,10 +419,10 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Focus session queued in Timer'
+          ? 'Queued — your focus session will start when you open Timer'
           : r.ok
             ? 'Focus session started in Timer'
-            : `Could not start: ${r.error || 'unavailable'}`),
+            : `Couldn't start it — ${r.error || 'try again'}`),
     );
   };
 
@@ -446,10 +446,10 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Queued. The routine will appear in Attendance when you next open it.'
+          ? 'Queued — it will show up in Attendance next time you open it.'
           : r.ok
-            ? 'Routine scheduled in Attendance'
-            : `Could not schedule: ${r.error || 'unavailable'}`),
+            ? 'Routine added to Attendance'
+            : `Couldn't schedule it — ${r.error || 'try again'}`),
       r.delivered === 'queued' ? '/apps/rhythm/' : undefined,
     );
   };
@@ -473,10 +473,10 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Queued. The weekly routine will appear in Attendance when you next open it.'
+          ? 'Queued — it will show up in Attendance next time you open it.'
           : r.ok
-            ? 'Weekly routine scheduled in Attendance'
-            : `Could not schedule: ${r.error || 'unavailable'}`),
+            ? 'Weekly routine added to Attendance'
+            : `Couldn't schedule it — ${r.error || 'try again'}`),
       r.delivered === 'queued' ? '/apps/rhythm/' : undefined,
     );
   };
@@ -511,10 +511,10 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? `Queued. The note will appear in ${PLACE_MAP[target]?.label || target} when you next open it.`
+          ? `Queued — it will show up in ${PLACE_MAP[target]?.label || target} next time you open it.`
           : r.ok
-            ? `Created note in ${PLACE_MAP[target]?.label || target}`
-            : 'Could not create note'),
+            ? `Created a note in ${PLACE_MAP[target]?.label || target}`
+            : "Couldn't create the note"),
       r.delivered === 'queued' ? `/apps/${target}/` : undefined,
     );
   };
@@ -538,10 +538,10 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Queued. The problem will appear in Calculations when you next open it.'
+          ? 'Queued — it will show up in Calculations next time you open it.'
           : r.ok
-            ? 'Created problem in Calculations'
-            : 'Could not create problem'),
+            ? 'Created a problem in Calculations'
+            : "Couldn't create the problem"),
       r.delivered === 'queued' ? '/apps/proof/' : undefined,
     );
   };
@@ -564,9 +564,9 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Queued. The study block will appear in Planning when you next open it.'
+          ? 'Queued — it will show up in Planning next time you open it.'
           : r.ok
-            ? 'Planned study block in Planning'
+            ? 'Planned a study block in Planning'
             : 'Open Planning to add a course block'),
       r.delivered === 'queued' ? '/apps/syllabus/' : undefined,
     );
@@ -593,10 +593,10 @@ export function CourseWorkspace({
               showToast(
                 r.toast ||
                   (r.delivered === 'queued'
-                    ? 'Queued. The check-in will appear in Attendance when you next open it.'
+                    ? 'Queued — it will show up in Attendance next time you open it.'
                     : r.ok
                       ? 'Checked in'
-                      : `Could not check in: ${r.error || 'unavailable'}`),
+                      : `Couldn't check in — ${r.error || 'try again'}`),
                 r.delivered === 'queued' ? r.url || undefined : undefined,
               ),
           );
@@ -660,7 +660,7 @@ export function CourseWorkspace({
     courseObjects.length === 0
       ? unfiled
         ? 'Guides for every tool live here — items without a course land here too.'
-        : 'No objects filed under this course yet. Start a focus session, note, deck, or study block below.'
+        : 'Nothing filed under this course yet — start a focus session, note, deck, or study block below.'
       : [
           `${courseObjects.length} item${courseObjects.length === 1 ? '' : 's'}`,
           materials.length ? `${materials.length} material${materials.length === 1 ? '' : 's'}` : null,
@@ -695,7 +695,7 @@ export function CourseWorkspace({
                 >
                   <Award className="h-4 w-4 text-[var(--color-accent)]" />
                   <div>
-                    <div className="font-mono text-[10px] uppercase text-[var(--color-faint)]">Latest Result</div>
+                    <div className="font-mono text-[10px] uppercase text-[var(--color-faint)]">Latest result</div>
                     <div className="font-medium text-[var(--color-ink)]">
                       {latestGrade.title}
                       {typeof latestGrade.data?.pct === 'number' && ` · ${Math.round(latestGrade.data.pct)}%`}
@@ -737,7 +737,7 @@ export function CourseWorkspace({
                     : 'border-[var(--color-line)] text-[var(--color-mute)] hover:border-[var(--color-line-2)]'
                 }`}
               >
-                {pinnedUrls.has(courseRouteUrl) ? '◈ Pinned on Shelf' : '◇ Pin Course'}
+                {pinnedUrls.has(courseRouteUrl) ? '◈ Pinned' : '◇ Pin course'}
               </button>
             </>
           }
@@ -783,7 +783,7 @@ export function CourseWorkspace({
                 icon={<Play className="h-3.5 w-3.5" />}
                 onClick={() => void startSession()}
               >
-                Start Focus Session
+                Start focus session
               </Button>
               {dueCards.length > 0 && (
                 <Button
@@ -792,7 +792,7 @@ export function CourseWorkspace({
                   icon={<Layers className="h-3.5 w-3.5" />}
                   onClick={() => onGo('/apps/flashcards/')}
                 >
-                  Review {dueCards.length} Due Card{dueCards.length === 1 ? '' : 's'}
+                  Review {dueCards.length} due card{dueCards.length === 1 ? '' : 's'}
                 </Button>
               )}
               {nextCommit && (
@@ -815,7 +815,7 @@ export function CourseWorkspace({
                     className="inline-flex items-center gap-1.5 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-2.5 py-1.5 text-[12.5px] font-medium text-[var(--color-ink)] hover:border-[var(--color-line-2)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
                   >
                     <Plus className="h-3.5 w-3.5 text-[var(--color-accent)]" />
-                    <span>New / schedule</span>
+                    <span>New or schedule</span>
                     <ChevronDown className="h-3 w-3 text-[var(--color-faint)]" />
                   </button>
                 )}
@@ -961,7 +961,7 @@ export function CourseWorkspace({
               <div className="flex items-center gap-2">
                 <span className="live-dot h-2 w-2 rounded-full bg-[var(--color-accent)]" />
                 <span className="font-semibold text-[var(--color-ink)]">
-                  Active Focus: {fv.label || 'Focus Session'}
+                  Active focus: {fv.label || 'Focus session'}
                 </span>
                 <span className="font-mono text-[11px] text-[var(--color-accent)]">
                   {fv.endsAt
@@ -972,7 +972,7 @@ export function CourseWorkspace({
                 </span>
               </div>
               <Button variant="primary" size="xs" onClick={() => onGo('/apps/timer/')}>
-                Open Timer →
+                Open Timer
               </Button>
             </div>
           )}
@@ -1007,7 +1007,7 @@ export function CourseWorkspace({
               {/* Schedule & Next Work */}
               <section>
                 <SectionHeader
-                  title="Planned Blocks & Commitments"
+                  title="Planned blocks & commitments"
                   count={scheduleItems.length}
                   action={
                     <button
@@ -1030,15 +1030,15 @@ export function CourseWorkspace({
                   <EmptyState
                     compact
                     icon={<Calendar className="h-4 w-4" />}
-                    title="No scheduled blocks or commitments"
-                    description="Add assignments, exams, or weekly routines for this course."
+                    title="No blocks or commitments yet"
+                    description="Add assignments, exams, or weekly routines and they'll show up here."
                     actions={
                       <>
                         <Button variant="secondary" size="xs" onClick={() => void createCourseBlock()}>
-                          Plan Study Block
+                          Plan a study block
                         </Button>
                         <Button variant="secondary" size="xs" onClick={() => void planRegister()}>
-                          Add Weekly Routine
+                          Add a weekly routine
                         </Button>
                       </>
                     }
@@ -1049,7 +1049,7 @@ export function CourseWorkspace({
               {/* Materials & Notes */}
               <section>
                 <SectionHeader
-                  title="Notes, Recordings & Study Sheets"
+                  title="Notes, recordings & study sheets"
                   count={materials.length}
                   action={
                     <button
@@ -1069,15 +1069,15 @@ export function CourseWorkspace({
                   <EmptyState
                     compact
                     icon={<FileText className="h-4 w-4" />}
-                    title="No study materials or notes linked yet"
-                    description="Start a course page in Notes (Ink) or import a document/recording in Study Materials (Margin)."
+                    title="No notes or study materials yet"
+                    description="Start a page in Notes or import a document or recording in Study Materials."
                     actions={
                       <>
                         <Button variant="secondary" size="xs" onClick={() => void createCourseNote('ink')}>
-                          New Note in Ink
+                          New note in Notes
                         </Button>
                         <Button variant="secondary" size="xs" onClick={() => void createCourseNote('margin')}>
-                          New Study Sheet in Margin
+                          New study sheet in Study Materials
                         </Button>
                       </>
                     }
@@ -1090,7 +1090,7 @@ export function CourseWorkspace({
               {/* Practice: Decks, Quizzes & Problems */}
               <section>
                 <SectionHeader
-                  title="Decks, Quizzes & Calculations"
+                  title="Decks, quizzes & problems"
                   count={practiceItems.length}
                   action={
                     <button
@@ -1116,15 +1116,15 @@ export function CourseWorkspace({
                   <EmptyState
                     compact
                     icon={<Layers className="h-4 w-4" />}
-                    title="No practice decks or problems yet"
-                    description="Create a flashcard deck or calculation problem set for active recall."
+                    title="No decks or problems yet"
+                    description="Create a flashcard deck or a problem set for active recall."
                     actions={
                       <>
                         <Button variant="secondary" size="xs" onClick={() => onEnter('flashcards')}>
                           Open Flashcards
                         </Button>
                         <Button variant="secondary" size="xs" onClick={() => void createCourseProblem()}>
-                          New Problem in Calculations
+                          New problem in Calculations
                         </Button>
                       </>
                     }
@@ -1135,7 +1135,7 @@ export function CourseWorkspace({
               {/* Results & Focus Log */}
               <section>
                 <SectionHeader
-                  title="Assessments & Logged Sessions"
+                  title="Assessments & logged sessions"
                   count={resultItems.length}
                   action={
                     <button
@@ -1155,12 +1155,12 @@ export function CourseWorkspace({
                   <EmptyState
                     compact
                     icon={<Award className="h-4 w-4" />}
-                    title="No assessments or focus sessions logged"
-                    description="Completed focus timers and graded assessments for this course are recorded here."
+                    title="No assessments or sessions yet"
+                    description="Completed focus sessions and graded assessments for this course show up here."
                     actions={
                       <>
                         <Button variant="secondary" size="xs" onClick={() => void startSession()}>
-                          Start 25m Session
+                          Start a 25-minute session
                         </Button>
                         <Button variant="secondary" size="xs" onClick={() => onEnter('gradestack')}>
                           Open Assessments
@@ -1177,7 +1177,7 @@ export function CourseWorkspace({
                   {courseBacklinks.length > 0 && (
                     <div>
                       <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)] mb-1.5">
-                        Connected Across Workspace
+                        Connected across the workspace
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {courseBacklinks.map((b, i) => (
@@ -1195,7 +1195,7 @@ export function CourseWorkspace({
                   {relatedCourses.length > 0 && (
                     <div>
                       <div className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)] mb-1.5">
-                        Courses Sharing Topics
+                        Courses sharing topics
                       </div>
                       <div className="flex flex-wrap gap-1.5">
                         {relatedCourses.map((rc) => (
@@ -1216,7 +1216,7 @@ export function CourseWorkspace({
               {/* Activity Mentions */}
               {mentions.length > 0 && (
                 <section>
-                  <SectionHeader title="Recent Course Events" />
+                  <SectionHeader title="Recent course activity" />
                   <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
                     {mentions.map((f, i) => (
                       <button
@@ -1244,7 +1244,7 @@ export function CourseWorkspace({
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHeader
-                title={`Notes, Recordings & Study Guides (${materials.length})`}
+                title={`Notes, recordings & study sheets (${materials.length})`}
               />
               <div className="flex items-center gap-2">
                 <Button
@@ -1253,7 +1253,7 @@ export function CourseWorkspace({
                   icon={<Plus className="h-3.5 w-3.5" />}
                   onClick={() => void createCourseNote('ink')}
                 >
-                  New Note
+                  New note
                 </Button>
                 <Button
                   variant="secondary"
@@ -1261,7 +1261,7 @@ export function CourseWorkspace({
                   icon={<Plus className="h-3.5 w-3.5" />}
                   onClick={() => void createCourseNote('margin')}
                 >
-                  New Study Sheet
+                  New study sheet
                 </Button>
               </div>
             </div>
@@ -1273,14 +1273,14 @@ export function CourseWorkspace({
               <EmptyState
                 icon={<FileText className="h-4 w-4" />}
                 title="No notes or study materials for this course"
-                description="Write lecture notes in Notes (Ink) or import PDFs, recordings, and study sheets in Study Materials (Margin)."
+                description="Write lecture notes in Notes or import PDFs, recordings, and sheets in Study Materials."
                 actions={
                   <>
                     <Button variant="primary" size="xs" onClick={() => void createCourseNote('ink')}>
-                      Create Note in Ink
+                      Create a note in Notes
                     </Button>
                     <Button variant="secondary" size="xs" onClick={() => void createCourseNote('margin')}>
-                      Create Study Sheet in Margin
+                      Create a study sheet in Study Materials
                     </Button>
                   </>
                 }
@@ -1294,7 +1294,7 @@ export function CourseWorkspace({
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHeader
-                title={`Flashcard Decks, Quizzes & Calculation Problems (${practiceItems.length})`}
+                title={`Flashcard decks, quizzes & problems (${practiceItems.length})`}
               />
               <div className="flex items-center gap-2">
                 {dueCards.length > 0 && (
@@ -1303,7 +1303,7 @@ export function CourseWorkspace({
                     size="xs"
                     onClick={() => onGo('/apps/flashcards/')}
                   >
-                    Review {dueCards.length} Due Cards
+                    Review {dueCards.length} due cards
                   </Button>
                 )}
                 <Button
@@ -1320,7 +1320,7 @@ export function CourseWorkspace({
                   icon={<Plus className="h-3.5 w-3.5" />}
                   onClick={() => void createCourseProblem()}
                 >
-                  New Problem in Calculations
+                  New problem in Calculations
                 </Button>
               </div>
             </div>
@@ -1337,15 +1337,15 @@ export function CourseWorkspace({
             ) : (
               <EmptyState
                 icon={<Layers className="h-4 w-4" />}
-                title="No practice decks or calculation problems yet"
-                description="Build a flashcard deck or add step-by-step math/proof problems for this course."
+                title="No practice decks or problems yet"
+                description="Build a flashcard deck or add step-by-step problems for this course."
                 actions={
                   <>
                     <Button variant="primary" size="xs" onClick={() => onEnter('flashcards')}>
-                      Create Flashcard Deck
+                      Create a flashcard deck
                     </Button>
                     <Button variant="secondary" size="xs" onClick={() => void createCourseProblem()}>
-                      Create Calculation Problem
+                      Create a calculation problem
                     </Button>
                   </>
                 }
@@ -1359,7 +1359,7 @@ export function CourseWorkspace({
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHeader
-                title={`Planned Blocks, Commitments & Attendance Routines (${scheduleItems.length})`}
+                title={`Planned blocks, commitments & routines (${scheduleItems.length})`}
               />
               <div className="flex items-center gap-2">
                 <Button
@@ -1368,7 +1368,7 @@ export function CourseWorkspace({
                   icon={<Plus className="h-3.5 w-3.5" />}
                   onClick={() => void createCourseBlock()}
                 >
-                  Plan Study Block
+                  Plan a study block
                 </Button>
                 <Button
                   variant="secondary"
@@ -1396,15 +1396,15 @@ export function CourseWorkspace({
             ) : (
               <EmptyState
                 icon={<Calendar className="h-4 w-4" />}
-                title="No scheduled blocks or routines for this course"
-                description="Schedule assignments, exams, and daily study blocks in Planning or weekly habits in Attendance."
+                title="Nothing scheduled for this course yet"
+                description="Add assignments and study blocks in Planning, or weekly habits in Attendance."
                 actions={
                   <>
                     <Button variant="primary" size="xs" onClick={() => void createCourseBlock()}>
-                      Plan Study Block
+                      Plan a study block
                     </Button>
                     <Button variant="secondary" size="xs" onClick={() => void planRegister()}>
-                      Schedule Attendance Routine
+                      Schedule an Attendance routine
                     </Button>
                   </>
                 }
@@ -1418,13 +1418,13 @@ export function CourseWorkspace({
           <section className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <SectionHeader
-                title={`Assessments, Grades & Focus Sessions (${resultItems.length})`}
+                title={`Assessments, grades & sessions (${resultItems.length})`}
               />
               <div className="flex items-center gap-2">
                 {sessionMins > 0 && (
                   <Badge tone="accent">
                     <Clock className="h-3 w-3 mr-1" />
-                    {sessionMins}m total logged
+                    {sessionMins}m logged total
                   </Badge>
                 )}
                 <Button
@@ -1461,15 +1461,15 @@ export function CourseWorkspace({
             ) : (
               <EmptyState
                 icon={<BookOpen className="h-4 w-4" />}
-                title="No assessment results or logged sessions yet"
-                description="Scan or grade assessments in Assessments (GradeStack) or complete focus sessions in Timer to build your course record."
+                title="No results or sessions yet"
+                description="Scan or grade assessments in Assessments, or finish focus sessions in Timer to build this course's record."
                 actions={
                   <>
                     <Button variant="primary" size="xs" onClick={() => onEnter('gradestack')}>
                       Open Assessments
                     </Button>
                     <Button variant="secondary" size="xs" onClick={() => void startSession()}>
-                      Start 25m Focus Session
+                      Start a 25-minute session
                     </Button>
                   </>
                 }

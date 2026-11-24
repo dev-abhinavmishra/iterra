@@ -126,8 +126,8 @@ export function AttemptDesk({
   if (!attempt || !problem) {
     return (
       <div className="mx-auto max-w-4xl p-10 text-center text-[var(--color-paper)]">
-        Attempt not found.
-        <button className="btn btn--ghost ml-3" onClick={() => goView('library')}>Back to library</button>
+        We couldn’t find that attempt.
+        <button className="btn btn--ghost ml-3" onClick={() => goView('library')}>Back to the library</button>
       </div>
     );
   }
@@ -387,7 +387,7 @@ function StepEditor({
     })));
     const loaded = additions.filter((item): item is Attachment => item !== null);
     if (loaded.length) onChange({ attachments: [...(step.attachments ?? []), ...loaded] });
-    if (loaded.length < readable.length) setAttachmentMessage('One or more images could not be read. Try another file.');
+    if (loaded.length < readable.length) setAttachmentMessage('Some of those images couldn’t be read — try another file.');
   };
   return (
     <div>

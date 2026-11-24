@@ -113,9 +113,9 @@ export default function StopwatchView({ active = true }: { active?: boolean }) {
       {/* ---------- THE CHRONOGRAPH ---------- */}
       <div className="board board-screws p-5 md:p-7 shrink-0">
         <div className="flex items-center justify-between mb-4 px-0.5">
-          <span className="engraved text-[10px] md:text-xs">Chronograph</span>
+          <span className="engraved text-[10px] md:text-xs">Stopwatch</span>
           <span className="engraved text-[10px] md:text-xs" style={{ color: running ? 'var(--color-signal-bright)' : undefined }}>
-            {running ? '● Sweeping' : 'Standby'}
+            {running ? '● Running' : 'Ready'}
           </span>
         </div>
         <div className="board-inset p-3 md:p-5">
@@ -272,7 +272,7 @@ export default function StopwatchView({ active = true }: { active?: boolean }) {
       <div className="w-full max-w-sm flex-1 flex flex-col min-h-0">
         <div className="flex items-end justify-between mb-5">
           <div>
-            <div className="label-wall text-[10px] mb-1">Splits</div>
+            <div className="label-wall text-[10px] mb-1">Laps</div>
             <div className="font-display text-3xl font-bold text-ink uppercase leading-none">
               {laps.length === 0 ? 'No laps yet' : `${laps.length} lap${laps.length === 1 ? '' : 's'}`}
             </div>
@@ -286,7 +286,7 @@ export default function StopwatchView({ active = true }: { active?: boolean }) {
 
         {laps.length === 0 ? (
           <div className="panel-wall p-6 text-sm text-ink-soft font-body leading-relaxed">
-            Start the chronograph and press LAP to punch a split. Fastest and slowest laps are marked on the dial rim.
+            Start the stopwatch and press LAP to mark a split. The fastest and slowest laps are highlighted on the dial.
           </div>
         ) : (
           <div className="space-y-2 max-h-[52vh] lg:max-h-[60vh] overflow-y-auto pr-1 custom-scrollbar">
@@ -333,7 +333,7 @@ export default function StopwatchView({ active = true }: { active?: boolean }) {
           </div>
         )}
         <div className="mt-4 label-wall text-[9px] flex gap-5">
-          <span>Space — run</span><span>L — lap</span><span>R — reset</span>
+          <span>Space — start/stop</span><span>L — lap</span><span>R — reset</span>
         </div>
       </div>
     </div>

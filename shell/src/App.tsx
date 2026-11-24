@@ -156,7 +156,7 @@ class PlaceBoundary extends Component<
     return (
       <div className="flex h-full items-center justify-center bg-[var(--color-paper)] p-6">
         <div className="it-card-in anim-rise max-w-sm text-center">
-          <div className="it-heading">{this.props.name} encountered an error</div>
+          <div className="it-heading">{this.props.name} ran into a problem</div>
           <p className="mt-1.5 text-[12.5px] text-[var(--color-mute)]">
             {String(this.state.err?.message || this.state.err)}
           </p>
@@ -175,11 +175,11 @@ class PlaceBoundary extends Component<
               <button
                 type="button"
                 className="it-btn text-[var(--color-bad)]"
-                title="Corrupted saved data is the usual cause of a crash that reloads can't fix"
+                title="Corrupted saved data is the usual cause of a crash that a reload can't fix"
                 onClick={() => {
                   if (!window.confirm(
-                    `Clear ${this.props.name}'s saved data and reload? ` +
-                    `This cannot be undone — other tools and your courses keep their data.`
+                    `Clear the saved data for ${this.props.name} and reload? ` +
+                    `This can't be undone — your other tools and courses keep their data.`
                   )) return;
                   /* a full reload, not a remount — the module's zustand
                      singletons keep the corrupt state in memory across a
@@ -220,14 +220,27 @@ export default function App() {
   const section: WorkspaceSection = routeState.section;
   /* the compact bottom tab bar is the mobile primary nav — it wears the
      same liquid-glass lens as the header band. The nav only exists off
-     the welcome section, so `active` tracks that and re-arms on mount. */
+     the welcome section, so `active` tracks that and re-arms on mount.
+     Custom options (not the 'navigation' preset): a square, frosted
+     'regular' material for an edge-to-edge bar, and an object preset so
+     the lens highlight tracks the bar itself rather than its parent. */
   const bottomNavRef = useRef<HTMLElement>(null);
-  useIterraGlass<HTMLElement>('navigation', section !== 'welcome', bottomNavRef);
+  useIterraGlass<HTMLElement>(
+    { material: 'regular', radius: 0, bezel: 6, refraction: 10, specular: 0.9, shadow: true },
+    section !== 'welcome',
+    bottomNavRef,
+  );
+  /* iOS-style sliding selection pill — tracks the last visited page tab so
+     the indicator stays put while inside a tool or settings. */
+  const sectionTabIdx = section === 'today' ? 0 : section === 'courses' ? 1 : section === 'library' ? 2 : -1;
+  const lastTabIdx = useRef(0);
+  useEffect(() => { if (sectionTabIdx >= 0) lastTabIdx.current = sectionTabIdx; }, [sectionTabIdx]);
+  const navIndicatorIdx = sectionTabIdx >= 0 ? sectionTabIdx : lastTabIdx.current;
 
   const toolOrigin = useRef({ url: '#/today', label: 'Today' });
   useEffect(() => {
     if (section === 'place') return;
-    const labels = { today: 'Today', welcome: 'study atlas', courses: 'Courses', library: 'Library', settings: 'Settings' };
+    const labels = { today: 'Today', welcome: 'Study atlas', courses: 'Courses', library: 'Library', settings: 'Settings' };
     toolOrigin.current = { url: window.location.hash || '#/welcome', label: course || labels[section] };
   }, [section, course, routeState.query]);
 
@@ -638,7 +651,7 @@ export default function App() {
   const courseMenuContent = (close: () => void) => (
     <div className="w-60 p-1">
       <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
-        Course Context
+        Course context
       </div>
       <button
         type="button"
@@ -653,7 +666,7 @@ export default function App() {
             : 'text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)]'
         }`}
       >
-        <span>All Courses</span>
+        <span>All courses</span>
       </button>
       {knownCourses.map((c) => (
         <div
@@ -712,7 +725,7 @@ export default function App() {
   /* shared tab-bar item styling — icon over label, accent when current.
      h-full lets the dropdown trigger fill its stretch-wrapped slot. */
   const navItemCls = (on: boolean) =>
-    `flex h-full flex-1 flex-col items-center justify-center gap-0.5 py-1 text-[10.5px] font-medium transition-colors cursor-pointer ${
+    `relative flex h-full flex-1 flex-col items-center justify-center gap-0.5 py-1 text-[10.5px] font-medium transition-colors cursor-pointer ${
       on
         ? 'text-[var(--color-accent)] hover:bg-[var(--color-accent-soft-2)]'
         : 'text-[var(--color-mute)] hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-ink)]'
@@ -806,7 +819,7 @@ export default function App() {
                   type="button"
                   onClick={toggle}
                   aria-expanded={open}
-                  title={activePlace ? `${activePlace.app} · ${activePlace.place}` : 'Workspace tools'}
+                  title={activePlace ? `${activePlace.app} · ${activePlace.place}` : 'Study tools'}
                   className={`inline-flex items-center gap-1.5 rounded-[5px] px-2.5 py-1.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
                     activePlace
                       ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold hover:bg-[var(--color-accent-soft-2)]'
@@ -822,7 +835,7 @@ export default function App() {
                       {woke === activePlace.id && (
                         <span
                           className="live-dot h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]"
-                          title="Refreshed from workspace store"
+                          title="Just refreshed"
                         />
                       )}
                     </>
@@ -880,7 +893,7 @@ export default function App() {
                         </span>
                         {wait && wait.count > 0 ? (
                           <span
-                            title={wait.stuck ? `Delivery is failing: ${wait.stuck}` : `${wait.count} waiting — opens here`}
+                            title={wait.stuck ? `Delivery is failing: ${wait.stuck}` : `${wait.count} waiting — opens when you click`}
                             className={`shrink-0 rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
                               wait.stuck
                                 ? 'bg-[var(--color-bad-soft)] text-[var(--color-bad)]'
@@ -892,7 +905,7 @@ export default function App() {
                         ) : isWarm ? (
                           <span
                             className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-accent)]"
-                            title="Open — resumes where you left it"
+                            title="Open — picks up where you left off"
                           />
                         ) : (
                           <kbd className="font-mono text-[10px] text-[var(--color-faint)]">
@@ -954,8 +967,8 @@ export default function App() {
             type="button"
             onClick={() => setSearchOpen(true)}
             className="inline-flex items-center gap-2 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/70 px-2.5 py-1 text-[12px] text-[var(--color-mute)] hover:border-[var(--color-accent)] hover:text-[var(--color-ink)] cursor-pointer"
-            title="Search workspace or run command (⌘K or /)"
-            aria-label="Search workspace or run command"
+            title="Search or run a command (⌘K or /)"
+            aria-label="Search or run a command"
           >
             <SearchIcon className="h-3.5 w-3.5 text-[var(--color-accent)]" />
             <span className="hidden sm:inline">Search</span>
@@ -1024,7 +1037,7 @@ export default function App() {
                   type="button"
                   onClick={toggle}
                   aria-expanded={open}
-                  title="Start a 25m focus session"
+                  title="Start a 25-minute focus session"
                   className="hidden sm:inline-flex items-center gap-1 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-2 py-1 text-[12px] font-medium text-[var(--color-ink)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] cursor-pointer"
                 >
                   <Play className="h-3 w-3 text-[var(--color-accent)]" />
@@ -1035,7 +1048,7 @@ export default function App() {
               {(close) => (
                 <div className="w-52 p-1">
                   <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
-                    Start 25m Focus Session
+                    Start a 25-minute focus session
                   </div>
                   <button
                     type="button"
@@ -1046,7 +1059,7 @@ export default function App() {
                     className="flex w-full items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-[12px] font-medium text-[var(--color-ink)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
                   >
                     <span>
-                      {effectiveCourseContext ? `Focus: ${effectiveCourseContext}` : 'General Focus'}
+                      {effectiveCourseContext ? `Focus: ${effectiveCourseContext}` : 'General focus'}
                     </span>
                     <span className="font-mono text-[10px] text-[var(--color-faint)]">25m</span>
                   </button>
@@ -1109,7 +1122,7 @@ export default function App() {
                 </div>
                 {totalPendingIntakes > 0 && (
                   <div className="px-2.5 pb-1.5 text-[11px] text-[var(--color-mute)]">
-                    {totalPendingIntakes} tool transfer{totalPendingIntakes === 1 ? '' : 's'} waiting for the receiving tool to open
+                    {totalPendingIntakes} tool transfer{totalPendingIntakes === 1 ? '' : 's'} waiting — delivered when you open the receiving tool
                   </div>
                 )}
                 <div className="my-1 border-t border-[var(--color-line)]" />
@@ -1126,7 +1139,7 @@ export default function App() {
                   ) : (
                     <Sun className="h-3.5 w-3.5 text-[var(--color-mute)]" />
                   )}
-                  <span>{theme === 'paper' ? 'Graphite theme' : 'Paper theme'}</span>
+                  <span>{theme === 'paper' ? 'Switch to Graphite' : 'Switch to Paper'}</span>
                 </button>
                 <button
                   type="button"
@@ -1198,7 +1211,7 @@ export default function App() {
                   >
                     <div className="flex h-full items-center justify-center">
                       <div className="it-empty max-w-sm">
-                        This tool is not available in the current build.
+                        This tool isn't available in this build.
                       </div>
                     </div>
                   </div>
@@ -1259,7 +1272,7 @@ export default function App() {
               {section === 'welcome' ? (
                 <LandingPage onEnter={enter} onGo={goUrl} />
               ) : section === 'settings' ? (
-                <SettingsSurface onGo={goUrl} dataStatus={dataStatus} accent={accent} onAccentChange={setAccent} />
+                <SettingsSurface onGo={goUrl} query={routeState.query} dataStatus={dataStatus} accent={accent} onAccentChange={setAccent} />
               ) : (
                 <WorkspaceDataGate state={initialEntitiesState} onRetry={retryEntities} allowFallback={section === 'library' && Object.values(indexes).some(list => list.length > 0)}>
               {section === 'courses' && course ? (
@@ -1344,8 +1357,15 @@ export default function App() {
       {section !== 'welcome' && <nav
         ref={bottomNavRef}
         aria-label="Primary navigation — compact"
-        className="border-t border-[var(--color-line-2)] bg-[var(--color-sheet)] flex h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] shrink-0 items-stretch pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="it-bottom-nav it-glass-fallback flex h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] shrink-0 items-stretch pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
+        {/* sliding selection pill — the four slots are equal flex-1 quarters,
+            so translateX by index*100% lands it under the active tab */}
+        <span
+          aria-hidden="true"
+          className="it-tab-indicator"
+          style={{ transform: `translateX(${navIndicatorIdx * 100}%)` }}
+        />
         <button
           type="button"
           onClick={goToday}
@@ -1422,23 +1442,23 @@ export default function App() {
       <Dialog
         open={cheatOpen}
         onClose={() => setCheatOpen(false)}
-        title="Workspace Keyboard Shortcuts"
-        subtitle="Navigate between tools, search objects, and control sessions from the keyboard."
+        title="Keyboard shortcuts"
+        subtitle="Move between tools, search, and sessions without leaving the keyboard."
         maxWidth="max-w-md"
       >
         <div className="space-y-2 text-[12.5px]">
           {(
             [
-              ['⌘K / Ctrl+K / /', 'Open global search & command palette'],
-              ['⌘P / Ctrl+P (in palette)', 'Pin the highlighted result to the shelf'],
-              ['Tab / → (in palette)', 'Send the highlighted result to another tool'],
-              ['⌘0 / Ctrl+0', 'Return to Today workspace'],
-              ['⌘1 – ⌘9', 'Switch directly to tool 1–9'],
+              ['⌘K / Ctrl+K / /', 'Open search and commands'],
+              ['⌘P / Ctrl+P (in palette)', 'Pin the highlighted result'],
+              ['Tab / → (in palette)', 'Send the highlighted result to a tool'],
+              ['⌘0 / Ctrl+0', 'Go back to Today'],
+              ['⌘1 – ⌘9', 'Jump to tool 1–9'],
               ['?', 'Show keyboard shortcuts'],
-              ['Esc', 'Close active dialog or menu'],
-              ['Space (in Timer)', 'Start or pause active countdown'],
-              ['R (in Timer)', 'Reset the current timer'],
-              ['F (in Timer)', 'Enter focus mode while running'],
+              ['Esc', 'Close the open dialog or menu'],
+              ['Space (in Timer)', 'Start or pause the timer'],
+              ['R (in Timer)', 'Reset the timer'],
+              ['F (in Timer)', 'Enter focus mode'],
               ['L (in Stopwatch)', 'Mark a lap'],
             ] as [string, string][]
           ).map(([k, d]) => (

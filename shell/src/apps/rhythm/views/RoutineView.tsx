@@ -41,7 +41,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
   );
 
   if (!r) {
-    return <p className="py-10 text-center text-ink-faint">That channel is no longer patched in.</p>;
+    return <p className="py-10 text-center text-ink-faint">That routine is no longer here.</p>;
   }
 
   const weekDates = Array.from({ length: 7 }, (_, i) => addDaysISO(weekStartISO(today, s.settings.weekStartsOn), i));
@@ -81,7 +81,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
       {/* ── Heading block ────────────────────────────────────────── */}
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="kicker mb-1">Routine detail — since {fmtDay(dateOfInstant(r.createdAt))}</div>
+          <div className="kicker mb-1">Routine — since {fmtDay(dateOfInstant(r.createdAt))}</div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="disp text-2xl">{r.name}</h1>
             {band && <Lamp band={band.band} />}
@@ -111,7 +111,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
             <button
               className="btn btn--danger"
               onClick={() => {
-                if (window.confirm(`Archive "${r.name}"? Its history stays on the tape but it leaves Today.`)) {
+                if (window.confirm(`Archive "${r.name}"? Its history stays on the record, but it leaves Today.`)) {
                   s.archiveRoutine(r.id);
                 }
               }}
@@ -125,7 +125,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
       <div className="grid gap-5 lg:grid-cols-2">
         {/* ── Target card ─────────────────────────────────────────── */}
         <section className="panel p-4" aria-label="target">
-          <div className="kicker mb-2">The part</div>
+          <div className="kicker mb-2">The target</div>
           <dl className="space-y-1.5 text-[13px]">
             <Row k="Measures">
               {r.measure === 'check' ? 'showing up' : r.measure}
@@ -185,7 +185,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
 
         {/* ── This measure + history stats ────────────────────────── */}
         <section className="panel p-4" aria-label="record">
-          <div className="kicker mb-2">This measure</div>
+          <div className="kicker mb-2">This week</div>
           <div className="mb-3 grid grid-cols-7 gap-1">
             {weekDates.map((d, i) => {
               const state = dayState(r, d, s.entries, s.exceptions, today);
@@ -198,7 +198,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
             })}
           </div>
           <dl className="space-y-1.5 text-[13px]">
-            <Row k="Weeks judged">{weekHistory.length}</Row>
+            <Row k="Weeks counted">{weekHistory.length}</Row>
             <Row k="Targets met">{hits}</Row>
             <Row k="Sessions logged">{myEntries.length}</Row>
             {avgDuration !== null && <Row k="Average session">{fmtMinutes(avgDuration)}</Row>}
@@ -210,7 +210,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
           <div className="kicker mb-2">Common friction</div>
           {topFriction.length === 0 ? (
             <p className="text-[12.5px] text-ink-faint">
-              Nothing logged. When a day doesn't happen, the reason goes here — patterns beat
+              Nothing logged yet. When a day doesn't happen, the reason goes here — patterns beat
               willpower.
             </p>
           ) : (
@@ -232,11 +232,11 @@ export function RoutineView({ routineId }: { routineId: string }) {
 
         {/* ── Connections + exceptions ────────────────────────────── */}
         <section className="panel p-4" aria-label="connections">
-          <div className="kicker mb-2">Connected events</div>
+          <div className="kicker mb-2">What it connects to</div>
           {myMappings.length === 0 ? (
             <p className="text-[12.5px] text-ink-faint">
-              No routings yet. Wire suite signals from the Signal-in tab — a finished Timer session
-              can hit this channel itself.
+              No connections yet. Wire signals from the Signal in tab — a finished Timer session
+              can check this routine off for you.
             </p>
           ) : (
             <>
@@ -274,7 +274,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
 
           {myExceptions.length > 0 && (
             <div className="mt-4">
-              <div className="kicker mb-1">Exceptions on record</div>
+              <div className="kicker mb-1">Exceptions</div>
               {myExceptions.slice(0, 6).map((e) => (
                 <div key={e.id} className="chan flex items-center justify-between py-1 text-[12px]">
                   <span className="mono text-[11px]">{fmtDay(e.date)}</span>
@@ -287,7 +287,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
                       className="mono text-[10px] uppercase text-ink-faint underline"
                       onClick={() => s.removeException(e.id)}
                     >
-                      cut
+                      remove
                     </button>
                   </span>
                 </div>
@@ -299,16 +299,16 @@ export function RoutineView({ routineId }: { routineId: string }) {
 
       {/* ── The tape — every hit stays ───────────────────────────── */}
       <section className="mt-6" aria-label="the tape">
-        <div className="kicker mb-2">The tape — every hit stays</div>
+        <div className="kicker mb-2">History — every check-in stays</div>
         <div className="border-y border-rule">
           {myEntries.length === 0 && (
-            <p className="py-4 text-[12.5px] text-ink-faint">Nothing recorded yet. Today is a fine first hit.</p>
+            <p className="py-4 text-[12.5px] text-ink-faint">Nothing recorded yet — today is a fine first check-in.</p>
           )}
           {myEntries.slice(0, 30).map((e) => (
             <EntryRow key={e.id} entry={e} routine={r} onRemove={() => s.removeEntry(e.id)} />
           ))}
           {myEntries.length > 30 && (
-            <p className="py-2 mono text-[10px] text-ink-faint">…{myEntries.length - 30} earlier hits kept on the tape</p>
+            <p className="py-2 mono text-[10px] text-ink-faint">…{myEntries.length - 30} earlier check-ins kept on the record</p>
           )}
         </div>
       </section>
@@ -326,7 +326,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
             }}
           >
             <p className="text-[12px] leading-snug text-ink-soft">
-              Muting a channel suspends judgment, not history. Every earlier hit stays on the tape.
+              Pausing suspends judgment, not history. Every earlier check-in stays on the record.
             </p>
             <Field label="Why pause (optional, private)">
               <input
@@ -341,7 +341,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
                 Cancel
               </button>
               <button type="submit" className="btn btn--primary">
-                Mute channel
+                Pause routine
               </button>
             </div>
           </form>
@@ -376,8 +376,8 @@ function EntryRow({ entry: e, routine, onRemove }: { entry: Entry; routine: Rout
       <span className="mono text-[9.5px] uppercase text-ink-faint">
         {e.source === 'event' && ev ? `from ${APP_DISPLAY[ev.sourceApp] ?? 'other'}` : e.source}
       </span>
-      <button className="mono text-[10px] uppercase text-ink-faint underline" onClick={onRemove} title="cut this hit from the tape">
-        cut
+      <button className="mono text-[10px] uppercase text-ink-faint underline" onClick={onRemove} title="remove this entry">
+        remove
       </button>
     </div>
   );
@@ -460,18 +460,18 @@ export function EditSheet({ routine, onClose }: { routine: Routine; onClose: () 
           <Field label="Minimum version label" hint="the smallest version that still counts">
             <input className="f-input" value={minLabel} onChange={(e) => setMinLabel(e.target.value)} placeholder="e.g. open the deck" />
           </Field>
-          <Field label="Minimum days/week (optional)">
+          <Field label="Minimum days per week (optional)">
             <input className="f-input" inputMode="numeric" value={minPerWeek} onChange={(e) => setMinPerWeek(e.target.value)} />
           </Field>
-          <Field label="Window start (optional)">
+          <Field label="Quiet window start (optional)">
             <input className="f-input" type="time" value={windowStart} onChange={(e) => setWindowStart(e.target.value)} />
           </Field>
-          <Field label="Window end">
+          <Field label="Quiet window end">
             <input className="f-input" type="time" value={windowEnd} onChange={(e) => setWindowEnd(e.target.value)} />
           </Field>
         </div>
 
-        <Field label="Scheduled days (none chosen = any day)">
+        <Field label="Scheduled days (leave empty for any day)">
           <div className="flex flex-wrap gap-1.5">
             {[1, 2, 3, 4, 5, 6, 0].map((d) => (
               <button
@@ -487,13 +487,13 @@ export function EditSheet({ routine, onClose }: { routine: Routine; onClose: () 
           </div>
         </Field>
 
-        <Field label="Channel LED">
+        <Field label="Colour">
           <div className="flex flex-wrap gap-1.5">
             {ACCENTS.map((a) => (
               <button
                 key={a}
                 type="button"
-                aria-label={`accent ${a}`}
+                aria-label={`colour ${a}`}
                 aria-pressed={accent === a}
                 onClick={() => setAccent(a)}
                 className={cx('h-6 w-6 rounded-full border-2', accent === a ? 'border-ink' : 'border-transparent')}

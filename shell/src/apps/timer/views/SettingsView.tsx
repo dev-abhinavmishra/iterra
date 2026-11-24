@@ -88,21 +88,21 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
             {
               icon: <Volume2 size={17} />,
               title: 'Board sounds',
-              desc: 'Relay clicks, landing thunks, and the station chime.',
+              desc: 'Relay clicks, flap lands, and the finishing chime.',
               on: settings.sound,
               toggle: () => { updateSettings({ sound: !settings.sound }); if (!settings.sound) setTimeout(stationChime, 120); },
             },
             {
               icon: <Volume2 size={17} />,
               title: 'Second ticks',
-              desc: 'A faint tick each second while a countdown or interval runs.',
+              desc: 'A tick each second while a countdown or interval runs.',
               on: settings.ticks,
               toggle: () => updateSettings({ ticks: !settings.ticks }),
             },
             {
               icon: <Gauge size={17} />,
               title: 'Full motion',
-              desc: 'Flap flips, cascades and ambient motion — overrides your OS reduce-motion. Off for reduced motion.',
+              desc: 'Flap flips, cascades and ambient motion. Overrides your system’s reduce-motion setting.',
               on: settings.motion === 'full',
               toggle: () => updateSettings({ motion: settings.motion === 'full' ? 'reduced' : 'full' }),
             },
@@ -117,7 +117,7 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
             }] : [{
               icon: <MoonStar size={17} />,
               title: 'Night board',
-              desc: 'Graphite wall and dim ink for low light. Off keeps the plaster room.',
+              desc: 'Graphite wall and dim ink for low light. Turn it off to keep the plaster room.',
               on: settings.theme === 'night',
               toggle: () => updateSettings({ theme: settings.theme === 'night' ? 'day' : 'night' }),
             }]),
@@ -220,7 +220,7 @@ export default function SettingsView({ active = true }: { active?: boolean }) {
             className="fixed bottom-[calc(7rem+var(--iterra-bottom-inset,0px))] left-1/2 -translate-x-1/2 z-[150] board px-5 py-3 flex items-center gap-3"
           >
             <CheckCircle2 size={16} style={{ color: 'var(--color-signal-bright)' }} />
-            <span className="engraved text-[10px]">Log cleared</span>
+            <span className="engraved text-[10px]">Session log cleared</span>
           </motion.div>
         )}
       </AnimatePresence>

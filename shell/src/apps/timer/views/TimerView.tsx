@@ -99,7 +99,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       return {
         ok: false as const,
         commandId: '',
-        error: 'Session outcome could not be saved.',
+        error: 'The session outcome couldn’t be saved.',
         outboxSaved: durable,
         terminalConflict: false,
       };
@@ -606,8 +606,8 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
             durable: result.outboxSaved,
             conflict: result.terminalConflict,
             message: result.terminalConflict
-              ? 'This session already has a different outcome recorded. The existing result was kept; this completion was not saved.'
-              : 'Your focus time is in Timer. Retry saving it to your workspace.',
+              ? 'This session already has a different outcome on record — the existing result was kept, and this completion wasn’t saved.'
+              : 'Your focus time is saved in Timer. Retry saving it to your workspace.',
           });
           if (result.terminalConflict) retryCompletionRef.current = null;
         };
@@ -741,10 +741,10 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
           durable: result.outboxSaved,
           conflict: result.terminalConflict,
           message: result.terminalConflict
-            ? 'This session already has a different outcome recorded. The existing result was kept; this early finish was not saved.'
+            ? 'This session already has a different outcome on record — the existing result was kept, and this early finish wasn’t saved.'
             : sess
-              ? 'Your partial focus time is in Timer. Retry saving it to your workspace.'
-              : 'Timer could not reconcile this canceled session with Planning. Retry the save.',
+              ? 'Your partial session is saved in Timer. Retry saving it to your workspace.'
+              : 'Timer couldn’t match this canceled session to Planning. Retry the save.',
         });
         if (result.terminalConflict) retryCompletionRef.current = null;
         setDone('focus');
@@ -866,7 +866,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                       className="block w-2 h-2 rounded-full bg-signal not-italic"
                       style={{ background: 'var(--color-signal)' }}
                     />
-                    <span className="engraved text-[10px] md:text-xs" style={{ color: 'var(--color-signal-bright)' }}>On time</span>
+                    <span className="engraved text-[10px] md:text-xs" style={{ color: 'var(--color-signal-bright)' }}>Running</span>
                   </span>
                 )}
                 <button
@@ -891,7 +891,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
             </div>
             <div className="mt-3 flex justify-between items-baseline px-0.5">
               <span className="engraved text-[9px] md:text-[10px]">
-                {intent ? intent.toUpperCase() : 'TIMER TIMEKEEPING'}
+                {intent ? intent.toUpperCase() : 'TIMER READY'}
                 {blockTitle && <span className="block">{`BLOCK ${blockTitle.toUpperCase()}`}</span>}
                 {/* '← terrain' is a shell hash route — standalone it can
                     only spawn a dead timer tab, so it stays terrain-only.
@@ -973,20 +973,20 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                       {m}
                     </button>
                   ))}
-                  <button onClick={() => setCustomOpen(true)} className="chip px-3 py-1.5 text-[11px]">Other</button>
+                  <button onClick={() => setCustomOpen(true)} className="chip px-3 py-1.5 text-[11px]">Custom</button>
                 </div>
 
                 {/* UX-TRACKER #81 — recent courses as bound 25m starts */}
                 {courseChips.length > 0 && (
                   <div className="w-full">
-                    <div className="label-wall text-[9px] mb-1.5 text-center">Recent courses — bound 25m</div>
+                    <div className="label-wall text-[9px] mb-1.5 text-center">Recent courses — 25m each</div>
                     <div className="flex flex-wrap justify-center gap-2">
                       {courseChips.map((c) => (
                         <button
                           key={c.courseId ?? c.course}
                           onClick={() => startCourse(c)}
                           className="chip px-3 py-1.5 text-[11px]"
-                          title={`25m bound to ${c.course}`}
+                          title={`Start 25m on ${c.course}`}
                         >
                           {c.course}
                         </button>
@@ -1084,7 +1084,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                 <hr className="rule-h" />
                 {!inTerrain() && (
                   <p className="text-[11px] text-ink-faint font-body leading-relaxed">
-                    Focus mode fills the screen after 10 seconds idle.
+                    Focus mode fills the screen after 10 seconds of no input.
                   </p>
                 )}
               </motion.div>
@@ -1180,7 +1180,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                 className="engraved text-xs md:text-sm mt-8"
                 style={{ letterSpacing: '0.5em' }}
               >
-                {isBreak ? 'RECESS' : 'BOARD ACTIVE — FOCUS'}
+                {isBreak ? 'RECESS' : 'FOCUS MODE'}
               </motion.span>
               {intent && (
                 <motion.span
@@ -1292,7 +1292,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                   : completionSave?.state === 'failed'
                     ? <span role="alert">
                         {completionSave.message}
-                        {!completionSave.durable && !completionSave.conflict && ' A retry copy could not be saved, so keep Timer open and retry before leaving.'}
+                        {!completionSave.durable && !completionSave.conflict && ' A retry copy couldn’t be saved — keep Timer open and try again before leaving.'}
                       </span>
                     : done === 'break' ? 'BOARD READY — NEXT DEPARTURE AWAITS' : thenBreak > 0 ? `RECESS ${thenBreak}M BOARDING` :
                       completionSave?.outcome === 'canceled' ? 'UNDER ONE MINUTE' : boxedTarget ? 'FOCUS TIME SAVED' : 'TIME WELL KEPT'}

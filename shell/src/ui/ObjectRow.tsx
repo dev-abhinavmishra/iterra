@@ -117,10 +117,10 @@ export function formatRelativeTime(ts?: number): string {
 }
 
 export const QUICK_SEND_TARGETS = [
-  { to: 'timer', action: 'timer.start', label: 'Start 25m focus session' },
+  { to: 'timer', action: 'timer.start', label: 'Start a 25-minute focus session' },
   { to: 'flashcards', action: 'cards.create', label: 'Create flashcards' },
   { to: 'margin', action: 'note.create', label: 'Save to Study Materials' },
-  { to: 'ink', action: 'note.create', label: 'Create note page' },
+  { to: 'ink', action: 'note.create', label: 'New note page' },
   { to: 'proof', action: 'problem.create', label: 'Send to Calculations' },
   { to: 'rhythm', action: 'routine.plan', label: 'Schedule in Attendance' },
   { to: 'syllabus', action: 'block.plan', label: 'Plan a study block' },
@@ -250,7 +250,7 @@ export function ObjectRow({
     } else if (onNotify) {
       /* a declined send carries the handler's reason in r.toast — phrase
          that before the generic fallback so the row says *why* */
-      onNotify(r.toast || (r.ok ? `Sent to ${PLACE_MAP[target.to]?.label || target.to}` : `Could not send: ${r.error || 'unavailable'}`));
+      onNotify(r.toast || (r.ok ? `Sent to ${PLACE_MAP[target.to]?.label || target.to}` : `Couldn't send — ${r.error || 'the tool may still be starting'}`));
     }
   };
 
@@ -322,7 +322,7 @@ export function ObjectRow({
         {item.course && item.course.toLowerCase() !== (contextCourse || '').toLowerCase() && (
           <Badge
             tone="accent"
-            title={`Open ${item.course} course workspace`}
+            title={`Open the ${item.course} course workspace`}
             onClick={(e) => {
               e.stopPropagation();
               if (onNavigateCourse) onNavigateCourse(item.course!);
@@ -392,17 +392,17 @@ export function ObjectRow({
                       onNotify(
                         r.toast ||
                           (r.delivered === 'queued'
-                            ? 'Queued. It will appear in Planning when you next open it.'
+                            ? 'Queued — it will show up in Planning next time you open it.'
                             : r.ok
-                              ? 'Filed done'
-                              : `Could not file: ${r.error || 'unavailable'}`),
+                              ? 'Marked done'
+                              : `Couldn't mark it done — ${r.error || 'Planning may still be starting'}`),
                       );
                     });
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-accent)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
                 >
                   <CheckSquare className="h-3.5 w-3.5" />
-                  File {item.type === 'commitment' ? 'commitment' : 'slip'} done
+                  Mark {item.type === 'commitment' ? 'commitment' : 'slip'} done
                 </button>
               )}
               {/* a slipped or deferred block's rescue is a date push —
@@ -423,17 +423,17 @@ export function ObjectRow({
                       onNotify(
                         r.toast ||
                           (r.delivered === 'queued'
-                            ? 'Queued. It will appear in Planning when you next open it.'
+                            ? 'Queued — it will show up in Planning next time you open it.'
                             : r.ok
-                              ? 'Pushed to tomorrow'
-                              : `Could not push: ${r.error || 'unavailable'}`),
+                              ? 'Moved to tomorrow'
+                              : `Couldn't move it — ${r.error || 'Planning may still be starting'}`),
                       );
                     });
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-accent-soft)] cursor-pointer"
                 >
                   <Clock className="h-3.5 w-3.5" />
-                  Push slip to tomorrow
+                  Move slip to tomorrow
                 </button>
               )}
               {item.type === 'commitment' &&
@@ -453,10 +453,10 @@ export function ObjectRow({
                       onNotify(
                         r.toast ||
                           (r.delivered === 'queued'
-                            ? 'Queued. It will appear in Planning when you next open it.'
+                            ? 'Queued — it will show up in Planning next time you open it.'
                             : r.ok
                               ? 'Dropped'
-                              : `Could not drop: ${r.error || 'unavailable'}`),
+                              : `Couldn't drop it — ${r.error || 'Planning may still be starting'}`),
                       );
                     });
                   }}
@@ -467,7 +467,7 @@ export function ObjectRow({
                 </button>
               )}
               <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
-                Use with another tool
+                Send to another tool
               </div>
               {QUICK_SEND_TARGETS.filter((t) => t.to !== item.app &&
                 (t.action !== 'cards.create' || canDraftNoteDeck(item))).map((t) => (

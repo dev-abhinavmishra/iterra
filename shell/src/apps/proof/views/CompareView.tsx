@@ -153,8 +153,8 @@ export function CompareView({
   if (!attempt || !problem) {
     return (
       <div className="mx-auto max-w-4xl p-10 text-center text-[var(--color-paper)]">
-        Attempt not found.
-        <button className="btn btn--ghost ml-3" onClick={() => goView('library')}>Back to library</button>
+        We couldn’t find that attempt.
+        <button className="btn btn--ghost ml-3" onClick={() => goView('library')}>Back to the library</button>
       </div>
     );
   }

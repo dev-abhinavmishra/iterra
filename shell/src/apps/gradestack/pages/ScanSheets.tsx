@@ -400,7 +400,7 @@ export function ScanSheets() {
       if (failures.has('invalid')) messages.push('A file could not be read as a filled GradeStack sheet. Upload a valid filled PDF.');
       if (messages.length) setError(messages.join(' '));
     } catch {
-      setError('The sheets could not be read. Please try again.');
+      setError("The sheets couldn't be read — please try again.");
     } finally {
       pdfBatchInFlight.current = false;
       setIsScanning(false);
@@ -837,7 +837,7 @@ export function ScanSheets() {
         {scanToReview && (
           <Modal
             onClose={() => { setReviewScanId(null); setEditingScore(null); }}
-            title="Sheet Review"
+            title="Sheet review"
             subtitle={`${selectedTest?.name || ''}${scanToReview.batchName ? ` · ${scanToReview.batchName}` : ''}`}
             wide
             footer={
@@ -859,7 +859,7 @@ export function ScanSheets() {
                     </div>
                     <div className="text-center">
                       <p className="text-xs font-semibold text-white/60">Digitally filled PDF</p>
-                      {scanToReview.pdfProvenance === 'unverified-legacy' && <p className="text-xs text-white/60">Older sheet: assessment match was confirmed by the user, not verified from the file.</p>}
+                      {scanToReview.pdfProvenance === 'unverified-legacy' && <p className="text-xs text-white/60">Older sheet — the assessment match was confirmed by you, not verified from the file.</p>}
                       <p className="text-[11px] text-white/35 mt-1 max-w-[220px]">No page photo — this sheet was graded straight from the form fields.</p>
                     </div>
                   </div>
@@ -910,7 +910,7 @@ export function ScanSheets() {
                 {/* Per-question markings — tap to correct */}
                 <div className="flex-1 min-h-0">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="ledger-label">Marked Answers</span>
+                    <span className="ledger-label">Marked answers</span>
                     <span className="text-[11px] text-faint">tap one to correct it</span>
                   </div>
                   <div className="grid grid-cols-5 gap-1.5 max-h-48 overflow-y-auto pr-1 table-scroll">
@@ -1002,7 +1002,7 @@ export function ScanSheets() {
                         setReviewScanId(null);
                       }}
                     >
-                      Delete it — can’t be undone
+                      Delete it — this can’t be undone
                     </Button>
                     <Button variant="ghost" className="h-9 text-xs" onClick={() => setConfirmSheetDelete(false)} autoFocus>
                       Keep
@@ -1053,7 +1053,7 @@ export function ScanSheets() {
       {isEditingKey && selectedTest && (
         <Modal
           onClose={() => setIsEditingKey(false)}
-          title="Answer Key"
+          title="Answer key"
           subtitle={selectedTest.name}
           wide
           footer={
@@ -1137,7 +1137,7 @@ export function ScanSheets() {
             >
               <div className="px-6 py-5 border-b border-hairline flex justify-between items-center shrink-0">
                 <div>
-                  <h2 className="text-headline-sm">Frame the Sheet</h2>
+                  <h2 className="text-headline-sm">Frame the sheet</h2>
                   <p className="text-sm text-pencil mt-0.5">Tighten the crop to the answer area, then grade.</p>
                 </div>
                 <div className="flex gap-2">

@@ -51,7 +51,7 @@ export function autoCheck(spec: AnswerSpec, attempt: Attempt, rubric?: Rubric): 
   switch (spec.kind) {
     case 'exact': {
       const given = attempt.answer ?? '';
-      if (!given.trim()) return { mode: 'ungraded', detail: 'No final answer recorded' };
+      if (!given.trim()) return { mode: 'ungraded', detail: 'No final answer yet' };
       const ok =
         normalizeExact(given, spec.caseSensitive) === normalizeExact(spec.expected, spec.caseSensitive);
       return {
@@ -62,7 +62,7 @@ export function autoCheck(spec: AnswerSpec, attempt: Attempt, rubric?: Rubric): 
     }
     case 'numeric': {
       const parsed = parseNumericWithUnit(attempt.answer ?? '');
-      if (!parsed) return { mode: 'ungraded', detail: 'No parseable number in your answer' };
+      if (!parsed) return { mode: 'ungraded', detail: 'Couldn’t find a number in your answer' };
       const absTol = spec.tolerance ?? Math.abs(spec.value) * (spec.relTolerance ?? 0.001) + 1e-9;
       const relTol = spec.relTolerance ?? 1e-9;
       const valueOk = nearlyEqual(parsed.value, spec.value, absTol, Math.max(relTol, 1e-9));
@@ -80,16 +80,16 @@ export function autoCheck(spec: AnswerSpec, attempt: Attempt, rubric?: Rubric): 
     }
     case 'expression': {
       const given = (attempt.answer ?? '').trim();
-      if (!given) return { mode: 'ungraded', detail: 'No expression recorded' };
+      if (!given) return { mode: 'ungraded', detail: 'No expression yet' };
       const r = expressionsEquivalent(given, spec.expected, spec.vars);
       return { mode: 'auto', result: r.equivalent ? 'correct' : 'incorrect', detail: r.reason };
     }
     case 'choice': {
       const picked = (attempt.answerChoice ?? []).slice().sort((a, b) => a - b);
       const want = spec.correct.slice().sort((a, b) => a - b);
-      if (!picked.length) return { mode: 'ungraded', detail: 'No option selected' };
+      if (!picked.length) return { mode: 'ungraded', detail: 'No option picked yet' };
       const same = picked.length === want.length && picked.every((v, i) => v === want[i]);
-      if (same) return { mode: 'auto', result: 'correct', detail: 'Correct option(s)' };
+      if (same) return { mode: 'auto', result: 'correct', detail: 'All correct' };
       const overlap = picked.filter((p) => want.includes(p)).length;
       const result: AttemptResult = overlap > 0 && picked.every((p) => want.includes(p)) ? 'partial' : 'incorrect';
       return { mode: 'auto', result, detail: `Correct: ${want.map((i) => spec.options[i]).join(', ')}` };
@@ -103,7 +103,7 @@ export function autoCheck(spec: AnswerSpec, attempt: Attempt, rubric?: Rubric): 
       return { mode: 'self', result: 'partial', detail: `${done} of ${spec.steps.length} milestones checked` };
     }
     case 'rubric': {
-      if (!rubric) return { mode: 'ungraded', detail: 'Rubric missing — grade yourself in compare' };
+      if (!rubric) return { mode: 'ungraded', detail: 'This rubric is missing — grade yourself in Compare' };
       const scores = attempt.rubricScores ?? {};
       const filled = rubric.criteria.filter((c) => scores[c.id] != null);
       if (filled.length < rubric.criteria.length)

@@ -250,7 +250,7 @@ export const TagsView: React.FC = () => {
               required
               value={dialogValue}
               onChange={event => setDialogValue(event.target.value)}
-              placeholder={dialog.type === 'folder' || dialog.type === 'renameFolder' ? 'Folder name' : 'tag-name'}
+              placeholder={dialog.type === 'folder' || dialog.type === 'renameFolder' ? 'Folder name' : 'tag name'}
               aria-label="Name"
               className="w-full rounded-sm border-line bg-paper px-3 py-2 text-sm text-ink focus:border-fountain focus:ring-0"
             />

@@ -515,13 +515,13 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   function importSharedDeck(title, rawCards, course) {
     rawCards = rawCards.filter(c => c && c.q && c.a)
       .map(c => ({ q: diacritics(c.q), a: diacritics(c.a), ex: diacritics(c.ex) }));
-    if (!rawCards.length) { toast('That link had no usable cards in it.'); return; }
+    if (!rawCards.length) { toast('That link didn’t have any usable cards.'); return; }
     // fingerprint on the converted text so a link carrying shorthand
     // still dedupes against the repaired stored deck
     const fp = deckFingerprint(title, rawCards);
     const existing = Object.values(state.decks).find(d =>
       deckFingerprint(d.title, d.cards.map(c => ({ q: c.q, a: c.a }))) === fp);
-    if (existing) { selectDeck(existing.id); toast('Deck already in your library'); return; }
+    if (existing) { selectDeck(existing.id); toast('That deck’s already in your library'); return; }
     const d = createDeck(title, rawCards.map(c => newCard(c.q, c.a, c.ex)));
     if (course && typeof course === 'string') d.course = course;
     saveStore();
@@ -577,8 +577,8 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
           importSharedDeck(obj.title, obj.cards.map(c =>
             ({ q: c.question ?? c.q, a: c.definition ?? c.a, ex: c.example ?? c.ex })));
           applyShuffle();
-        } else toast('That stored deck is gone — ask for a fresh link.');
-      } catch { toast('Failed to load stored deck.'); }
+        } else toast('That saved deck is gone — ask for a fresh link.');
+      } catch { toast('Couldn’t load that saved deck.'); }
       stripPlaceQuery();
       return true;
     }
@@ -598,8 +598,8 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
           importSharedDeck(titleParam || 'Shared deck', cards,
             p.get('course') || undefined);
           applyShuffle();
-        } else toast('That link had no usable cards in it.');
-      } catch { toast('Bad card data in link.'); }
+        } else toast('That link didn’t have any usable cards.');
+      } catch { toast('That link’s card data didn’t parse.'); }
       stripPlaceQuery();
       return true;
     }
@@ -626,7 +626,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         else { state.currentId = null; renderAll(); }
       } else {
         /* unknown p names no surface here — consumed below; say so */
-        toast(`That flashcards link is stale — no “${pView}” surface`);
+        toast(`That link is stale — there’s no “${pView}” page in flashcards`);
       }
       stripPlaceQuery();
       return true;
@@ -661,8 +661,8 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const clb = $('clear-lib-btn'); if (clb) clb.disabled = !Object.keys(state.decks).length;
     if (!ids.length) {
       els.deckList.innerHTML = q
-        ? `<div class="deck-hint">no decks match “${esc(state.libSearch)}”</div>`
-        : `<div class="deck-hint">no decks yet —<br>“New deck” starts one,<br>“Import…” brings cards in</div>`;
+        ? `<div class="deck-hint">No decks match “${esc(state.libSearch)}”</div>`
+        : `<div class="deck-hint">No decks yet —<br>“New deck” starts one,<br>or “Import…” brings cards in</div>`;
       return;
     }
     els.deckList.innerHTML = ids.map(id => {
@@ -720,13 +720,13 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
       try { return sharedDoc()?.get()?.activeCourse?.v?.code || ''; } catch { return ''; }
     })();
     openModal(`
-      <h3>Assign course or topic</h3>
-      <p class="modal-sub">Filing a deck under a course code (e.g. <code>MTH</code>, <code>BIO101</code>) connects it to that Course Workspace and related study materials.</p>
+      <h3>Assign a course or topic</h3>
+      <p class="modal-sub">Filing a deck under a course code (like <code>MTH</code> or <code>BIO101</code>) ties it to that course and its study materials.</p>
       <label class="field-label" for="pm-course">Course code or topic (leave blank to clear)</label>
       <input class="field-input" id="pm-course" value="${esc(d.course || activeCode || '')}" placeholder="e.g. MTH" maxlength="60">
       <div class="modal-actions">
         <button class="btn ghost" data-close>Cancel</button>
-        <button class="btn primary" id="pm-course-ok">Save course</button>
+        <button class="btn primary" id="pm-course-ok">Save</button>
       </div>`);
     const inp = $('pm-course');
     const save = async () => {
@@ -1027,14 +1027,14 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         else if (res && res.ok) {
           if (res.delivered === 'queued') {
             /* not landed yet — say so instead of claiming the mark */
-            toast('Queued for Attendance. It will appear there when you next open it.');
+            toast('Queued for Attendance — it’ll show up next time you open it.');
           } else if (res.url) {
             _bridgeLogged = true;
             renderDeckBridge(d);
             toast(res.toast || 'Logged on the register');
           } else {
             /* direct decline — the handler's reason is the honest answer */
-            toast(res.toast || 'The register didn’t take the mark');
+            toast(res.toast || 'The register didn’t take that mark');
             btn.disabled = false;
           }
         } else {
@@ -1068,7 +1068,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
           to: 'margin', action: 'note.create',
           entity: { app: 'flashcards', type: 'card', id: c.id, course: d.course, courseId: d.courseId, title: String(c.q || '').slice(0, 160), sub: String(c.a || '').slice(0, 200), url: deckUrl(d) },
         }).then(res => {
-          if (!res || !res.ok) { toast('Couldn’t reach Notes — try again'); b.disabled = false; return; }
+          if (!res || !res.ok) { toast('Couldn’t reach Notes — try again in a moment'); b.disabled = false; return; }
           try { it.open ? it.open((res && res.url) || '/apps/margin/') : window.open('/apps/margin/', '_blank'); } catch {}
         }).catch(() => { b.disabled = false; });
       });
@@ -1384,7 +1384,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     $('quiz-corner').textContent = `Q${String(Q.idx + 1).padStart(2, '0')}`;
     $('quiz-front-label').textContent = 'Which answer matches?';
     $('quiz-front').textContent = frontText(c);
-    $('quiz-msg').textContent = 'Pick one — number keys 1–4 work too.';
+    $('quiz-msg').textContent = 'Pick one — you can also press 1–4.';
     $('quiz-next').hidden = true;
   
     // distractors: unique answers of other cards in the deck
@@ -1838,24 +1838,24 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   function openImportModal() {
     openModal(`
       <h3>Import cards</h3>
-      <p class="modal-sub">Paste one card per line, or drop in a file. Separators auto-detect: <code>term : answer</code>, <code>term,answer</code>, <code>term[TAB]answer</code>. An optional note follows a <code>|</code>.</p>
+      <p class="modal-sub">Paste one card per line, or drop in a file. Separators are auto-detected — <code>term : answer</code> works, and so do commas, tabs, and semicolons. Add a note after a <code>|</code>.</p>
       <label class="field-label" for="imp-title">Deck title</label>
       <input class="field-input" id="imp-title" placeholder="e.g. Spanish unit 3" maxlength="140">
       <label class="field-label" for="imp-text">Cards</label>
       <textarea class="field-textarea" id="imp-text" rows="8" placeholder="Paris : capital of France&#10;mitochondria,powerhouse of the cell&#10;quixotic | idealistic, unrealistic"></textarea>
-      <div class="parse-preview" id="imp-preview">paste cards to preview the count</div>
+      <div class="parse-preview" id="imp-preview">Paste your cards to preview the count</div>
       <div class="modal-actions" style="justify-content:space-between">
-        <button class="btn ghost" id="imp-file">Choose file (.json / .csv / .txt)</button>
+        <button class="btn ghost" id="imp-file">Choose a file (.json, .csv, .txt)</button>
         <span style="display:flex;gap:10px">
           <button class="btn ghost" data-close>Cancel</button>
-          <button class="btn primary" id="imp-go">Import into new deck</button>
+          <button class="btn primary" id="imp-go">Import as a new deck</button>
         </span>
       </div>`, { wide: true });
   
     const text = $('imp-text'), preview = $('imp-preview'), title = $('imp-title');
     const updatePreview = () => {
       const n = parsePasted(text.value).length;
-      preview.textContent = n ? `${n} valid card${n === 1 ? '' : 's'} detected` : 'no valid cards yet — each line needs a term and an answer';
+      preview.textContent = n ? `${n} valid card${n === 1 ? '' : 's'} found` : 'No valid cards yet — each line needs a term and an answer';
     };
     text.addEventListener('input', updatePreview);
   
@@ -1895,7 +1895,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
   
     $('imp-go').addEventListener('click', () => {
       const cards = parsePasted(text.value);
-      if (!cards.length) { preview.textContent = 'Nothing to import — write at least one term : answer line.'; return; }
+      if (!cards.length) { preview.textContent = 'Nothing to import yet — each line needs a term and an answer.'; return; }
       const d = createDeck(title.value.trim() || 'Untitled deck', cards.map(c => newCard(c.q, c.a, c.ex)));
       closeModal();
       saveStore(); selectDeck(d.id);
@@ -2012,9 +2012,9 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     const n = Object.keys(state.decks).length;
     openModal(`
       <h3>Backup &amp; restore</h3>
-      <p class="modal-sub">${n} deck${n === 1 ? '' : 's'} in this browser → one <code>.json</code> file (stars and progress included). Restoring merges into the current library; decks already here are skipped, so it also works to combine libraries from different browsers.</p>
+      <p class="modal-sub">Everything in this browser — stars and progress included — saves to one <code>.json</code> file. Restoring merges into your library and skips decks you already have, so you can combine backups from different browsers.</p>
       <div class="modal-actions" style="justify-content:space-between">
-        <button class="btn ghost" id="bk-restore">Restore from file…</button>
+        <button class="btn ghost" id="bk-restore">Restore from a file…</button>
         <span style="display:flex;gap:10px">
           <button class="btn ghost" data-close>Cancel</button>
           <button class="btn primary" id="bk-export">Download backup</button>
@@ -2444,7 +2444,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         const PLACE_LABEL = { ink: 'Ink', margin: 'Margin', proof: 'Proof', syllabus: 'Planning' };
         const srcs = (ents || []).filter(e =>
           e && e.title && e.app !== 'flashcards' && ['note', 'material', 'problem', 'sheet'].includes(e.type));
-        sel.innerHTML = '<option value="">Write or paste cards manually…</option>' + srcs.map(e =>
+        sel.innerHTML = '<option value="">Write or paste cards by hand…</option>' + srcs.map(e =>
           `<option value="${esc(`${e.app}:${e.type}:${e.id}`)}" data-course="${esc(e.course || '')}">${esc(PLACE_LABEL[e.app] || e.app)} · ${esc(e.title)}</option>`
         ).join('');
         sel.addEventListener('change', () => {
@@ -2460,15 +2460,15 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
     cardsEl.addEventListener('input', () => {
       const n = parsePasted(cardsEl.value).length;
       preview.textContent = n
-        ? `${n} valid card${n === 1 ? '' : 's'} detected`
-        : 'Type or paste cards above to preview count';
+        ? `${n} valid card${n === 1 ? '' : 's'} found`
+        : 'Type or paste cards to see the count';
     });
 
     $('ws-create-btn')?.addEventListener('click', () => {
       void (async () => {
         const cards = parsePasted(cardsEl.value);
         if (!cards.length) {
-          preview.textContent = 'Nothing to create — write at least one term : answer line.';
+          preview.textContent = 'Nothing to create yet — each line needs a term and an answer.';
           return;
         }
         const d = createDeck(titleEl.value.trim() || 'Untitled deck', cards.map(c => newCard(c.q, c.a, c.ex)));

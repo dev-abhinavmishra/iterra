@@ -81,7 +81,7 @@ export function ScoreAnalytics() {
       <div className="flex-1 flex flex-col items-center justify-center p-10 max-w-2xl mx-auto text-center">
         <EmptyState
           icon={isNoTests ? 'library_books' : 'search_off'}
-          title={isNoTests ? 'No Assessments Yet' : 'Assessment Not Found'}
+          title={isNoTests ? 'No assessments yet' : 'Assessment not found'}
           body={isNoTests
             ? 'Create your first assessment to start tracking scores.'
             : "That assessment isn't in the register — it may have been deleted."}

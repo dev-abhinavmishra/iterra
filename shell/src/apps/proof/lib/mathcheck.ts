@@ -52,7 +52,7 @@ function tokenize(src: string): Tok[] | string {
     if (c === ')') { toks.push({ t: 'rp' }); i++; continue; }
     if (c === ',') { toks.push({ t: 'comma' }); i++; continue; }
     if ('+-*/^%'.includes(c)) { toks.push({ t: 'op', v: c }); i++; continue; }
-    if (c === '=') return "Equations aren't checkable — give one side's expression";
+    if (c === '=') return "That's an equation — give just one side's expression";
     return `Unexpected character '${c}'`;
   }
   // insert implicit multiplication: num|rp|name followed by name|lp|num
@@ -75,7 +75,7 @@ function tokenize(src: string): Tok[] | string {
 export function parseExpression(src: string): ParseResult {
   const toks = tokenize(src);
   if (typeof toks === 'string') return { ok: false, error: toks };
-  if (!toks.length) return { ok: false, error: 'Empty expression' };
+  if (!toks.length) return { ok: false, error: 'That expression is empty' };
   const vars = new Set<string>();
   let pos = 0;
   const peek = () => toks[pos];
@@ -132,7 +132,7 @@ export function parseExpression(src: string): ParseResult {
   }
   function parseAtom(): Node | string {
     const t = next();
-    if (!t) return 'Unexpected end of expression';
+    if (!t) return 'The expression ends too early';
     if (t.t === 'num') {
       const n = t.v;
       return () => n;
@@ -170,7 +170,7 @@ export function parseExpression(src: string): ParseResult {
     if (t.t === 'lp') {
       const e = parseExpr();
       if (typeof e === 'string') return e;
-      if (peek()?.t !== 'rp') return "Missing ')'";
+      if (peek()?.t !== 'rp') return "Missing a closing ')'";
       next();
       return e;
     }
@@ -247,9 +247,9 @@ export function expressionsEquivalent(
   declaredVars?: string[],
 ): { equivalent: boolean; reason: string } {
   const g = parseExpression(givenSrc);
-  if (!g.ok || !g.eval) return { equivalent: false, reason: g.error ?? 'Could not parse your expression' };
+  if (!g.ok || !g.eval) return { equivalent: false, reason: g.error ?? 'Couldn’t read your expression' };
   const e = parseExpression(expectedSrc);
-  if (!e.ok || !e.eval) return { equivalent: false, reason: 'Problem answer is not parseable' };
+  if (!e.ok || !e.eval) return { equivalent: false, reason: 'The problem’s answer couldn’t be read' };
 
   const varSet = new Set([...(g.vars ?? []), ...(e.vars ?? [])]);
   if (declaredVars) for (const v of declaredVars) varSet.add(v);
@@ -274,7 +274,7 @@ export function expressionsEquivalent(
       if (!Number.isFinite(gv) || !Number.isFinite(ev)) {
         // both blowing up at the same point is weak evidence; skip the point
         if (!Number.isFinite(gv) && !Number.isFinite(ev)) { matched++; continue; }
-        return { equivalent: false, reason: 'Expressions differ — one is undefined where the other is not' };
+        return { equivalent: false, reason: 'The expressions differ — one is undefined where the other isn’t' };
       }
       if (nearlyEqual(gv, ev, 1e-6, 1e-5)) matched++;
       else
@@ -284,7 +284,7 @@ export function expressionsEquivalent(
         };
     }
   } catch (err) {
-    return { equivalent: false, reason: err instanceof Error ? err.message : 'Evaluation failed' };
+    return { equivalent: false, reason: err instanceof Error ? err.message : 'Couldn’t check that expression' };
   }
   if (extraGiven.length) {
     return {

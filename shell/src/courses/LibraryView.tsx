@@ -165,7 +165,7 @@ export function LibraryView({
                 icon={<FileText className="h-3.5 w-3.5" />}
                 onClick={() => onEnter('ink')}
               >
-                Open Ink
+                Open Notes
               </Button>
               <Button
                 variant="secondary"
@@ -181,7 +181,7 @@ export function LibraryView({
                 icon={<Sigma className="h-3.5 w-3.5" />}
                 onClick={() => onEnter('proof')}
               >
-                Open Proof
+                Open Calculations
               </Button>
             </>
           }
@@ -218,29 +218,29 @@ export function LibraryView({
 
           <div className="-mb-3.5 overflow-x-auto">
             <Tabs<LibraryFilter>
-              ariaLabel="Object category filter"
+              ariaLabel="Filter by category"
               active={filter}
               onChange={setFilter}
               items={[
-                { key: 'all', label: 'All Objects', count: contextObjects.length },
+                { key: 'all', label: 'All', count: contextObjects.length },
                 {
                   key: 'materials',
-                  label: 'Notes & Materials',
+                  label: 'Notes & materials',
                   count: contextObjects.filter((o) => ['note', 'source'].includes(o.type)).length,
                 },
                 {
                   key: 'practice',
-                  label: 'Decks & Calculations',
+                  label: 'Decks & problems',
                   count: contextObjects.filter((o) => ['deck', 'quiz', 'problem', 'attempt'].includes(o.type)).length,
                 },
                 {
                   key: 'schedule',
-                  label: 'Schedule & Routines',
+                  label: 'Schedule & routines',
                   count: contextObjects.filter((o) => ['block', 'commitment', 'assignment', 'routine', 'experiment', 'followup'].includes(o.type)).length,
                 },
                 {
                   key: 'results',
-                  label: 'Assessments & Logs',
+                  label: 'Results & logs',
                   count: contextObjects.filter((o) => ['assessment', 'grade', 'scan', 'session'].includes(o.type)).length,
                 },
               ]}
@@ -250,7 +250,7 @@ export function LibraryView({
 
         <div className="study-results-bar">
           <span role="status">{filtered.length} {filtered.length === 1 ? 'item' : 'items'}</span>
-          <button type="button" className="study-pin-filter" aria-pressed={pinnedOnly} onClick={() => setPinnedOnly(value => !value)}>Pinned only</button>
+          <button type="button" className="study-pin-filter" aria-pressed={pinnedOnly} onClick={() => setPinnedOnly(value => !value)}>Pinned</button>
           <Select aria-label="Sort library" value={sort} onChange={e => setSort(e.target.value)}>
             <option value="recent">Recently updated</option><option value="name">Title A–Z</option>
           </Select>
@@ -283,11 +283,11 @@ export function LibraryView({
         ) : (
           <EmptyState
             icon={<Plus className="h-4 w-4" />}
-            title={narrowed ? 'No matching items' : 'Your workspace library is empty'}
+            title={narrowed ? 'No matching items' : 'Your library is empty'}
             description={
               narrowed
                 ? 'Clear the filters to see the rest of your library.'
-                : 'Create notes, import study sheets, build flashcard decks, or schedule course blocks to populate your library.'
+                : 'Notes, imported sheets, decks, and scheduled blocks will all live here.'
             }
             actions={
               narrowed ? (
@@ -296,7 +296,7 @@ export function LibraryView({
                   size="xs"
                   onClick={resetFilters}
                 >
-                  Reset Filters
+                  Clear filters
                 </Button>
               ) : (
                 <>
@@ -307,7 +307,7 @@ export function LibraryView({
                     Create a Deck
                   </Button>
                   <Button variant="secondary" size="xs" icon={<Calendar className="h-3.5 w-3.5" />} onClick={() => onEnter('syllabus')}>
-                    Plan Course Work
+                    Plan course work
                   </Button>
                 </>
               )

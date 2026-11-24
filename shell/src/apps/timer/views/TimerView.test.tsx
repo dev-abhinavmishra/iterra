@@ -236,7 +236,7 @@ it('keeps a failed completion retryable and visible when the outbox cannot be wr
     });
     now.mockReturnValue(361_000);
     await act(async () => vi.advanceTimersByTime(50));
-    expect(document.body.querySelector('[role=alert]')?.textContent).toContain('retry copy could not be saved');
+    expect(document.body.querySelector('[role=alert]')?.textContent).toContain('retry copy couldn’t be saved');
     expect(getPendingSessionOutcomes()).toHaveLength(0);
 
     await act(async () => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', bubbles: true })));
@@ -284,8 +284,8 @@ it('holds an early finish on screen until its outcome saves, then retries the sa
 
     expect(getSessions()).toEqual([expect.objectContaining({ outcome: 'partial', duration: 60 })]);
     expect(getPendingSessionOutcomes()).toHaveLength(0);
-    expect(document.body.querySelector('[role=alert]')?.textContent).toContain('partial focus time');
-    expect(document.body.querySelector('[role=alert]')?.textContent).toContain('retry copy could not be saved');
+    expect(document.body.querySelector('[role=alert]')?.textContent).toContain('partial session');
+    expect(document.body.querySelector('[role=alert]')?.textContent).toContain('retry copy couldn’t be saved');
     expect(command).toHaveBeenCalledOnce();
 
     const retry = [...document.body.querySelectorAll('button')]
@@ -329,7 +329,7 @@ it('treats a conflicting recorded outcome as terminal and dismisses only its own
     now.mockReturnValue(361_000);
     await act(async () => vi.advanceTimersByTime(50));
 
-    expect(document.body.querySelector('[role=alert]')?.textContent).toContain('different outcome recorded');
+    expect(document.body.querySelector('[role=alert]')?.textContent).toContain('different outcome on record');
     expect(getPendingSessionOutcomes()).toHaveLength(0);
     const buttons = [...document.body.querySelectorAll('button')].map((button) => button.textContent?.trim());
     expect(buttons).toContain('Dismiss');

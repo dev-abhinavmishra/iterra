@@ -23,20 +23,20 @@ interface Hit {
 
 const SEND_TARGETS: { to: string; action: string; label: string; payload?: Record<string, unknown> }[] = [
   { to: 'flashcards', action: 'cards.create', label: 'Draft flashcards' },
-  { to: 'margin', action: 'note.create', label: 'Study Materials — new document' },
-  { to: 'ink', action: 'note.create', label: 'Notes — new page' },
-  { to: 'proof', action: 'step.append', label: 'Calculations — append step' },
+  { to: 'margin', action: 'note.create', label: 'New document in Study Materials' },
+  { to: 'ink', action: 'note.create', label: 'New page in Notes' },
+  { to: 'proof', action: 'step.append', label: 'Append a step in Calculations' },
   /* problem.create reads the sent entity's title as the prompt and its
      course binding for filing — a 'file this as a problem' path */
-  { to: 'proof', action: 'problem.create', label: 'Calculations — file as problem' },
+  { to: 'proof', action: 'problem.create', label: 'File as a problem in Calculations' },
   /* the intake contract requires kind — without it the register used to
      fabricate a bare session.completed mark with no label at all */
-  { to: 'rhythm', action: 'log.activity', label: 'Attendance — log activity', payload: { kind: 'session' } },
+  { to: 'rhythm', action: 'log.activity', label: 'Log activity in Attendance', payload: { kind: 'session' } },
   /* block.plan reads the sent entity itself: material types bind as the
      slip's materialRef (the slip's Start opens the deck/note), and the
      entity's course/courseId stand in when no payload course is sent */
-  { to: 'syllabus', action: 'block.plan', label: 'Planning — schedule a study block' },
-  { to: 'timer', action: 'timer.start', label: 'Timer — 25m focus session' },
+  { to: 'syllabus', action: 'block.plan', label: 'Schedule a study block in Planning' },
+  { to: 'timer', action: 'timer.start', label: 'Start a 25-minute focus session in Timer' },
 ];
 
 export function Search({
@@ -157,7 +157,7 @@ export function Search({
       {
         app: 'terrain',
         kind: 'command',
-        label: 'Browse the Library — every object in one place',
+        label: 'Browse the Library — everything in one place',
         sub: 'Command · Workspace',
         url: '#/library',
       },
@@ -178,7 +178,7 @@ export function Search({
       {
         app: 'terrain',
         kind: 'command',
-        label: 'Take the tour — mosaic overview of the terrain',
+        label: 'Take the tour — a mosaic overview of the terrain',
         sub: 'Command · Workspace',
         url: '#/welcome',
       },
@@ -208,7 +208,7 @@ export function Search({
             {
               app: 'terrain',
               kind: 'command' as const,
-              label: 'Toggle details panel',
+              label: 'Show or hide the details panel',
               sub: 'Command · Workspace',
               url: '#/today',
               run: () => onToggleContext(),
@@ -220,7 +220,7 @@ export function Search({
             {
               app: 'terrain',
               kind: 'command' as const,
-              label: 'Switch workspace theme (Paper / Graphite)',
+              label: 'Switch between Paper and Graphite themes',
               sub: 'Command · Appearance',
               url: '#/today',
               run: () => onToggleTheme(),
@@ -251,7 +251,7 @@ export function Search({
       app: 'syllabus',
       kind: 'course',
       label: `${c.code}${c.name ? ` — ${c.name}` : ''}`,
-      sub: 'Course Workspace',
+      sub: 'Course workspace',
       url: `#/c/${encodeURIComponent(c.code)}`,
       key: c.code,
     }));
@@ -367,9 +367,9 @@ export function Search({
     });
 
     const out: { header: string | null; items: { h: Hit; i: number }[] }[] = [];
-    if (recent.length) out.push({ header: 'Recent Work', items: recent });
-    if (commands.length) out.push({ header: 'Quick Actions', items: commands.map((h) => ({ h, i: hits.indexOf(h) })) });
-    if (courses.length) out.push({ header: 'Course Workspaces', items: courses.map((h) => ({ h, i: hits.indexOf(h) })) });
+    if (recent.length) out.push({ header: 'Recent work', items: recent });
+    if (commands.length) out.push({ header: 'Quick actions', items: commands.map((h) => ({ h, i: hits.indexOf(h) })) });
+    if (courses.length) out.push({ header: 'Course workspaces', items: courses.map((h) => ({ h, i: hits.indexOf(h) })) });
     out.push({ header: 'Tools', items: places.map((h) => ({ h, i: hits.indexOf(h) })) });
     for (const g of byKey.values()) out.push({ header: g.label, items: g.items });
     if (loose.length) out.push({ header: 'Unfiled', items: loose });
@@ -423,7 +423,7 @@ export function Search({
     }
     const r = await sendTo({ to: t.to, action: t.action, entity: h.entity, payload: t.payload });
     if (!r.ok) {
-      setSentNote(`Could not send — ${r.error || 'unavailable'}`);
+      setSentNote(`Couldn't send — ${r.error || 'the tool may still be starting'}`);
       return;
     }
     const label = PLACE_MAP[t.to]?.label || t.to;
@@ -431,7 +431,7 @@ export function Search({
       r.toast ||
         (r.delivered === 'direct'
           ? `Sent to ${label}`
-          : `Queued for ${label} — delivers on open`),
+          : `Queued for ${label} — it'll arrive next time you open it`),
     );
     window.setTimeout(() => setSentNote((n) => (n ? null : n)), 5000);
     if (r.url) {
@@ -519,8 +519,9 @@ export function Search({
                 setSendForKey(null);
               }
             }}
-            placeholder="Search notes, decks, problems, courses, or run a command…"
-            aria-label="Search workspace or run command"
+            placeholder="Search notes, decks, problems, courses — or run a command…"
+            title="Search notes, decks, problems, courses, or run a command…"
+            aria-label="Search or run a command"
             className="w-full bg-transparent text-[14px] text-[var(--color-ink)] placeholder:text-[var(--color-faint)] focus:outline-none"
           />
           <kbd className="rounded border border-[var(--color-line)] bg-[var(--color-sheet-2)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-mute)]">
@@ -529,15 +530,15 @@ export function Search({
         </div>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[var(--color-line)] bg-[var(--color-paper)]/60 px-4 py-1.5 font-mono text-[10px] text-[var(--color-faint)]">
-          <span>↑↓ Navigate</span>
+          <span>↑↓ navigate</span>
           <span>·</span>
-          <span>↵ Open</span>
+          <span>↵ open</span>
           <span>·</span>
-          <span>⌘P Pin to Shelf</span>
+          <span>⌘P pin to shelf</span>
           <span>·</span>
-          <span>→ Inspect &amp; Send</span>
+          <span>→ inspect &amp; send</span>
           <span>·</span>
-          <span>⌘1–9 Tools · ⌘0 Today</span>
+          <span>⌘1–9 tools · ⌘0 today</span>
         </div>
 
         {staged.length > 0 && (
@@ -571,7 +572,7 @@ export function Search({
                     setSentNote(
                       landed === batch.length
                         ? `${landed}/${batch.length} sent to ${label}`
-                        : `${landed}/${batch.length} sent to ${label} — the rest were declined or unavailable`,
+                        : `${landed}/${batch.length} sent to ${label} — the rest couldn't be delivered`,
                     );
                     window.setTimeout(() => setSentNote((n) => (n ? null : n)), 5000);
                   });
@@ -646,7 +647,7 @@ export function Search({
                         </button>
 
                         {pinned.has(h.url) && (
-                          <span className="shrink-0 text-[11px] text-[var(--color-accent)]" title="Pinned on shelf">
+                          <span className="shrink-0 text-[11px] text-[var(--color-accent)]" title="Pinned on the shelf">
                             ◈
                           </span>
                         )}
@@ -667,7 +668,7 @@ export function Search({
                               setSendForKey((cur) => (cur === hitId(h) ? null : hitId(h)));
                             }}
                             aria-label={`Inspect or send ${h.label}`}
-                            title="Inspect & send to another tool (→)"
+                            title="Inspect or send to another tool (→)"
                             className={`shrink-0 rounded p-1 text-[11px] cursor-pointer ${
                               sendForKey === hitId(h)
                                 ? 'bg-[var(--color-accent)] text-[var(--color-accent-fg)]'
@@ -798,12 +799,12 @@ export function Search({
                                   void doSend(h, {
                                     to: 'syllabus',
                                     action: h.entity!.type === 'commitment' ? 'commitment.done' : 'block.done',
-                                    label: `File ${h.entity!.type === 'commitment' ? 'commitment' : 'slip'} done`,
+                                    label: `Mark ${h.entity!.type === 'commitment' ? 'commitment' : 'slip'} done`,
                                   });
                                 }}
                                 className="rounded-[4px] border border-[var(--color-accent)]/40 bg-[var(--color-accent-soft)] px-2.5 py-1 text-[11.5px] font-medium text-[var(--color-accent)] hover:border-[var(--color-accent)] cursor-pointer"
                               >
-                                File {h.entity.type === 'commitment' ? 'commitment' : 'slip'} done
+                                Mark {h.entity.type === 'commitment' ? 'commitment' : 'slip'} done
                               </button>
                             )}
                           </div>
@@ -816,7 +817,7 @@ export function Search({
             ))
           ) : (
             <li className="px-4 py-8 text-center text-[13px] text-[var(--color-mute)]">
-              No matching objects, courses, or commands found.
+              Nothing matched — try a different word, or browse the tools below.
             </li>
           )}
         </ul>

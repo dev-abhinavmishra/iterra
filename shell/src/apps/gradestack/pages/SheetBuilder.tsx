@@ -211,7 +211,7 @@ export function SheetBuilder() {
 
       const maxQ = Math.max(...Array.from(questionMap.keys()), 0);
       if (maxQ === 0) {
-        throw new Error("No valid bubble sheet fields found.");
+        throw new Error("No bubble sheet fields found in that PDF.");
       }
 
       questionMap.forEach((qData) => {
@@ -255,7 +255,7 @@ export function SheetBuilder() {
       setIsImporting(false);
     } catch (err) {
       console.error(err);
-      setImportError("That PDF doesn't look like a GradeStack sheet. Re-import only works on PDFs this app exported.");
+      setImportError("That PDF doesn't look like a GradeStack sheet — restoring only works on PDFs this app exported.");
     } finally {
       setIsProcessingPdf(false);
     }
@@ -551,7 +551,7 @@ export function SheetBuilder() {
           >
             <div className="p-8 text-center border-b border-hairline">
               <BubbleMark size={9} className="text-mark mx-auto mb-5" />
-              <h2 className="text-headline-md">Restore a Sheet</h2>
+              <h2 className="text-headline-md">Restore a sheet</h2>
               <p className="text-pencil mt-2">Upload a GradeStack PDF to recover its layout — sections, formats, and student-ID block.</p>
             </div>
 
@@ -568,7 +568,7 @@ export function SheetBuilder() {
                     <input type="file" accept="application/pdf" onChange={handleImportPdf} className="hidden" />
                     <Icon name="cloud_upload" size={36} className="text-faint group-hover:text-mark transition-colors mb-2" />
                     <p className="font-semibold text-ink group-hover:text-mark-deep transition-colors">Choose a GradeStack PDF</p>
-                    <p className="text-xs text-faint mt-1">Only PDFs this app exported can be restored</p>
+                    <p className="text-xs text-faint mt-1">Only PDFs exported from this app can be restored</p>
                   </label>
 
                   {importError && (

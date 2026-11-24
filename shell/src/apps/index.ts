@@ -99,8 +99,8 @@ function delay(ms: number, signal: AbortSignal): Promise<void> {
 function prepareTool(id: string, signal: AbortSignal): Promise<ToolPrepareResult> {
   if (typeof navigator === 'undefined' || !('serviceWorker' in navigator) || typeof MessageChannel === 'undefined') {
     return Promise.resolve(online()
-      ? { ok: true, offlineReady: false, warning: 'This tool can open online, but offline caching is unavailable in this browser session.' }
-      : { ok: false, offline: true, error: 'This tool has not been checked for offline availability.' });
+      ? { ok: true, offlineReady: false, warning: 'This tool needs internet right now — offline saving isn’t available in this browser.' }
+      : { ok: false, offline: true, error: 'This tool hasn’t been checked for offline use yet.' });
   }
   if (signal.aborted) return Promise.reject(abortError());
 
@@ -137,8 +137,8 @@ function prepareTool(id: string, signal: AbortSignal): Promise<ToolPrepareResult
       if (settled || signal.aborted) return;
       if (!worker) {
         finish(online()
-          ? { ok: true, offlineReady: false, warning: 'This tool can open online, but offline caching is not ready yet.' }
-          : { ok: false, offline: true, error: 'No active offline worker is available.' });
+          ? { ok: true, offlineReady: false, warning: 'This tool needs internet right now — offline saving isn’t ready yet.' }
+          : { ok: false, offline: true, error: 'Offline mode isn’t available right now.' });
         return;
       }
 
@@ -156,27 +156,27 @@ function prepareTool(id: string, signal: AbortSignal): Promise<ToolPrepareResult
       };
       timeout = window.setTimeout(() => finish(
         online()
-          ? { ok: true, offlineReady: false, warning: 'This tool can open online, but offline readiness could not be confirmed.' }
-          : { ok: false, offline: true, error: 'The tool is not cached for offline use.' },
+          ? { ok: true, offlineReady: false, warning: 'This tool can open online, but we couldn’t confirm offline saving.' }
+          : { ok: false, offline: true, error: 'This tool isn’t saved for offline use yet.' },
       ), 120_000);
       startTimeout = window.setTimeout(() => finish(
         online()
-          ? { ok: true, offlineReady: false, warning: 'This tool can open online, but offline caching is not available yet.' }
-          : { ok: false, offline: true, error: 'The offline worker did not acknowledge this tool.' },
+          ? { ok: true, offlineReady: false, warning: 'This tool needs internet right now — offline saving isn’t available yet.' }
+          : { ok: false, offline: true, error: 'Offline saving didn’t respond for this tool.' },
       ), 4_000);
       try {
         worker.postMessage({ type: 'iterra:prepare-tool', tool: id, id: requestId }, [channel.port2]);
       } catch (error) {
         finish(online()
-          ? { ok: true, offlineReady: false, warning: 'This tool can open online, but offline caching could not be confirmed.' }
+          ? { ok: true, offlineReady: false, warning: 'This tool can open online, but we couldn’t confirm offline saving.' }
           : { ok: false, offline: true, error: String(error) });
       }
     };
 
-    abortListener = () => finish({ ok: false, offline: !online(), error: 'Tool preparation was canceled.' });
+    abortListener = () => finish({ ok: false, offline: !online(), error: 'Opening this tool was canceled.' });
     signal.addEventListener('abort', abortListener, { once: true });
     void begin().catch(error => finish(online()
-      ? { ok: true, offlineReady: false, warning: 'This tool can open online, but offline caching could not be confirmed.' }
+      ? { ok: true, offlineReady: false, warning: 'This tool can open online, but we couldn’t confirm offline saving.' }
       : { ok: false, offline: true, error: String(error) }));
   });
 }

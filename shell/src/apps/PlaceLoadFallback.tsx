@@ -30,7 +30,7 @@ export function PlaceLoadFallback({ placeId, placeName, onRetry }: {
     : failed
       ? 'Try again. If the problem continues, reload the workspace.'
       : phase === 'loading' && error
-        ? 'Opening online; offline access may be limited.'
+        ? 'Opening online — it might not work offline.'
       : preparing
         ? `Getting ${placeName} ready for this session…`
         : 'Starting the workspace…';
@@ -42,7 +42,7 @@ export function PlaceLoadFallback({ placeId, placeName, onRetry }: {
       await flushPendingNativeWrites();
       window.location.reload();
     } catch {
-      setReloadError('The workspace could not confirm all pending saves. Check storage, then try again.');
+      setReloadError('We couldn\u2019t confirm all your pending saves. Check your storage, then try again.');
       setReloading(false);
     }
   };
@@ -62,7 +62,7 @@ export function PlaceLoadFallback({ placeId, placeName, onRetry }: {
           <Button variant="primary" onClick={onRetry}>Retry</Button>
           <Button variant="secondary" onClick={reloadSafely} disabled={reloading}>{reloading ? 'Reloading…' : 'Reload workspace'}</Button>
         </div>}
-        {reloadError && <p className="mt-3 text-[12px] text-[var(--color-bad)]" role="alert">The workspace could not confirm all pending saves. Retry the reload after checking storage.</p>}
+        {reloadError && <p className="mt-3 text-[12px] text-[var(--color-bad)]" role="alert">We couldn\u2019t confirm all your pending saves. Check your storage, then try reloading.</p>}
       </section>
     </div>
   );

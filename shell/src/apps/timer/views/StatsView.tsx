@@ -77,7 +77,7 @@ export default function StatsView({ active = true }: { active?: boolean }) {
   const typeMeta = (s: Session) =>
     s.type === 'focus' ? { icon: Timer, name: s.label || 'Focus session', tag: 'Complete' }
     : s.type === 'interval' ? { icon: TimerReset, name: s.preset ? `${s.preset} route` : 'Interval route', tag: 'Route done' }
-    : s.type === 'stopwatch' ? { icon: Clock, name: 'Chronograph run', tag: 'Logged' }
+    : s.type === 'stopwatch' ? { icon: Clock, name: 'Stopwatch run', tag: 'Logged' }
     : { icon: Coffee, name: s.label || 'Recess', tag: 'Rested' };
 
   return (
@@ -121,8 +121,8 @@ export default function StatsView({ active = true }: { active?: boolean }) {
               const mins = Math.max(1, Math.min(600, Math.round(Number(logMinutes) || 0)));
               if (!mins || logBusy) return;
               const when = logWhen ? new Date(logWhen).getTime() : Date.now();
-              if (!Number.isFinite(when)) { setLogErr('That date doesn’t parse — pick it from the calendar.'); return; }
-              if (when > Date.now() + 60 * 1000) { setLogErr('Backfill is for past sessions — pick a date that already happened.'); return; }
+              if (!Number.isFinite(when)) { setLogErr('That date doesn’t look right — pick one from the calendar.'); return; }
+              if (when > Date.now() + 60 * 1000) { setLogErr('Only past sessions can be backfilled — pick a date that already happened.'); return; }
               setLogErr(null);
               setLogBusy(true);
               try {
@@ -143,7 +143,7 @@ export default function StatsView({ active = true }: { active?: boolean }) {
                   setLogCourse('');
                   setLogOpen(false);
                 } else {
-                  setLogErr(res?.error || 'The ledger refused that entry.');
+                  setLogErr(res?.error || 'Couldn’t save that entry — try again.');
                 }
               } finally {
                 setLogBusy(false);
@@ -152,7 +152,7 @@ export default function StatsView({ active = true }: { active?: boolean }) {
           >
             <div className="flex flex-wrap items-end gap-3">
               <label className="flex-1 min-w-40">
-                <span className="label-wall text-[9px] block mb-1">What did you work on</span>
+                <span className="label-wall text-[9px] block mb-1">What did you work on?</span>
                 <input
                   value={logLabel}
                   onChange={(e) => setLogLabel(e.target.value)}
@@ -202,7 +202,7 @@ export default function StatsView({ active = true }: { active?: boolean }) {
               <p role="status" className="mt-3 font-body text-xs text-[var(--color-signal)]">{logErr}</p>
             )}
             {!logWhen && (
-              <p className="label-wall text-[9px] mt-3 opacity-70">No date picked — files under right now.</p>
+              <p className="label-wall text-[9px] mt-3 opacity-70">No date picked — it'll be filed under right now.</p>
             )}
           </motion.form>
         )}
@@ -211,7 +211,7 @@ export default function StatsView({ active = true }: { active?: boolean }) {
       {stats.allSessions.length === 0 ? (
         <div className="panel-wall p-10 flex flex-col items-center text-center">
           <Activity className="text-ink-faint mb-4" size={30} />
-          <h3 className="font-display text-xl font-bold text-ink uppercase mb-1">Nothing on the board yet</h3>
+          <h3 className="font-display text-xl font-bold text-ink uppercase mb-1">Nothing logged yet</h3>
           <p className="text-ink-soft font-body text-sm max-w-sm">
             Run a timer or an interval route and this page fills in — streaks, weekly spread, and a full session log.
           </p>
@@ -317,7 +317,7 @@ export default function StatsView({ active = true }: { active?: boolean }) {
       <div className="space-y-2 pb-4">
         <AnimatePresence mode="popLayout">
           {stats.recentSessions.length === 0 ? (
-            <div className="panel-wall p-6 text-sm text-ink-soft font-body text-center">No runs yet.</div>
+            <div className="panel-wall p-6 text-sm text-ink-soft font-body text-center">No sessions yet.</div>
           ) : (
             (showAll ? stats.allSessions : stats.recentSessions).map((s, i) => {
               const m = typeMeta(s);

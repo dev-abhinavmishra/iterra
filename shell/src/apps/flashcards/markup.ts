@@ -10,11 +10,11 @@ export const FLASHCARDS_MARKUP = `<div class="app">
       <span class="tag">index cards, filed</span>
     </a>
     <div class="spacer"></div>
-    <span class="sysline" id="sysline">saved in workspace · snapshot link sharing</span>
+    <span class="sysline" id="sysline">saved in your workspace · decks share as links</span>
     <button class="icon-btn" id="shortcuts-btn" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
     </button>
-    <button class="icon-btn" id="theme-btn" title="Toggle light / dark (T)" aria-label="Toggle theme">
+    <button class="icon-btn" id="theme-btn" title="Switch between light and dark (T)" aria-label="Switch theme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
     </button>
     <button class="icon-btn" id="motion-btn" title="Motion" aria-label="Motion preference">
@@ -52,9 +52,9 @@ export const FLASHCARDS_MARKUP = `<div class="app">
       <div class="ws-create-panel" id="ws-create-stage" hidden>
         <div class="ws-create-head">
           <div>
-            <span class="ws-kicker">Flashcards · Workspace Creation</span>
-            <h1 class="ws-title">Create a Deck or Build from Study Material</h1>
-            <p class="ws-sub">Decks are saved automatically in your workspace and linked to your courses, notes, and focus sessions.</p>
+            <span class="ws-kicker">Flashcards · New deck</span>
+            <h1 class="ws-title">Start a deck, or build one from your notes</h1>
+            <p class="ws-sub">Decks save automatically to your workspace and link up with your courses, notes, and focus sessions.</p>
           </div>
           <span class="ws-course-pill" id="ws-active-course-pill" hidden></span>
         </div>
@@ -73,23 +73,23 @@ export const FLASHCARDS_MARKUP = `<div class="app">
           </div>
 
           <div class="ws-source-box" id="ws-source-wrap">
-            <label class="field-label" for="ws-source-select">Use linked material as input (optional)</label>
+            <label class="field-label" for="ws-source-select">Fill from something you already have (optional)</label>
             <select class="field-input" id="ws-source-select">
-              <option value="">Write or paste cards manually…</option>
+              <option value="">Write or paste cards by hand…</option>
             </select>
-            <p class="field-hint">Select a note from Notes (Ink), Study Materials (Margin), or a problem from Calculations (Proof) to pre-fill cards and record provenance links.</p>
+            <p class="field-hint">Pick a note from Ink, study material from Margin, or a problem from Proof to pre-fill the cards and keep the link.</p>
           </div>
 
           <div>
             <label class="field-label" for="ws-deck-cards">Cards (one per line — <code>term : answer</code> or <code>term | note</code>)</label>
             <textarea class="field-textarea" id="ws-deck-cards" rows="7" placeholder="mitochondria : powerhouse of the cell&#10;ATP synthase : enzyme that synthesizes ATP | inner membrane&#10;glycolysis : breakdown of glucose to pyruvate"></textarea>
-            <div class="parse-preview" id="ws-parse-preview">Type or paste cards above to preview count</div>
+            <div class="parse-preview" id="ws-parse-preview">Type or paste your cards to see the count</div>
           </div>
 
           <div class="ws-create-actions">
-            <button type="button" class="btn primary" id="ws-create-btn">Create Deck in Workspace</button>
-            <button type="button" class="btn ghost" id="ws-import-file-btn">Import File (.json / .csv / .txt)…</button>
-            <button type="button" class="btn ghost" id="ws-backup-btn">Restore Library Backup…</button>
+            <button type="button" class="btn primary" id="ws-create-btn">Create deck</button>
+            <button type="button" class="btn ghost" id="ws-import-file-btn">Import a file (.json, .csv, .txt)…</button>
+            <button type="button" class="btn ghost" id="ws-backup-btn">Restore a backup…</button>
           </div>
         </div>
       </div>

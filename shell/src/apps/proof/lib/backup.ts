@@ -29,14 +29,14 @@ export function parseWorkbenchBackup(text: string): WorkbenchData {
   try {
     obj = JSON.parse(text);
   } catch {
-    throw new Error('Not valid JSON');
+    throw new Error('That file isn’t valid JSON');
   }
   const f = obj as Partial<BackupFile>;
-  if (f?.kind !== BACKUP_KIND) throw new Error('Not a Proof backup file');
+  if (f?.kind !== BACKUP_KIND) throw new Error('That file isn’t a Proof backup');
   if (typeof f.version !== 'number' || f.version > BACKUP_VERSION)
-    throw new Error(`Backup version ${f.version} is newer than this app understands`);
+    throw new Error(`That backup is newer than this app understands (version ${f.version})`);
   const d = f.data as WorkbenchData;
-  if (!d || typeof d !== 'object') throw new Error('Backup has no data');
+  if (!d || typeof d !== 'object') throw new Error('That backup looks empty');
   return {
     problems: d.problems ?? {},
     attempts: d.attempts ?? {},
@@ -58,6 +58,6 @@ export function exportProblemSet(problems: WorkbenchData['problems'], rubrics: W
 
 export function parseProblemSet(text: string): { problems: WorkbenchData['problems']; rubrics: WorkbenchData['rubrics'] } {
   const f = JSON.parse(text) as { kind?: string; problems?: WorkbenchData['problems']; rubrics?: WorkbenchData['rubrics'] };
-  if (f?.kind !== SET_KIND) throw new Error('Not a Proof problem set');
+  if (f?.kind !== SET_KIND) throw new Error('That file isn’t a Proof problem set');
   return { problems: f.problems ?? {}, rubrics: f.rubrics ?? {} };
 }

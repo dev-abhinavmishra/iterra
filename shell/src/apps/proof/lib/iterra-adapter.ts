@@ -392,7 +392,7 @@ export function registerAdapter() {
         /* a prompt-less create can never succeed on retry — deliver it with
            a toast so the rail surfaces *why* nothing appeared instead of a
            silent {ok:false} that reads as success-with-no-url */
-        if (!prompt) return { toast: 'problem.create needs a prompt — nothing filed' };
+        if (!prompt) return { toast: 'Nothing was filed — problem.create needs a prompt' };
         /* a palette send carries the course on the entity, not the payload —
            its binding stands in when the payload doesn't spell one; a bare
            course entity IS the course (its key is canonical) */

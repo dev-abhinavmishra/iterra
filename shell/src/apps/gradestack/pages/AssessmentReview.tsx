@@ -43,9 +43,9 @@ export function AssessmentReview({ test, scans, scope, courseId, onClose }: {
         courseId,
       });
       if (result.ok && result.data) setSaved(result.data);
-      else setError(result.error || 'Could not save the review. Try again.');
+      else setError(result.error || 'Couldn’t save the review — try again.');
     } catch {
-      setError('Could not save the review. Try again.');
+      setError('Couldn’t save the review — try again.');
     } finally {
       setSaving(false);
     }

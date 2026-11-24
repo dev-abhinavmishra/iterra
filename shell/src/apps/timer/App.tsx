@@ -112,7 +112,7 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
          the unstripped param on every keep-alive remount */
       try {
         window.dispatchEvent(new CustomEvent('iterra:toast', {
-          detail: { text: `That Timer link is stale — no “${p}” view` },
+          detail: { text: `That Timer link is out of date — there's no “${p}” view here` },
         }));
       } catch { /* ambient listener absent */ }
     }

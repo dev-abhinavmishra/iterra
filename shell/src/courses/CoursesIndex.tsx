@@ -151,7 +151,7 @@ export function CoursesIndex({
               icon={<Plus className="h-3.5 w-3.5" />}
               onClick={() => onEnter('syllabus')}
             >
-              Manage Courses in Planning
+              Manage courses in Planning
             </Button>
           }
         />
@@ -170,7 +170,7 @@ export function CoursesIndex({
                   <a className="study-course-title" href={url}>
                     <span className="study-code">{c.code}</span>
                     <h2>{c.name || c.code}</h2>
-                    {c.dueCards > 0 && <Badge tone="warn">{c.dueCards} cards due</Badge>}
+                    {c.dueCards > 0 && <Badge tone="warn">{c.dueCards} card{c.dueCards === 1 ? '' : 's'} due</Badge>}
                     <ArrowUpRight size={17} aria-hidden="true" />
                   </a>
                   <div className="study-course-links">
@@ -190,11 +190,11 @@ export function CoursesIndex({
         ) : (
           <EmptyState
             icon={<BookOpen className="h-4 w-4" />}
-            title="No courses registered yet"
-            description="Register your semester courses in Planning (Syllabus) to organize your notes, flashcard decks, problems, and assessments by course."
+            title="No courses yet"
+            description="Add your courses in Planning to keep notes, decks, problems, and assessments filed under each one."
             actions={
               <Button variant="primary" size="sm" onClick={() => onEnter('syllabus')}>
-                Open Planning to Add Courses
+                Open Planning to add courses
               </Button>
             }
           />
@@ -218,8 +218,8 @@ export function CoursesIndex({
                 </div>
                 <div className="text-[12px] text-[var(--color-mute)]">
                   {unfiledCount > 0
-                    ? `Guides for every tool, plus ${unfiledCount} item${unfiledCount === 1 ? '' : 's'} not yet assigned to a course`
-                    : 'Guides for every tool — everything current is filed under a course'}
+                    ? `Guides for every tool, plus ${unfiledCount} item${unfiledCount === 1 ? '' : 's'} not filed under a course yet`
+                    : 'Guides for every tool — everything else is filed under a course'}
                 </div>
               </div>
             </div>

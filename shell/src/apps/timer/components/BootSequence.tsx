@@ -57,7 +57,7 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
       transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
     >
       <div className="engraved text-[10px] mb-6" style={{ letterSpacing: '0.5em' }}>
-        {phase === 0 ? 'POWER ON SELF TEST' : 'TIMER — TIME INSTRUMENTS'}
+        {phase === 0 ? 'WAKING UP THE BOARD' : 'TIMER — TIME INSTRUMENTS'}
       </div>
       <FlipRow text={scramble} size={size} duration={phase === 0 ? 90 : 300} delayStep={phase === 0 ? 20 : 55} />
       <motion.div
@@ -66,7 +66,7 @@ export function BootSequence({ onDone }: { onDone: () => void }) {
         className="mt-8"
       >
         {/* mounts at the reveal so the flaps visibly snap in from blank */}
-        {phase >= 1 && <FlipText text="ALL POINTS CLEAR" size={18} delayStep={40} sound={false} />}
+        {phase >= 1 && <FlipText text="READY WHEN YOU ARE" size={18} delayStep={40} sound={false} />}
       </motion.div>
     </motion.div>
   );

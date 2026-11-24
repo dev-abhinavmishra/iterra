@@ -72,7 +72,7 @@ export function parseItemAnalysis(text: string): DraftProblem[] {
   try {
     obj = JSON.parse(text);
   } catch {
-    throw new Error('Not valid JSON — paste GradeStack item analysis export');
+    throw new Error('That isn’t valid JSON — paste a GradeStack item-analysis export');
   }
   const items = Array.isArray(obj)
     ? obj
@@ -80,7 +80,7 @@ export function parseItemAnalysis(text: string): DraftProblem[] {
       (obj as { questions?: unknown[] }).questions ??
       (obj as { hardest?: unknown[] }).hardest ??
       [];
-  if (!Array.isArray(items) || !items.length) throw new Error('No items found in that JSON');
+  if (!Array.isArray(items) || !items.length) throw new Error('No items found in that file');
   return items
     .map((it): DraftProblem | null => {
       const o = it as Record<string, unknown>;

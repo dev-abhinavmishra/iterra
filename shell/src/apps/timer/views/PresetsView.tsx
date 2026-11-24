@@ -109,7 +109,7 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
           Departures
         </h1>
         <p className="text-ink-soft font-body text-sm mt-2 max-w-md">
-          Saved durations, ready to board. One press sets the timer.
+          Saved times, ready when you are. Pick one to start the countdown.
         </p>
       </div>
 
@@ -164,7 +164,7 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
                   className="w-full py-2.5 text-[11px]"
                   onClick={() => handleSelect(preset.minutes, preset.name)}
                 >
-                  <Play size={13} fill="currentColor" /> Board {preset.minutes}m
+                  <Play size={13} fill="currentColor" /> Start {preset.minutes}m
                 </KeyButton>
               </div>
             </motion.div>
@@ -264,7 +264,7 @@ export default function PresetsView({ onSelectPreset, active = true }: PresetsVi
               </div>
 
               <KeyButton variant="signal" className="w-full py-3.5 text-sm" onClick={handleAddPreset} disabled={!newName.trim()}>
-                Post departure
+                Save departure
               </KeyButton>
             </motion.div>
           </motion.div>

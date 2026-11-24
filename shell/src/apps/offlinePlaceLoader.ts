@@ -45,7 +45,7 @@ export async function loadPlaceSafely<T>(signal: AbortSignal, deps: PlaceLoaderD
     throwIfAborted(signal);
 
     if (ready.ok) {
-      if (ready.offlineReady === false) onlineOnlyWarning = ready.warning || 'This tool opened online but is not ready for offline use.';
+      if (ready.offlineReady === false) onlineOnlyWarning = ready.warning || 'This opened online, but it isn\u2019t ready to work offline yet.';
       break;
     }
     if (!deps.isOnline()) {
@@ -60,7 +60,7 @@ export async function loadPlaceSafely<T>(signal: AbortSignal, deps: PlaceLoaderD
       await deps.delay(300 * consecutiveFailures, signal);
       continue;
     }
-    deps.onPhase('error', ready.error || 'The tool could not be prepared.');
+    deps.onPhase('error', ready.error || 'This tool couldn\u2019t be opened.');
     await deps.waitForRetry(signal);
     consecutiveFailures = 0;
   }

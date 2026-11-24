@@ -33,7 +33,7 @@ export const PLACES: Place[] = [
     label: 'Daily Board',
     place: 'Boxed',
     app: 'Boxed',
-    shortDesc: 'Brain dump, rank priorities, and box work into time',
+    shortDesc: 'Dump it all, pick what matters, and time-box the work',
     tagline: 'Capture everything, choose what matters, and give it a place in the day.',
     glyph: (
       <svg viewBox="0 0 32 32" {...S}>
@@ -169,7 +169,7 @@ export const PLACES: Place[] = [
     label: 'Assessments',
     place: 'the Mark Book',
     app: 'GradeStack',
-    shortDesc: 'Answer-sheet scanning, grading, and score analytics',
+    shortDesc: 'Scan answer sheets, grade, and track score trends',
     tagline: 'Assessment builder, answer-sheet scanning, and score analytics.',
     glyph: (
       <svg viewBox="0 0 32 32" {...S}>
@@ -222,8 +222,8 @@ export const PLACES: Place[] = [
     label: 'Calculations',
     place: 'the Workbench',
     app: 'Proof',
-    shortDesc: 'Step-by-step mathematical proofs, problems, and error ledger',
-    tagline: 'Mathematical problem sets, step-by-step derivations, and error review.',
+    shortDesc: 'Step-by-step math problems, proofs, and an error log',
+    tagline: 'Math problem sets, step-by-step derivations, and error review.',
     glyph: (
       <svg viewBox="0 0 32 32" {...S}>
         <path d="M11 7h10l-7 8 7 10H11" />

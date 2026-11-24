@@ -30,7 +30,7 @@ const TABS: { key: View; label: string }[] = [
   { key: 'review', label: 'Weekly review' },
   { key: 'experiments', label: 'Experiments' },
   { key: 'connections', label: 'Signal in' },
-  { key: 'settings', label: 'Setup' },
+  { key: 'settings', label: 'Settings' },
 ];
 
 /* The unit mounts inside the terrain — .it-place-rhythm carries its scoped
@@ -93,7 +93,7 @@ function Rhythm({ query = '' }: { query?: string }) {
          the unstripped param on every keep-alive remount */
       try {
         window.dispatchEvent(new CustomEvent('iterra:toast', {
-          detail: { text: `That Rhythm link is stale — no “${p}” view` },
+          detail: { text: `That Rhythm link is out of date — there's no “${p}” view here` },
         }));
       } catch { /* ambient listener absent */ }
     }
@@ -120,7 +120,7 @@ function Rhythm({ query = '' }: { query?: string }) {
       <div className="grid h-full place-items-center">
         <span className="mono flex items-center gap-2.5 text-[11px] uppercase tracking-[0.22em]" style={{ color: 'var(--color-ink-soft)' }}>
           <span className="led led--tick" aria-hidden="true" />
-          powering on
+          powering on…
         </span>
       </div>
     );
@@ -298,10 +298,10 @@ function ReceiptCard({
         <p className="mono text-[11.5px]">{receipt.type}</p>
         <p className="mt-1 text-[12px] text-ink-soft">
           {receipt.duplicate
-            ? 'Already on the tape — deduplicated, nothing double-counted.'
+            ? 'Already on the tape — nothing was double-counted.'
             : receipt.entriesWritten > 0
-              ? `Hit recorded on ${receipt.entriesWritten} ${receipt.entriesWritten === 1 ? 'channel' : 'channels'}${receipt.routineNames.length ? `: ${receipt.routineNames.join(', ')}` : ''}.`
-              : 'Held in the inbox — no routing covers it yet.'}
+              ? `Logged on ${receipt.entriesWritten} ${receipt.entriesWritten === 1 ? 'routine' : 'routines'}${receipt.routineNames.length ? `: ${receipt.routineNames.join(', ')}` : ''}.`
+              : 'Saved in the inbox — no rule covers it yet.'}
         </p>
         <div className="mt-3 flex justify-end gap-2">
           <button

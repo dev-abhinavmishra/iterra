@@ -29,7 +29,7 @@ export function ImportView({ goView }: { goView: (v: ViewKey) => void }) {
       if (tab === 'gradestack') setDrafts(parseItemAnalysis(raw));
       else setDrafts(extractDrafts(raw, source));
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not parse that input');
+      setError(e instanceof Error ? e.message : 'Couldn’t parse that input');
       setDrafts([]);
     }
   };
@@ -52,7 +52,7 @@ export function ImportView({ goView }: { goView: (v: ViewKey) => void }) {
         setFiled(n);
         setError('');
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Not a problem set file');
+        setError(e instanceof Error ? e.message : 'That file doesn’t look like a problem set');
       }
     };
     r.readAsText(file);

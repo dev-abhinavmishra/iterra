@@ -68,8 +68,8 @@ export function TestHistory() {
                   <td colSpan={5} className="py-20">
                     <EmptyState
                       icon="library_books"
-                      title="The Register Is Empty"
-                      body="Create an assessment in the builder — then print, scan, and grade it here."
+                      title="The register is empty"
+                      body="Create an assessment in the builder — then print it, scan it, and grade it here."
                     >
                       <Link to="/builder" className="inline-flex items-center gap-2 px-6 py-2.5 bg-mark text-on-mark rounded-md font-semibold text-sm hover:bg-mark-deep transition-colors">
                         <Icon name="add" size={18} />

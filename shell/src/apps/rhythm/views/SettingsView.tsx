@@ -97,7 +97,7 @@ export function SettingsView() {
               {c.name} {c.code && <span className="mono text-[10px] uppercase text-ink-faint">{c.code}</span>}
             </span>
             <button className="mono text-[10px] uppercase text-ink-faint underline" onClick={() => s.removeCourse(c.id)}>
-              cut
+              remove
             </button>
           </div>
         ))}

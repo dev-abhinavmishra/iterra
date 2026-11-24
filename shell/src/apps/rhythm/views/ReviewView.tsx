@@ -70,7 +70,7 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
           <div className="kicker mb-1">Weekly review</div>
           <h1 className="disp text-2xl">Week of {fmtWeekRange(weekStart)}</h1>
           {diffDaysISO(weekStart, currentWeek) >= 0 && (
-            <p className="mt-0.5 text-[11.5px] italic text-ink-soft">This measure is still playing — the scorecard is provisional.</p>
+            <p className="mt-0.5 text-[11.5px] italic text-ink-soft">This week is still going — the scorecard is provisional.</p>
           )}
         </div>
         <div className="flex items-center gap-1 no-print">
@@ -87,7 +87,7 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
         {/* ── The take — the week that was ──────────────────────────────────────────── */}
         <section className="panel mb-5 p-4" aria-label="scorecard">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-            <span className="kicker">The take — the week that was</span>
+            <span className="kicker">The week that was</span>
             <span className="mono text-[11px] text-ink-soft">
               {card.hitRate === null
                 ? 'nothing to score this week'
@@ -130,14 +130,14 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
             );
           })}
           {card.weeks.length === 0 && (
-            <p className="py-3 text-[12.5px] text-ink-faint">No routines patched in yet for this week.</p>
+            <p className="py-3 text-[12.5px] text-ink-faint">No routines yet for this week.</p>
           )}
         </section>
 
         {/* ── Reflection + one adjustment ─────────────────────────── */}
         {reviewed ? (
           <section className="panel mb-5 p-4" aria-label="filed review">
-            <div className="kicker mb-2">Cut {fmtDay(reviewed.createdAt.slice(0, 10))}</div>
+            <div className="kicker mb-2">Filed {fmtDay(reviewed.createdAt.slice(0, 10))}</div>
             <p className="mb-2 text-[13.5px] italic text-ink-soft">"{reviewed.reflection}"</p>
             {reviewed.adjustment && (
               <p className="text-[13px]">
@@ -148,7 +148,7 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
           </section>
         ) : filed ? (
           <section className="panel mb-5 p-4" aria-label="filed review">
-            <p className="disp text-[15px] text-indigo">Cut. The machine turns the measure.</p>
+            <p className="disp text-[15px] text-indigo">Filed. The week turns over.</p>
           </section>
         ) : (
           <section className="panel mb-5 p-4" aria-label="reflect">
@@ -180,7 +180,7 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
               </Field>
               <div className="flex justify-end">
                 <button type="submit" className="btn btn--primary" disabled={!reflection.trim()}>
-                  Cut the take
+                  Save review
                 </button>
               </div>
             </form>
@@ -191,7 +191,7 @@ export function ReviewView({ openRoutine }: { openRoutine: (id: string) => void 
       {/* ── Past reviews ─────────────────────────────────────────── */}
       {weeksWithHistory.length > 0 && (
         <section aria-label="past reviews">
-          <div className="kicker mb-2">Past takes</div>
+          <div className="kicker mb-2">Past reviews</div>
           <div className="border-y border-rule">
             {weeksWithHistory.slice(0, 10).map((w) => (
               <button

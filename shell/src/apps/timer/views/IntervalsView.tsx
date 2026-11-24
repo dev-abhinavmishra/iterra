@@ -20,7 +20,7 @@ function fmtDur(s: number) {
   return s >= 60 ? `${Math.round(s / 60)}m` : `${s}s`;
 }
 function fmtKept(s: number) {
-  return s >= 90 ? `${Math.round(s / 60)} MIN KEPT` : `${s} SEC KEPT`;
+  return s >= 90 ? `${Math.round(s / 60)} MIN TOTAL` : `${s} SEC TOTAL`;
 }
 function fmtTotal(s: number) {
   return s >= 60 ? `${Math.round(s / 60)} min total` : `${s}s total`;
@@ -151,7 +151,7 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
     if (!match) {
       try {
         window.dispatchEvent(new CustomEvent('iterra:toast', {
-          detail: { text: `No routine named “${focusRoutine}” here` },
+          detail: { text: `No routine called “${focusRoutine}” here` },
         }));
       } catch { /* ambient listener absent */ }
       return;
@@ -293,10 +293,10 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
       <div className="mb-10">
         <div className="label-wall text-[10px] mb-1">Routes</div>
         <h1 className="font-display text-4xl md:text-5xl font-bold text-ink uppercase tracking-tight leading-none">
-          Interval boards
+          Interval routes
         </h1>
         <p className="text-ink-soft font-body text-sm mt-2 max-w-md">
-          Chained phases that run back to back — work, rest, repeat. Pick a route or build your own.
+          Work, rest, repeat — phases run back to back. Pick a route or build your own.
         </p>
       </div>
 
@@ -332,7 +332,7 @@ export default function IntervalsView({ active = true, onRequestView, onTakeover
             </div>
             <div className="mt-auto">
               <KeyButton variant="signal" className="w-full py-2.5 text-[11px]" onClick={() => { vibrate(30); run.start(r); }}>
-                <Play size={13} fill="currentColor" /> Board this route
+                <Play size={13} fill="currentColor" /> Start route
               </KeyButton>
             </div>
           </motion.div>

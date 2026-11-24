@@ -297,7 +297,7 @@ export function Settings() {
 
       {/* Danger */}
       <section className="doc p-6 border-red/25">
-        <h2 className="font-display text-lg font-semibold text-red mb-1">Factory Reset</h2>
+        <h2 className="font-display text-lg font-semibold text-red mb-1">Factory reset</h2>
         <p className="text-sm text-pencil mb-4">Wipes every assessment, every graded sheet, and all settings — local and (if signed in) synced.</p>
         {confirmReset ? (
           <div className="flex items-center gap-3">

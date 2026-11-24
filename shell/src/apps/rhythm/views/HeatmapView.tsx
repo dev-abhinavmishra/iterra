@@ -280,7 +280,7 @@ function RoutineLedger({
         <thead>
           <tr className="border-b border-rule-dark">
             <th className="kicker py-1 pr-3 font-semibold">Day</th>
-            <th className="kicker py-1 pr-3 font-semibold">Step</th>
+            <th className="kicker py-1 pr-3 font-semibold">Status</th>
             <th className="kicker py-1 font-semibold">Logged</th>
           </tr>
         </thead>
@@ -336,7 +336,7 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
 
       {dayEntries.length > 0 && (
         <div className="mb-4">
-          <div className="kicker mb-1">Entries</div>
+          <div className="kicker mb-1">Check-ins</div>
           {dayEntries.map((e) => {
             const ev = e.eventId ? events[e.eventId] : undefined;
             const evUrl = ev ? evidenceUrl(ev, settings) : null;
@@ -374,7 +374,7 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
 
       {dayFriction.length > 0 && (
         <div className="mb-4">
-          <div className="kicker mb-1">Friction</div>
+          <div className="kicker mb-1">Why it didn't happen</div>
           {dayFriction.map((f) => (
             <div key={f.id} className="chan py-1.5 text-[12.5px]">
               {FRICTION_LABEL[f.kind] ?? f.kind}
@@ -401,7 +401,7 @@ function DaySheet({ routine, date, onClose }: { routine: Routine; date: ISODate;
             onClose();
           }}
         >
-          Mute this day — an exception
+          Mute this day — mark an exception
         </button>
       )}
     </Sheet>
