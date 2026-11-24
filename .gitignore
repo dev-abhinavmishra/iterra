@@ -19,3 +19,5 @@ tmp/
 shell/public/shots/
 /*.png
 scripts/*.png
+.vercel
+.env*
