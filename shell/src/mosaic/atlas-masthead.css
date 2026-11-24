@@ -255,8 +255,17 @@
   .atlas-mh-globe { display: none; }
 }
 @media (max-width: 560px) {
+  /* the masthead stacks, and the body must stack too — left as a row, the
+     full-width actions row consumed the entire flex line and squeezed the
+     lead to zero width, wrapping the title one glyph per line and letting
+     it collide with the action buttons */
+  .atlas-mh-body {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
   .atlas-mh-actions { margin-left: 0; width: 100%; }
-  .atlas-masthead { align-items: flex-start; flex-direction: column; }
+  .atlas-masthead { align-items: flex-start; }
 }
 
 @media print {
