@@ -390,7 +390,7 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
             {currentView !== View.EDITOR && currentView !== View.RECORDER && (
                 <AtlasMasthead
                     compact
-                    object="none"
+                    object="margin"
                     place="margin"
                     title="Study Materials"
                     sub="Lecture recordings, imported documents, marginalia, and study sheets."

@@ -234,9 +234,6 @@ export default function App() {
 
   /* keep-alive mounted places */
   const [mounted, setMounted] = useState<Record<string, string>>({});
-  /* places awaiting their first-intake lookup — the workspace shows a
-     loader instead of a blank paper surface while the read resolves */
-  const [intakeWait, setIntakeWait] = useState<Record<string, boolean>>({});
   const mountedRef = useRef(mounted);
   mountedRef.current = mounted;
 
@@ -357,7 +354,6 @@ export default function App() {
       (window as any).iterra?.focus?.(id || null);
       if (!id) return;
       if (!mountedRef.current[id] && !query.includes('intake=')) {
-        setIntakeWait((w) => ({ ...w, [id]: true }));
         firstPendingIntake(id)
           .then((pid) => {
             setMounted((m) =>
@@ -370,15 +366,7 @@ export default function App() {
             /* a failed intake read must not wedge the place — mount it
                with the plain query and let the adapter drain catch up */
             setMounted((m) => (m[id] ? m : { ...m, [id]: query }));
-          })
-          .finally(() =>
-            setIntakeWait((w) => {
-              if (!w[id]) return w;
-              const n = { ...w };
-              delete n[id];
-              return n;
-            }),
-          );
+          });
       } else {
         setMounted((m) => ({ ...m, [id]: query }));
       }
@@ -1238,11 +1226,11 @@ export default function App() {
             })}
             {/* cold navigation: the place chunk or its intake lookup is
                 still resolving — show the loader, not a blank sheet */}
-            {activePlace && mounted[activePlace] === undefined && (
+            {activePlace && mounted[activePlace.id] === undefined && (
               <div className="absolute inset-0">
                 <PlaceLoadFallback
-                  placeId={activePlace}
-                  placeName={PLACES.find((p) => p.id === activePlace)?.label || activePlace}
+                  placeId={activePlace.id}
+                  placeName={activePlace.label}
                   onRetry={() => {
                     const h = window.location.hash;
                     if (!h) return;

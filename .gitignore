@@ -14,3 +14,8 @@ scripts/shot-*.png
 shot-*.png
 # lane-agent scratch probes (a-*/b-*/c-*/d-* naming convention)
 scripts/[abcd]-*.cjs
+# local dev scratch — sync probes, QA screenshots, render artifacts
+tmp/
+shell/public/shots/
+/*.png
+scripts/*.png

@@ -480,7 +480,10 @@ function receiptId(): string {
 
 function localReceiptKey(id: string) { return `${NATIVE_PENDING_PREFIX}${id}`; }
 
-function readPendingReceipts(key?: NativeStateKey): NativeReceipt[] {
+function readPendingReceipts(
+  key?: NativeStateKey,
+  opts?: { quarantineMalformed?: boolean },
+): NativeReceipt[] {
   const receipts: NativeReceipt[] = [];
   const malformed: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -497,12 +500,16 @@ function readPendingReceipts(key?: NativeStateKey): NativeReceipt[] {
       // native store; they remain durable for that store's later flush.
       if (!key || receipt.key === key) receipts.push(receipt);
     } catch {
+      /* Hydration must not wedge on one corrupt receipt — quarantine the raw
+         payload under a sibling key (recoverable) and let the healthy
+         receipts flush. Explicit flushes stay strict: they reject loudly and
+         leave the receipt pending so no unflushed data is silently dropped. */
+      if (!opts?.quarantineMalformed) {
+        throw new Error(`A pending native receipt is malformed: ${storageKey}`);
+      }
       malformed.push(storageKey);
     }
   }
-  /* One corrupt receipt must not wedge hydration/commit for BOTH native
-     stores — quarantine the raw payload under a sibling key (recoverable)
-     and let the healthy receipts flush. */
   for (const storageKey of malformed) {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -696,7 +703,9 @@ async function loadSnapshot(key: NativeStateKey): Promise<NativeSnapshot> {
   if (waiting) return waiting;
   const task = (async () => {
     const snapshot = await importLegacyIfNeeded(key);
-    await flushNativeStore(key);
+    /* hydration quarantines a corrupt receipt instead of rejecting — one bad
+       journal entry must not strand the whole native store on every load */
+    await flushNativeStore(key, { quarantineMalformedReceipts: true });
     const db = await openNativeDb();
     const current = await new Promise<NativeStateRow | undefined>((resolve, reject) => {
       const tx = db.transaction([STATES, META], 'readonly');
@@ -928,10 +937,13 @@ export function writeNativeSnapshotDelta(
   return receipt.operations.length || version > base.version ? persistReceipt(receipt) : Promise.resolve();
 }
 
-export async function flushNativeStore(key: NativeStateKey): Promise<void> {
+export async function flushNativeStore(
+  key: NativeStateKey,
+  opts?: { quarantineMalformedReceipts?: boolean },
+): Promise<void> {
   const queue = queues.get(key);
   if (queue) await queue.catch(() => {});
-  for (const receipt of readPendingReceipts(key)) {
+  for (const receipt of readPendingReceipts(key, { quarantineMalformed: opts?.quarantineMalformedReceipts })) {
     const next = enqueueCommittedReceipt(receipt);
     await next;
   }
