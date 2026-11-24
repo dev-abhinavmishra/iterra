@@ -35,6 +35,9 @@ export default function App({ query = '' }: { query?: string }) {
       {/* the cardfile's own topbar lives inside the mounted markup — the
           painted cartouche rides above it in a shared scroll column */}
       <div className="h-full overflow-y-auto">
+        {/* the cardfile's front page is the library shelf — once a deck is
+            open the workspace owns the column and the banner steps aside */}
+        {deckId === null && (
         <AtlasMasthead
           compact
           object="cards"
@@ -43,6 +46,7 @@ export default function App({ query = '' }: { query?: string }) {
           sub="Decks, spaced review, multiple-choice quizzes, and written recall."
           className="mx-3 mt-3 mb-3 sm:mx-5"
         />
+        )}
         <div
           ref={rootRef}
           className="it-place-flashcards"

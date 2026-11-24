@@ -78,9 +78,10 @@ export const MainLayout: React.FC = () => {
     <div className="flex h-full w-full bg-desk text-ink overflow-hidden">
       <SideNavBar />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Painted cartouche — the desk's own header band. Hidden on /focus,
-            which is a full-bleed writing mode that wants the whole sheet. */}
-        {location.pathname !== '/focus' && (
+        {/* Painted cartouche — the desk's front page (notes index) only.
+            Hidden on /focus (full-bleed writing mode) and every other
+            route so the banner never competes with the sheet. */}
+        {location.pathname === '/' && (
           <AtlasMasthead
             compact
             object="note"

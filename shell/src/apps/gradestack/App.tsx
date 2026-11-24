@@ -148,9 +148,10 @@ function AppLayout({ query }: { query: string }) {
       <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
         {location.pathname !== '/scan' && <MobileHeader title={getPageTitle()} onMenuClick={() => setSidebarOpen(true)} />}
         <main className={`flex-1 overflow-y-auto w-full relative ${location.pathname === '/scan' ? 'bg-ink' : ''}`}>
-          {/* Painted cartouche — the mark book's own header band, scrolling
-              with the page. Hidden on /scan, the camera takeover. */}
-          {location.pathname !== '/scan' && (
+          {/* Painted cartouche — the mark book's front page (dashboard)
+              only, scrolling with the page. Hidden on /scan, the camera
+              takeover, and every other route. */}
+          {location.pathname === '/' && (
             <div className="px-6 lg:px-10 pt-6 lg:pt-8 max-w-7xl mx-auto w-full">
               <AtlasMasthead
                 compact

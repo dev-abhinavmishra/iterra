@@ -108,7 +108,8 @@
 }
 .atlas-masthead.compact .atlas-mh-terrain { opacity: 0.38; height: 55%; }
 
-/* mosaic globe accent — sprite-stepped by MosaicGlobe */
+/* mosaic globe/object accent — sprite-stepped by MosaicGlobe or painted
+   live by MosaicObject; hover lifts and tilts the medallion */
 .atlas-mh-globe {
   position: absolute;
   z-index: 1;
@@ -118,25 +119,33 @@
   width: clamp(72px, 9vw, 128px);
   aspect-ratio: 1;
   background-repeat: no-repeat;
-  pointer-events: none;
+  pointer-events: auto;
   filter: drop-shadow(0 10px 24px rgb(0 0 0 / 0.35));
+  transition:
+    transform 0.4s cubic-bezier(0.3, 1.3, 0.4, 1),
+    filter 0.4s ease;
+}
+.atlas-mh-globe:hover {
+  transform: translateY(-6px) rotate(-6deg) scale(1.07);
+  filter: drop-shadow(0 16px 30px rgb(0 0 0 / 0.45))
+    drop-shadow(0 0 22px rgb(216 190 110 / 0.35));
 }
 
-/* procedural mosaic objects (compass, books) — canvas upscaled so every
-   cell reads as one tessera; a slow bob sells the carved, floating read */
+/* procedural mosaic objects (compass, books, …) — canvas upscaled so every
+   cell reads as one tessera; MosaicObject animates the pixels themselves
+   (glint sweep + tessera twinkles), CSS only adds the hover response */
 .mosaic-object {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  animation: atlas-mh-bob 7s ease-in-out infinite;
+  pointer-events: auto;
+  transition:
+    transform 0.4s cubic-bezier(0.3, 1.3, 0.4, 1),
+    filter 0.4s ease;
 }
-@keyframes atlas-mh-bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
+.mosaic-object:hover {
+  transform: translateY(-6px) rotate(5deg) scale(1.08);
+  filter: drop-shadow(0 16px 30px rgb(0 0 0 / 0.45))
+    drop-shadow(0 0 22px rgb(216 190 110 / 0.35));
 }
 
 .atlas-mh-body {
@@ -224,10 +233,11 @@
   color: #153021;
 }
 
-/* the accent yields the right edge — keep the copy column clear of it on
-   wide screens (hidden below 860px where the accent itself is hidden) */
+/* the accent yields the right edge — reserve its lane on the whole body
+   (lead AND actions) so buttons never slide under the mosaic. Hidden
+   below 860px where the accent itself is hidden. */
 @media (min-width: 861px) {
-  .atlas-masthead:has(.atlas-mh-globe) .atlas-mh-lead {
+  .atlas-masthead:has(.atlas-mh-globe) .atlas-mh-body {
     padding-right: clamp(80px, 10vw, 136px);
   }
 }

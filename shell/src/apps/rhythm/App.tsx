@@ -201,8 +201,9 @@ function ChassisShell({
 }) {
   return (
     <div className="flex min-h-full flex-col">
-      {/* the artwork cartouche — hidden on the bare onboarding chassis */}
-      {!bare && (
+      {/* the artwork cartouche — the register's front page only, and
+          hidden on the bare onboarding chassis */}
+      {!bare && view === 'today' && (
         <div className="mx-auto w-full max-w-4xl px-4 pt-4 sm:px-6">
           <AtlasMasthead
             compact

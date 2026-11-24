@@ -166,8 +166,9 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
           portaled to .it-place-timer (PlacePortal) are frame-bound, so a wheel
           scroll can never slide a sheet or veil away */}
       <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
-      {/* ---------- artwork masthead ---------- */}
-      {!focusMode && (
+      {/* ---------- artwork masthead — the timer's own front page only;
+          instrument views stay clear of the banner ---------- */}
+      {!focusMode && view === 'timer' && (
         <AtlasMasthead
           compact
           object="hourglass"

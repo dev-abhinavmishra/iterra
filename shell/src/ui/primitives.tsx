@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Link2, ArrowUpRight, ChevronDown } from 'lucide-react';
-import { useIterraGlass } from './glass';
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 
@@ -479,9 +478,6 @@ export function DropdownMenu({
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLElement>(null);
-  /* menus float over real content — liquid glass rim makes the edge read
-     as a lens rather than a pane. Re-arms each time the panel mounts. */
-  useIterraGlass<HTMLDivElement>({ radius: 14, bezel: 14, blur: 8 }, open, panelRef);
 
   function close({ restoreFocus = false }: { restoreFocus?: boolean } = {}) {
     setOpen(false);
@@ -522,7 +518,7 @@ export function DropdownMenu({
       {open && (
         <div
           ref={panelRef}
-          className={`anim-pop it-glass-fallback absolute z-50 min-w-[190px] rounded-[14px] p-1 ${
+          className={`anim-pop absolute z-50 min-w-[190px] rounded-[14px] border border-[var(--color-line)] bg-[var(--color-sheet)] p-1 shadow-[0_12px_32px_-18px_rgb(0_0_0/0.3)] ${
             side === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
           } ${align === 'right' ? 'right-0' : 'left-0'}`}
           onClick={(e) => e.stopPropagation()}

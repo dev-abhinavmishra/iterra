@@ -286,8 +286,9 @@ export default function App({ query = '' }: { query?: string }) {
       {/* folio page */}
       <div className="syllabus-page flex-1 min-w-0 flex flex-col px-3 py-3 sm:px-5">
         <NativePersistenceNotice storeKey="syllabus.folio.v1" onRetryHydration={() => useFolio.persist.rehydrate()} />
-        {/* painted cartouche — sits on the desk above the folio sheet,
-            which keeps its own tabs/date-stamp header below */}
+        {/* painted cartouche — the folio's front page only; it sits on the
+            desk above the sheet, which keeps its own tabs/date-stamp header */}
+        {route.view === 'today' && (
         <AtlasMasthead
           compact
           object="ledger"
@@ -296,6 +297,7 @@ export default function App({ query = '' }: { query?: string }) {
           sub="Course schedule, commitments, and prioritized daily work blocks."
           className="mb-3 shrink-0"
         />
+        )}
         <div className="sheet flex-1 min-h-0 flex flex-col animate-[sheet-in_0.34s_cubic-bezier(0.2,0.8,0.3,1)_both]">
           {/* folio header: divider tabs + the day's date stamp */}
           <header className="no-print flex items-end justify-between gap-3 px-4 pt-2.5 border-b border-[color:var(--color-rule)]">

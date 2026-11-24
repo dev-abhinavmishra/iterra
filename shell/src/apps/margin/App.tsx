@@ -382,12 +382,12 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                 onOpenPalette={() => setPaletteOpen(true)}
             />
 
-            {/* Painted cartouche — the margin's own header band. Hidden in the
-                editor (document-first sheet) and the recorder (immersive mic
-                session); browse/study/settings keep it. Rendered outside the
-                keyed view transition so it persists as chrome instead of
-                remounting (and replaying its animation) on every view change. */}
-            {currentView !== View.EDITOR && currentView !== View.RECORDER && (
+            {/* Painted cartouche — the margin's front page (the library
+                shelf) only; editor, recorder, study, analysis, bookmarks,
+                history and settings stay clear of the banner. Rendered
+                outside the keyed view transition so it persists as chrome
+                instead of remounting (and replaying its animation). */}
+            {currentView === View.LIBRARY && (
                 <AtlasMasthead
                     compact
                     object="margin"
