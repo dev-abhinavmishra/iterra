@@ -14,6 +14,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { PLACE_MAP } from '../places';
+import { AtlasMasthead } from '../mosaic/AtlasMasthead';
 import { GETTING_STARTED } from '../gettingStarted';
 import { todayISO } from '../apps/rhythm/lib/dates';
 import type { Entity, FeedItem, SharedField, StoreEntity } from '../hub';
@@ -45,6 +46,7 @@ interface RawLink {
 }
 
 export interface CourseWorkspaceProps {
+  query?: string;
   course: string;
   indexes: Record<string, Entity[]>;
   entities: StoreEntity[];
@@ -58,6 +60,7 @@ export interface CourseWorkspaceProps {
 }
 
 export function CourseWorkspace({
+  query = '',
   course,
   indexes,
   entities,
@@ -69,14 +72,18 @@ export function CourseWorkspace({
   onEnter,
   onHome,
 }: CourseWorkspaceProps) {
-  const [activeTab, setActiveTab] = useState<CourseTab>('overview');
+  const requestedTab = new URLSearchParams(query).get('tab');
+  const activeTab: CourseTab = requestedTab === 'materials' || requestedTab === 'practice' ||
+    requestedTab === 'schedule' || requestedTab === 'results' ? requestedTab : 'overview';
+  const setActiveTab = (tab: CourseTab) => {
+    const params = new URLSearchParams(query);
+    if (tab === 'overview') params.delete('tab');
+    else params.set('tab', tab);
+    const suffix = params.toString();
+    onGo(`#/c/${encodeURIComponent(course)}${suffix ? '?' + suffix : ''}`);
+  };
   const key = course.toLowerCase();
   const unfiled = key === 'unfiled';
-
-  // Reset to overview when switching courses
-  useEffect(() => {
-    setActiveTab('overview');
-  }, [course]);
 
   const courseEnt = useMemo(
     () =>
@@ -245,7 +252,8 @@ export function CourseWorkspace({
           e.type === 'commitment' &&
           e.data &&
           e.data.status !== 'done' &&
-          e.data.status !== 'completed',
+          e.data.status !== 'completed' &&
+          e.data.status !== 'dropped',
       ),
     [courseEnts],
   );
@@ -438,7 +446,7 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Routine queued — Attendance applies it on next open'
+          ? 'Queued. The routine will appear in Attendance when you next open it.'
           : r.ok
             ? 'Routine scheduled in Attendance'
             : `Could not schedule: ${r.error || 'unavailable'}`),
@@ -465,7 +473,7 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Weekly routine queued — Attendance applies it on next open'
+          ? 'Queued. The weekly routine will appear in Attendance when you next open it.'
           : r.ok
             ? 'Weekly routine scheduled in Attendance'
             : `Could not schedule: ${r.error || 'unavailable'}`),
@@ -477,6 +485,18 @@ export function CourseWorkspace({
     const r = await sendTo({
       to: target,
       action: 'note.create',
+      /* intakes derive title/course/provenance from the entity — a
+         payload-only send lands as an unfiled "From terrain" note */
+      entity: unfiled || !courseEnt ? undefined : {
+        app: 'syllabus',
+        type: 'course',
+        id: courseEnt.id,
+        key: courseEnt.key,
+        title: courseTitle || courseEnt.title || display,
+        course: display,
+        courseId: courseEnt.key,
+        url: `#/c/${encodeURIComponent(display)}`,
+      },
       payload: {
         title: `${display} — Notes`,
         text: `# ${display}${courseTitle ? `: ${courseTitle}` : ''}\n\n`,
@@ -491,7 +511,7 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? `Note queued — ${PLACE_MAP[target]?.label || target} creates it on next open`
+          ? `Queued. The note will appear in ${PLACE_MAP[target]?.label || target} when you next open it.`
           : r.ok
             ? `Created note in ${PLACE_MAP[target]?.label || target}`
             : 'Could not create note'),
@@ -518,7 +538,7 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Problem queued — Calculations files it on next open'
+          ? 'Queued. The problem will appear in Calculations when you next open it.'
           : r.ok
             ? 'Created problem in Calculations'
             : 'Could not create problem'),
@@ -544,7 +564,7 @@ export function CourseWorkspace({
     showToast(
       r.toast ||
         (r.delivered === 'queued'
-          ? 'Study block queued — Planning files it on next open'
+          ? 'Queued. The study block will appear in Planning when you next open it.'
           : r.ok
             ? 'Planned study block in Planning'
             : 'Open Planning to add a course block'),
@@ -573,7 +593,7 @@ export function CourseWorkspace({
               showToast(
                 r.toast ||
                   (r.delivered === 'queued'
-                    ? 'Check-in queued — Attendance applies it on next open'
+                    ? 'Queued. The check-in will appear in Attendance when you next open it.'
                     : r.ok
                       ? 'Checked in'
                       : `Could not check in: ${r.error || 'unavailable'}`),
@@ -634,10 +654,97 @@ export function CourseWorkspace({
     );
   };
 
+  /* headline stats for the masthead sub-line — hoisted so the compact atlas
+     band can carry them while the card below keeps breadcrumb + actions */
+  const courseStatsLine =
+    courseObjects.length === 0
+      ? unfiled
+        ? 'Guides for every tool live here — items without a course land here too.'
+        : 'No objects filed under this course yet. Start a focus session, note, deck, or study block below.'
+      : [
+          `${courseObjects.length} item${courseObjects.length === 1 ? '' : 's'}`,
+          materials.length ? `${materials.length} material${materials.length === 1 ? '' : 's'}` : null,
+          practiceItems.length || dueCards.length
+            ? `${practiceItems.length} practice set${practiceItems.length === 1 ? '' : 's'}${
+                dueCards.length ? ` (${dueCards.length} cards due)` : ''
+              }`
+            : null,
+          scheduleItems.length ? `${scheduleItems.length} scheduled` : null,
+          sessionMins > 0 ? `${sessionMins}m logged` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ');
+
   return (
     <div className="terrain-map min-h-full">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-        {/* Top Breadcrumb & Course Header */}
+        <AtlasMasthead
+          compact
+          object="compass"
+          eyebrow={unfiled ? 'the Workspace' : courseTitle || 'Course Dossier'}
+          title={unfiled ? 'Getting Started' : display}
+          sub={courseStatsLine}
+          actions={
+            <>
+              {latestGrade && (
+                <button
+                  type="button"
+                  onClick={() => latestGrade.url && onGo(latestGrade.url)}
+                  className="flex items-center gap-2 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)] px-3 py-1.5 text-left text-[12px] hover:border-[var(--color-accent)] cursor-pointer"
+                  title="Open latest assessment result"
+                >
+                  <Award className="h-4 w-4 text-[var(--color-accent)]" />
+                  <div>
+                    <div className="font-mono text-[10px] uppercase text-[var(--color-faint)]">Latest Result</div>
+                    <div className="font-medium text-[var(--color-ink)]">
+                      {latestGrade.title}
+                      {typeof latestGrade.data?.pct === 'number' && ` · ${Math.round(latestGrade.data.pct)}%`}
+                      {gradeDelta !== null && (
+                        <span
+                          className={`ml-1.5 font-mono text-[11px] ${
+                            gradeDelta >= 0 ? 'text-[var(--color-accent)]' : 'text-[var(--color-warn)]'
+                          }`}
+                        >
+                          ({gradeDelta >= 0 ? `+${gradeDelta}%` : `${gradeDelta}%`})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => window.print()}
+                aria-label="Print this course workspace"
+                title="Print this course workspace"
+                className="rounded-[4px] border border-[var(--color-line)] px-2 py-0.5 text-[11.5px] font-medium text-[var(--color-mute)] hover:border-[var(--color-line-2)] hover:text-[var(--color-ink)] cursor-pointer"
+              >
+                Print
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  togglePin({
+                    app: 'terrain',
+                    title: `${display} workspace`,
+                    url: courseRouteUrl,
+                  })
+                }
+                aria-label={pinnedUrls.has(courseRouteUrl) ? 'Unpin course workspace' : 'Pin course workspace'}
+                className={`rounded-[4px] border px-2 py-0.5 text-[11.5px] font-medium cursor-pointer ${
+                  pinnedUrls.has(courseRouteUrl)
+                    ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-accent)] hover:bg-[var(--color-accent-soft-2)]'
+                    : 'border-[var(--color-line)] text-[var(--color-mute)] hover:border-[var(--color-line-2)]'
+                }`}
+              >
+                {pinnedUrls.has(courseRouteUrl) ? '◈ Pinned on Shelf' : '◇ Pin Course'}
+              </button>
+            </>
+          }
+        />
+
+        {/* Course card — breadcrumb + the working surface; identity lives
+            in the atlas masthead above */}
         <div className="rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-[var(--color-mute)]">
             <div className="flex items-center gap-2">
@@ -663,97 +770,6 @@ export function CourseWorkspace({
               </span>
             </div>
 
-            <div className="flex items-center gap-2 print:hidden">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                aria-label="Print this course workspace"
-                title="Print this course workspace"
-                className="rounded-[4px] border border-[var(--color-line)] px-2 py-0.5 text-[11.5px] font-medium text-[var(--color-mute)] hover:border-[var(--color-line-2)] hover:text-[var(--color-ink)] cursor-pointer"
-              >
-                Print
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  togglePin({
-                    app: 'terrain',
-                    title: `${display} workspace`,
-                    url: courseRouteUrl,
-                  })
-                }
-                aria-label={pinnedUrls.has(courseRouteUrl) ? 'Unpin course workspace' : 'Pin course workspace'}
-                className={`rounded-[4px] border px-2 py-0.5 text-[11.5px] font-medium cursor-pointer ${
-                  pinnedUrls.has(courseRouteUrl)
-                    ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-accent)]'
-                    : 'border-[var(--color-line)] text-[var(--color-mute)] hover:border-[var(--color-line-2)]'
-                }`}
-              >
-                {pinnedUrls.has(courseRouteUrl) ? '◈ Pinned on Shelf' : '◇ Pin Course'}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-baseline justify-between gap-4">
-            <div>
-              <div className="flex items-baseline gap-2.5">
-                <h1 className="font-place text-[26px] font-semibold tracking-tight text-[var(--color-ink)]">
-                  {unfiled ? 'Getting Started' : display}
-                </h1>
-                {courseTitle && (
-                  <span className="text-[16px] text-[var(--color-mute)] font-medium">
-                    {courseTitle}
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 text-[12.5px] text-[var(--color-mute)]">
-                {courseObjects.length === 0
-                  ? unfiled
-                    ? 'Guides for every tool live here — items without a course land here too.'
-                    : 'No objects filed under this course yet. Start a focus session, note, deck, or study block below.'
-                  : [
-                      `${courseObjects.length} item${courseObjects.length === 1 ? '' : 's'}`,
-                      materials.length ? `${materials.length} material${materials.length === 1 ? '' : 's'}` : null,
-                      practiceItems.length || dueCards.length
-                        ? `${practiceItems.length} practice set${practiceItems.length === 1 ? '' : 's'}${
-                            dueCards.length ? ` (${dueCards.length} cards due)` : ''
-                          }`
-                        : null,
-                      scheduleItems.length ? `${scheduleItems.length} scheduled` : null,
-                      sessionMins > 0 ? `${sessionMins}m logged` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-              </p>
-            </div>
-
-            {/* Latest Grade Pill when present */}
-            {latestGrade && (
-              <button
-                type="button"
-                onClick={() => latestGrade.url && onGo(latestGrade.url)}
-                className="flex items-center gap-2 rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)] px-3 py-1.5 text-left text-[12px] hover:border-[var(--color-accent)] cursor-pointer"
-                title="Open latest assessment result"
-              >
-                <Award className="h-4 w-4 text-[var(--color-accent)]" />
-                <div>
-                  <div className="font-mono text-[10px] uppercase text-[var(--color-faint)]">Latest Result</div>
-                  <div className="font-medium text-[var(--color-ink)]">
-                    {latestGrade.title}
-                    {typeof latestGrade.data?.pct === 'number' && ` · ${Math.round(latestGrade.data.pct)}%`}
-                    {gradeDelta !== null && (
-                      <span
-                        className={`ml-1.5 font-mono text-[11px] ${
-                          gradeDelta >= 0 ? 'text-[var(--color-accent)]' : 'text-[var(--color-warn)]'
-                        }`}
-                      >
-                        ({gradeDelta >= 0 ? `+${gradeDelta}%` : `${gradeDelta}%`})
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </button>
-            )}
           </div>
 
           {/* Primary Course Actions Bar — the session/review/next-step CTAs

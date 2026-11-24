@@ -1,0 +1,248 @@
+/* AtlasMasthead — the landing's artwork language as a reusable page
+   header: dusk-sky gradient, drifting starfield, contour survey, a painted
+   terrain vignette along the bottom edge, gold registration frame, and the
+   mosaic globe. Self-contained dark artwork — reads as a painted cartouche
+   on both paper and graphite terrains. */
+
+.atlas-masthead {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 3vw, 40px);
+  padding: clamp(22px, 3.4vw, 42px) clamp(22px, 4vw, 52px);
+  border-radius: 12px;
+  color: #eff4e6;
+  background:
+    radial-gradient(ellipse at 78% 18%, #315c40 0%, #183e2c 38%, #102f24 70%, #0b231a 100%);
+  box-shadow: 0 18px 36px -24px rgb(11 35 26 / 0.55);
+}
+.atlas-masthead.compact {
+  padding: clamp(16px, 2.4vw, 26px) clamp(18px, 3vw, 34px);
+}
+
+/* corner registration ticks — same gold frame language as the Today hero */
+.atlas-masthead::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  z-index: 3;
+  border: 1px solid #d7bf8442;
+  background:
+    linear-gradient(#ddc690, #ddc690) left top / 22px 1px,
+    linear-gradient(#ddc690, #ddc690) left top / 1px 22px,
+    linear-gradient(#ddc690, #ddc690) right bottom / 22px 1px,
+    linear-gradient(#ddc690, #ddc690) right bottom / 1px 22px;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* faint survey grid, same language as the landing sky */
+.atlas-masthead::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.22;
+  background-image:
+    linear-gradient(#89b0a01f 1px, transparent 1px),
+    linear-gradient(90deg, #89b0a01f 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(115deg, transparent, #000 62%);
+  pointer-events: none;
+}
+
+.atlas-mh-stars {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(circle at 18px 23px, #d4d9adab 0 0.7px, transparent 1.3px),
+    radial-gradient(circle at 74px 59px, #a5c9c195 0 0.7px, transparent 1.3px),
+    radial-gradient(circle at 93px 13px, #ede8cc80 0 1px, transparent 1.4px);
+  background-size: 123px 97px, 157px 139px, 249px 211px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .atlas-mh-stars { animation: atlas-mh-drift 60s linear infinite alternate; }
+}
+@keyframes atlas-mh-drift {
+  to { background-position: 35px 13px, -24px 35px, 14px -26px; }
+}
+
+.atlas-mh-contours {
+  position: absolute;
+  inset: -6%;
+  z-index: 0;
+  pointer-events: none;
+  background: center / cover url('/atlas/contours.webp');
+  opacity: 0.16;
+  mask-image: linear-gradient(24deg, #000 0%, transparent 42%, transparent 70%, #000 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .atlas-mh-contours { animation: atlas-mh-survey 30s ease-in-out infinite alternate; }
+}
+@keyframes atlas-mh-survey {
+  to { transform: translate3d(1.6%, -2%, 0) scale(1.035); }
+}
+
+/* painted terrain vignette — the landing catalog's artwork strip, faded
+   into the foot of the band so it reads as the horizon the header sits on */
+.atlas-mh-terrain {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4%;
+  z-index: 1;
+  width: 100%;
+  height: 62%;
+  object-fit: cover;
+  object-position: center bottom;
+  opacity: 0.5;
+  -webkit-mask-image: linear-gradient(to top, #000 25%, transparent 96%);
+  mask-image: linear-gradient(to top, #000 25%, transparent 96%);
+  pointer-events: none;
+  user-select: none;
+}
+.atlas-masthead.compact .atlas-mh-terrain { opacity: 0.38; height: 55%; }
+
+/* mosaic globe accent — sprite-stepped by MosaicGlobe */
+.atlas-mh-globe {
+  position: absolute;
+  z-index: 1;
+  right: clamp(14px, 3vw, 40px);
+  top: 50%;
+  translate: 0 -50%;
+  width: clamp(72px, 9vw, 128px);
+  aspect-ratio: 1;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  filter: drop-shadow(0 10px 24px rgb(0 0 0 / 0.35));
+}
+
+/* procedural mosaic objects (compass, books) — canvas upscaled so every
+   cell reads as one tessera; a slow bob sells the carved, floating read */
+.mosaic-object {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: atlas-mh-bob 7s ease-in-out infinite;
+}
+@keyframes atlas-mh-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.atlas-mh-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+}
+.atlas-mh-lead { min-width: 0; }
+
+.atlas-mh-eyebrow {
+  font: 600 10px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #d9c690;
+  margin-bottom: 10px;
+}
+.atlas-masthead.compact .atlas-mh-eyebrow { margin-bottom: 6px; font-size: 9px; }
+
+.atlas-mh-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.atlas-mh-glyph {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #d7bf8466;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 0.05);
+  color: #e8d9a8;
+}
+.atlas-mh-glyph svg { width: 24px; height: 24px; }
+.atlas-masthead.compact .atlas-mh-glyph { width: 34px; height: 34px; }
+.atlas-masthead.compact .atlas-mh-glyph svg { width: 19px; height: 19px; }
+
+.atlas-mh-title {
+  margin: 0;
+  font-family: Newsreader, Georgia, serif;
+  font-weight: 450;
+  font-size: clamp(30px, 3.6vw, 46px);
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: #f6efda;
+  overflow-wrap: anywhere;
+}
+.atlas-masthead.compact .atlas-mh-title { font-size: clamp(22px, 2.4vw, 30px); }
+.atlas-mh-title em { color: #c8e8a5; font-style: italic; font-weight: 400; }
+
+.atlas-mh-sub {
+  margin: 8px 0 0;
+  max-width: 56ch;
+  color: #cfdccf;
+  font-size: clamp(12.5px, 1.05vw, 14px);
+  line-height: 1.5;
+}
+.atlas-masthead.compact .atlas-mh-sub { margin-top: 5px; font-size: 12.5px; }
+.atlas-mh-sub strong { color: #f6efda; font-weight: 600; }
+
+.atlas-mh-actions {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+/* action buttons read as pale cartouche chips on the dark band — same
+   override the study-masthead uses */
+.atlas-masthead .atlas-mh-actions button {
+  background: #e4edd7;
+  color: #183725;
+  border-color: #c9dbbb;
+}
+.atlas-masthead .atlas-mh-actions button:hover {
+  background: #f0f5e8;
+  color: #153021;
+}
+
+/* the accent yields the right edge — keep the copy column clear of it on
+   wide screens (hidden below 860px where the accent itself is hidden) */
+@media (min-width: 861px) {
+  .atlas-masthead:has(.atlas-mh-globe) .atlas-mh-lead {
+    padding-right: clamp(80px, 10vw, 136px);
+  }
+}
+
+/* the globe yields to the copy on narrow screens and in compact bands */
+@media (max-width: 860px) {
+  .atlas-mh-globe { display: none; }
+}
+@media (max-width: 560px) {
+  .atlas-mh-actions { margin-left: 0; width: 100%; }
+  .atlas-masthead { align-items: flex-start; flex-direction: column; }
+}
+
+@media print {
+  .atlas-mh-globe,
+  .atlas-mh-stars,
+  .atlas-mh-contours { display: none; }
+}

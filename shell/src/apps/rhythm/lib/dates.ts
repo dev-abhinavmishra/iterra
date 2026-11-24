@@ -28,6 +28,10 @@ export function parseISO(iso: ISODate): { y: number; m: number; d: number } | nu
   if (!m) return null;
   const y = +m[1], mo = +m[2], d = +m[3];
   if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  /* '2026-02-31' passes the range check but isn't a real civil date —
+     verify the round-trip so noonOf can't silently roll it into March */
+  const probe = new Date(y, mo - 1, d, 12, 0, 0, 0);
+  if (probe.getFullYear() !== y || probe.getMonth() !== mo - 1 || probe.getDate() !== d) return null;
   return { y, m: mo, d };
 }
 

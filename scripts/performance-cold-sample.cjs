@@ -212,7 +212,7 @@ function percentile(values, p) {
       });
       cdp.on('Network.loadingFinished', e => { if (requests.has(e.requestId)) requests.get(e.requestId).bytes = e.encodedDataLength; });
       await context.tracing.start({ screenshots: true, snapshots: true });
-      await page.goto(`${base}/#/`, { waitUntil: 'networkidle', timeout: 90000 });
+      await page.goto(`${base}/#/today`, { waitUntil: 'networkidle', timeout: 90000 });
       await waitForToday(page);
       await page.waitForTimeout(3000);
       const metrics = await page.evaluate(() => ({ ...window.__lab, fonts: performance.getEntriesByType('resource').filter(e => /\.(woff2?|ttf)(\?|$)/i.test(e.name)).map(e => ({ name: e.name, start: e.startTime, end: e.responseEnd })) }));
@@ -325,7 +325,7 @@ function percentile(values, p) {
         await swCdp.send('Tracing.start', { transferMode: 'ReturnAsStream', categories: 'devtools.timeline,blink.user_timing,loading,disabled-by-default-devtools.timeline' });
         await normal.tracing.start({ screenshots: true, snapshots: true });
         checkpoint('worker-enabled-cold-navigation');
-        await swPage.goto(`${base}/#/`, { waitUntil: 'networkidle', timeout: 90000 });
+        await swPage.goto(`${base}/#/today`, { waitUntil: 'networkidle', timeout: 90000 });
         await waitForToday(swPage);
         assert(await swPage.getByRole('region', { name: 'Your next study session' }).count(),
           'The controlled sample fixture must show a study plan, not an active focus session, before feedback measurements');

@@ -98,7 +98,7 @@ const { chromium } = require('playwright-core');
   // primary CTA must route into an app frame. (The live folio publisher may
   // restore shared.today after reload, so accept either card.)
   await page.evaluate(() => {
-    location.hash = '#/';
+    location.hash = '#/today';
     const apps = JSON.parse(localStorage.getItem('iterra.v1.apps') || '{}');
     apps.proof = { ...(apps.proof || {}), summary: { ...(apps.proof?.summary || {}), due: 3 }, ts: Date.now() };
     localStorage.setItem('iterra.v1.apps', JSON.stringify(apps));
@@ -119,7 +119,7 @@ const { chromium } = require('playwright-core');
 
   // next-up slip link — a bound block should offer "open the slip" → ?block=
   await page.evaluate(() => {
-    location.hash = '#/';
+    location.hash = '#/today';
     const sh = JSON.parse(localStorage.getItem('iterra.v1.doc.shared') || '{}');
     sh.today = { v: { nextBlock: { id: 'b7', title: 'ps7 drill', course: 'MTH', minutes: 20 } }, by: 'syllabus', at: Date.now() };
     localStorage.setItem('iterra.v1.doc.shared', JSON.stringify(sh));

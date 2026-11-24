@@ -1,3 +1,4 @@
+import './ui/optical.css';
 import {
   Component,
   Suspense,
@@ -20,6 +21,7 @@ import {
   RotateCcw,
   HelpCircle,
   BookOpen,
+  Compass,
   LayoutDashboard,
   Library,
   GraduationCap,
@@ -46,6 +48,7 @@ import {
   type StoreEvent as StoreEventT,
 } from './hub';
 import { TodayWorkspace } from './today/TodayWorkspace';
+import { LandingNav, LandingPage } from './Landing';
 import { CourseWorkspace } from './courses/CourseWorkspace';
 import { CoursesIndex } from './courses/CoursesIndex';
 import { LibraryView } from './courses/LibraryView';
@@ -215,6 +218,13 @@ export default function App() {
   const course = routeState.course;
   const section: WorkspaceSection = routeState.section;
 
+  const toolOrigin = useRef({ url: '#/today', label: 'Today' });
+  useEffect(() => {
+    if (section === 'place') return;
+    const labels = { today: 'Today', welcome: 'study atlas', courses: 'Courses', library: 'Library', settings: 'Settings' };
+    toolOrigin.current = { url: window.location.hash || '#/welcome', label: course || labels[section] };
+  }, [section, course, routeState.query]);
+
   const [presences, setPresences] = useState<Record<string, Presence>>({});
   const [shared, setShared] = useState<Record<string, SharedField>>({});
   const [indexes, setIndexes] = useState<Record<string, Entity[]>>({});
@@ -224,6 +234,9 @@ export default function App() {
 
   /* keep-alive mounted places */
   const [mounted, setMounted] = useState<Record<string, string>>({});
+  /* places awaiting their first-intake lookup — the workspace shows a
+     loader instead of a blank paper surface while the read resolves */
+  const [intakeWait, setIntakeWait] = useState<Record<string, boolean>>({});
   const mountedRef = useRef(mounted);
   mountedRef.current = mounted;
 
@@ -236,25 +249,8 @@ export default function App() {
   /* Theme & Workspace Context state */
   const [theme, setTheme] = useWorkspaceTheme();
   const [accent, setAccent] = useWorkspaceAccent();
-  const [contextOpen, setContextOpen] = useState<boolean>(() => {
-    /* under lg the panel is a full-screen drawer — always start closed there;
-       a persisted "open" from a desktop session must not cover a phone. */
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) return false;
-    try {
-      const v = localStorage.getItem('iterra.v1.contextOpen');
-      if (v !== null) return v !== '0';
-    } catch { /* ignore */ }
-    return true;
-  });
-  const toggleContext = useCallback(() => {
-    setContextOpen((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('iterra.v1.contextOpen', next ? '1' : '0');
-      } catch { /* ignore */ }
-      return next;
-    });
-  }, []);
+  const [contextOpen, setContextOpen] = useState(false);
+  const toggleContext = useCallback(() => setContextOpen(open => !open), []);
 
   const [manualObject, setManualObject] = useState<WorkspaceObject | null>(null);
   /* the course lens rides sessionStorage — a mid-session reload keeps the
@@ -347,11 +343,11 @@ export default function App() {
       const parsed = readHash();
       /* '#/p/<name>' naming no place falls through to Today silently —
          speak, matching the dead-link contract the places keep */
-      const dead = window.location.hash.match(/^#\/?p\/([a-zA-Z]+)/);
+      const dead = window.location.hash.match(/^#\/?p\/([a-zA-Z0-9]+)/);
       if (dead && !parsed.place) {
         try {
           window.dispatchEvent(new CustomEvent('iterra:toast', {
-            detail: { text: `No place called '${dead[1]}' on the terrain`, url: '#/' },
+            detail: { text: `No place called '${dead[1]}' on the terrain`, url: '#/today' },
           }));
         } catch { /* no window to notify */ }
       }
@@ -361,13 +357,28 @@ export default function App() {
       (window as any).iterra?.focus?.(id || null);
       if (!id) return;
       if (!mountedRef.current[id] && !query.includes('intake=')) {
-        firstPendingIntake(id).then((pid) => {
-          setMounted((m) =>
-            m[id]
-              ? m
-              : { ...m, [id]: pid ? `intake=${pid}${query ? `&${query}` : ''}` : query },
+        setIntakeWait((w) => ({ ...w, [id]: true }));
+        firstPendingIntake(id)
+          .then((pid) => {
+            setMounted((m) =>
+              m[id]
+                ? m
+                : { ...m, [id]: pid ? `intake=${pid}${query ? `&${query}` : ''}` : query },
+            );
+          })
+          .catch(() => {
+            /* a failed intake read must not wedge the place — mount it
+               with the plain query and let the adapter drain catch up */
+            setMounted((m) => (m[id] ? m : { ...m, [id]: query }));
+          })
+          .finally(() =>
+            setIntakeWait((w) => {
+              if (!w[id]) return w;
+              const n = { ...w };
+              delete n[id];
+              return n;
+            }),
           );
-        });
       } else {
         setMounted((m) => ({ ...m, [id]: query }));
       }
@@ -406,9 +417,13 @@ export default function App() {
           ? 'Courses · Iterra'
           : section === 'library'
             ? 'Library · Iterra'
-            : section === 'settings'
-              ? 'Settings · Iterra'
-              : 'Iterra — Study Workspace';
+            : section === 'welcome'
+              ? 'Iterra — Study Terrain'
+              : section === 'today'
+                ? 'Today · Iterra'
+                : section === 'settings'
+                  ? 'Settings · Iterra'
+                  : 'Iterra — Study Terrain';
   }, [active, course, section]);
 
   const enter = useCallback((id: string) => {
@@ -417,6 +432,10 @@ export default function App() {
 
   const goHome = useCallback(() => {
     window.location.hash = '/';
+  }, []);
+
+  const goToday = useCallback(() => {
+    window.location.hash = '/today';
   }, []);
 
   const goUrl = useCallback((url: string) => {
@@ -633,7 +652,7 @@ export default function App() {
         }}
         className={`flex w-full items-center justify-between rounded-[4px] px-2.5 py-1.5 text-left text-[12px] cursor-pointer ${
           !effectiveCourseContext
-            ? 'bg-[var(--color-accent-soft)] font-semibold text-[var(--color-accent)]'
+            ? 'bg-[var(--color-accent-soft)] font-semibold text-[var(--color-accent)] hover:bg-[var(--color-accent-soft-2)]'
             : 'text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)]'
         }`}
       >
@@ -697,7 +716,9 @@ export default function App() {
      h-full lets the dropdown trigger fill its stretch-wrapped slot. */
   const navItemCls = (on: boolean) =>
     `flex h-full flex-1 flex-col items-center justify-center gap-0.5 py-1 text-[10.5px] font-medium transition-colors cursor-pointer ${
-      on ? 'text-[var(--color-accent)]' : 'text-[var(--color-mute)] hover:text-[var(--color-ink)]'
+      on
+        ? 'text-[var(--color-accent)] hover:bg-[var(--color-accent-soft-2)]'
+        : 'text-[var(--color-mute)] hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-ink)]'
     }`;
 
   return (
@@ -716,7 +737,9 @@ export default function App() {
         Skip to workspace
       </a>
       {/* ── CONSISTENT GLOBAL WORKSPACE HEADER ── */}
-      <header className="relative z-30 flex h-12 shrink-0 items-center justify-between gap-2 border-b border-[var(--color-line)] bg-[var(--color-sheet)] px-3 sm:px-4">
+      {section === 'welcome' ? <LandingNav /> : <header
+        className="relative z-30 flex h-12 shrink-0 items-center justify-between gap-2 border-b border-[var(--color-line-2)] bg-[var(--color-sheet)] px-3 sm:px-4"
+      >
         {/* Left: Brand + Primary Navigation (Today, Courses, Library, Tools) */}
         <div className="flex items-center gap-1 sm:gap-2 min-w-0">
           <WorkspaceHomeButton onClick={goHome} />
@@ -725,15 +748,16 @@ export default function App() {
 
           {/* Primary Navigation Items — lg+ only; below lg the bottom tab
               bar carries these (the row overlapped the header controls) */}
-          <nav aria-label="Primary navigation" className="hidden lg:flex items-center gap-0.5">
+          <nav aria-label="Primary navigation" className="it-nav-band hidden lg:flex items-center gap-0.5">
+            <span className="it-nav-optic" aria-hidden="true" />
             <button
               type="button"
-              onClick={goHome}
+              onClick={goToday}
               aria-current={section === 'today' ? 'page' : undefined}
               className={`inline-flex items-center gap-1.5 rounded-[5px] px-2.5 py-1.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
                 section === 'today'
-                  ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold'
-                  : 'text-[var(--color-mute)] hover:bg-[var(--color-sheet-2)] hover:text-[var(--color-ink)]'
+                  ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold hover:bg-[var(--color-accent-soft-2)]'
+                  : 'text-[var(--color-mute)] hover:bg-[var(--color-sheet)] hover:text-[var(--color-ink)]'
               }`}
             >
               <LayoutDashboard className="h-3.5 w-3.5 shrink-0" />
@@ -746,8 +770,8 @@ export default function App() {
               aria-current={section === 'courses' ? 'page' : undefined}
               className={`inline-flex items-center gap-1.5 rounded-[5px] px-2.5 py-1.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
                 section === 'courses'
-                  ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold'
-                  : 'text-[var(--color-mute)] hover:bg-[var(--color-sheet-2)] hover:text-[var(--color-ink)]'
+                  ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold hover:bg-[var(--color-accent-soft-2)]'
+                  : 'text-[var(--color-mute)] hover:bg-[var(--color-sheet)] hover:text-[var(--color-ink)]'
               }`}
             >
               <BookOpen className="h-3.5 w-3.5 shrink-0" />
@@ -765,8 +789,8 @@ export default function App() {
               aria-current={section === 'library' ? 'page' : undefined}
               className={`inline-flex items-center gap-1.5 rounded-[5px] px-2.5 py-1.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
                 section === 'library'
-                  ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold'
-                  : 'text-[var(--color-mute)] hover:bg-[var(--color-sheet-2)] hover:text-[var(--color-ink)]'
+                  ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold hover:bg-[var(--color-accent-soft-2)]'
+                  : 'text-[var(--color-mute)] hover:bg-[var(--color-sheet)] hover:text-[var(--color-ink)]'
               }`}
             >
               <Library className="h-3.5 w-3.5 shrink-0" />
@@ -788,7 +812,7 @@ export default function App() {
                   title={activePlace ? `${activePlace.app} · ${activePlace.place}` : 'Workspace tools'}
                   className={`inline-flex items-center gap-1.5 rounded-[5px] px-2.5 py-1.5 text-[12.5px] font-medium transition-colors cursor-pointer ${
                     activePlace
-                      ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold'
+                      ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] font-semibold hover:bg-[var(--color-accent-soft-2)]'
                       : 'text-[var(--color-mute)] hover:bg-[var(--color-sheet-2)] hover:text-[var(--color-ink)]'
                   }`}
                 >
@@ -817,8 +841,11 @@ export default function App() {
             >
               {(close) => (
                 <div className="w-72 p-1">
+                  {activePlace && <button type="button" className="study-return" onClick={() => { close(); goUrl(toolOrigin.current.url); }}>
+                    ← Back to {toolOrigin.current.label}
+                  </button>}
                   <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
-                    Tools (⌘1–8)
+                    Study tools
                   </div>
                   {PLACES.map((p, idx) => {
                     const isCurrent = p.id === active;
@@ -836,7 +863,7 @@ export default function App() {
                         title={`${p.app} — ${p.tagline}`}
                         className={`flex w-full items-center gap-2.5 rounded-[5px] px-2.5 py-2 text-left transition-colors cursor-pointer ${
                           isCurrent
-                            ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]'
+                            ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] hover:bg-[var(--color-accent-soft-2)]'
                             : 'hover:bg-[var(--color-sheet-hover)] text-[var(--color-ink)]'
                         }`}
                       >
@@ -1108,6 +1135,17 @@ export default function App() {
                   type="button"
                   onClick={() => {
                     close();
+                    goUrl('#/welcome');
+                  }}
+                  className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
+                >
+                  <Compass className="h-3.5 w-3.5 text-[var(--color-mute)]" />
+                  <span>Take the tour</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
                     goUrl('#/settings');
                   }}
                   className="flex w-full items-center gap-2 rounded-[4px] px-2.5 py-1.5 text-left text-[12px] text-[var(--color-ink)] hover:bg-[var(--color-sheet-hover)] cursor-pointer"
@@ -1140,10 +1178,10 @@ export default function App() {
             <PanelRight className="h-4 w-4" />
           </IconButton>
         </div>
-      </header>
+      </header>}
 
       {/* ── MAIN WORKSPACE AREA + SHARED CONTEXT PANEL ── */}
-      <div id="iterra-workspace" tabIndex={-1} className="flex flex-1 min-h-0 overflow-hidden outline-none">
+      <div id="iterra-workspace" tabIndex={-1} className="relative flex flex-1 min-h-0 overflow-hidden outline-none">
         {/* Central Working Surface */}
         <div className="relative flex-1 min-w-0 h-full overflow-hidden">
           {/* Keep-alive embedded tools container with .it-workspace-mode */}
@@ -1198,17 +1236,38 @@ export default function App() {
                 </div>
               );
             })}
+            {/* cold navigation: the place chunk or its intake lookup is
+                still resolving — show the loader, not a blank sheet */}
+            {activePlace && mounted[activePlace] === undefined && (
+              <div className="absolute inset-0">
+                <PlaceLoadFallback
+                  placeId={activePlace}
+                  placeName={PLACES.find((p) => p.id === activePlace)?.label || activePlace}
+                  onRetry={() => {
+                    const h = window.location.hash;
+                    if (!h) return;
+                    window.location.hash = '';
+                    requestAnimationFrame(() => {
+                      window.location.hash = h;
+                    });
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Shell Workspaces (Today, Course Workspace, Courses Index, Library) */}
           {!activePlace && (
             <main className="h-full overflow-y-auto">
-              {section === 'settings' ? (
+              {section === 'welcome' ? (
+                <LandingPage onEnter={enter} onGo={goUrl} />
+              ) : section === 'settings' ? (
                 <SettingsSurface onGo={goUrl} dataStatus={dataStatus} accent={accent} onAccentChange={setAccent} />
               ) : (
                 <WorkspaceDataGate state={initialEntitiesState} onRetry={retryEntities} allowFallback={section === 'library' && Object.values(indexes).some(list => list.length > 0)}>
               {section === 'courses' && course ? (
                 <CourseWorkspace
+                  query={routeState.query}
                   course={course}
                   indexes={indexes}
                   entities={entities}
@@ -1218,7 +1277,7 @@ export default function App() {
                   onSelectObject={handleSelectObject}
                   onGo={goUrl}
                   onEnter={enter}
-                  onHome={goHome}
+                  onHome={goToday}
                 />
               ) : section === 'courses' ? (
                 <CoursesIndex
@@ -1229,6 +1288,7 @@ export default function App() {
                 />
               ) : section === 'library' ? (
                 <LibraryView
+                  key={courseFilter}
                   entities={entities}
                   indexes={indexes}
                   activeCourseFilter={courseFilter}
@@ -1272,18 +1332,25 @@ export default function App() {
         />
       </div>
 
+      {(activePlace || section !== 'welcome') && (
+        <footer className="it-colophon">
+          <span>Iterra</span><i aria-hidden="true" />
+          <span>{activePlace?.app || (section === 'courses' && course ? course : section)}</span>
+        </footer>
+      )}
+
       {/* ── BOTTOM TAB BAR — small screens only. Primary destinations plus
           the course-context selector (the header versions are lg+/md+ only).
           In-flow so nothing floats over content. The bar is 3.5rem of items
           *plus* safe-area padding — a fixed h-14 + padding would squeeze the
           items on home-indicator devices. Matches --iterra-bottom-inset. */}
-      <nav
+      {section !== 'welcome' && <nav
         aria-label="Primary navigation — compact"
-        className="flex h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] shrink-0 items-stretch border-t border-[var(--color-line)] bg-[var(--color-sheet)] pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="border-t border-[var(--color-line-2)] bg-[var(--color-sheet)] flex h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] shrink-0 items-stretch pb-[env(safe-area-inset-bottom)] lg:hidden"
       >
         <button
           type="button"
-          onClick={goHome}
+          onClick={goToday}
           aria-current={section === 'today' ? 'page' : undefined}
           className={navItemCls(section === 'today')}
         >
@@ -1329,7 +1396,7 @@ export default function App() {
         >
           {courseMenuContent}
         </DropdownMenu>
-      </nav>
+      </nav>}
 
       {/* Global Search / Command Palette */}
       <Search
@@ -1345,6 +1412,7 @@ export default function App() {
       {/* Non-intrusive Session / Intake Toast */}
       <Ambient
         entities={entities}
+        entityState={initialEntitiesState}
         mounted={Object.keys(mounted)}
         activePlace={active}
         panelOpen={contextOpen}
@@ -1367,7 +1435,7 @@ export default function App() {
               ['⌘P / Ctrl+P (in palette)', 'Pin the highlighted result to the shelf'],
               ['Tab / → (in palette)', 'Send the highlighted result to another tool'],
               ['⌘0 / Ctrl+0', 'Return to Today workspace'],
-              ['⌘1 – ⌘8', 'Switch directly to tool 1–8'],
+              ['⌘1 – ⌘9', 'Switch directly to tool 1–9'],
               ['?', 'Show keyboard shortcuts'],
               ['Esc', 'Close active dialog or menu'],
               ['Space (in Timer)', 'Start or pause active countdown'],

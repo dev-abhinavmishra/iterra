@@ -42,6 +42,7 @@
   --color-accent-2:    #223d30;  /* interactive hover */
   --color-accent-fg:   #fbf9f4;  /* text on accent */
   --color-accent-soft: #e3ede7;  /* subtle active tint */
+  --color-accent-soft-2: color-mix(in srgb, var(--color-accent-soft), var(--color-accent) 16%);  /* active hover deepen */
   --color-warn:        #8f5122;  /* amber-ochre for due/attention */
   --color-warn-soft:   #f6eadb;
   --color-bad:         #96342a;  /* destructive crimson-brown */
@@ -93,6 +94,7 @@ html[data-theme="graphite"] {
   --color-accent-2:    #6bb38f;
   --color-accent-fg:   #101418;
   --color-accent-soft: #1e2f28;
+  --color-accent-soft-2: color-mix(in srgb, var(--color-accent-soft), var(--color-accent) 16%);
   --color-warn:        #e09f5a;
   --color-warn-soft:   #2d2419;
   --color-bad:         #e06c60;
@@ -248,6 +250,18 @@ body {
   min-height: 100%;
   height: 100%;
 }
+/* the base rule keeps the app's two-column template — on narrow screens the
+   deck rail must stack above the stage or 'main' lands in a clipped implicit
+   column (the standalone mobile query can't out-specify this rule) */
+@media (max-width: 900px) {
+  .it-workspace-mode .it-place-flashcards .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "sidebar"
+      "main";
+  }
+}
 .it-workspace-mode .it-place-flashcards .topbar {
   display: none !important;
 }
@@ -304,6 +318,95 @@ body {
 .it-workspace-mode .it-place-gradestack > nav > div:first-child {
   margin-top: 8px !important;
   margin-bottom: 8px !important;
+}
+
+/* ── Liquid glass ─────────────────────────────────────────────────────────
+   Apple's Liquid Glass (iOS 26) vs plain glassmorphism: glassmorphism is a
+   flat frosted pane — heavy blur, 1px border, done. Liquid glass keeps the
+   background readable, bends light at the curved edges (lensing), carries a
+   specular rim highlight from one light direction, inner shading for depth,
+   and floats as a rounded form that responds to interaction.
+
+   True refraction needs an SVG feDisplacementMap backdrop (Chromium-only,
+   costly); this material approximates the look with a lighter blur +
+   saturate, a gradient rim that is brightest at the top edge, an inset
+   top-light, and a soft contact shadow — the same three-layer model
+   (highlight / shadow / lens) the real material uses. */
+/* Liquid Glass (glassy-liquid engine) — `.it-glass-fallback` is the pre-glass
+   surface: a calm frosted sheet so the element is never naked if the engine
+   can't run (no ResizeObserver/matchMedia, or glass() throws). When the
+   engine attaches it adds `.it-glassed`, which strips the host's own paint so
+   only the engine's <gl-fx> layer shows — SVG-refraction rim in Chromium,
+   scene/frost path in WebKit/Gecko. */
+.it-glass-fallback {
+  background: var(--color-sheet);
+  background: color-mix(in srgb, var(--color-sheet) 80%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--color-line);
+  box-shadow: 0 12px 32px -18px rgb(0 0 0 / 0.3);
+}
+.it-glassed {
+  background: transparent !important;
+  border-color: transparent !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  /* gel give — surfaces compress a touch under press; the CTA also
+     morphs capsule → squircle, and the rim inherits the new radius */
+  transition: transform 0.16s cubic-bezier(0.3, 1.4, 0.4, 1);
+}
+.it-glassed:active { transform: scale(0.975); }
+.it-hero-cta {
+  transition:
+    transform 0.16s cubic-bezier(0.3, 1.4, 0.4, 1),
+    border-radius 0.22s ease;
+}
+.it-hero-cta:active {
+  transform: scale(0.93);
+  border-radius: 18px;
+}
+
+/* mosaic hero — gentle breathing zoom + a light cinematic grade so the
+   pixel scene reads as artwork, not a raw canvas */
+@keyframes iterra-mosaic-breathe {
+  from { transform: scale(1.015); }
+  to { transform: scale(1.055); }
+}
+.mosaic-pixelated {
+  animation: iterra-mosaic-breathe 18s ease-in-out infinite alternate;
+  filter: saturate(1.1) contrast(1.045);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mosaic-pixelated { animation: none; filter: none; }
+}
+
+/* living mosaic — the landing's pixel motifs slowly cycle the palette;
+   staggered negative delays turn a strip into a travelling colour wave */
+@keyframes iterra-pixel-drift {
+  0%, 100% { background-color: #6fbf9f; }
+  16.6% { background-color: #2e8f8a; }
+  33.3% { background-color: #f2e3bd; }
+  50% { background-color: #e8924f; }
+  66.6% { background-color: #2b5440; }
+  83.3% { background-color: #dfeee4; }
+}
+.pixel-drift { animation: iterra-pixel-drift 9s ease-in-out infinite; }
+
+@keyframes iterra-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+.anim-float { animation: iterra-float 7s ease-in-out infinite; }
+
+/* pixelated canvas upscaling — mosaic tiles must stay crisp; vendor
+   fallbacks keep older Safari/Chrome from smoothing the pixels */
+.mosaic-pixelated {
+  /* sky→sand gradient shows for the first frame before the scene paints */
+  background: linear-gradient(#58aede 0%, #a8d8c8 45%, #e8c89a 100%);
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
 }
 
 /* ── Motion & Accessibility ─────────────────────────────────────────────── */
@@ -428,6 +531,7 @@ body {
   --color-accent-2:    #223d30;  /* interactive hover */
   --color-accent-fg:   #fbf9f4;  /* text on accent */
   --color-accent-soft: #e3ede7;  /* subtle active tint */
+  --color-accent-soft-2: color-mix(in srgb, var(--color-accent-soft), var(--color-accent) 16%);  /* active hover deepen */
   --color-warn:        #8f5122;  /* amber-ochre for due/attention */
   --color-warn-soft:   #f6eadb;
   --color-bad:         #96342a;  /* destructive crimson-brown */
@@ -543,6 +647,7 @@ html[data-theme='graphite'] body {
   --color-accent-2:    #6bb38f;
   --color-accent-fg:   #101418;
   --color-accent-soft: #1e2f28;
+  --color-accent-soft-2: color-mix(in srgb, var(--color-accent-soft), var(--color-accent) 16%);
   --color-warn:        #e09f5a;
   --color-warn-soft:   #2d2419;
   --color-bad:         #e06c60;

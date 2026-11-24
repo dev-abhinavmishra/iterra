@@ -12,6 +12,7 @@ import IntervalsView from './views/IntervalsView';
 import PresetsView from './views/PresetsView';
 import StatsView from './views/StatsView';
 import SettingsView from './views/SettingsView';
+import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 import { BootSequence } from './components/BootSequence';
 import { parseRoutineLink } from './lib/deeplink';
 import './index.css';
@@ -165,6 +166,18 @@ export default function App({ query = '' }: { query?: string; wakeTick?: number 
           portaled to .it-place-timer (PlacePortal) are frame-bound, so a wheel
           scroll can never slide a sheet or veil away */}
       <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
+      {/* ---------- artwork masthead ---------- */}
+      {!focusMode && (
+        <AtlasMasthead
+          compact
+          object="hourglass"
+          place="timer"
+          title="Timer"
+          sub="Focus countdowns, interval routes, stopwatch, and session ledger."
+          className="mx-5 md:mx-8 mt-4 mb-3"
+        />
+      )}
+
       {/* ---------- header ---------- */}
       <AnimatePresence>
         {!focusMode && (

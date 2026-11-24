@@ -201,16 +201,3 @@ export function getPlaceComponent(id: string, generation: number): LazyPlace | u
   return component;
 }
 
-/** A route update supersedes any unresolved offline wait for that place. */
-export function cancelPlaceLoad(id: string) {
-  activeLazy.get(id)?.controller.abort();
-  activeLazy.delete(id);
-  publish(id, 'idle');
-}
-
-/* Read one param from the place's hash query — replaces the old
-   location.search reads (which can't see inside the hash). */
-export function placeQueryParam(query: string, key: string): string | null {
-  if (!query) return null;
-  return new URLSearchParams(query).get(key);
-}

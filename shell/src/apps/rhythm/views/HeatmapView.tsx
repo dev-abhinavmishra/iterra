@@ -12,6 +12,7 @@ import { dayState, exceptionFor, isScheduled, type DayState } from '../lib/regis
 import { addDaysISO, diffDaysISO, fmtDay, fmtDayFull, todayISO, weekStartISO } from '../lib/dates';
 import { cx, WEEKDAY_NAMES } from '../lib/utils';
 import { usePlayhead } from '../lib/playhead';
+import { useMotionEnabled } from '../lib/motionPreference';
 import { Pad } from '../components/Pad';
 import { Sheet } from '../components/Sheet';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -164,7 +165,7 @@ function RoutineGrid({
   const entries = useRegister((s) => s.entries);
   const exceptions = useRegister((s) => s.exceptions);
   const settings = useRegister((s) => s.settings);
-  const play = usePlayhead(settings.motion === 'full');
+  const play = usePlayhead(useMotionEnabled(settings.motion));
   const today = todayISO();
 
   // One channel row per measure: a mono week label, then seven step pads.

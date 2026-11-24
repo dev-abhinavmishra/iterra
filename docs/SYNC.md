@@ -1,10 +1,9 @@
 # Sync — opt-in remote mirror for the canonical store
 
-The store is local-first (IndexedDB, LS fallback). `iterra.sync.attach(adapter)`
-adds an optional remote mirror behind one interface — the WHOLE store syncs,
-not one app's tables. Margin already ships a Supabase client
-(`services/supabaseClient.ts`, env `SUPABASE_URL` + `SUPABASE_ANON_KEY` at
-build time); this sketch wires the canonical store to the same project.
+The canonical entity store is local-first (IndexedDB, LS fallback).
+`iterra.sync.attach(adapter)` adds an optional remote mirror for canonical
+shared records. Private app databases, events, and links are not included.
+Sync is off by default and attaches only after the user opts in from Settings.
 
 ## Interface (implemented in the hub)
 
@@ -12,13 +11,15 @@ build time); this sketch wires the canonical store to the same project.
 adapter = {
   name: 'supabase',
   pull: (since) => Promise<Entity[] | {rows: Entity[], watermark: number}>,
-  put: (entity) => Promise<void>,       // called on every local put — MUST reject on failure
-  remove: (key) => Promise<void>,       // optional — called on removes — MUST reject on failure
+  put: (entity) => Promise<void | {status:'applied'|'stale', remote?:Entity}>,
+  remove: (key, deletedAt) => Promise<void | {status:'applied'|'stale', remote?:Entity}>,
   onConflict: (local, remote) => remote // optional resolver — `local` is the real local copy or null
 }
 iterra.sync.attach(adapter)           // one at a time; attach again replaces
 iterra.sync.attach(adapter, {pollMs}) // optional re-pull cadence (default 60s)
-iterra.sync.status()                  // {attached, adapter, attachedAt, lastPull, error, queued}
+iterra.sync.status()                  // consent, provider, identity pause, and transfer state
+iterra.sync.setEnabled(true|false)    // persists explicit user consent
+iterra.sync.detach(reason)            // preserves this adapter's retry queue
 ```
 
 **The pull filter must run on a server-arrival stamp, not the entity's own
@@ -61,9 +62,11 @@ the CURRENT local entity, so:
 `status().queued` reports the backlog length; `status().error` records
 the last failure while retries continue.
 
-Attach pulls once, then re-pulls every 60s on the checkpoint — remote edits
-from other devices land without a reload. A failed tick surfaces in
-status().error and the next tick retries; overlapping ticks are skipped.
+After opt-in, attach pulls once, then re-pulls every 60s on the checkpoint.
+Every tenth pull is a full scan from epoch to repair rows missed by delayed
+transactions or cursor movement. A failed pull does not advance the
+checkpoint; the next tick retries. Full scans are eventually corrective, not
+an immediate delivery guarantee.
 
 `since` is a per-adapter pull checkpoint persisted in
 `iterra.v2.sync.ck` — in the adapter's watermark domain when it reports
@@ -103,108 +106,27 @@ out — and ops suppressed inside the merge window are reconciled after it:
 discharged if they were the merge's own echo, owed if a real local change
 raced.
 
-## Table
+## Ownership and implementation
 
-```sql
-create table if not exists iterra_entities (
-  user_id      text not null,
-  key          text not null,             -- 'app:type:id'
-  app          text not null,
-  type         text not null,
-  "courseId"   text,                      -- QUOTED: Postgres folds unquoted ids
-  "updatedAt"  bigint not null,           -- WRITER's edit stamp — merge LWW only
-  deleted      boolean not null default false,  -- tombstone: deletes propagate
-  "deletedAt"  bigint,                    --   the delete's client-clock stamp
-  synced_at    timestamptz not null default now(),  -- SERVER stamp — pull filter
-  body         jsonb not null,            -- the whole entity
-  primary key (user_id, key)
-);
-create index if not exists iterra_entities_pull_idx on iterra_entities (user_id, synced_at);
--- + a BEFORE INSERT/UPDATE trigger that (a) restamps synced_at on every
--- write and (b) refuses to resurrect a tombstone with a stale body
--- (updatedAt <= deletedAt) — a replayed queued put can't un-delete a newer
--- tombstone. RLS scopes rows to auth.uid(). Full DDL + in-place upgrade
--- ALTERs live in apps/margin/supabase_schema.sql.
-```
+The table, owner policy, grants, and atomic RPC contracts are defined in
+`supabase/migrations/20261122040424_create_iterra_entities_sync.sql`.
+Authenticated clients read through owner-scoped RLS and write only through
+`iterra_entity_put` / `iterra_entity_remove`. A stale RPC response is followed
+by an exact owner-and-key read so the hub can reconcile the winning row.
 
-Rows are owned: the adapter stamps `user_id` from the Supabase session and
-only attaches once a session exists (anonymous sign-in must be enabled on
-the project). Upserts conflict on `user_id,key` so two accounts can hold
-the same `app:type:id` key without colliding.
+The shell's sync bootstrap listens for opt-in and auth changes without loading
+Margin. Supabase's client and auth code are dynamically loaded only when sync
+has already been enabled or the user explicitly opts in. Anonymous auth starts
+only after that consent. The listener defers Supabase calls until after
+`onAuthStateChange` returns, serializes attach attempts, and detaches on
+sign-out. Pull pages use a `(synced_at,key)` keyset cursor and a fixed upper
+bound captured at the start of each pull; every tenth pull is a full scan from
+epoch. This avoids offset shifts when rows move during a large pull and
+periodically repairs delayed-commit gaps.
 
-## Implementation (wired — margin's adapter attaches at boot)
-
-```ts
-import { supabase } from '../services/supabaseClient';
-
-export async function attachItterraSync() {
-  const it = (window as any).iterra;
-  if (!it?.sync?.attach || !supabase) return;   // env absent → stay local
-  const { data } = await supabase.auth.getSession();
-  const uid = data.session?.user?.id;
-  if (!uid) return;                            // unsigned → stay local
-  await it.sync.attach({
-    name: `supabase:${uid}`,                    // checkpoint is per-owner
-    pull: async (since) => {
-      // Filter on synced_at — the DATABASE commit stamp. PAGE through the
-      // result: PostgREST returns ~1000 rows max; ordering by synced_at+key
-      // makes pages deterministic and the last row's synced_at the
-      // observed watermark. Tombstones ship as {__deleted} markers.
-      const out = [];
-      let watermark = since;
-      const PAGE = 1000;
-      for (let from = 0; ; from += PAGE) {
-        const { data, error } = await supabase
-          .from('iterra_entities')
-          .select('key, body, deleted, "deletedAt", synced_at')
-          .eq('user_id', uid)
-          .gte('synced_at', new Date(since).toISOString())
-          .order('synced_at', { ascending: true })
-          .order('key', { ascending: true })
-          .range(from, from + PAGE - 1);
-        if (error) throw error;
-        for (const r of data ?? []) {
-          const st = Date.parse(r.synced_at) || 0;
-          if (st > watermark) watermark = st;
-          out.push(r.deleted
-            ? { key: r.key, __deleted: true, deletedAt: r.deletedAt ?? st, updatedAt: r.body?.updatedAt }
-            : r.body);
-        }
-        if (!data || data.length < PAGE) break;
-      }
-      return { rows: out, watermark };
-    },
-    put: async (e) => {
-      // supabase-js resolves {error} rather than throwing — surface it so
-      // the retry queue and status().error see the failure. deleted:false
-      // resurrects a tombstoned row when the put's stamp wins LWW.
-      const { error } = await supabase.from('iterra_entities').upsert({
-        key: e.key ?? `${e.app}:${e.type}:${e.id}`,
-        app: e.app, type: e.type, courseId: e.courseId ?? null,
-        user_id: uid, updatedAt: e.updatedAt ?? Date.now(),
-        deleted: false, deletedAt: null, body: e,
-      }, { onConflict: 'user_id,key' });
-      if (error) throw error;
-    },
-    remove: async (key) => {
-      // SOFT delete — a hard DELETE leaves no trace for peers to pull.
-      const { error } = await supabase.from('iterra_entities')
-        .update({ deleted: true, deletedAt: Date.now() })
-        .eq('key', key).eq('user_id', uid);
-      if (error) throw error;
-    },
-    onConflict: (l, r) => ((r?.updatedAt || 0) >= (l?.updatedAt || 0) ? r : l),
-  });
-}
-```
-
-`watchItterraSync()` runs inside `registerAdapter()` — it attaches as soon
-as a Supabase session exists (also listening on `onAuthStateChange`, so a
-boot-time anonymous sign-in lands it without a reload). The attach result
-is awaited and only marked bound on `ok` — a failed first pull retries in
-30s instead of leaving sync silently dead. One frame owning the adapter
-is enough: BroadcastChannel delivers remote merges to every other frame
-on the origin.
+The adapter persists a local owner marker only after explicit opt-in. A
+different identity pauses sync and does not move the marker, local rows, or
+retry queue. Settings can link an email to the anonymous identity while retaining its uid. On a new browser, sign in to the linked account before enabling sync.
 
 ## Honest limits
 
@@ -219,5 +141,6 @@ on the origin.
 - Tombstones are rows — they accrue forever. A periodic purge job
   (`deletedAt` older than the longest plausible offline gap) is the real
   fix if the table grows.
-- Ownership is per anonymous-auth uid; signing into a different account
-  syncs a different row set.
+- Ownership is per auth uid; a different uid is paused instead of
+  attaching to the same local canonical store. No automatic migration or
+  merge is offered.

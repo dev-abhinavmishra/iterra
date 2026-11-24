@@ -68,8 +68,12 @@ declare global {
         drain(app: string, done?: () => void): void;
       };
       sync?: {
-        attach(adapter: Record<string, unknown>): Promise<unknown>;
+        attach?(adapter: Record<string, unknown>, opts?: { pollMs?: number }): Promise<unknown>;
+        detach?(reason?: string): unknown;
         status(): Record<string, unknown>;
+        setEnabled?(enabled: boolean): { ok: boolean; enabled?: boolean; error?: string };
+        setProviderAvailable?(available: boolean): void;
+        setPausedReason?(reason?: string): void;
       };
       core?: { version: number; eventTypes: Record<string, number>; entityTypes: Record<string, number> };
     };

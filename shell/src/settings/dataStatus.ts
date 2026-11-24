@@ -4,6 +4,9 @@ export interface SyncSnapshot {
   queued?: number;
   error?: string | null;
   lastPull?: number | null;
+  enabled?: boolean;
+  providerAvailable?: boolean | null;
+  pausedReason?: string | null;
 }
 
 export interface DataStatus {
@@ -22,7 +25,51 @@ export function describeDataStatus(sync: SyncSnapshot | null, online: boolean): 
     };
   }
 
+  if (sync.pausedReason === 'identity-mismatch') {
+    return {
+      label: 'Shared data sync paused for this identity',
+      detail: 'This browser is bound to a different anonymous identity. Continue in the browser profile that enabled sync, or export a backup and use a separate profile. No data was moved.',
+      tone: 'warn',
+    };
+  }
+  if (sync.pausedReason === 'signed-out') {
+    return {
+      label: 'Shared data sync paused after sign-out',
+      detail: 'Sign back into the original browser session to continue. Your local data remains in this browser.',
+      tone: 'warn',
+    };
+  }
+  if (sync.pausedReason === 'supabase-auth-unavailable') {
+    return {
+      label: 'Shared data sync needs authentication setup',
+      detail: 'Check that Anonymous sign-ins are enabled in the Supabase project. If CAPTCHA protection is enabled, configure its site key in this app and the matching secret in Supabase. Shared records remain in this browser until a session is available.',
+      tone: 'warn',
+    };
+  }
+  if (sync.providerAvailable === false) {
+    return {
+      label: 'Shared data sync unavailable',
+      detail: 'This build has no sync service configured. Shared records remain in this browser. Keep a backup of important data.',
+      tone: 'neutral',
+    };
+  }
+
+  if (sync.enabled === false) {
+    return {
+      label: 'Shared data sync off',
+      detail: 'Shared records stay in this browser unless you enable sync below. Private tool data also remains local. Keep a backup of important data.',
+      tone: 'neutral',
+    };
+  }
+
   if (!sync.attached) {
+    if (sync.pausedReason) {
+      return {
+        label: 'Shared data sync paused',
+        detail: 'Sync could not connect. Check your connection and sign-in, then reopen Settings to retry. Your local data remains available.',
+        tone: 'warn',
+      };
+    }
     return {
       label: 'Shared data sync inactive',
       detail: 'Shared records are not connected. Private tool data remains local to this browser. Keep a backup of important data.',

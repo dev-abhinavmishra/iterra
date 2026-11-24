@@ -179,6 +179,9 @@ describe('targetPercent', () => {
     expect(targetPercent('A')).toBe(93);
     expect(targetPercent('B+')).toBe(87);
     expect(targetPercent('88')).toBe(88);
+    expect(targetPercent('0')).toBe(0);
+    expect(targetPercent('100.5')).toBeNull();
+    expect(targetPercent('')).toBeNull();
     expect(targetPercent('x')).toBeNull();
     expect(targetPercent(undefined)).toBeNull();
   });
@@ -212,6 +215,72 @@ describe('gradeScenario', () => {
     expect(secured.secured).toBe(true);
     const lost = gradeScenario([graded('a', 90, 10), open('b', 10)], 'A')!;
     expect(lost.reachable).toBe(false);
+  });
+
+  it('excludes dropped scored work from both standing and remaining weight', () => {
+    const dropped = { ...graded('dropped', 50, 0), status: 'dropped' as const };
+    const sc = gradeScenario([graded('a', 50, 90), dropped, open('b', 50)], 'A')!;
+    expect(sc.standing).toBe(90);
+    expect(sc.gradedWeight).toBe(50);
+    expect(sc.remainingWeight).toBe(50);
+    expect(sc.needed).toBeCloseTo(96);
+  });
+
+  it('keeps completed work without a valid score in remaining weight', () => {
+    const completedAwaitingGrade = { ...open('b', 60), status: 'done' as const };
+    const sc = gradeScenario([graded('a', 40, 90), completedAwaitingGrade], 'A')!;
+    expect(sc.standing).toBe(90);
+    expect(sc.gradedWeight).toBe(40);
+    expect(sc.remainingWeight).toBe(60);
+    expect(sc.needed).toBeCloseTo(95);
+  });
+
+  it('counts a score of zero as graded and reports the target as unreachable', () => {
+    const sc = gradeScenario([graded('zero', 25, 0), open('rest', 75)], 'A')!;
+    expect(sc.standing).toBe(0);
+    expect(sc.gradedWeight).toBe(25);
+    expect(sc.remainingWeight).toBe(75);
+    expect(sc.needed).toBeCloseTo(124);
+    expect(sc.reachable).toBe(false);
+  });
+
+  it('keeps a valid standing when there is no target and no remaining weighted work', () => {
+    const sc = gradeScenario([graded('a', 40, 90)], undefined)!;
+    expect(sc.standing).toBe(90);
+    expect(sc.gradedWeight).toBe(40);
+    expect(sc.remainingWeight).toBe(0);
+    expect(sc.target).toBeNull();
+    expect(sc.needed).toBeNull();
+    expect(sc.secured).toBe(false);
+    expect(sc.reachable).toBe(true);
+  });
+
+  it('uses the final standing when there is a target but no remaining weight', () => {
+    const reached = gradeScenario([graded('a', 40, 95)], 'A')!;
+    expect(reached.needed).toBeNull();
+    expect(reached.secured).toBe(true);
+    expect(reached.reachable).toBe(true);
+
+    const missed = gradeScenario([graded('a', 40, 90)], 'A')!;
+    expect(missed.needed).toBeNull();
+    expect(missed.secured).toBe(false);
+    expect(missed.reachable).toBe(false);
+  });
+
+  it('ignores zero, negative, and non-finite weights instead of producing invalid totals', () => {
+    expect(gradeScenario([graded('zero-weight', 0, 100)], 'A')).toBeNull();
+    expect(gradeScenario([graded('negative-weight', -10, 100)], 'A')).toBeNull();
+    expect(gradeScenario([graded('infinite-weight', Number.POSITIVE_INFINITY, 100)], 'A')).toBeNull();
+  });
+
+  it('treats an invalid score as ungraded rather than poisoning the standing', () => {
+    const invalid = { ...graded('invalid', 10, 80), grade: Number.NaN };
+    const sc = gradeScenario([graded('a', 40, 90), invalid], 'A')!;
+    expect(sc.standing).toBe(90);
+    expect(sc.gradedWeight).toBe(40);
+    expect(sc.remainingWeight).toBe(10);
+    expect(sc.needed).toBeCloseTo(105);
+    expect(sc.reachable).toBe(false);
   });
 
   it('returns null without graded items', () => {

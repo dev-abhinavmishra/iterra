@@ -13,6 +13,7 @@ import { Settings } from './pages/Settings';
 import { FirebaseProvider } from './components/FirebaseProvider';
 import { useStore } from './store';
 import { onTerrainTheme } from '../theme';
+import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 import './lib/iterra';
 import './index.css';
 
@@ -147,6 +148,20 @@ function AppLayout({ query }: { query: string }) {
       <div className="flex-1 flex flex-col w-full h-full overflow-hidden">
         {location.pathname !== '/scan' && <MobileHeader title={getPageTitle()} onMenuClick={() => setSidebarOpen(true)} />}
         <main className={`flex-1 overflow-y-auto w-full relative ${location.pathname === '/scan' ? 'bg-ink' : ''}`}>
+          {/* Painted cartouche — the mark book's own header band, scrolling
+              with the page. Hidden on /scan, the camera takeover. */}
+          {location.pathname !== '/scan' && (
+            <div className="px-6 lg:px-10 pt-6 lg:pt-8 max-w-7xl mx-auto w-full">
+              <AtlasMasthead
+                compact
+                object="grid"
+                place="gradestack"
+                title="Assessments"
+                sub="Assessment builder, answer-sheet scanning, and score analytics."
+                className="mb-4"
+              />
+            </div>
+          )}
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/builder" element={<SheetBuilder />} />
@@ -167,7 +182,7 @@ function AppLayout({ query }: { query: string }) {
    query; p seeds the MemoryRouter's initial entry so it lands on the
    right page instead of the dashboard. Remaining params carry into the
    entry's search so in-page effects (?scanId review open) still fire. */
-const GRADESTACK_ROUTES = new Set(['builder', 'scan', 'analytics', 'history', 'settings']);
+const GRADESTACK_ROUTES = new Set(['dashboard', 'builder', 'scan', 'analytics', 'history', 'settings']);
 
 export default function App({ query = '' }: { query?: string }) {
   const [initialEntry] = useState<InitialEntry>(() => {

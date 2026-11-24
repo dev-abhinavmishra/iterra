@@ -36,7 +36,7 @@ const BASE = process.argv[2] || 'http://localhost:5173';
     await page.goto(`${BASE}/#/p/${app}`, { waitUntil: 'load', timeout: 60000 });
     await page.waitForTimeout(2500);
   }
-  await page.goto(`${BASE}/#/`, { waitUntil: 'load', timeout: 60000 });
+  await page.goto(`${BASE}/#/today`, { waitUntil: 'load', timeout: 60000 });
   await page.waitForTimeout(6000);
 
   const state = await page.evaluate(async () => {

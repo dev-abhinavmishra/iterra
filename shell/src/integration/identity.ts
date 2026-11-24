@@ -638,7 +638,7 @@ export async function listAvailableCourses(): Promise<CanonicalCourseInfo[]> {
 
 export function defaultUrlForRef(ref: string | ObjectRef): string {
   const p = typeof ref === 'string' ? parseRef(ref) : ref;
-  if (!p) return '#/';
+  if (!p) return '#/today';
   if (p.url) return p.url;
   const enc = encodeURIComponent(p.id);
   switch (p.app) {

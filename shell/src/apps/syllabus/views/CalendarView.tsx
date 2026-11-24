@@ -63,6 +63,13 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDaysISO(weekStart, i));
 
   const monthAnchor = anchor.slice(0, 8) + '01';
+  /* month mode steps whole calendar months — ±30 days can skip a month
+     entirely (Jan 31 + 30d lands in March) */
+  const stepAnchor = (dir: 1 | -1): ISODate => {
+    if (mode !== 'month') return addDaysISO(anchor, dir * 7);
+    const [y, m] = anchor.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1 + dir, 1)).toISOString().slice(0, 10) as ISODate;
+  };
   const monthStart = weekStartISO(monthAnchor, s.settings.weekStartsOn);
   const monthDays = Array.from({ length: 42 }, (_, i) => addDaysISO(monthStart, i));
   const inMonth = (d: ISODate) => d.slice(5, 7) === anchor.slice(5, 7);
@@ -99,13 +106,13 @@ export function CalendarView({ onInspect, today }: { onInspect: (id: string) => 
               </button>
             ))}
           </div>
-          <button className="xbtn" onClick={() => setAnchor(addDaysISO(anchor, mode === 'month' ? -30 : -7))} aria-label="Previous">
+          <button className="xbtn" onClick={() => setAnchor(stepAnchor(-1))} aria-label="Previous">
             <ChevronLeft size={16} />
           </button>
           <button className="btn btn--ghost !py-1 !px-2.5 mono" onClick={() => setAnchor(today)}>
             now
           </button>
-          <button className="xbtn" onClick={() => setAnchor(addDaysISO(anchor, mode === 'month' ? 30 : 7))} aria-label="Next">
+          <button className="xbtn" onClick={() => setAnchor(stepAnchor(1))} aria-label="Next">
             <ChevronRight size={16} />
           </button>
         </div>

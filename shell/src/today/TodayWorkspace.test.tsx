@@ -64,6 +64,9 @@ it('puts course setup first for new students and keeps that guidance for saved u
   render();
   const starter = host.querySelector<HTMLElement>('[aria-label="Get started"]');
   expect(starter?.textContent).toContain('Start with your courses');
+  expect(starter?.parentElement?.className).toContain('lg:col-span-7');
+  expect(host.querySelector('[aria-label="Review and follow-up"]')?.parentElement?.className)
+    .toContain('lg:col-span-5');
   const setup = [...(starter?.querySelectorAll('button') ?? [])]
     .find(button => button.textContent?.includes('Set Up Courses')) as HTMLButtonElement | undefined;
   expect(setup).toBeDefined();
@@ -93,6 +96,33 @@ it('puts course setup first for new students and keeps that guidance for saved u
     .find(button => button.textContent?.includes('Continue in')) as HTMLButtonElement;
   expect(primary(savedSetup)).toBe(false);
   expect(primary(continueWork)).toBe(true);
+});
+
+it('expands review and course overview when courses exist but the left column has no content', () => {
+  const course: StoreEntity = {
+    id: 'bio-course', key: 'syllabus:course:bio', app: 'syllabus', type: 'course',
+    title: 'BIO 101', course: 'BIO 101', data: { code: 'BIO 101' },
+  };
+  act(() => {
+    root.render(
+      <TodayWorkspace presences={{}} shared={{}} indexes={{}} entities={[course]} feed={[]}
+        onEnter={vi.fn()} onGo={vi.fn()} />,
+    );
+  });
+
+  expect(host.querySelector('[aria-label="Get started"]')).toBeNull();
+  expect(host.querySelector('[aria-label="Pick up where you left off"]')).toBeNull();
+  expect(host.querySelector('[aria-label="Next up scheduled work"]')).toBeNull();
+  expect(host.querySelector('[aria-label="Recent work"]')).toBeNull();
+
+  const review = host.querySelector<HTMLElement>('[aria-label="Review and follow-up"]')!;
+  const courseOverview = host.querySelector<HTMLElement>('[aria-label="Course overview"]')!;
+  const rightColumn = review.parentElement!;
+  expect(rightColumn.className).toContain('lg:col-span-12');
+  expect(rightColumn.className).toContain('lg:grid-cols-2');
+  expect(courseOverview.parentElement).toBe(rightColumn);
+  expect(rightColumn.parentElement?.children).toHaveLength(1);
+  expect(review.compareDocumentPosition(courseOverview) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 });
 
 it('launches the exact scheduled block with canonical duration and course and commitment bindings', () => {

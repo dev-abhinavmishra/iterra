@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import clsx from 'clsx';
 import { Notebook, Sun, Tags, Crosshair, BarChart3, Undo2, MoreHorizontal, Star, History, Trash2, Settings, Spline } from 'lucide-react';
@@ -9,6 +9,7 @@ import { CommandPalette } from '../CommandPalette';
 import { SettingsPopover } from '../SettingsPopover';
 import { useStore } from '../../store';
 import { placeActive } from '../../../active';
+import { AtlasMasthead } from '../../../../mosaic/AtlasMasthead';
 
 const mobileItems = [
   { to: '/', icon: Notebook, label: 'Notes' },
@@ -32,6 +33,7 @@ export const MainLayout: React.FC = () => {
   const { notice, setNotice, restoreNote, notes } = useStore();
   const noteOpen = useStore(s => !!s.activeNoteId);
   const navigate = useNavigate();
+  const location = useLocation();
   const trashCount = notes.filter(n => n.trashedAt).length;
 
   React.useEffect(() => {
@@ -75,9 +77,23 @@ export const MainLayout: React.FC = () => {
   return (
     <div className="flex h-full w-full bg-desk text-ink overflow-hidden">
       <SideNavBar />
-      <main className="flex-1 flex overflow-hidden min-w-0">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Painted cartouche — the desk's own header band. Hidden on /focus,
+            which is a full-bleed writing mode that wants the whole sheet. */}
+        {location.pathname !== '/focus' && (
+          <AtlasMasthead
+            compact
+            object="note"
+            place="ink"
+            title="Notes"
+            sub="Long-form writing desk with wiki-links, folders, and focus prose."
+            className="mx-3 mt-3 mb-2 shrink-0 md:mx-5"
+          />
+        )}
+        <main className="flex-1 flex overflow-hidden min-w-0">
+          <Outlet />
+        </main>
+      </div>
 
       <CommandPalette isOpen={isPaletteOpen} onClose={() => setIsPaletteOpen(false)} />
 

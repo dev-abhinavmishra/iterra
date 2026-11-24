@@ -209,10 +209,12 @@ export function routineWeek(
       : routine.target.perWeek;
   // A week is exempt when nothing could be judged: every schedulable day was
   // excepted or paused, hadn't arrived yet, or predates the routine — AND
-  // nothing was logged anyway (entries on odd days still count, so a week
-  // with real activity is never exempt for amount-measure routines).
+  // nothing was logged anyway. For 'check' routines a scheduled===0 week is
+  // exempt even with bonus check-ins on odd days: effectiveTarget is 0, so
+  // the week could never hit — counting it as a miss punishes a fully
+  // excused schedule. Amount routines keep judging on totalValue instead.
   const exempt =
-    scheduled === 0 && (routine.measure === 'check' ? completedDays === 0 : totalValue === 0);
+    scheduled === 0 && (routine.measure === 'check' ? true : totalValue === 0);
   const hit = !exempt && effectiveTarget > 0 && actual >= effectiveTarget;
 
   return {

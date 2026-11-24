@@ -260,13 +260,17 @@ export function ObjectRow({
         compact ? 'py-2' : 'py-2.5'
       } transition-colors ${
         selected
-          ? 'bg-[var(--color-accent-soft)]/70'
+          ? 'bg-[var(--color-accent-soft)]/70 hover:bg-[var(--color-accent-soft-2)]'
           : 'bg-[var(--color-sheet)] hover:bg-[var(--color-sheet-hover)]'
       }`}
     >
-      {/* Type / Module Icon */}
+      {/* Type / Module Icon — same action as the title button; keep it
+          clickable but out of the tab order and accessibility tree so the
+          row exposes a single action */}
       <button
         type="button"
+        tabIndex={-1}
+        aria-hidden="true"
         onClick={() => {
           onSelectContext?.(item);
           onOpen(item.url);
@@ -388,7 +392,7 @@ export function ObjectRow({
                       onNotify(
                         r.toast ||
                           (r.delivered === 'queued'
-                            ? 'Queued — Planning applies it on next open'
+                            ? 'Queued. It will appear in Planning when you next open it.'
                             : r.ok
                               ? 'Filed done'
                               : `Could not file: ${r.error || 'unavailable'}`),
@@ -419,7 +423,7 @@ export function ObjectRow({
                       onNotify(
                         r.toast ||
                           (r.delivered === 'queued'
-                            ? 'Queued — Planning applies it on next open'
+                            ? 'Queued. It will appear in Planning when you next open it.'
                             : r.ok
                               ? 'Pushed to tomorrow'
                               : `Could not push: ${r.error || 'unavailable'}`),
@@ -449,7 +453,7 @@ export function ObjectRow({
                       onNotify(
                         r.toast ||
                           (r.delivered === 'queued'
-                            ? 'Queued — Planning applies it on next open'
+                            ? 'Queued. It will appear in Planning when you next open it.'
                             : r.ok
                               ? 'Dropped'
                               : `Could not drop: ${r.error || 'unavailable'}`),

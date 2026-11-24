@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { usePlaceLoadSnapshot } from './index';
 import { Button } from '../ui/primitives';
 import { flushPendingNativeWrites } from '../integration/nativePersistence';
+import { PLACES } from '../places';
 
 export function PlaceLoadFallback({ placeId, placeName, onRetry }: {
   placeId: string;
@@ -22,15 +23,17 @@ export function PlaceLoadFallback({ placeId, placeName, onRetry }: {
   const offline = phase === 'offline';
   const failed = phase === 'error';
   const preparing = phase === 'preparing';
+  const busy = !offline && !failed;
+  const place = PLACES.find((candidate) => candidate.id === placeId);
   const message = offline
-    ? `${placeName} is not ready offline yet. Reconnect and it will open automatically.`
+    ? `${placeName} will open when your connection returns.`
     : failed
-      ? `Iterra couldn't finish loading ${placeName}. Retry when your connection is available. Existing saved data and queued transfers remain in the workspace.`
+      ? 'Try again. If the problem continues, reload the workspace.'
       : phase === 'loading' && error
-        ? `${placeName} is opening online. Offline access could not be confirmed for this tool.`
+        ? 'Opening online; offline access may be limited.'
       : preparing
-        ? `Preparing ${placeName} for this workspace…`
-        : `Opening ${placeName}…`;
+        ? `Getting ${placeName} ready for this session…`
+        : 'Starting the workspace…';
 
   const reloadSafely = async () => {
     setReloading(true);
@@ -38,27 +41,29 @@ export function PlaceLoadFallback({ placeId, placeName, onRetry }: {
     try {
       await flushPendingNativeWrites();
       window.location.reload();
-    } catch (cause) {
-      setReloadError(String(cause instanceof Error ? cause.message : cause));
+    } catch {
+      setReloadError('The workspace could not confirm all pending saves. Check storage, then try again.');
       setReloading(false);
     }
   };
 
   return (
-    <div className="flex h-full items-center justify-center bg-[var(--color-paper)] p-6">
-      <div className="it-card-in anim-rise max-w-sm text-center" role="status" aria-live="polite">
-        <div className="it-heading">{offline ? 'Waiting to reconnect' : failed ? 'Tool not ready' : preparing ? `Preparing ${placeName}` : `Opening ${placeName}`}</div>
-        <p className="mt-1.5 text-[12.5px] text-[var(--color-mute)]">{message}</p>
-        {failed && <div className="mt-4 flex items-center justify-center gap-2">
+    <div className="flex h-full min-h-[14rem] items-center justify-center bg-[var(--color-paper)] p-4 sm:p-6" aria-busy={busy || reloading}>
+      <section className="it-card-in w-full max-w-sm border border-[var(--color-line)] bg-[var(--color-sheet)] px-5 py-6 text-center">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md border border-[var(--color-line)] bg-[var(--color-sheet-2)] text-[var(--color-accent)] [&_svg]:h-7 [&_svg]:w-7" aria-hidden="true">
+          {place?.glyph}
+        </div>
+        <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--color-faint)]">{place?.place || placeName}</p>
+        <div role="status" aria-live="polite" aria-atomic="true">
+          <h2 className="it-heading mt-1">{offline ? 'Waiting to reconnect' : failed ? `Couldn’t open ${placeName}` : preparing ? `Preparing ${placeName}` : `Opening ${placeName}`}</h2>
+          <p className="mt-1.5 text-[12.5px] text-[var(--color-mute)]">{message}</p>
+        </div>
+        {failed && <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <Button variant="primary" onClick={onRetry}>Retry</Button>
           <Button variant="secondary" onClick={reloadSafely} disabled={reloading}>{reloading ? 'Reloading…' : 'Reload workspace'}</Button>
         </div>}
         {reloadError && <p className="mt-3 text-[12px] text-[var(--color-bad)]" role="alert">The workspace could not confirm all pending saves. Retry the reload after checking storage.</p>}
-        {failed && (error || reloadError) && <details className="mt-3 text-left text-[11px] text-[var(--color-mute)]">
-          <summary className="cursor-pointer">Technical details</summary>
-          <pre className="mt-1 whitespace-pre-wrap break-words">{[error, reloadError].filter(Boolean).join('\n')}</pre>
-        </details>}
-      </div>
+      </section>
     </div>
   );
 }

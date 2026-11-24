@@ -384,6 +384,7 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
       {deferFor && (
         <DeferSheet
           block={deferFor}
+          today={today}
           onClose={() => setDeferFor(null)}
           onDefer={(date, note) => {
             s.deferBlock(deferFor.id, note, date);
@@ -398,14 +399,19 @@ export function TodayView({ onInspect, today }: { onInspect: (id: string) => voi
 /** Defer sheet — reason + new date; the slip keeps its history. */
 function DeferSheet({
   block,
+  today,
   onClose,
   onDefer,
 }: {
   block: WorkBlock;
+  today: ISODate;
   onClose: () => void;
   onDefer: (date: ISODate | undefined, note: string) => void;
 }) {
-  const [date, setDate] = useState<ISODate>(addDaysISO(block.plannedDate, 1));
+  /* missed slips can be days old — plannedDate+1 would still land in the
+     past and instantly re-miss, so floor the default at tomorrow */
+  const nextDay = addDaysISO(block.plannedDate, 1);
+  const [date, setDate] = useState<ISODate>(nextDay > today ? nextDay : addDaysISO(today, 1));
   const [note, setNote] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

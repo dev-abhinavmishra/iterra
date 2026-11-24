@@ -20,6 +20,7 @@ import {
 } from '../lib/dates';
 import { cx, EXCEPTION_LABEL, FRICTION_LABEL, WEEKDAY_NAMES } from '../lib/utils';
 import { usePlayhead } from '../lib/playhead';
+import { useMotionEnabled } from '../lib/motionPreference';
 import { Pad } from '../components/Pad';
 import { Lamp } from '../components/Lamp';
 import { Sheet } from '../components/Sheet';
@@ -44,7 +45,7 @@ export function RoutineView({ routineId }: { routineId: string }) {
   }
 
   const weekDates = Array.from({ length: 7 }, (_, i) => addDaysISO(weekStartISO(today, s.settings.weekStartsOn), i));
-  const play = usePlayhead(s.settings.motion === 'full');
+  const play = usePlayhead(useMotionEnabled(s.settings.motion));
   const myEntries = Object.values(s.entries)
     .filter((e) => e.routineId === r.id)
     .sort((a, b) => (a.date < b.date ? 1 : -1));

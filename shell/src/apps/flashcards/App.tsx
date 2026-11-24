@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { FLASHCARDS_MARKUP } from './markup';
 import { mountFlashcards } from './controller';
 import { SourceChangedBanner } from '../../integration/components';
+import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 import './index.css';
 
 /* The cardfile was written as a vanilla app — the migration keeps its
@@ -31,11 +32,23 @@ export default function App({ query = '' }: { query?: string }) {
 
   return (
     <>
-      <div
-        ref={rootRef}
-        className="it-place-flashcards h-full"
-        dangerouslySetInnerHTML={{ __html: FLASHCARDS_MARKUP }}
-      />
+      {/* the cardfile's own topbar lives inside the mounted markup — the
+          painted cartouche rides above it in a shared scroll column */}
+      <div className="h-full overflow-y-auto">
+        <AtlasMasthead
+          compact
+          object="cards"
+          place="flashcards"
+          title="Flashcards"
+          sub="Decks, spaced review, multiple-choice quizzes, and written recall."
+          className="mx-3 mt-3 mb-3 sm:mx-5"
+        />
+        <div
+          ref={rootRef}
+          className="it-place-flashcards"
+          dangerouslySetInnerHTML={{ __html: FLASHCARDS_MARKUP }}
+        />
+      </div>
       {bannerHost && deckId &&
         createPortal(<SourceChangedBanner deckId={deckId} />, bannerHost)}
     </>

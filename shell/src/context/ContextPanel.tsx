@@ -459,7 +459,7 @@ export function ContextPanel({
     showMsg(
       r.toast ||
         ((r as any).delivered === 'queued'
-          ? `${opts.successLabel} — queued, applies on next open`
+          ? `This action is queued for ${PLACE_MAP[opts.to]?.label || opts.to}. It will appear there when you next open it.`
           : opts.successLabel),
       r.url || `/apps/${opts.to}/`,
     );
@@ -1066,9 +1066,9 @@ export function ContextPanel({
       </aside>
 
       {/* Narrow-screen slide-over drawer/sheet (never squeezes 3 columns together) */}
-      <div className="lg:hidden fixed inset-0 z-50 flex justify-end">
+      <div className="lg:hidden absolute inset-0 z-20 flex justify-end">
         <div
-          className="fixed inset-0 bg-black/35 backdrop-blur-[1px]"
+          className="absolute inset-0 bg-black/35"
           onClick={onClose}
           aria-hidden="true"
         />

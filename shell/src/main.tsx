@@ -6,6 +6,10 @@ import App, { ShellBoundary } from './App';
 import { placeHashFromAppUrl } from './route';
 import { registerIntegrationCommands } from './integration/commands';
 import { ensureIntegrationMigrations, installCrossTabSync } from './integration/migration';
+import { installSupabaseSyncBootstrap } from './integration/supabaseSyncBootstrap';
+/* glassy-liquid web components (gl-fx layers etc.) — the engine creates these
+   elements imperatively, but registering keeps declarative pieces upgraded */
+import 'glassy-liquid/elements';
 
 /* One document, one terrain — app-to-app links can't open real windows
    anymore. Apps call iterra.open('/apps/<p>/…') (the hub posts
@@ -83,6 +87,29 @@ if (typeof navigator.storage?.persist === 'function') {
 registerIntegrationCommands();
 void ensureIntegrationMigrations().catch(() => {});
 installCrossTabSync();
+installSupabaseSyncBootstrap();
+// Email links can arrive before this browser has opted into record sync.
+// Let Auth consume the callback fragment before returning to the hash router.
+if (new URLSearchParams(location.search).get('workspace-account') === '1') {
+  const rejected = [location.search.slice(1), location.hash.slice(1)]
+    .some(params => new URLSearchParams(params).has('error'));
+  void import('./apps/margin/services/supabaseClient').then(async ({ supabase }) => {
+    if (rejected) throw new Error('This email link is invalid or expired. Request a new one in Workspace account.');
+    if (!supabase) throw new Error('Email access is unavailable in this build.');
+    const { data, error } = await supabase.auth.getSession();
+    if (error || !data.session?.user.email) throw new Error('Open Workspace account to request a fresh sign-in email.');
+    return 'Email account connected. Manage shared record sync in Settings.';
+  }).catch(error => error instanceof Error ? error.message : 'Email confirmation failed.')
+    .then(message => {
+      const url = new URL(location.href);
+      url.search = '';
+      url.hash = '/settings';
+      history.replaceState(history.state, '', url);
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+      window.dispatchEvent(new CustomEvent('iterra:toast', { detail: { text: message } }));
+    });
+}
+
 
 /* Offline support — prod only. A dev-mode SW caching module responses
    would fight HMR; the whole point here is the deployed build. */

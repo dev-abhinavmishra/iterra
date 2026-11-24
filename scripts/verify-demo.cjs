@@ -211,7 +211,7 @@ const ok = (msg) => console.log('  ok:', msg);
 
   /* Today lists the routine; clicking 'Log routine' marks inline. Poll —
      the entity publish + presence summary lag a few seconds on slow disks. */
-  await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+  await page.goto(`${BASE}/#/today`, { waitUntil: 'load' });
   const logBtn = page.getByRole('button', { name: /^(Log routine|Log amount)$/ }).first();
   let btnFound = false;
   /* the routine row lags the intake drain — the adapter's mirror/index write

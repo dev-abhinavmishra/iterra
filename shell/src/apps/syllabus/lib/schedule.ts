@@ -403,8 +403,9 @@ export { toISODate, fromISODate, addDaysISO, daysUntil };
 export function targetPercent(targetGrade?: string): number | null {
   if (!targetGrade) return null;
   const t = targetGrade.trim().toUpperCase();
+  if (!t) return null;
   const n = Number(t);
-  if (Number.isFinite(n) && n > 0) return Math.min(100, n);
+  if (/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(t) && Number.isFinite(n) && n >= 0 && n <= 100) return n;
   const cutoffs: Record<string, number> = {
     'A+': 97, A: 93, 'A-': 90,
     'B+': 87, B: 83, 'B-': 80,
@@ -417,7 +418,7 @@ export function targetPercent(targetGrade?: string): number | null {
 export interface GradeScenario {
   gradedWeight: number;    // pts of course weight already graded
   standing: number;        // weighted average of graded items (0–100)
-  remainingWeight: number; // pts of declared weight still open/ungraded
+  remainingWeight: number; // pts of declared weight still ungraded
   target: number | null;   // parsed target percent
   needed: number | null;   // avg needed on remainingWeight to hold target
   secured: boolean;        // needed <= 0
@@ -425,17 +426,35 @@ export interface GradeScenario {
 }
 
 export function gradeScenario(commitments: Commitment[], targetGrade?: string): GradeScenario | null {
-  const graded = commitments.filter((c) => c.grade != null && c.weight > 0);
+  /* A returned score remains part of the course result only while the
+     commitment is active. Work can be completed before its score arrives,
+     so status alone must not decide whether its weight is still outstanding. */
+  const weighted = commitments.filter((c) =>
+    c.status !== 'dropped' && Number.isFinite(c.weight) && c.weight > 0,
+  );
+  const hasValidGrade = (grade: number | undefined) =>
+    grade != null && Number.isFinite(grade) && grade >= 0 && grade <= 100;
+  const graded = weighted.filter((c) => hasValidGrade(c.grade));
   if (graded.length === 0) return null;
   const gradedWeight = graded.reduce((s, c) => s + c.weight, 0);
-  const standing = graded.reduce((s, c) => s + c.weight * (c.grade ?? 0), 0) / gradedWeight;
-  const remainingWeight = commitments
-    .filter((c) => c.grade == null && c.weight > 0 && c.status !== 'dropped')
+  const standing = graded.reduce((s, c) => s + c.weight * c.grade!, 0) / gradedWeight;
+  const remainingWeight = weighted
+    .filter((c) => !hasValidGrade(c.grade))
     .reduce((s, c) => s + c.weight, 0);
   const target = targetPercent(targetGrade);
   let needed: number | null = null;
-  if (target != null && remainingWeight > 0) {
-    needed = (target * (gradedWeight + remainingWeight) - standing * gradedWeight) / remainingWeight;
+  let secured = false;
+  let reachable = true;
+  if (target != null) {
+    if (remainingWeight > 0) {
+      needed = (target * (gradedWeight + remainingWeight) - standing * gradedWeight) / remainingWeight;
+      secured = needed <= 0;
+      reachable = needed <= 100;
+    } else {
+      // With no weighted work left, today's standing is the final result.
+      secured = standing >= target;
+      reachable = secured;
+    }
   }
   return {
     gradedWeight,
@@ -443,8 +462,8 @@ export function gradeScenario(commitments: Commitment[], targetGrade?: string): 
     remainingWeight,
     target,
     needed,
-    secured: needed != null && needed <= 0,
-    reachable: needed == null || needed <= 100,
+    secured,
+    reachable,
   };
 }
 

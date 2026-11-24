@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 const SHORTCUTS: { keys: string; action: string }[] = [
   { keys: 'T', action: 'Today desk' },
   { keys: 'E', action: 'Semester folio' },
+  { keys: 'G', action: 'Course grade ledger' },
   { keys: 'C', action: 'Calendar' },
   { keys: 'W', action: 'Weekly review' },
   { keys: ',', action: 'Registry settings' },

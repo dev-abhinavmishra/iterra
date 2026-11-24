@@ -12,9 +12,11 @@ import { addDaysISO, diffDaysISO, fmtDay, todayISO, weekStartISO } from '../lib/
 import { Field } from '../components/Field';
 import { Sheet } from '../components/Sheet';
 import { Lamp } from '../components/Lamp';
+import { useMotionEnabled } from '../lib/motionPreference';
 
 export function ExperimentsView({ focusId }: { focusId?: string | null }) {
   const s = useRegister();
+  const motionEnabled = useMotionEnabled(s.settings.motion);
   const [open, setOpen] = useState(false);
   const [outcomeFor, setOutcomeFor] = useState<string | null>(null);
   const [outcome, setOutcome] = useState('');
@@ -24,8 +26,8 @@ export function ExperimentsView({ focusId }: { focusId?: string | null }) {
   useEffect(() => {
     if (!focusId) return;
     const el = document.querySelector(`[data-experiment-id="${CSS.escape(focusId)}"]`);
-    el?.scrollIntoView({ block: 'center', behavior: s.settings.motion === 'reduced' ? 'auto' : 'smooth' });
-  }, [focusId, s.settings.motion]);
+    el?.scrollIntoView({ block: 'center', behavior: motionEnabled ? 'smooth' : 'auto' });
+  }, [focusId, motionEnabled]);
 
   const experiments = Object.values(s.experiments).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   const active = experiments.filter((e) => e.status === 'active');

@@ -43,7 +43,7 @@ const ensureAuth = async (): Promise<void> => {
 
 /** Idempotently kick off anonymous sign-in. */
 export const initAuth = (): Promise<void> => {
-    if (!authReady) authReady = ensureAuth();
+    if (!authReady) authReady = ensureAuth().finally(() => { authReady = null; });
     return authReady;
 };
 

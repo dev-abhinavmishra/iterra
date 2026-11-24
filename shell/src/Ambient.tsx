@@ -13,13 +13,52 @@ interface Toast {
   ms: number;
 }
 
+const SESSION_TOAST_MAX_AGE_MS = 5 * 60 * 1000;
+const SESSION_TOAST_FUTURE_SKEW_MS = 30 * 1000;
+
+function isRecentNonDemoSession(entity: StoreEntity, now: number): boolean {
+  if (entity.type !== 'session' || entity.data?.demo === true || entity.id.startsWith('demo-')) return false;
+  const timestamp = typeof entity.createdAt === 'number'
+    ? entity.createdAt
+    : typeof entity.data?.endedAt === 'number'
+      ? entity.data.endedAt
+      : NaN;
+  if (!Number.isFinite(timestamp)) return false;
+  const age = now - timestamp;
+  return age >= -SESSION_TOAST_FUTURE_SKEW_MS && age <= SESSION_TOAST_MAX_AGE_MS;
+}
+
+function sessionToastFromEvent(payload: Record<string, unknown>): { id: string; text: string; url?: string } | null {
+  const id = typeof payload.sessionId === 'string' ? payload.sessionId : '';
+  if (!id || id.startsWith('demo-')) return null;
+  const rawText = typeof payload.text === 'string' ? payload.text.trim() : '';
+  const label = rawText
+    .replace(/^focus\s+·\s+\d+m\s+—\s*/i, '')
+    .replace(/^session\s+(?:completed|partial):\s*/i, '')
+    .replace(/\s+\(\d+m\)\s*$/i, '')
+    .trim();
+  const minutes = Number(payload.minutes ?? payload.elapsedMinutes);
+  return {
+    id,
+    text: `${label || 'Focus session'}${Number.isFinite(minutes) && minutes > 0 ? ` · ${Math.round(minutes)}m` : ''} logged`,
+    url: typeof payload.url === 'string' ? payload.url : undefined,
+  };
+}
+
+function rememberSessionNotice(seen: Set<string>, id: string): void {
+  seen.add(id);
+  if (seen.size > 100) seen.delete(seen.values().next().value!);
+}
+
 export function Ambient({
   entities,
+  entityState,
   onGo,
   panelOpen,
   activePlace,
 }: {
   entities: StoreEntity[];
+  entityState: 'loading' | 'ready' | 'error';
   mounted?: string[];
   activePlace?: string | null;
   onEnter?: (id: string) => void;
@@ -52,16 +91,29 @@ export function Ambient({
   }, [head]);
 
   const seenSessions = useRef<Set<string> | null>(null);
+  const notifiedSessionIds = useRef(new Set<string>());
 
   useEffect(() => {
     const keys = new Set(entities.filter((e) => e.type === 'session').map((e) => e.key));
+    if (entityState !== 'ready') {
+      /* Do not treat the initial store hydration (or a retry) as fresh work.
+         The first ready snapshot becomes the baseline; live inserts after it
+         still surface through the ordinary diff below. */
+      seenSessions.current = null;
+      return;
+    }
     if (seenSessions.current === null) {
       seenSessions.current = keys;
       return;
     }
-    const fresh = entities.find((e) => e.type === 'session' && !seenSessions.current!.has(e.key));
+    const now = Date.now();
+    const fresh = entities.find((e) =>
+      e.type === 'session' && !seenSessions.current!.has(e.key) && isRecentNonDemoSession(e, now),
+    );
     seenSessions.current = keys;
     if (fresh) {
+      if (notifiedSessionIds.current.has(fresh.id)) return;
+      rememberSessionNotice(notifiedSessionIds.current, fresh.id);
       const mins = (fresh.data?.minutes as number) || null;
       const boxed = parseBoxedFocus(fresh.data?.boxedFocus);
       pushRef.current({
@@ -69,17 +121,26 @@ export function Ambient({
         url: boxed ? boxedFocusUrl(boxed) : fresh.url || '/apps/timer/',
       });
     }
-  }, [entities]);
+  }, [entities, entityState]);
 
   useEffect(() => {
     const it = (window as any).iterra;
     if (!it?.events?.on) return;
-    const off = it.events.on('intake.resolved', (rec: any) => {
+    const offIntake = it.events.on('intake.resolved', (rec: any) => {
       const p = rec?.payload || {};
       if (typeof p.toast !== 'string') return;
       pushRef.current({ text: p.toast, url: typeof p.url === 'string' ? p.url : undefined, ms: 6000 });
     });
-    return off;
+    const offSession = it.events.on('session.completed', (rec: any) => {
+      const notice = sessionToastFromEvent(rec?.payload || {});
+      if (!notice || notifiedSessionIds.current.has(notice.id)) return;
+      rememberSessionNotice(notifiedSessionIds.current, notice.id);
+      pushRef.current({ text: notice.text, url: notice.url });
+    });
+    return () => {
+      offIntake?.();
+      offSession?.();
+    };
   }, []);
 
   /* deployed while this tab is open — the new SW is installed and about to

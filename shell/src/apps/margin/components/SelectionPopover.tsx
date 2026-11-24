@@ -240,7 +240,7 @@ const SelectionPopover: React.FC<SelectionPopoverProps> = ({ onAddToChat, note }
                hang an 'open deck' link on a declined send */
             setSentNote(
                 typeof res.toast === 'string' ? res.toast
-                : res.delivered === 'queued' ? 'Queued — lands on next open'
+                : res.delivered === 'queued' ? 'Queued. It will appear there when you next open it.'
                 : null,
             );
             flash('sent', true);

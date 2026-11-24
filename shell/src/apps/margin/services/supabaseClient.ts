@@ -1,9 +1,10 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createTokenPinnedSupabaseClient } from '../../../integration/pinnedSupabaseClient';
 
-// Browser Supabase client (publishable/anon key — safe to expose). Used only for
-// anonymous auth so each browser gets a real auth.users uuid that the backend's
-// usage RPCs key on. If the env vars aren't provided at build time, this is null
-// and the app falls back to the anonymous daily-limit path.
+// Browser Supabase client (publishable/anon key — safe to expose). Used for
+// anonymous auth for usage limits and, after explicit sync consent, the
+// owner-scoped canonical record mirror. Missing build-time env vars disable
+// Supabase and leave the app on its local fallback paths.
 /* vite.config injects `process.env.X` via JSON.stringify(env.X ?? null), but a
    value that still isn't a usable URL/key — the literal "undefined"/"null"
    some toolchains emit, a placeholder, a typo — must degrade to anonymous
@@ -27,3 +28,9 @@ const makeClient = (): SupabaseClient | null => {
 };
 
 export const supabase: SupabaseClient | null = makeClient();
+
+/** A non-persisting data client bound to one captured auth token. */
+export function createPinnedSyncClient(accessToken: string): SupabaseClient {
+    if (!url || !anonKey) throw new Error('Supabase client configuration is unavailable.');
+    return createTokenPinnedSupabaseClient(url, anonKey, accessToken);
+}

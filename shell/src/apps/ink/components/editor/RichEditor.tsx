@@ -601,7 +601,7 @@ const sendSelection = (editor: Editor, to: 'margin' | 'proof'): void => {
         message: !res?.ok
           ? `Couldn't send to ${label}`
           : res.toast ||
-            (res.delivered === 'queued' ? `Queued for ${label} — lands on next open` : `Sent to ${label}`),
+            (res.delivered === 'queued' ? `Queued for ${label}. It will appear there when you next open it.` : `Sent to ${label}`),
       });
       if (res?.ok && res.url) {
         if (it.open) it.open(res.url); else window.open(res.url, '_blank');

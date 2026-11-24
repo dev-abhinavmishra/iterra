@@ -482,6 +482,7 @@ function localReceiptKey(id: string) { return `${NATIVE_PENDING_PREFIX}${id}`; }
 
 function readPendingReceipts(key?: NativeStateKey): NativeReceipt[] {
   const receipts: NativeReceipt[] = [];
+  const malformed: string[] = [];
   for (let i = 0; i < localStorage.length; i++) {
     const storageKey = localStorage.key(i) ?? '';
     if (!storageKey.startsWith(NATIVE_PENDING_PREFIX)) continue;
@@ -495,7 +496,20 @@ function readPendingReceipts(key?: NativeStateKey): NativeReceipt[] {
       // A key-scoped flush must ignore valid receipts belonging to the other
       // native store; they remain durable for that store's later flush.
       if (!key || receipt.key === key) receipts.push(receipt);
-    } catch { throw new Error(`A pending native receipt is malformed: ${storageKey}`); }
+    } catch {
+      malformed.push(storageKey);
+    }
+  }
+  /* One corrupt receipt must not wedge hydration/commit for BOTH native
+     stores — quarantine the raw payload under a sibling key (recoverable)
+     and let the healthy receipts flush. */
+  for (const storageKey of malformed) {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw != null) localStorage.setItem(`${storageKey}.corrupt`, raw);
+      localStorage.removeItem(storageKey);
+      console.error(`[iterra] quarantined malformed native receipt: ${storageKey}`);
+    } catch { /* storage may be full — leave the key for the next attempt */ }
   }
   return receipts.sort((a, b) => a.createdAt - b.createdAt || a.sequence - b.sequence || a.id.localeCompare(b.id));
 }

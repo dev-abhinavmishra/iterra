@@ -1,0 +1,23 @@
+/* Optical accents use the live scene only along the control's curved rim. */
+.it-lens[data-optical="on"] { background: transparent; border-color: transparent; }
+.atlas-controls.it-lens { right: 12%; bottom: 15%; border-radius: 16px; background: #173c2d; }
+.atlas-controls.it-lens[data-optical="on"] { background: transparent; }
+.atlas-controls.it-lens button { color: #ffefd0; border-radius: 12px; }
+.atlas-controls.it-lens button:hover { background: rgb(190 221 178 / .14); }
+.it-lens:focus-visible,.it-lens button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+@media (forced-colors: active) { .it-lens { border: 1px solid ButtonText; } }
+.it-nav-band { position:relative; isolation:isolate; padding:3px; border-radius:12px; background:var(--color-sheet-2); }
+.it-nav-band::before { content:""; position:absolute; inset:0; z-index:-2; border-radius:inherit; background:url('/atlas/contours.webp') center/18rem; opacity:.24; pointer-events:none; }
+.it-nav-optic { position:absolute; inset:0; border:1px solid var(--color-line); border-radius:inherit; pointer-events:none; z-index:-1; }
+.it-colophon { flex:none; display:flex; align-items:center; gap:10px; height:22px; padding-inline:16px; background:var(--color-sheet); color:var(--color-mute); font:10px/1 'IBM Plex Mono',monospace; }
+.it-colophon i { height:1px; flex:1; background:var(--color-line); position:relative; }
+.it-colophon i::after { content:""; position:absolute; right:0; top:-2px; width:5px; height:5px; transform:rotate(45deg); background:var(--color-accent); }
+.it-colophon span:last-child { max-width:55%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-transform:capitalize; }
+/* Reflect the pointer along the bezel, leaving text and the refracted center clear. */
+.it-lens[data-optical="on"]::after {
+  content:""; position:absolute; inset:0; border-radius:inherit; padding:1.5px;
+  background:radial-gradient(ellipse 72px 38px at var(--lens-x,50%) var(--lens-y,50%),#fff6d4 0%,#f0daae99 48%,transparent);
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude; pointer-events:none; opacity:0; transition:opacity 160ms ease-out;
+}
+.it-lens[data-optical="on"][data-lit]::after { opacity:1; }

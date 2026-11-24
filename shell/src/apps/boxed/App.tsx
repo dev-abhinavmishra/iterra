@@ -6,6 +6,7 @@ import { StudyEntities } from '../../integration/StudySessionPlan';
 import { boxedFocusMinutes, parseBoxedFocus } from '../../integration/boxedFocus';
 import { execCommand } from '../../integration/commands';
 import { Dialog } from '../../ui/primitives';
+import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 import { fitPriorities, planningForDay } from './planning';
 import type { StoreEntity } from '../../hub';
 
@@ -57,7 +58,17 @@ function loadState(): State {
     if (!raw) return fallback;
     const saved = JSON.parse(raw) as Partial<State>;
     if (!saved.days || typeof saved.days !== 'object') return fallback;
-    return { ...fallback, ...saved, past: [], future: [] };
+    const merged = { ...fallback, ...saved, past: [], future: [] };
+    /* a corrupt blob can carry impossible hours or a bad date — the timeline
+       math assumes 0 ≤ dayStart < dayEnd ≤ 24 and a parseable YYYY-MM-DD */
+    const ds = Number(merged.dayStart), de = Number(merged.dayEnd);
+    if (!Number.isInteger(ds) || !Number.isInteger(de) || ds < 0 || de > 24 || ds >= de) {
+      merged.dayStart = DAY_START; merged.dayEnd = DAY_END;
+    } else { merged.dayStart = ds; merged.dayEnd = de; }
+    if (typeof merged.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(merged.date) || Number.isNaN(Date.parse(merged.date))) {
+      merged.date = todayKey();
+    }
+    return merged;
   } catch { return fallback; }
 }
 function snapshot(state: State): Snapshot { return { date: state.date, days: state.days, dayStart: state.dayStart, dayEnd: state.dayEnd }; }
@@ -273,8 +284,17 @@ export default function App({ query = '' }: { query?: string }) {
   const scheduleTask = (taskId: string, start: number, duration: number, newTask?: Task) => {
     const actualStart = canPlace(board, taskId, start, duration) ? start : findFree(board, taskId, start, duration);
     if (actualStart == null) { setToast('No free space for that block'); return; }
-    const id = blocks.find(block => block.taskId === taskId)?.id || newId('block');
-    const block: Block = { id, taskId, start: timeAt(actualStart), end: timeAt(actualStart + duration), status: 'planned' };
+    const prev = blocks.find(block => block.taskId === taskId);
+    const id = prev?.id || newId('block');
+    /* rescheduling reuses the block — keep its done/skipped/missed stamp and
+       actual times instead of silently resetting the task to planned */
+    const block: Block = {
+      id, taskId,
+      start: timeAt(actualStart), end: timeAt(actualStart + duration),
+      status: prev?.status ?? 'planned',
+      actualStart: prev?.actualStart,
+      actualEnd: prev?.actualEnd,
+    };
     boardEdit(actualStart === start ? 'Task scheduled' : `Scheduled at ${formatTime(block.start)}, the next free time`, old => {
       if ((!old.tasks[taskId] && !newTask) || !canPlace(old, taskId, actualStart, duration)) return old;
       return {
@@ -412,6 +432,14 @@ export default function App({ query = '' }: { query?: string }) {
     </div>;
   };
   return <div className="it-place-boxed boxed-root">
+    <AtlasMasthead
+      compact
+      object="box"
+      place="boxed"
+      title="Daily Board"
+      sub="Capture everything, choose what matters, and give it a place in the day."
+      className="mx-4 mt-3 mb-2 shrink-0 sm:mx-[22px]"
+    />
     <header className="boxed-header">
       <div className="boxed-brand"><span className="boxed-mark"><span /><span /></span><div><div className="boxed-wordmark">BOXED</div><div className="boxed-subtitle">TIME BOXING &amp; BRAIN DUMP</div></div></div>
       <div className="boxed-header-center"><button aria-label="Previous day" onClick={() => changeDay(-1)}><ChevronLeft size={18} /></button><div><b className="boxed-full-date">{prettyDate(state.date)}</b><b className="boxed-short-date" title={prettyDate(state.date)}>{shortDate(state.date)}</b>{today && <span>Today</span>}</div><button aria-label="Next day" onClick={() => changeDay(1)}><ChevronRight size={18} /></button><input aria-label="Choose day" type="date" value={state.date} onChange={(event) => event.target.value && setState((old) => ({ ...old, date: event.target.value }))} /></div>

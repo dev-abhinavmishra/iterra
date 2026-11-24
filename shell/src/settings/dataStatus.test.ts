@@ -18,6 +18,29 @@ describe('describeDataStatus', () => {
     expect(status.detail).toMatch(/private tool data remains local to this browser/i);
   });
 
+  it('reports the different-identity pause with a recovery path', () => {
+    const status = describeDataStatus({ attached: false, enabled: true, pausedReason: 'identity-mismatch' }, true);
+    expect(status.label).toMatch(/paused for this identity/i);
+    expect(status.detail).toMatch(/browser profile that enabled sync/i);
+    expect(status.detail).toMatch(/no data was moved/i);
+    expect(status.tone).toBe('warn');
+  });
+
+  it('explains when Supabase auth setup prevents a session', () => {
+    const status = describeDataStatus({ attached: false, enabled: true, pausedReason: 'supabase-auth-unavailable' }, true);
+    expect(status.label).toMatch(/needs authentication setup/i);
+    expect(status.detail).toMatch(/check that anonymous sign-ins are enabled/i);
+    expect(status.detail).toMatch(/captcha protection/i);
+    expect(status.detail).toMatch(/records remain in this browser/i);
+    expect(status.tone).toBe('warn');
+  });
+
+  it('reports opt-in as off without implying remote connection', () => {
+    const status = describeDataStatus({ attached: false, enabled: false }, true);
+    expect(status.label).toBe('Shared data sync off');
+    expect(status.detail).toMatch(/stay in this browser/i);
+  });
+
   it('prioritizes offline state while disclosing queued changes', () => {
     const status = describeDataStatus({ attached: true, queued: 2, error: 'ignored', lastPull: 1 }, false);
     expect(status.label).toBe('Shared data sync offline');

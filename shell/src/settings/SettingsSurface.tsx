@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Moon, Settings2, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive, Inbox, AlertTriangle, Trash2 } from 'lucide-react';
+import { Moon, Sun, ChevronRight, Download, Upload, Sparkles, Eraser, HardDrive, Inbox, AlertTriangle, Trash2 } from 'lucide-react';
 import { PLACES } from '../places';
+import { AtlasMasthead } from '../mosaic/AtlasMasthead';
 import { Button, Dialog, SectionHeader } from '../ui/primitives';
 import { formatRelativeTime } from '../ui/ObjectRow';
 import { useWorkspaceTheme } from '../ui/theme';
 import { ACCENTS, type Accent } from '../ui/accent';
+import { WorkspaceAccount } from './WorkspaceAccount';
 import { DataCoverage } from './DataCoverage';
 import type { DataStatus } from './dataStatus';
 import {
@@ -56,15 +58,14 @@ export function SettingsSurface({ onGo, dataStatus, accent, onAccentChange }: {
 
   return (
     <div className="mx-auto max-w-[720px] px-6 py-8">
-      <div className="flex items-center gap-2.5">
-        <Settings2 className="h-5 w-5 text-[var(--color-accent)]" strokeWidth={1.8} />
-        <h1 className="text-[19px] font-semibold tracking-tight text-[var(--color-ink)]">
-          Settings
-        </h1>
-      </div>
-      <p className="mt-1 text-[13px] text-[var(--color-mute)]">
-        Make Iterra feel like yours, manage your backups, or adjust settings for a tool.
-      </p>
+      <AtlasMasthead
+        compact
+        object="none"
+        eyebrow="the Cellar"
+        title="Settings"
+        sub="Make Iterra feel like yours, manage your backups, or adjust settings for a tool."
+      />
+      <div className="mt-6" />
 
       {/* Terrain */}
       <section className="pt-6">
@@ -143,7 +144,9 @@ export function SettingsSurface({ onGo, dataStatus, accent, onAccentChange }: {
       <section className="pt-6">
         <SectionHeader title="Tool settings" />
         <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
-          {PLACES.map((p, i) => (
+          {/* only tools that actually own a settings view — Boxed has none,
+              so it stays out of this list rather than opening the app */}
+          {PLACES.filter((p) => SETTINGS_TARGET[p.id]).map((p, i) => (
             <button
               key={p.id}
               type="button"
@@ -223,6 +226,11 @@ function BackupSection({ dataStatus }: { dataStatus: DataStatus }) {
 
   const onRestore = async () => {
     if (!pending) return;
+    if (readSyncEnabled()) {
+      setPending(null);
+      setError('Turn off shared record sync before restoring a backup.');
+      return;
+    }
     setRestoring(true);
     try {
       await restoreBackup(pending);
@@ -250,6 +258,8 @@ function BackupSection({ dataStatus }: { dataStatus: DataStatus }) {
         </div>
         <DataCoverage />
       </div>
+      <WorkspaceAccount />
+      <SyncConsentControl />
       <div className="overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
         <button
           type="button"
@@ -294,19 +304,20 @@ function BackupSection({ dataStatus }: { dataStatus: DataStatus }) {
           e.target.value = '';
         }}
       />
-      {error && <p className="mt-2 text-[12px] text-[var(--color-bad)]">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-[12px] text-[var(--color-bad)]">{error}</p>}
 
       <Dialog
         open={!!pending}
         onClose={() => !restoring && setPending(null)}
         title="Restore this backup?"
+        descriptionId="restore-backup-warning"
         subtitle={
           summary
             ? `${new Date(summary.at).toLocaleString()} — ${summary.records} records across ${summary.dbs} databases, ${summary.lsKeys} settings keys`
             : undefined
         }
       >
-        <p className="text-[12.5px] leading-relaxed text-[var(--color-mute)]">
+        <p id="restore-backup-warning" className="text-[12.5px] leading-relaxed text-[var(--color-mute)]">
           Everything currently stored in this browser will be replaced by the
           backup's contents. This can't be undone — download a fresh backup
           first if there's anything recent you want to keep.
@@ -321,6 +332,91 @@ function BackupSection({ dataStatus }: { dataStatus: DataStatus }) {
         </div>
       </Dialog>
     </section>
+  );
+}
+
+const SYNC_ENABLED_KEY = 'iterra.v1.sync.enabled';
+
+function readSyncEnabled(): boolean {
+  try {
+    const status = window.iterra?.sync?.status?.();
+    return typeof status?.enabled === 'boolean'
+      ? status.enabled
+      : window.localStorage.getItem(SYNC_ENABLED_KEY) === '1';
+  } catch { return false; }
+}
+
+function SyncConsentControl() {
+  const [enabled, setEnabled] = useState(readSyncEnabled);
+  const [confirm, setConfirm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const refresh = () => setEnabled(readSyncEnabled());
+    const timer = window.setInterval(refresh, 1500);
+    window.addEventListener('iterra:sync-consent-changed', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('iterra:sync-consent-changed', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
+
+  const change = (next: boolean) => {
+    setError(null);
+    try {
+      const result = window.iterra?.sync?.setEnabled?.(next);
+      if (!result?.ok) {
+        setError(result?.error || 'Sync preference could not be saved in this browser.');
+        return false;
+      }
+      setEnabled(next);
+      return true;
+    } catch {
+      setError('Sync preference could not be saved in this browser.');
+      return false;
+    }
+  };
+
+  return (
+    <div className="mb-3 rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-4 py-3">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-[13px] font-semibold text-[var(--color-ink)]">Shared record sync</p>
+          <p className="mt-1 text-[12px] text-[var(--color-mute)]">
+            {enabled ? 'Enabled for this browser identity.' : 'Off by default. Your records stay in this browser.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          aria-label="Sync shared records"
+          onClick={() => enabled ? change(false) : setConfirm(true)}
+          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer ${enabled ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-line)]'}`}
+        >
+          <span className={`h-5 w-5 rounded-full bg-[var(--color-sheet)] shadow transition-transform ${enabled ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+        </button>
+      </div>
+      {error && <p role="alert" className="mt-2 text-[12px] text-[var(--color-bad)]">{error}</p>}
+      <Dialog
+        open={confirm}
+        onClose={() => setConfirm(false)}
+        title="Enable shared record sync?"
+        descriptionId="sync-consent-description"
+      >
+        <div id="sync-consent-description" className="space-y-2 text-[12.5px] leading-relaxed text-[var(--color-mute)]">
+          <p>Enabling sync may upload existing canonical shared records from this browser and future changes. These records can include titles, course links, and study metadata.</p>
+          <p>Private tool databases, including full Margin notes and flashcard contents, stay in this browser. Sync uses your current workspace identity. To use shared records on another device, link an email in Workspace account.</p>
+          <p>Turning sync off stops future transfers. It does not remove copies already stored remotely.</p>
+        </div>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button onClick={() => setConfirm(false)}>Keep off</Button>
+          <Button variant="primary" onClick={() => { if (change(true)) setConfirm(false); }}>Enable sync</Button>
+        </div>
+      </Dialog>
+    </div>
   );
 }
 

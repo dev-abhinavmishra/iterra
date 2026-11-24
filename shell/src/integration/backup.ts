@@ -196,11 +196,16 @@ export async function collectBackup(): Promise<IterraBackup> {
   throw new Error('Native data kept changing while the backup was created. Try again when edits are finished.');
 }
 
+// Sessions and sync ownership belong to this browser, including when importing older exports.
+const browserAccountKey = (key: string) =>
+  /^sb-.+-auth-token(?:$|-)/.test(key) || key.startsWith('iterra.v1.sync.');
+
 async function captureBackupSnapshot(): Promise<IterraBackup> {
   const ls: Record<string, string> = {};
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key == null) throw new Error('Could not read browser storage.');
+    if (browserAccountKey(key)) continue;
     const value = localStorage.getItem(key);
     if (value == null) throw new Error('Browser storage changed while creating the backup.');
     ls[key] = value;
@@ -291,7 +296,9 @@ export function parseBackup(raw: string): IterraBackup {
       }
     }
   }
-  return { ...b, idb: b.idb ?? {} } as unknown as IterraBackup;
+  const portableStorage = Object.fromEntries(Object.entries(b.localStorage as Record<string, string>)
+    .filter(([key]) => !browserAccountKey(key)));
+  return { ...b, localStorage: portableStorage, idb: b.idb ?? {} } as unknown as IterraBackup;
 }
 
 export function summarizeBackup(b: IterraBackup): BackupSummary {
@@ -348,7 +355,11 @@ const restoreDb = async (name: string, dump: BackupDb): Promise<void> => {
 };
 
 const clearOwnedDb = async (name: string): Promise<void> => {
-  const db = await openExistingDatabase(name);
+  // A missing database is safe to skip, but an unreadable one is not: restore
+  // must not claim success while stale user data remains in a database it
+  // could not clear. `openBackupDb` distinguishes those cases and rejects on
+  // real open/blocked errors.
+  const db = await openBackupDb(name);
   if (!db) return;
   try {
     const names = Array.from(db.objectStoreNames);
@@ -395,6 +406,7 @@ export async function restoreBackup(input: IterraBackup): Promise<BackupSummary>
   // Validate even direct callers before changing any existing data.
   const b = parseBackup(JSON.stringify(input));
   if (typeof indexedDB === 'undefined' && Object.keys(b.idb).length) throw new Error('IndexedDB is unavailable.');
+  if (localStorage.getItem('iterra.v1.sync.enabled') === '1') throw new Error('Turn off shared record sync before restoring a backup.');
   const previous = await collectBackup();
   try {
     await applyBackupContents(b);
@@ -409,7 +421,11 @@ export async function restoreBackup(input: IterraBackup): Promise<BackupSummary>
 }
 
 async function applyBackupContents(b: IterraBackup): Promise<void> {
-  localStorage.clear();
+  // Preserve the destination session and owner binding. Drop old outbound retries.
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i);
+    if (key && (!browserAccountKey(key) || key === 'iterra.v1.sync.out')) localStorage.removeItem(key);
+  }
   for (const [k, v] of Object.entries(b.localStorage)) localStorage.setItem(k, v);
   if (typeof indexedDB === 'undefined') return;
 

@@ -9,6 +9,7 @@ import { CalendarView } from './views/CalendarView';
 import { CourseView } from './views/CourseView';
 import { ReviewView } from './views/ReviewView';
 import { SettingsView } from './views/SettingsView';
+import { GradesView } from './views/GradesView';
 import { CommitmentDrawer } from './components/CommitmentDrawer';
 import { ImportSheet } from './components/ImportSheet';
 import { parseImportPayload, type ImportPayload } from './lib/import';
@@ -17,6 +18,7 @@ import { HelpOverlay } from './components/HelpOverlay';
 import { todayISO, stampDate, dowName, modalOpen } from './lib/utils';
 import { placeActive } from '../active';
 import { NativePersistenceNotice } from '../../integration/NativePersistenceNotice';
+import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 import './index.css';
 
 export interface RouteState {
@@ -122,7 +124,7 @@ export default function App({ query = '' }: { query?: string }) {
       const rest = q.toString();
       window.location.hash = h.slice(0, h.indexOf('?')) + (rest ? '?' + rest : '');
     }
-    if (['today', 'semester', 'calendar', 'review'].includes(p)) {
+    if (['today', 'semester', 'grades', 'calendar', 'review'].includes(p)) {
       setRoute({ view: p as ViewKey });
     } else {
       /* dead p consumed above — say what it meant instead of re-firing
@@ -226,6 +228,9 @@ export default function App({ query = '' }: { query?: string }) {
         case 'e':
           goView('semester');
           break;
+        case 'g':
+          goView('grades');
+          break;
         case 'c':
           goView('calendar');
           break;
@@ -281,6 +286,16 @@ export default function App({ query = '' }: { query?: string }) {
       {/* folio page */}
       <div className="syllabus-page flex-1 min-w-0 flex flex-col px-3 py-3 sm:px-5">
         <NativePersistenceNotice storeKey="syllabus.folio.v1" onRetryHydration={() => useFolio.persist.rehydrate()} />
+        {/* painted cartouche — sits on the desk above the folio sheet,
+            which keeps its own tabs/date-stamp header below */}
+        <AtlasMasthead
+          compact
+          object="ledger"
+          place="syllabus"
+          title="Planning"
+          sub="Course schedule, commitments, and prioritized daily work blocks."
+          className="mb-3 shrink-0"
+        />
         <div className="sheet flex-1 min-h-0 flex flex-col animate-[sheet-in_0.34s_cubic-bezier(0.2,0.8,0.3,1)_both]">
           {/* folio header: divider tabs + the day's date stamp */}
           <header className="no-print flex items-end justify-between gap-3 px-4 pt-2.5 border-b border-[color:var(--color-rule)]">
@@ -303,6 +318,7 @@ export default function App({ query = '' }: { query?: string }) {
           <main className="flex-1 min-h-0 overflow-y-auto">
             {route.view === 'today' && <TodayView onInspect={inspect} today={today} />}
             {route.view === 'semester' && <SemesterView onOpenCourse={openCourse} onInspect={inspect} />}
+            {route.view === 'grades' && <GradesView onOpenCourse={openCourse} onInspect={inspect} />}
             {route.view === 'calendar' && <CalendarView onInspect={inspect} today={today} />}
             {route.view === 'review' && <ReviewView today={today} />}
             {route.view === 'settings' && <SettingsView />}

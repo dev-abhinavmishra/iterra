@@ -758,3 +758,209 @@
   --color-desk-edge: #8e8670;
   --desk-rgb: 179 171 147;
 }
+
+/* ── Cross-course grade ledger ─────────────────────────────────── */
+.it-place-syllabus .gradebook-course {
+  overflow: hidden;
+  border: 1px solid var(--color-rule-dark);
+  border-radius: 4px;
+  background: var(--color-slip);
+  box-shadow: var(--shadow-slip);
+}
+.it-place-syllabus .gradebook-course-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-inline-start: 4px solid var(--color-rule-dark);
+  border-bottom: 1px solid var(--color-rule);
+}
+.it-place-syllabus .gradebook-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  letter-spacing: 0.05em;
+  padding: 7px 10px;
+}
+.it-place-syllabus .gradebook-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+}
+.it-place-syllabus .gradebook-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 11px 12px;
+  background: var(--color-stock);
+}
+.it-place-syllabus .gradebook-metric .kicker {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+.it-place-syllabus .gradebook-metric-value {
+  overflow-wrap: anywhere;
+  font-family: var(--font-slab);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-ink);
+}
+.it-place-syllabus .gradebook-metric-detail {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--color-ink-faint);
+}
+.it-place-syllabus .gradebook-target-note {
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-rule);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+}
+.it-place-syllabus .gradebook-target-note strong {
+  font-family: var(--font-mono);
+  color: var(--color-ink);
+}
+.it-place-syllabus .gradebook-list-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px 7px;
+}
+.it-place-syllabus .gradebook-entries {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 8px;
+}
+.it-place-syllabus .gradebook-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content max-content max-content;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-rule);
+}
+.it-place-syllabus .gradebook-record-link {
+  max-width: 100%;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-ink);
+  font-family: var(--font-slab);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+}
+.it-place-syllabus .gradebook-record-link:hover {
+  text-decoration-color: currentColor;
+}
+.it-place-syllabus .gradebook-record-link:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.it-place-syllabus .gradebook-record-meta {
+  margin: 3px 0 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+.it-place-syllabus .gradebook-record-state {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--color-ink-soft);
+}
+.it-place-syllabus .gradebook-record-state--scored {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+.it-place-syllabus .gradebook-record-state--invalid {
+  color: var(--color-late);
+  font-weight: 700;
+}
+.it-place-syllabus .gradebook-record-score,
+.it-place-syllabus .gradebook-record-weight {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-ink-soft);
+  white-space: nowrap;
+}
+.it-place-syllabus .gradebook-record-weight {
+  color: var(--color-ink-faint);
+}
+.it-place-syllabus .gradebook-footnote,
+.it-place-syllabus .gradebook-empty-records {
+  margin: 0;
+  padding: 9px 14px 12px;
+  border-top: 1px solid var(--color-rule);
+  font-size: 11px;
+  color: var(--color-ink-faint);
+}
+.it-place-syllabus .gradebook-empty {
+  padding: 18px;
+  border: 1px dashed var(--color-rule-dark);
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-ink-soft);
+}
+
+@media (max-width: 640px) {
+  .it-place-syllabus .gradebook-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .it-place-syllabus .gradebook-course-head {
+    align-items: flex-start;
+    padding: 12px;
+  }
+  .it-place-syllabus .gradebook-entry {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: 5px 10px;
+  }
+  .it-place-syllabus .gradebook-entry > :first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .it-place-syllabus .gradebook-record-score {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+  .it-place-syllabus .gradebook-record-state {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .it-place-syllabus .gradebook-record-weight {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: right;
+  }
+}
+
+@media (max-width: 380px) {
+  .it-place-syllabus .gradebook-course-head {
+    flex-wrap: wrap;
+  }
+  .it-place-syllabus .gradebook-open {
+    width: 100%;
+  }
+  .it-place-syllabus .gradebook-metric {
+    padding: 9px 10px;
+  }
+}

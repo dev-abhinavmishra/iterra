@@ -237,7 +237,8 @@ export async function handleCreateDeckFromSelection(
   // Read Flashcards authoritative store (`cardfile.decks.v1`)
   let decksMap: Record<string, any> = {};
   try {
-    decksMap = JSON.parse(localStorage.getItem('cardfile.decks.v1') || '{}') || {};
+    const parsed = JSON.parse(localStorage.getItem('cardfile.decks.v1') || '{}');
+    decksMap = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
   } catch {
     decksMap = {};
   }
@@ -292,8 +293,16 @@ export async function handleCreateDeckFromSelection(
     createdCards.push(card);
   }
 
-  localStorage.setItem('cardfile.decks.v1', JSON.stringify(decksMap));
-  localStorage.setItem('cardfile.lastDeck', deck.id);
+  try {
+    localStorage.setItem('cardfile.decks.v1', JSON.stringify(decksMap));
+    localStorage.setItem('cardfile.lastDeck', deck.id);
+  } catch {
+    return {
+      ok: false,
+      commandId: '',
+      error: 'The deck was built but could not be saved to browser storage (quota or privacy mode).',
+    };
+  }
 
   // Update in-memory Flashcards state if mounted
   const fcApp = (window as any).__fcApp;
@@ -1507,7 +1516,8 @@ async function recordSessionOutcome(
   //    otherwise count as banked focus time.
   let sessions: any[] = [];
   try {
-    sessions = JSON.parse(localStorage.getItem('timer.sessions.v1') || '[]') || [];
+    const parsed = JSON.parse(localStorage.getItem('timer.sessions.v1') || '[]');
+    sessions = Array.isArray(parsed) ? parsed : [];
   } catch {
     sessions = [];
   }

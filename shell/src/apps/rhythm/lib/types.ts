@@ -216,7 +216,7 @@ export interface CourseRef {
 
 export interface AppSettings {
   weekStartsOn: 0 | 1; // Sunday or Monday
-  motion: 'full' | 'reduced';
+  motion: 'system' | 'full' | 'reduced';
   // Suite base URLs — used to render "where to connect" links in Connections.
   timerBaseUrl: string;
   inkBaseUrl: string;

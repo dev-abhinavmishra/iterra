@@ -904,7 +904,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                     onClick={() =>
                       (window as any).iterra?.open?.(
                         boxedTarget ? boxedFocusUrl(boxedTarget) : syllabus.from === 'terrain'
-                          ? (syllabus.course ? `#/c/${encodeURIComponent(syllabus.course)}` : '#/')
+                          ? (syllabus.course ? `#/c/${encodeURIComponent(syllabus.course)}` : '#/today')
                           : `/apps/${syllabus.from}/`,
                       )
                     }
@@ -1323,7 +1323,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
                       Continue
                     </KeyButton>
                     {!boxedTarget && completionSave?.state === 'saved' && thenBreak === 0 && (
-                      <KeyButton className="px-6 py-4 text-sm" onClick={() => { resetTimer(); openTerrain('#/'); }}>
+                      <KeyButton className="px-6 py-4 text-sm" onClick={() => { resetTimer(); openTerrain('#/today'); }}>
                         Back to Today
                       </KeyButton>
                     )}

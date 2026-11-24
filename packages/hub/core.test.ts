@@ -79,7 +79,7 @@ describe('canonical store (localStorage fallback)', () => {
     expect(r.entity.key).toBe('syllabus:course:c-1');
     const got = await T().store.get('syllabus:course:c-1');
     expect(got.title).toBe('Calculus');
-    expect(got.v).toBe(1);
+    expect(got.v).toBe(2); // current iterra.core schema version
   });
 
   it('preserves createdAt on re-put, bumps updatedAt', async () => {
@@ -178,6 +178,48 @@ describe('canonical store (localStorage fallback)', () => {
     (handlers as any).dispatchEvent({ type: 'message', data: { type: 'iterra:wake' } });
     await new Promise((r2) => setTimeout(r2, 10));
     expect(woke).toBe(true);
+  });
+});
+
+describe('sync consent and adapter lifecycle', () => {
+  beforeEach(() => { H = freshHub(); });
+
+  it('is opt-in by default and sign-out detach preserves the retry backlog for the same identity', async () => {
+    expect(T().sync.status().enabled).toBe(false);
+    expect(T().sync.status().attached).toBe(false);
+    expect(T().sync.setEnabled(true)).toMatchObject({ ok: true, enabled: true });
+    let down = true;
+    const adapter = {
+      name: 'owner-one',
+      pull: async () => [],
+      put: async () => { if (down) throw new Error('offline'); },
+    };
+    await T().sync.attach(adapter);
+    await T().store.put({ app: 'margin', type: 'note', id: 'queued-across-signout', title: 'local' });
+    await new Promise((r) => setTimeout(r, 15));
+    expect(T().sync.status().queued).toBe(1);
+
+    T().sync.detach('signed-out');
+    expect(T().sync.status()).toMatchObject({ attached: false, enabled: true, pausedReason: 'signed-out' });
+    down = false;
+    await T().sync.attach(adapter);
+    await new Promise((r) => setTimeout(r, 10));
+    expect(T().sync.status().queued).toBe(0);
+  });
+
+  it('does not merge a pull response after its adapter generation is detached', async () => {
+    let resolvePull: ((rows: any[]) => void) | null = null;
+    const pull = new Promise<any[]>((resolve) => { resolvePull = resolve; });
+    const attaching = T().sync.attach({
+      name: 'signout-race',
+      pull: () => pull,
+      put: async () => {},
+    });
+    T().sync.detach('signed-out');
+    resolvePull?.([{ key: 'margin:note:leaked', app: 'margin', type: 'note', id: 'leaked', title: 'should not merge', updatedAt: 5 }]);
+    await attaching;
+    expect(await T().store.get('margin:note:leaked')).toBeFalsy();
+    expect(T().sync.status().attached).toBe(false);
   });
 });
 
@@ -327,6 +369,85 @@ describe('sync attach — per-key merge + persisted checkpoint', () => {
     await new Promise((r2) => setTimeout(r2, 20));
     expect((await T().store.get('margin:note:n2'))?.title).toBe('zzz-remote');
     expect(pushed.length).toBe(0);
+  });
+
+  it('a delayed equal-stamp lower RPC write is repaired by the next full pull', async () => {
+    const put = await T().store.put({ app: 'margin', type: 'note', id: 'tie-repair', title: 'zzz-canonical' });
+    const key = 'margin:note:tie-repair';
+    const lower = remoteEntity(key, put.entity.updatedAt, 'aaa-lower', { createdAt: put.entity.createdAt });
+    let remote = lower;
+    const writes: string[] = [];
+    let resolveFirstPush: (() => void) | null = null;
+    let resolveRepair: (() => void) | null = null;
+    const firstPush = new Promise<void>((resolve) => { resolveFirstPush = resolve; });
+    const repaired = new Promise<void>((resolve) => { resolveRepair = resolve; });
+    const adapter = {
+      name: 'tie-repair',
+      /* Model a full reconciliation scan: every pull returns the current row,
+         independent of its timestamp/checkpoint. */
+      pull: async () => [remote],
+      /* Mirrors the SQL RPC's equal-time write predicate: equal stamps are
+         accepted, so a request already in flight may land after the canonical
+         winner and temporarily put the lower body back on the server. */
+      put: async (entity: any) => {
+        writes.push(entity.title);
+        if (entity.updatedAt >= remote.updatedAt) remote = { ...entity };
+        if (entity.title === 'zzz-canonical' && writes.filter((title) => title === 'zzz-canonical').length === 1) resolveFirstPush?.();
+        if (entity.title === 'zzz-canonical' && writes.filter((title) => title === 'zzz-canonical').length >= 2) resolveRepair?.();
+        return { status: 'applied' };
+      },
+    };
+    await T().sync.attach(adapter, { pollMs: 10 });
+    // Initial pull identifies the local canonical max and asynchronously
+    // pushes it. Wait for that request before the older client request.
+    await firstPush;
+    expect(remote.title).toBe('zzz-canonical');
+
+    // A delayed equal-stamp transaction from another replica commits later.
+    remote = { ...lower };
+    expect(remote.title).toBe('aaa-lower');
+
+    // The full poll sees the regression, reapplies the same deterministic tie
+    // break, and pushes the canonical maximum back to the remote adapter.
+    await repaired;
+    expect((await T().store.get(key))?.title).toBe('zzz-canonical');
+    expect(remote.title).toBe('zzz-canonical');
+    expect(writes.filter((title) => title === 'zzz-canonical').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('an equal-stamp remote tombstone wins over a live row without echoing a delete', async () => {
+    const put = await T().store.put({ app: 'margin', type: 'note', id: 'tie-delete', title: 'live' });
+    const removes: Array<[string, number?]> = [];
+    await T().sync.attach({
+      name: 'tie-delete',
+      pull: async () => [{ key: 'margin:note:tie-delete', __deleted: true, deletedAt: put.entity.updatedAt }],
+      put: async () => ({ status: 'applied' }),
+      remove: async (key: string, at?: number) => { removes.push([key, at]); return { status: 'applied' }; },
+    });
+    expect(await T().store.get('margin:note:tie-delete')).toBeFalsy();
+    expect(removes).toEqual([]);
+  });
+
+  it('a stale RPC response carrying an equal-stamp tombstone reconciles immediately', async () => {
+    let attempted: any = null;
+    const removes: string[] = [];
+    await T().sync.attach({
+      name: 'rpc-tombstone-tie',
+      pull: async () => [],
+      put: async (entity: any) => {
+        attempted = entity;
+        return {
+          status: 'stale',
+          remote: { key: entity.key, __deleted: true, deletedAt: entity.updatedAt, updatedAt: entity.updatedAt },
+        };
+      },
+      remove: async (key: string) => { removes.push(key); return { status: 'applied' }; },
+    });
+    await T().store.put({ app: 'margin', type: 'note', id: 'rpc-delete-tie', title: 'local live' });
+    await new Promise((r) => setTimeout(r, 20));
+    expect(attempted?.key).toBe('margin:note:rpc-delete-tie');
+    expect(await T().store.get('margin:note:rpc-delete-tie')).toBeFalsy();
+    expect(removes).toEqual([]); // applying the RPC winner must not echo a remove
   });
 
   it('a remote tombstone removes the local copy — and does not echo a delete', async () => {

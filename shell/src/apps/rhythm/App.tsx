@@ -5,6 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRegister } from './store';
+import { useMotionEnabled } from './lib/motionPreference';
 import { fmtDayFull, todayISO } from './lib/dates';
 import { APP_DISPLAY } from './lib/links';
 import { cx } from './lib/utils';
@@ -17,6 +18,7 @@ import { ConnectionsView } from './views/ConnectionsView';
 import { SettingsView } from './views/SettingsView';
 import { Onboarding } from './views/Onboarding';
 import { isIntegrated } from '../theme';
+import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 import './lib/iterra';
 import './index.css';
 
@@ -51,6 +53,7 @@ function Rhythm({ query = '' }: { query?: string }) {
   const onboardingSeen = useRegister((s) => s.onboardingSeen);
   const markOnboardingSeen = useRegister((s) => s.markOnboardingSeen);
   const motion = useRegister((s) => s.settings.motion);
+  const motionEnabled = useMotionEnabled(motion);
   const receipt = useRegister((s) => s.receipt);
   const focusedExperimentId = useRegister((s) => s.focusedExperimentId);
   const dismissReceipt = useRegister((s) => s.dismissReceipt);
@@ -167,7 +170,7 @@ function Rhythm({ query = '' }: { query?: string }) {
   };
 
   return (
-    <ChassisShell view={view} setView={goTab} motion={motion}>
+    <ChassisShell view={view} setView={goTab} motionEnabled={motionEnabled}>
       {view === 'today' && <TodayView openRoutine={openRoutine} />}
       {view === 'heatmap' && <HeatmapView openRoutine={openRoutine} />}
       {view === 'review' && <ReviewView openRoutine={openRoutine} />}
@@ -188,16 +191,30 @@ function ChassisShell({
   setView,
   children,
   bare,
-  motion = 'full',
+  motionEnabled = true,
 }: {
   view: View;
   setView: (v: View) => void;
   children: React.ReactNode;
   bare?: boolean;
-  motion?: 'full' | 'reduced';
+  motionEnabled?: boolean;
 }) {
   return (
     <div className="flex min-h-full flex-col">
+      {/* the artwork cartouche — hidden on the bare onboarding chassis */}
+      {!bare && (
+        <div className="mx-auto w-full max-w-4xl px-4 pt-4 sm:px-6">
+          <AtlasMasthead
+            compact
+            object="wave"
+            place="rhythm"
+            title="Attendance"
+            sub="Weekly routines, attendance logs, and study consistency."
+            className="mb-3"
+          />
+        </div>
+      )}
+
       {/* the unit's top edge */}
       <header className="no-print shrink-0 px-4 pt-4 sm:px-6">
         <div className="mx-auto flex max-w-4xl flex-wrap items-end justify-between gap-x-6 gap-y-2">
@@ -213,7 +230,7 @@ function ChassisShell({
           {!bare && (
             <div className="flex items-center gap-3">
               <span className="mono flex items-center gap-1.5 text-[9px] uppercase tracking-[0.2em]" style={{ color: 'var(--color-ink-faint)' }}>
-                <span className={cx('led', motion === 'full' && 'led--tick')} aria-hidden="true" />
+                <span className={cx('led', motionEnabled && 'led--tick')} aria-hidden="true" />
                 run
               </span>
               <span className="lcd px-2.5 py-1 text-[10.5px] uppercase tracking-[0.16em]">

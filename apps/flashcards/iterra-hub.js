@@ -684,6 +684,11 @@
             var g = s.get(e.key);
             var outcome = { ok: true };
             g.onsuccess = function () {
+              if (opts.guard && !opts.guard()) {
+                outcome = { ok: false, superseded: true };
+                try { t.abort(); } catch (x) {}
+                return;
+              }
               var cur = g.result || null;
               var base = opts.base || null;
               if ((cur ? canonEntity(cur) : 'null') !== (base ? canonEntity(base) : 'null')) {
@@ -707,6 +712,7 @@
       }
       var b = lsRead('entities');
       var cur = b[e.key] || null;
+      if (opts && opts.guard && !opts.guard()) return { ok: false, superseded: true };
       if (opts && opts.base !== undefined) {
         var base = opts.base || null;
         if ((cur ? canonEntity(cur) : 'null') !== (base ? canonEntity(base) : 'null')) {
@@ -725,6 +731,7 @@
       return { ok: true };
     }).then(function (r) {
       if (r && r.raced) return r; // CAS miss — no notify, no push; caller re-resolves
+      if (r && r.superseded) return r;
       /* propagate failures verbatim — mapping a non-raced {ok:false} to a
          success-shaped result would fire _notify/syncPush for a write that
          never committed */
@@ -792,6 +799,7 @@
   }
 
   function storeRemove(key, opts) {
+    var deletedAt = opts && typeof opts.deletedAt === 'number' ? opts.deletedAt : Date.now();
     return openDB().then(function (d) {
       if (d) {
         if (opts && opts.base !== undefined) {
@@ -803,6 +811,11 @@
             var g = s.get(key);
             var outcome = { ok: true };
             g.onsuccess = function () {
+              if (opts.guard && !opts.guard()) {
+                outcome = { ok: false, superseded: true };
+                try { t.abort(); } catch (x) {}
+                return;
+              }
               var cur = g.result || null;
               var base = opts.base || null;
               if ((cur ? canonEntity(cur) : 'null') !== (base ? canonEntity(base) : 'null')) {
@@ -821,6 +834,7 @@
         return idbTx(d, 'entities', 'readwrite', function (s) { s.delete(key); }).then(function () { return { ok: true }; });
       }
       var b = lsRead('entities');
+      if (opts && opts.guard && !opts.guard()) return { ok: false, superseded: true };
       if (opts && opts.base !== undefined) {
         var cur = b[key] || null;
         var base = opts.base || null;
@@ -833,9 +847,10 @@
       return { ok: true };
     }).then(function (r) {
       if (r && r.raced) return r;
+      if (r && r.superseded) return r;
       if (r && r.ok === false) return r; // never map a failure to a committed remove
       _notify('entity', { op: 'remove', key: key });
-      syncPushRemove(key);
+      syncPushRemove(key, deletedAt);
       /* cascade: links whose either endpoint is the removed key dangle —
          dossiers would resolve them to fabricated ghosts. Sweep both
          lanes; a link-table hiccup must never fail the entity remove. */
@@ -1674,7 +1689,8 @@
      Rows may instead carry { key, __deleted: true, deletedAt?, updatedAt? }
      tombstones — a remote delete is merged as a local remove (a newer local
      edit wins and is pushed back out to resurrect the remote row). */
-  var _sync = { adapter: null, attachedAt: 0, lastPull: 0, error: null, merging: {}, pulling: false, pullTimer: null, out: [] };
+  var _sync = { adapter: null, attachedAt: 0, lastPull: 0, error: null, pausedReason: null, providerAvailable: null,
+    merging: {}, pulling: false, pullingGeneration: 0, pullTimer: null, generation: 0, out: [], outSequence: 0 };
 
   /* A bound adapter re-pulls on this interval — remote edits from OTHER
      devices only arrive via pull, so without it the mirror is stale between
@@ -1695,6 +1711,38 @@
      v2: the stamp domain changed (adapter watermark, not local pull-start),
      so the key bumped — first attach re-pulls everything once (idempotent). */
   var SYNC_CK_KEY = 'iterra.v2.sync.ck';
+  var SYNC_ENABLED_KEY = 'iterra.v1.sync.enabled';
+  function syncEnabledRead() {
+    try { return localStorage.getItem(SYNC_ENABLED_KEY) === '1'; } catch (e) { return false; }
+  }
+  function syncSetEnabled(enabled) {
+    try { localStorage.setItem(SYNC_ENABLED_KEY, enabled ? '1' : '0'); }
+    catch (e) { return { ok: false, error: 'Could not save the sync preference in this browser.' }; }
+    if (!enabled) syncDetach('disabled');
+    try { window.dispatchEvent(new CustomEvent('iterra:sync-consent-changed', { detail: { enabled: !!enabled } })); } catch (e) {}
+    return { ok: true, enabled: !!enabled };
+  }
+  function syncSetProviderAvailable(available) {
+    _sync.providerAvailable = !!available;
+  }
+  function syncSetPausedReason(reason) {
+    _sync.pausedReason = reason ? String(reason) : null;
+  }
+  function syncDetach(reason) {
+    var name = _sync.adapter && (_sync.adapter.name || 'sync');
+    if (name) syncOutWrite(name, _sync.out);
+    if (_sync.pullTimer) { clearInterval(_sync.pullTimer); _sync.pullTimer = null; }
+    _sync.generation++;
+    _sync.adapter = null;
+    _sync.attachedAt = 0;
+    _sync.error = null;
+    _sync.pausedReason = reason || null;
+    _sync.merging = {};
+    _sync.pulling = false;
+    _sync.pullingGeneration = _sync.generation;
+    _sync.out = [];
+    return { ok: true, detached: true, reason: _sync.pausedReason };
+  }
   function syncCkRead(name) {
     try {
       var d = JSON.parse(localStorage.getItem(SYNC_CK_KEY) || '{}') || {};
@@ -1728,7 +1776,10 @@
       if (!Array.isArray(v)) return [];
       return v.filter(function (q) {
         return q && typeof q.key === 'string' && (q.op === 'put' || q.op === 'remove');
-      }).slice(-SYNC_OUT_MAX);
+      }).slice(-SYNC_OUT_MAX).map(function (q) {
+        return { op: q.op, key: q.key, at: typeof q.at === 'number' ? q.at : undefined,
+          id: typeof q.id === 'string' ? q.id : syncOutId() };
+      });
     } catch (e) { return []; }
   }
   function syncOutWrite(name, ops) {
@@ -1739,27 +1790,53 @@
     } catch (e) {}
   }
   function syncOutName() { var a = _sync.adapter; return (a && a.name) || 'sync'; }
-  function syncOutEnqueue(op, key, at) {
-    _sync.out = _sync.out.filter(function (q) { return q.key !== key; });
-    var e = { op: op, key: key };
+  function syncOutId() { return Date.now().toString(36) + '-' + (++_sync.outSequence).toString(36) + '-' + Math.random().toString(36).slice(2, 8); }
+  function syncOutEnqueueFor(name, op, key, at) {
+    var activeName = _sync.adapter && (_sync.adapter.name || 'sync');
+    var list = activeName === name ? _sync.out : syncOutRead(name);
+    list = list.filter(function (q) { return q.key !== key; });
+    var e = { op: op, key: key, id: syncOutId() };
     /* 'remove' entries carry the delete's own clock: a live key only cancels
        the remove when its stamp is NEWER than the delete — a copy the sync
        itself resurrected (stamp ≤ delete time) must not cancel it, or a
        failed remote delete quietly un-deletes. */
     if (typeof at === 'number') e.at = at;
-    _sync.out.push(e);
-    if (_sync.out.length > SYNC_OUT_MAX) _sync.out.shift();
-    syncOutWrite(syncOutName(), _sync.out);
+    list.push(e);
+    if (list.length > SYNC_OUT_MAX) list.shift();
+    syncOutWrite(name, list);
+    if (activeName === name) _sync.out = list;
+    return e.id;
   }
+  function syncOutEnqueue(op, key, at) { return syncOutEnqueueFor(syncOutName(), op, key, at); }
   /* A successful adapter op for a key discharges anything still owed for it —
      the remote just got the newer truth. */
-  function syncOutDrop(key) {
-    if (!_sync.out.length) return;
-    var next = _sync.out.filter(function (q) { return q.key !== key; });
-    if (next.length !== _sync.out.length) {
-      _sync.out = next;
-      syncOutWrite(syncOutName(), _sync.out);
+  function syncOutDropFor(name, key, id) {
+    var activeName = _sync.adapter && (_sync.adapter.name || 'sync');
+    var list = activeName === name ? _sync.out : syncOutRead(name);
+    var next = list.filter(function (q) { return q.key !== key || (id && q.id !== id); });
+    if (next.length !== list.length) {
+      syncOutWrite(name, next);
+      if (activeName === name) _sync.out = next;
     }
+  }
+  function syncOutDrop(key, id) { syncOutDropFor(syncOutName(), key, id); }
+  function syncIsCurrent(adapter, generation) {
+    return generation === _sync.generation && adapter === _sync.adapter;
+  }
+  function syncResolveAdapterResult(adapter, key, result, generation, queueName, queued) {
+    if (!syncIsCurrent(adapter, generation)) return Promise.resolve(result);
+    if (!result || result.status !== 'stale') return Promise.resolve(result);
+    if (!result.remote || typeof result.remote !== 'object') {
+      return Promise.reject(new Error('Sync adapter reported a stale write without returning the winning remote row.'));
+    }
+    if (queued) syncOutDropFor(queueName, key, queued.id);
+    return syncMergeAll(adapter, [result.remote], generation).then(function (failures) {
+      if (failures) {
+        if (queued) syncOutEnqueueFor(queueName, queued.op, key, queued.at);
+        throw new Error('Could not merge the newer remote row after a stale sync write.');
+      }
+      return result;
+    });
   }
   /* Retry every owed op, in order, against CURRENT local state:
      - 'put' re-reads the entity — deleted or merged-away keys drop out
@@ -1773,42 +1850,55 @@
   function syncOutDrain() {
     var a = _sync.adapter;
     if (!a || !_sync.out.length) return Promise.resolve();
+    var generation = _sync.generation;
+    var name = a.name || 'sync';
     var batch = _sync.out.slice();
-    _sync.out = [];
-    var failed = [];
     var chain = Promise.resolve();
     batch.forEach(function (q) {
       chain = chain.then(function () {
+        if (!syncIsCurrent(a, generation)) return;
+        var current = _sync.out.filter(function (entry) { return entry.key === q.key; })[0];
+        if (!current || current.id !== q.id) return;
         var attempt = storeGet(q.key).then(function (ent) {
+          if (!syncIsCurrent(a, generation)) return;
           if (q.op === 'remove') {
-            if (ent && (ent.updatedAt || 0) > (q.at || 0)) return a.put(ent);
-            var remote = (typeof a.remove === 'function') ? a.remove(q.key) : undefined;
-            if (!ent) return remote;
+            if (ent && (ent.updatedAt || 0) > (q.at || 0)) {
+              return Promise.resolve(a.put(ent)).then(function (result) {
+                return syncResolveAdapterResult(a, q.key, result, generation, name, q);
+              }).then(function () { syncOutDropFor(name, q.key, q.id); });
+            }
+            if (typeof a.remove !== 'function') {
+              syncOutDropFor(name, q.key, q.id);
+              return;
+            }
+            var remote = a.remove(q.key, q.at || Date.now());
+            if (!ent) {
+              return Promise.resolve(remote).then(function (result) {
+                return syncResolveAdapterResult(a, q.key, result, generation, name, q);
+              }).then(function () { syncOutDropFor(name, q.key, q.id); });
+            }
             /* sync-resurrected copy — re-apply the delete locally once the
                remote remove lands. storeRemove→syncPushRemove issues the
                remote remove again (idempotent) and keeps books clean. */
-            return Promise.resolve(remote).then(function () { return storeRemove(q.key); });
+            return Promise.resolve(remote).then(function (result) {
+              return syncResolveAdapterResult(a, q.key, result, generation, name, q).then(function (resolved) {
+                if (resolved && resolved.status === 'stale') return;
+                return storeRemove(q.key, { deletedAt: q.at || Date.now() });
+              });
+            }).then(function () { syncOutDropFor(name, q.key, q.id); });
           }
-          return ent ? a.put(ent) : undefined;
+          if (!ent) { syncOutDropFor(name, q.key, q.id); return; }
+          return Promise.resolve(a.put(ent)).then(function (result) {
+            return syncResolveAdapterResult(a, q.key, result, generation, name, q);
+          }).then(function () { syncOutDropFor(name, q.key, q.id); });
         });
         return Promise.resolve(attempt).catch(function (e) {
-          _sync.error = String(e && e.message || e);
-          failed.push(q);
+          if (syncIsCurrent(a, generation)) _sync.error = String(e && e.message || e);
+          if (!syncIsCurrent(a, generation)) syncOutEnqueueFor(name, q.op, q.key, q.at);
         });
       });
     });
-    return chain.then(function () {
-      if (failed.length) {
-        /* ops enqueued mid-drain for the same key already supersede the
-           older failed attempt — keep the newer one only */
-        var newer = {};
-        _sync.out.forEach(function (q) { newer[q.key] = true; });
-        _sync.out = failed.filter(function (q) { return !newer[q.key]; })
-          .concat(_sync.out)
-          .slice(-SYNC_OUT_MAX);
-      }
-      syncOutWrite(syncOutName(), _sync.out);
-    });
+    return chain;
   }
 
   /* Deterministic content comparison for stamp ties. Plain JSON.stringify is
@@ -1838,17 +1928,21 @@
      without a local write (no push→pull loop). Convergence pushes owe the
      remote too — a failure queues the key so the next tick re-attempts it,
      same as syncPush. */
-  function syncPushBack(adapter, rkey, ent) {
+  function syncPushBack(adapter, rkey, ent, generation) {
+    generation = typeof generation === 'number' ? generation : _sync.generation;
+    var name = adapter.name || 'sync';
     try {
-      Promise.resolve(adapter.put(ent)).then(
-        function () { syncOutDrop(rkey); },
+      Promise.resolve(adapter.put(ent)).then(function (result) {
+        return syncResolveAdapterResult(adapter, rkey, result, generation, name, null);
+      }).then(
+        function () { syncOutDropFor(name, rkey); },
         function (e) {
-          _sync.error = String(e && e.message || e);
-          syncOutEnqueue('put', rkey);
+          if (syncIsCurrent(adapter, generation)) _sync.error = String(e && e.message || e);
+          syncOutEnqueueFor(name, 'put', rkey);
         });
     } catch (e) {
-      _sync.error = String(e && e.message || e);
-      syncOutEnqueue('put', rkey);
+      if (syncIsCurrent(adapter, generation)) _sync.error = String(e && e.message || e);
+      syncOutEnqueueFor(name, 'put', rkey);
     }
   }
 
@@ -1857,12 +1951,14 @@
      merge failures (storage errors, not validation skips): the caller must
      NOT advance the pull checkpoint past them, or a transient local failure
      permanently skips a remote row. */
-  function syncMergeAll(adapter, remote) {
+  function syncMergeAll(adapter, remote, generation) {
+    generation = typeof generation === 'number' ? generation : _sync.generation;
     remote = remote || [];
     var chain = Promise.resolve();
     var failures = 0;
     remote.forEach(function (re) {
       chain = chain.then(function () {
+        if (!syncIsCurrent(adapter, generation)) return;
         /* entity keys are 'app:type:id' — derive it when the adapter returns
            rows that carry parts but not the joined key */
         var rkey = re && (typeof re.key === 'string' ? re.key
@@ -1888,6 +1984,7 @@
           return storeGet(rkey).then(function (cur) { return attempt(cur, depth + 1); });
         };
         var attempt = function (local, depth) {
+          if (!syncIsCurrent(adapter, generation)) return;
           /* Whatever was already owed for this key BEFORE the merge — the
              merge's own suppressed echo will overwrite the queue entry via
              dedupe, and reconcile needs the REAL owed op to restore (an owed
@@ -1905,14 +2002,15 @@
             if (!local) return;
             var delAt = typeof re.deletedAt === 'number' ? re.deletedAt : (re.updatedAt || 0);
             if ((local.updatedAt || 0) > delAt) {
-              syncPushBack(adapter, rkey, local);
+              syncPushBack(adapter, rkey, local, generation);
               return;
             }
             /* same per-key echo suppression as merge puts — the applied
                remove must not push a remote delete back out */
             _sync.merging[rkey] = true;
-            return storeRemove(rkey, { base: local }).then(
+            return storeRemove(rkey, { base: local, deletedAt: delAt, guard: function () { return syncIsCurrent(adapter, generation); } }).then(
               function (r2) {
+                if (r2 && r2.superseded) return;
                 if (r2 && r2.raced) return racedRetry(depth, priorOwed);
                 /* If a user put re-created the key while the tombstone
                    merged, owe a put so the remote row resurrects with the
@@ -1941,7 +2039,7 @@
           }
           var merged;
           if (local && (local.updatedAt || 0) > (re.updatedAt || 0)) {
-            syncPushBack(adapter, rkey, local);
+            syncPushBack(adapter, rkey, local, generation);
             return;
           }
           if (local && (local.updatedAt || 0) === (re.updatedAt || 0)) {
@@ -1954,7 +2052,7 @@
             var lc = canonEntity(local), rc = canonEntity(re);
             if (lc === rc) return;
             if (lc > rc) {
-              syncPushBack(adapter, rkey, local);
+              syncPushBack(adapter, rkey, local, generation);
               return;
             }
             merged = re;
@@ -1968,8 +2066,9 @@
              preserveUpdatedAt keeps the remote edit stamp so future
              comparisons stay honest. `base` makes the write a CAS. */
           _sync.merging[rkey] = true;
-          return storePut(merged, { preserveUpdatedAt: true, base: local }).then(
+          return storePut(merged, { preserveUpdatedAt: true, base: local, guard: function () { return syncIsCurrent(adapter, generation); } }).then(
             function (res) {
+              if (res && res.superseded) { delete _sync.merging[rkey]; return; }
               if (res && res.raced) return racedRetry(depth, priorOwed);
               /* A validation REJECT ({ok:false,invalid:true}) is not a
                  diverged store to reconcile — storePut already quarantined
@@ -2025,7 +2124,10 @@
               _sync.error = 'merge ' + rkey + ': ' + String(e && e.message || e);
             });
         };
-        return storeGet(rkey).then(function (local) { return attempt(local, 0); });
+        return storeGet(rkey).then(function (local) {
+          if (!syncIsCurrent(adapter, generation)) return;
+          return attempt(local, 0);
+        });
       });
     });
     return chain.then(function () { return failures; });
@@ -2039,8 +2141,10 @@
      pull-start clock. The checkpoint only advances when every row merged
      cleanly — a hard merge failure re-fetches the window next pull instead
      of losing the row. */
-  function syncPullNow() {
-    var a = _sync.adapter;
+  function syncPullNow(adapter, generation) {
+    var a = adapter || _sync.adapter;
+    generation = typeof generation === 'number' ? generation : _sync.generation;
+    if (!a || !syncIsCurrent(a, generation)) return Promise.resolve({ ok: false, superseded: true });
     var name = a.name || 'sync';
     var pullStart = Date.now();
     var pending;
@@ -2053,14 +2157,16 @@
       return Promise.resolve({ ok: false, error: _sync.error });
     }
     return Promise.resolve(pending).then(function (res) {
+      if (!syncIsCurrent(a, generation)) return { superseded: true };
       /* normalize {rows, watermark} | bare array */
       var rows = res && res.rows ? res.rows : (res || []);
       var watermark = res && typeof res.watermark === 'number' && isFinite(res.watermark)
         ? res.watermark : pullStart;
-      return syncMergeAll(a, rows).then(function (failures) {
+      return syncMergeAll(a, rows, generation).then(function (failures) {
         return { pulled: rows.length, watermark: watermark, failures: failures };
       });
     }).then(function (r) {
+      if (r.superseded || !syncIsCurrent(a, generation)) return { ok: false, superseded: true };
       _sync.lastPull = Date.now();
       if (!r.failures) {
         var next = Math.max(0, r.watermark - SYNC_CK_OVERLAP_MS);
@@ -2071,9 +2177,11 @@
       }
       /* remote is reachable — flush anything owed. A queued op that fails
          again re-enqueues itself; drain errors never fail the pull. */
-      return syncOutDrain().then(function () { return { ok: true, pulled: r.pulled }; });
+      return syncOutDrain().then(function () {
+        return syncIsCurrent(a, generation) ? { ok: true, pulled: r.pulled } : { ok: false, superseded: true };
+      });
     }).catch(function (e) {
-      _sync.error = String(e && e.message || e);
+      if (syncIsCurrent(a, generation)) _sync.error = String(e && e.message || e);
       return { ok: false, error: _sync.error };
     });
   }
@@ -2082,8 +2190,13 @@
      status().error while the next tick retries — sync doesn't silently die. */
   function syncPullTick() {
     if (!_sync.adapter || _sync.pulling) return;
+    var adapter = _sync.adapter;
+    var generation = _sync.generation;
     _sync.pulling = true;
-    syncPullNow().then(function () { _sync.pulling = false; });
+    _sync.pullingGeneration = generation;
+    syncPullNow(adapter, generation).then(function () {
+      if (_sync.pullingGeneration === generation) _sync.pulling = false;
+    });
   }
 
   function syncAttach(adapter, opts) {
@@ -2091,15 +2204,23 @@
       return Promise.resolve({ ok: false, error: 'adapter needs pull(since) and put(entity)' });
     }
     if (_sync.pullTimer) { clearInterval(_sync.pullTimer); _sync.pullTimer = null; }
+    _sync.generation++;
+    var generation = _sync.generation;
     _sync.adapter = adapter;
+    _sync.pausedReason = null;
+    _sync.pulling = false;
     _sync.attachedAt = Date.now();
     _sync.error = null;
     var name = adapter.name || 'sync';
     /* this adapter's owed ops — the previous adapter's backlog stays
        persisted under its own name until it's bound again */
     _sync.out = syncOutRead(name);
-    return syncPullNow().then(function (r) {
-      if (!r.ok) return { ok: false, error: r.error };
+    return syncPullNow(adapter, generation).then(function (r) {
+      if (r.superseded || !syncIsCurrent(adapter, generation)) return { ok: false, superseded: true };
+      if (!r.ok) {
+        syncDetach(r.error || 'attach-failed');
+        return { ok: false, error: r.error };
+      }
       /* bound — keep polling so remote edits from other devices land between
          reloads. unref'd so the timer can't hold a node/test process open. */
       var ms = (opts && typeof opts.pollMs === 'number' && opts.pollMs > 0) ? opts.pollMs : SYNC_POLL_MS;
@@ -2113,6 +2234,8 @@
   function syncPush(entity) {
     var a = _sync.adapter;
     if (!a) return;
+    var generation = _sync.generation;
+    var name = a.name || 'sync';
     /* Merge-suppressed puts — both the merge's own write AND any user write
        racing it — enqueue an owed 'put'. The merge completion reconciles:
        if the store still holds exactly what was merged in, the entry is
@@ -2120,47 +2243,57 @@
        the merge and the freshest state must go out. */
     if (_sync.merging[entity.key]) { syncOutEnqueue('put', entity.key); return; }
     try {
-      Promise.resolve(a.put(entity)).then(
-        function () { syncOutDrop(entity.key); },
+      Promise.resolve(a.put(entity)).then(function (result) {
+        return syncResolveAdapterResult(a, entity.key, result, generation, name, null);
+      }).then(
+        function () { syncOutDropFor(name, entity.key); },
         /* a rejected adapter call is recorded AND owed — the next pull tick
            drains the queue instead of the write being silently stranded */
         function (e) {
-          _sync.error = String(e && e.message || e);
-          syncOutEnqueue('put', entity.key);
+          if (syncIsCurrent(a, generation)) _sync.error = String(e && e.message || e);
+          syncOutEnqueueFor(name, 'put', entity.key);
         });
     } catch (e) {
-      _sync.error = String(e && e.message || e);
-      syncOutEnqueue('put', entity.key);
+      if (syncIsCurrent(a, generation)) _sync.error = String(e && e.message || e);
+      syncOutEnqueueFor(name, 'put', entity.key);
     }
   }
 
-  function syncPushRemove(key) {
+  function syncPushRemove(key, deletedAt) {
     /* Tombstone merges DO produce removes — a remote delete applied locally
        must not echo a remote delete back out (it would be harmless —
        idempotent — but could clobber a concurrent remote resurrection). */
     var a = _sync.adapter;
     if (!a) return;
+    var generation = _sync.generation;
+    var name = a.name || 'sync';
+    deletedAt = typeof deletedAt === 'number' ? deletedAt : Date.now();
     /* Same merge-window accounting as syncPush: owe the remove so a user
        delete racing a merge isn't dropped; the merge completion reconciles
        it against whatever the store holds afterwards. */
-    if (_sync.merging[key]) { syncOutEnqueue('remove', key, Date.now()); return; }
+    if (_sync.merging[key]) { syncOutEnqueue('remove', key, deletedAt); return; }
     if (typeof a.remove !== 'function') return;
     try {
-      Promise.resolve(a.remove(key)).then(
-        function () { syncOutDrop(key); },
+      Promise.resolve(a.remove(key, deletedAt)).then(function (result) {
+        return syncResolveAdapterResult(a, key, result, generation, name, null);
+      }).then(
+        function () { syncOutDropFor(name, key); },
         function (e) {
-          _sync.error = String(e && e.message || e);
-          syncOutEnqueue('remove', key, Date.now());
+          if (syncIsCurrent(a, generation)) _sync.error = String(e && e.message || e);
+          syncOutEnqueueFor(name, 'remove', key, deletedAt);
         });
     } catch (e) {
-      _sync.error = String(e && e.message || e);
-      syncOutEnqueue('remove', key, Date.now());
+      if (syncIsCurrent(a, generation)) _sync.error = String(e && e.message || e);
+      syncOutEnqueueFor(name, 'remove', key, deletedAt);
     }
   }
 
   function syncStatus() {
     return {
       attached: !!_sync.adapter,
+      enabled: syncEnabledRead(),
+      providerAvailable: _sync.providerAvailable,
+      pausedReason: _sync.pausedReason,
       adapter: _sync.adapter ? (_sync.adapter.name || 'sync') : null,
       attachedAt: _sync.attachedAt || null,
       lastPull: _sync.lastPull || null,
@@ -2450,7 +2583,14 @@
     },
     send: send,
     adapter: adapter,
-    sync: { attach: syncAttach, status: syncStatus },
+    sync: {
+      attach: syncAttach,
+      detach: syncDetach,
+      status: syncStatus,
+      setEnabled: syncSetEnabled,
+      setProviderAvailable: syncSetProviderAvailable,
+      setPausedReason: syncSetPausedReason,
+    },
     core: {
       version: SCHEMA_V,
       eventTypes: EVENT_TYPES,

@@ -14,11 +14,17 @@ const store: Record<string, string> = {};
 
 describe('parseHash', () => {
   // query/section are non-enumerable on the parsed route — assert fields directly
-  it('terrain on empty/root', () => {
-    for (const r of [parseHash(''), parseHash('#/')]) {
+  it('landing on empty/root', () => {
+    for (const r of [parseHash(''), parseHash('#/'), parseHash('#/welcome')]) {
       expect(r.place).toBe('');
       expect(r.course).toBe('');
       expect(r.query).toBe('');
+      expect(r.section).toBe('welcome');
+    }
+  });
+  it('today workspace route', () => {
+    for (const r of [parseHash('#/today'), parseHash('#/today?x=1')]) {
+      expect(r.place).toBe('');
       expect(r.section).toBe('today');
     }
   });

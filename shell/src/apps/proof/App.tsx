@@ -15,6 +15,7 @@ import type { InboundLink } from './lib/links';
 import './lib/iterra';
 import './index.css';
 import { placeActive } from '../active';
+import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 
 export interface RouteState {
   view: ViewKey;
@@ -208,6 +209,16 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
 
   return (
     <div className="flex h-full flex-col">
+      {/* painted cartouche — above the bench's own tab chrome; the inset
+          matches TopTabs' px-4 sm:px-5 so the band's edges align with it */}
+      <AtlasMasthead
+        compact
+        object="compass"
+        place="proof"
+        title="Calculations"
+        sub="Mathematical problem sets, step-by-step derivations, and error review."
+        className="mx-4 mt-3 shrink-0 sm:mx-5"
+      />
       <TopTabs route={route} goView={goView} due={due} onHelp={() => setHelpOpen(true)} />
       <main className="min-h-0 flex-1 overflow-y-auto">
         {problemCount === 0 && !onboardingSeen ? (

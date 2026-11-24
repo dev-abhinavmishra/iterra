@@ -60,11 +60,14 @@ export function Search({
   useEffect(() => subscribeFeed(setFeed), []);
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
+  /* the palette floats over the whole workspace — prime glass surface */
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
 
   const [sendForKey, setSendForKey] = useState<string | null>(null);
-  const hitId = (h: Hit) => h.skey || h.url || h.label;
+  /* hit ids feed aria-activedescendant and the send submenu — commands can
+     share a url ('#/today' toggles), so kind+app+label keep them unique */
+  const hitId = (h: Hit) => h.skey || `${h.app}:${h.kind}:${h.url || ''}:${h.label}`;
   const [sentNote, setSentNote] = useState<string | null>(null);
   const [staged, setStaged] = useState<Hit[]>([]);
 
@@ -170,7 +173,14 @@ export function Search({
         kind: 'command',
         label: 'Open Today — the day’s plan and stirs',
         sub: 'Command · Workspace',
-        url: '#/',
+        url: '#/today',
+      },
+      {
+        app: 'terrain',
+        kind: 'command',
+        label: 'Take the tour — mosaic overview of the terrain',
+        sub: 'Command · Workspace',
+        url: '#/welcome',
       },
       {
         app: 'rhythm',
@@ -200,7 +210,7 @@ export function Search({
               kind: 'command' as const,
               label: 'Toggle details panel',
               sub: 'Command · Workspace',
-              url: '#/',
+              url: '#/today',
               run: () => onToggleContext(),
             },
           ]
@@ -212,7 +222,7 @@ export function Search({
               kind: 'command' as const,
               label: 'Switch workspace theme (Paper / Graphite)',
               sub: 'Command · Appearance',
-              url: '#/',
+              url: '#/today',
               run: () => onToggleTheme(),
             },
           ]
@@ -300,7 +310,8 @@ export function Search({
 
     if (!needle) {
       const recent = ents.filter((e) => e.uat).sort((a, b) => (b.uat || 0) - (a.uat || 0));
-      const rest = ents.filter((e) => !recent.includes(e));
+      const recentSet = new Set(recent);
+      const rest = ents.filter((e) => !recentSet.has(e));
       /* places before courses — the browse list is a launcher first;
          a full course catalogue would push the eight tools off-screen */
       return [...commands.slice(0, 4), ...places, ...courseHits, ...recent, ...rest].slice(0, 64);
@@ -446,14 +457,14 @@ export function Search({
 
   return (
     <div
-      className="anim-fade fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-[10vh] p-4 backdrop-blur-[1px]"
+      className="anim-fade fixed inset-0 z-50 flex items-start justify-center bg-black/40 pt-[10vh] p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="Global search and command palette"
     >
       <div
-        className="anim-rise w-full max-w-2xl overflow-hidden rounded-[8px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-2xl"
+        className="border border-[var(--color-line-2)] bg-[var(--color-sheet)] shadow-xl anim-rise w-full max-w-2xl overflow-hidden rounded-[20px]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5 border-b border-[var(--color-line)] px-4 py-3">
@@ -497,7 +508,7 @@ export function Search({
                 const h = hits[sel];
                 togglePin({ app: h.app, title: h.label, url: h.url });
               }
-              if ((e.key === 'ArrowRight' || e.key === 'Tab') && hits[sel]?.entity) {
+              if ((e.key === 'ArrowRight' || (e.key === 'Tab' && !e.shiftKey)) && hits[sel]?.entity) {
                 e.preventDefault();
                 setSendForKey((cur) =>
                   hits[sel] && cur === hitId(hits[sel]) ? null : hits[sel] ? hitId(hits[sel]) : cur,
@@ -526,7 +537,7 @@ export function Search({
           <span>·</span>
           <span>→ Inspect &amp; Send</span>
           <span>·</span>
-          <span>⌘1–8 Tools · ⌘0 Today</span>
+          <span>⌘1–9 Tools · ⌘0 Today</span>
         </div>
 
         {staged.length > 0 && (

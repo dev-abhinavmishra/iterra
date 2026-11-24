@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { getISOWeek } from 'date-fns';
 import {
   Play,
   Pause,
@@ -13,6 +14,7 @@ import {
   Plus,
   PanelRightOpen,
   Bookmark,
+  Compass,
 } from 'lucide-react';
 import { PLACES, PLACE_MAP, formatEntityType } from '../places';
 import type { Presence, SharedField, FeedItem, Entity, StoreEntity, IntakeWait } from '../hub';
@@ -32,6 +34,7 @@ import {
   iconForObjectType,
   formatRelativeTime,
 } from '../ui/ObjectRow';
+import './today.css';
 
 const STALE_MS = 35000;
 const isStale = (p: Presence | undefined) => !p || Date.now() - p.at > STALE_MS;
@@ -59,6 +62,18 @@ function focusMinutes(item: WorkspaceObject) {
 function hasPlanningBinding(item: WorkspaceObject, type: 'block' | 'commitment') {
   return item.app === 'syllabus' && !!item.id.trim() &&
     (item.raw?.type === type || item.url === `/apps/syllabus/?${type}=${encodeURIComponent(item.id)}`);
+}
+
+/* commitments carry data.status, blocks carry data.state — 'missed' stays
+   open: it's unresolved and needs rescuing */
+function isOpenWorkObject(item: WorkspaceObject) {
+  return (
+    item.data?.status !== 'done' &&
+    item.data?.status !== 'completed' &&
+    item.data?.status !== 'dropped' &&
+    item.data?.state !== 'done' &&
+    item.data?.state !== 'deferred'
+  );
 }
 
 export interface TodayWorkspaceProps {
@@ -95,6 +110,9 @@ export function TodayWorkspace({
     const t = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(t);
   }, []);
+  /* heavy lists only need minute granularity — deriving a floored tick lets
+     their memos skip recomputing on every one-second clock beat */
+  const nowMin = Math.floor(now / 60_000) * 60_000;
 
   const [pins, setPins] = useState<ShelfPin[]>([]);
   useEffect(() => subscribeShelf(setPins), []);
@@ -102,14 +120,17 @@ export function TodayWorkspace({
   const [feedExpanded, setFeedExpanded] = useState(false);
 
   const [notice, setNotice] = useState<{ text: string; url?: string } | null>(null);
+  const noticeSeq = useRef(0);
   const notify = (text: string, url?: string) => {
+    const id = ++noticeSeq.current;
     setNotice({ text, url });
-    window.setTimeout(() => setNotice((cur) => (cur?.text === text ? null : cur)), 4000);
+    window.setTimeout(() => setNotice((cur) => (noticeSeq.current === id ? null : cur)), 4000);
   };
   const [amountRoutine, setAmountRoutine] = useState<WorkspaceObject | null>(null);
   const [amountError, setAmountError] = useState('');
   const [checkingRoutine, setCheckingRoutine] = useState<string | null>(null);
   const checkInBusy = useRef(false);
+  const [primaryBusy, setPrimaryBusy] = useState<string | null>(null);
   const checkInDay = todayISO(new Date(now));
   const checkIn = async (routine: WorkspaceObject, value?: number) => {
     if (checkInBusy.current) return;
@@ -220,7 +241,7 @@ export function TodayWorkspace({
   const resumeObject = useMemo<WorkspaceObject | null>(() => {
     // Check shared.noteActive first if fresh
     const na = shared.noteActive;
-    if (na?.v?.title && na.at && now - na.at < 30 * 60_000) {
+    if (na?.v?.title && na.at && nowMin - na.at < 30 * 60_000) {
       const v = na.v as { app: string; id: string; title: string; at?: number };
       const match = allObjects.find((o) => o.app === v.app && o.type === 'note' &&
         (v.id ? o.id === v.id : o.title === v.title));
@@ -239,7 +260,7 @@ export function TodayWorkspace({
     }
     // Check shared.deck if fresh
     const dk = shared.deck;
-    if (dk?.v?.deck && dk.at && now - dk.at < 30 * 60_000) {
+    if (dk?.v?.deck && dk.at && nowMin - dk.at < 30 * 60_000) {
       const match = allObjects.find((o) => o.app === 'flashcards' && o.title === dk.v.deck);
       if (match) return match;
     }
@@ -251,7 +272,7 @@ export function TodayWorkspace({
       allObjects[0] ||
       null
     );
-  }, [shared.noteActive, shared.deck, allObjects, now, courseFilterLow]);
+  }, [shared.noteActive, shared.deck, allObjects, nowMin, courseFilterLow]);
 
   /* ── This Week strip: session entities stamp createdAt at the session's
      own end (a backfilled row lands on its study day), so bucketed minutes
@@ -261,7 +282,7 @@ export function TodayWorkspace({
     /* calendar dates, not 86400s offsets — a DST 23h/25h day would drift
        an arithmetic bucket */
     const dayStart = (back: number) => {
-      const d = new Date(now);
+      const d = new Date(nowMin);
       d.setDate(d.getDate() - back);
       d.setHours(0, 0, 0, 0);
       return d.getTime();
@@ -282,7 +303,7 @@ export function TodayWorkspace({
         typeof e.data?.endedAt === 'number' ? e.data.endedAt
         : typeof e.createdAt === 'number' ? e.createdAt
         : e.updatedAt;
-      if (typeof at !== 'number' || at < day0 || at > now + 3600_000) continue;
+      if (typeof at !== 'number' || at < day0 || at > nowMin + 3600_000) continue;
       if (!matchesCourseFilter(e.course, e.topic)) continue;
       let di = 0;
       while (di < 6 && at >= bounds[di + 1]) di++;
@@ -292,24 +313,18 @@ export function TodayWorkspace({
     if (!total) return null;
     return { days, total, max: Math.max(...days.map((d) => d.mins), 1) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entities, now, courseFilterLow]);
+  }, [entities, nowMin, courseFilterLow]);
 
   /* ── 3. Next Up: Scheduled work blocks & commitments ── */
   const scheduledWork = useMemo(() => {
     const nb = shared.today?.v?.nextBlock as
       | { id?: string; title?: string; minutes?: number; course?: string; courseId?: string;
-          commitmentId?: string; materialRef?: string }
+          commitmentId?: string; materialRef?: string; plannedDate?: string }
       | undefined;
 
     const allBC = allObjects.filter((o) => o.type === 'block' || o.type === 'commitment');
-    /* commitments carry data.status, blocks carry data.state — check both;
-       a block completed while syllabus was cold must not linger here */
-    const isLive = (o: WorkspaceObject) =>
-      o.data?.status !== 'done' &&
-      o.data?.status !== 'completed' &&
-      o.data?.status !== 'dropped' &&
-      o.data?.state !== 'done' &&
-      o.data?.state !== 'deferred';
+    /* a block completed while syllabus was cold must not linger here */
+    const isLive = isOpenWorkObject;
     const blocksAndCommitments = allBC.filter(isLive);
 
     blocksAndCommitments.sort((a, b) => {
@@ -337,6 +352,7 @@ export function TodayWorkspace({
         minutes: nb.minutes,
         commitmentId: nb.commitmentId,
         materialRef: nb.materialRef,
+        plannedDate: nb.plannedDate,
       };
       if (match) {
         primary = nextBlockId ? {
@@ -373,8 +389,12 @@ export function TodayWorkspace({
   const primaryLate = useMemo(() => {
     const p = scheduledWork.primary;
     if (!p) return null;
-    if (p.type === 'block' && p.data?.state === 'planned' && typeof p.data?.plannedDate === 'string') {
-      const d = new Date();
+    if (
+      p.type === 'block' &&
+      (p.data?.state === 'planned' || p.data?.state === 'missed') &&
+      typeof p.data?.plannedDate === 'string'
+    ) {
+      const d = new Date(now);
       const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       if (p.data.plannedDate < today) {
         return `slipped · was ${new Date(`${p.data.plannedDate}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
@@ -403,6 +423,10 @@ export function TodayWorkspace({
          surfaces the handler's toast and the republished entity flips
          this row's state */
       inlineCheck?: boolean;
+      /* how many underlying items this row represents — summary rows cover
+         N due cards/problems/routines, so the hero stat sums these rather
+         than counting rows */
+      due?: number;
     }[] = [];
 
     // Flashcard decks with due cards
@@ -414,7 +438,7 @@ export function TodayWorkspace({
         e.type === 'card' &&
         matchesCourseFilter(e.course, e.topic) &&
         typeof e.data?.dueAt === 'number' &&
-        (e.data.dueAt as number) <= now,
+        (e.data.dueAt as number) <= nowMin,
     );
 
     const addedDeckIds = new Set<string>();
@@ -431,6 +455,7 @@ export function TodayWorkspace({
           typeLabel: 'Flashcards',
           title: d.title,
           detail: `${dueCount} card${dueCount === 1 ? '' : 's'} due for review`,
+          due: dueCount,
           course: d.course,
           actionLabel: 'Review deck',
           url: d.url,
@@ -452,6 +477,7 @@ export function TodayWorkspace({
         typeLabel: 'Flashcards',
         title: `${totalDueCards} card${totalDueCards === 1 ? '' : 's'} due across decks`,
         detail: 'Ready for active recall review',
+        due: totalDueCards,
         actionLabel: 'Start review',
         url: '/apps/flashcards/',
       });
@@ -463,7 +489,7 @@ export function TodayWorkspace({
         o.app === 'proof' &&
         matchesCourseFilter(o.course, o.topic) &&
         o.dueAt != null &&
-        (typeof o.dueAt === 'number' ? o.dueAt : Date.parse(String(o.dueAt))) <= now,
+        (typeof o.dueAt === 'number' ? o.dueAt : Date.parse(String(o.dueAt))) <= nowMin,
     );
     for (const p of dueProblems.slice(0, 3)) {
       items.push({
@@ -487,6 +513,7 @@ export function TodayWorkspace({
         typeLabel: 'Calculations',
         title: firstProb ? firstProb.title : `${proofSummaryDue} problem${proofSummaryDue === 1 ? '' : 's'} due for review`,
         detail: `${proofSummaryDue} calculation review${proofSummaryDue === 1 ? '' : 's'} scheduled`,
+        due: proofSummaryDue,
         course: firstProb?.course,
         actionLabel: 'Open workbench',
         url: firstProb?.url || '/apps/proof/',
@@ -521,6 +548,7 @@ export function TodayWorkspace({
         id: 'rhythm-pending', app: 'rhythm', typeLabel: 'Attendance',
         title: `${pendingRoutines} routine${pendingRoutines === 1 ? '' : 's'} open today`,
         detail: 'Review the register before checking in.',
+        due: pendingRoutines,
         actionLabel: 'Open Attendance', url: '/apps/rhythm/',
       });
     }
@@ -567,7 +595,7 @@ export function TodayWorkspace({
 
     return items;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allObjects, entities, presences, shared.register, now, courseFilterLow, checkInDay]);
+  }, [allObjects, entities, presences, shared.register, nowMin, courseFilterLow, checkInDay]);
 
   /* ── 5. Course Overview: Grouped by course with real counts ── */
   const courseGroups = useMemo(() => {
@@ -623,15 +651,12 @@ export function TodayWorkspace({
         /* blocks carry data.state, commitments data.status — check both so
            stamped/dropped/deferred work doesn't count as an open task.
            'missed' stays counted: it's unresolved and needs rescuing. */
-        const closed =
-          o.data?.status === 'done' || o.data?.status === 'completed' || o.data?.status === 'dropped' ||
-          o.data?.state === 'done' || o.data?.state === 'deferred';
-        if (!closed) {
+        if (isOpenWorkObject(o)) {
           g.tasks++;
           if (!g.nextItem) g.nextItem = o;
         }
       } else if (o.type === 'card') {
-        if (typeof o.dueAt === 'number' && o.dueAt <= now) g.dueCards++;
+        if (typeof o.dueAt === 'number' && o.dueAt <= nowMin) g.dueCards++;
       } else if (o.type === 'deck' && typeof o.data?.due === 'number') {
         g.dueCards = Math.max(g.dueCards, o.data.due);
       } else if (o.type === 'note' || o.type === 'source') {
@@ -649,7 +674,7 @@ export function TodayWorkspace({
     }
 
     return [...map.values()];
-  }, [entities, allObjects, now, courseFilterLow]);
+  }, [entities, allObjects, nowMin, courseFilterLow]);
 
   /* ── 6. Recent Work (concrete objects, deduplicated) ── */
   const recentWork = useMemo(() => {
@@ -657,6 +682,9 @@ export function TodayWorkspace({
       .filter((o) => o.type !== 'card' && o.type !== 'entry')
       .slice(0, 8);
   }, [allObjects]);
+  const hasLeftColumnContent = Boolean(
+    resumeObject || showStarterCards || scheduledWork.primary || recentWork.length > 0,
+  );
 
   const startBoundTimer = (item: WorkspaceObject) => {
     const mins = focusMinutes(item) ?? 25;
@@ -681,9 +709,111 @@ export function TodayWorkspace({
       `${course ? `&course=${encodeURIComponent(course)}` : ''}` +
       `${courseIdParam}${matParam}${commitmentParam}` +
       `&from=${encodeURIComponent(item.app)}${blockParam}` +
+      `&autostart=1` +
       `&return=${encodeURIComponent(`/apps/${item.app}`)}`;
     onGo(url);
   };
+
+  /* Next Up mutations share one in-flight slot — a double-click on
+     "Tomorrow" or "Mark done" must not fire the same send twice */
+  const primarySend = (
+    action: 'commitment.done' | 'block.defer' | 'block.done',
+    payload: Record<string, unknown>,
+    verb: string,
+    failText: string,
+  ) => {
+    const o = scheduledWork.primary;
+    if (!o || primaryBusy) return;
+    setPrimaryBusy(action);
+    void sendTo({
+      to: 'syllabus',
+      action,
+      entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
+      payload,
+    })
+      .then((r: any) => {
+        if (!r?.ok) {
+          notify(failText);
+          return;
+        }
+        notify(
+          r.toast ||
+            (r.delivered === 'direct'
+              ? `${verb} — ${o.title}`
+              : 'Queued. It will appear in Planning when you next open it.'),
+          r.delivered === 'direct' ? undefined : r.url,
+        );
+      })
+      .catch(() => notify(failText))
+      .finally(() => setPrimaryBusy(null));
+  };
+
+  /* ── Hero: greeting, live clock, and the day's headline stats ── */
+  const heroNow = new Date(now);
+  const heroWeekday = heroNow.toLocaleDateString('en-US', { weekday: 'long' });
+  const heroDate = heroNow.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const heroHour = heroNow.getHours();
+  const heroGreeting =
+    heroHour < 5 ? 'Up late' : heroHour < 12 ? 'Good morning' : heroHour < 17 ? 'Good afternoon' : 'Good evening';
+  const heroTime = heroNow.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+  const heroTodayMins = weekStrip?.days[6]?.mins ?? 0;
+  const heroMinsLabel =
+    heroTodayMins >= 60
+      ? `${Math.floor(heroTodayMins / 60)}h${heroTodayMins % 60 ? ` ${heroTodayMins % 60}m` : ''}`
+      : `${heroTodayMins}m`;
+  /* open slips count every live block/commitment — course-less work still
+     counts even though it can't join a course group */
+  const heroOpenWork = allObjects.reduce(
+    (n, o) => n + ((o.type === 'block' || o.type === 'commitment') && isOpenWorkObject(o) ? 1 : 0),
+    0,
+  );
+  /* summary rows cover N underlying items — sum `due`, not rows */
+  const heroReviewDue = reviewItems.reduce((s, i) => s + (i.due ?? 1), 0);
+  const heroPl = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  const heroSubParts: string[] = [];
+  if (heroOpenWork > 0) heroSubParts.push(`${heroOpenWork} open slip${heroOpenWork === 1 ? '' : 's'}`);
+  if (heroReviewDue > 0) heroSubParts.push(`${heroReviewDue} review${heroReviewDue === 1 ? '' : 's'} due`);
+  if (courseGroups.length > 0) heroSubParts.push(heroPl(courseGroups.length, 'course'));
+  const heroFirstReview = reviewItems[0];
+
+  /* live instrument clock — the hero's seconds hand sweeps with the same
+     `now` tick that drives the countdowns below */
+  const clockSecA =
+    (heroNow.getSeconds() + heroNow.getMilliseconds() / 1000) * 6;
+  const clockMinA = (heroNow.getMinutes() + heroNow.getSeconds() / 60) * 6;
+  const clockHourA = ((heroNow.getHours() % 12) + heroNow.getMinutes() / 60) * 30;
+
+  /* instrument date window — ISO week + day-of-year, UTC-safe so the readout
+     can't slip a day around midnight */
+  const heroDayOfYear = Math.floor(
+    (Date.UTC(heroNow.getFullYear(), heroNow.getMonth(), heroNow.getDate()) -
+      Date.UTC(heroNow.getFullYear(), 0, 0)) /
+      86400000,
+  );
+  /* date-fns ISO week — the week belongs to its Thursday's year, so dates
+     around New Year read WK 01/53 correctly instead of hand-rolled math */
+  const heroIsoWeek = getISOWeek(heroNow);
+  const clockTicks = Array.from({ length: 60 }, (_, i) => {
+    const a = ((i * 6 - 90) * Math.PI) / 180;
+    const major = i % 5 === 0;
+    const r1 = major ? 78 : 82;
+    const r2 = 89;
+    return (
+      <line
+        key={i}
+        x1={100 + r1 * Math.cos(a)}
+        y1={100 + r1 * Math.sin(a)}
+        x2={100 + r2 * Math.cos(a)}
+        y2={100 + r2 * Math.sin(a)}
+        className={major ? 'today-clock-tick major' : 'today-clock-tick'}
+      />
+    );
+  });
 
   return (
     <div className="terrain-map min-h-full">
@@ -729,6 +859,106 @@ export function TodayWorkspace({
             )}
           </div>
         )}
+
+        {/* ── Today hero: greeting, live stats, atlas instrument ── */}
+        <section className="today-hero print:hidden" aria-label="Today overview">
+          <div className="atlas-stars" aria-hidden="true" />
+          <div className="today-contours" aria-hidden="true" />
+          <div className="today-hero-copy">
+            <div className="today-hero-eyebrow">
+              <svg className="today-hero-glyph" viewBox="0 0 12 12" aria-hidden="true">
+                <rect x="2.4" y="2.4" width="7.2" height="7.2" transform="rotate(45 6 6)" />
+              </svg>
+              {heroWeekday} · {heroDate} · {heroTime}
+            </div>
+            <h2 className="today-hero-title">
+              {heroGreeting}.<em>{focusLive ? ' Stay with it.' : ' Here’s the day.'}</em>
+            </h2>
+            <p className="today-hero-sub">
+              {focusLive ? (
+                <>
+                  Focus session live — <strong>{fv.label || 'focus'}</strong>
+                  {fv.course ? ` · ${fv.course}` : ''} ·{' '}
+                  <strong>{fmtClock(focusSecLeft)}</strong> left.
+                </>
+              ) : heroSubParts.length > 0 ? (
+                <>
+                  {heroSubParts.join(' · ')} — pick the next move below.
+                </>
+              ) : (
+                'A clear board. Set up courses in Planning, then the day starts planning itself.'
+              )}
+            </p>
+            <div className="today-hero-actions">
+              <button type="button" className="today-hero-btn" onClick={() => onEnter('timer')}>
+                <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                Start focus
+              </button>
+              <button type="button" className="today-hero-btn secondary" onClick={() => onEnter('syllabus')}>
+                <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
+                Plan the day
+              </button>
+              {heroFirstReview ? (
+                <button
+                  type="button"
+                  className="today-hero-btn secondary"
+                  onClick={() => onGo(heroFirstReview.url)}
+                >
+                  <Layers className="h-3.5 w-3.5" aria-hidden="true" />
+                  {heroFirstReview.actionLabel}
+                </button>
+              ) : (
+                <button type="button" className="today-hero-link" onClick={() => onGo('#/library')}>
+                  Browse the library <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+            <dl className="today-hero-stats">
+              <div className="today-hero-stat">
+                <dt>Logged today</dt>
+                <dd>{heroMinsLabel}</dd>
+              </div>
+              <div className="today-hero-stat">
+                <dt>To review</dt>
+                <dd>{heroReviewDue}</dd>
+              </div>
+              <div className="today-hero-stat">
+                <dt>Open work</dt>
+                <dd>{heroOpenWork}</dd>
+              </div>
+              <div className="today-hero-stat">
+                <dt>Courses</dt>
+                <dd>{courseGroups.length}</dd>
+              </div>
+            </dl>
+          </div>
+          <div className="today-instrument" aria-hidden="true">
+            <div className="atlas-dial">
+              <span>N</span><span>E</span><span>S</span><span>W</span>
+            </div>
+            <div className="atlas-orbit atlas-orbit-back" />
+            <svg className="today-clock" viewBox="0 0 200 200" aria-hidden="true">
+              <circle cx="100" cy="100" r="94" className="today-clock-rim" />
+              {clockTicks}
+              <g className="today-clock-hand hour" transform={`rotate(${clockHourA} 100 100)`}>
+                <line x1="100" y1="100" x2="100" y2="58" />
+              </g>
+              <g className="today-clock-hand min" transform={`rotate(${clockMinA} 100 100)`}>
+                <line x1="100" y1="100" x2="100" y2="42" />
+              </g>
+              <g className="today-clock-hand sec" transform={`rotate(${clockSecA} 100 100)`}>
+                <line x1="100" y1="114" x2="100" y2="30" />
+                <circle cx="100" cy="120" r="3.5" />
+              </g>
+              <circle cx="100" cy="100" r="4.5" className="today-clock-pin" />
+            </svg>
+            <div className="atlas-orbit atlas-orbit-front"><i /></div>
+            <div className="atlas-flight"><i /></div>
+            <div className="today-clock-readout">
+              WK {String(heroIsoWeek).padStart(2, '0')} · DAY {heroDayOfYear}
+            </div>
+          </div>
+        </section>
 
         {/* ── 1. ACTIVE SESSION BANNER (shown when Timer or Proof session is live) ── */}
         {focusLive && (
@@ -879,10 +1109,12 @@ export function TodayWorkspace({
 
         {/* ── Primary Workstation Grid: Left (Resume + Next Up + Recent) / Right (Review + Courses) ── */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Left Column (7 cols on lg) */}
-          <div className="space-y-6 lg:col-span-7">
+          {/* Keep the 7/5 split when there is left-side work; don't leave a
+              phantom seven-column item when courses exist without recent or
+              scheduled work. */}
+          {hasLeftColumnContent && <div className="space-y-6 lg:col-span-7">
             {/* ── 2. RESUME WORKING ── */}
-            {(resumeObject || showStarterCards) && <section aria-label={showStarterCards && !resumeObject ? 'Get started' : 'Pick up where you left off'}>
+            {(resumeObject || showStarterCards) && <section aria-label={showStarterCards && !resumeObject ? 'Get started' : 'Pick up where you left off'} className="anim-rise" style={{ animationDelay: '40ms' }}>
               <SectionHeader title={showStarterCards && !resumeObject ? 'Get started' : 'Pick up where you left off'} />
               {resumeObject ? (
                 <div className="rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
@@ -1001,6 +1233,9 @@ export function TodayWorkspace({
                       <Button variant="secondary" size="xs" icon={<Layers className="h-3.5 w-3.5" />} onClick={() => onEnter('flashcards')}>
                         Create Deck
                       </Button>
+                      <Button variant="ghost" size="xs" icon={<Compass className="h-3.5 w-3.5" />} onClick={() => onGo('#/welcome')}>
+                        Take the tour
+                      </Button>
                     </>
                   }
                 />
@@ -1008,7 +1243,7 @@ export function TodayWorkspace({
             </section>}
 
             {/* ── 3. NEXT UP (Scheduled Work) ── */}
-            {(scheduledWork.primary || showStarterCards) && <section aria-label="Next up scheduled work">
+            {(scheduledWork.primary || showStarterCards) && <section aria-label="Next up scheduled work" className="anim-rise" style={{ animationDelay: '100ms' }}>
               <SectionHeader title="Next Up"
                 action={
                   <button
@@ -1072,28 +1307,15 @@ export function TodayWorkspace({
                             variant="ghost"
                             size="xs"
                             title="File this commitment done — off-clock work, no timer"
-                            onClick={() => {
-                              const o = scheduledWork.primary!;
-                              void sendTo({
-                                  to: 'syllabus',
-                                  action: 'commitment.done',
-                                  entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                  payload: { commitmentId: o.id },
-                                })
-                                .then((r: any) => {
-                                  if (!r?.ok) {
-                                    notify('Couldn’t file it — Planning may still be starting.');
-                                    return;
-                                  }
-                                  notify(
-                                    r.toast ||
-                                      (r.delivered === 'direct'
-                                        ? `Done — ${o.title}`
-                                        : 'Marked done — Planning applies it on next open.'),
-                                    r.delivered === 'direct' ? undefined : r.url,
-                                  );
-                                });
-                            }}
+                            disabled={primaryBusy !== null}
+                            onClick={() =>
+                              primarySend(
+                                'commitment.done',
+                                { commitmentId: scheduledWork.primary!.id },
+                                'Done',
+                                'Couldn’t file it — Planning may still be starting.',
+                              )
+                            }
                           >
                             Mark done
                           </Button>
@@ -1104,28 +1326,15 @@ export function TodayWorkspace({
                               variant="ghost"
                               size="xs"
                               title="Push this slip to tomorrow — stays planned, not missed"
-                              onClick={() => {
-                                const o = scheduledWork.primary!;
-                                void sendTo({
-                                    to: 'syllabus',
-                                    action: 'block.defer',
-                                    entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                    payload: { blockId: o.id },
-                                  })
-                                  .then((r: any) => {
-                                    if (!r?.ok) {
-                                      notify('Couldn’t push it — Planning may still be starting.');
-                                      return;
-                                    }
-                                    notify(
-                                      r.toast ||
-                                        (r.delivered === 'direct'
-                                          ? `Pushed to tomorrow — ${o.title}`
-                                          : 'Push queued — Planning applies it on next open.'),
-                                      r.delivered === 'direct' ? undefined : r.url,
-                                    );
-                                  });
-                              }}
+                              disabled={primaryBusy !== null}
+                              onClick={() =>
+                                primarySend(
+                                  'block.defer',
+                                  { blockId: scheduledWork.primary!.id },
+                                  'Pushed to tomorrow',
+                                  'Couldn’t push it — Planning may still be starting.',
+                                )
+                              }
                             >
                               Tomorrow
                             </Button>
@@ -1133,28 +1342,15 @@ export function TodayWorkspace({
                               variant="ghost"
                               size="xs"
                               title="Stamp this slip done — off-clock work, no timer"
-                              onClick={() => {
-                                const o = scheduledWork.primary!;
-                                void sendTo({
-                                    to: 'syllabus',
-                                    action: 'block.done',
-                                    entity: o.raw ?? { app: o.app, type: o.type, id: o.id, key: o.key, title: o.title },
-                                    payload: { blockId: o.id },
-                                  })
-                                  .then((r: any) => {
-                                    if (!r?.ok) {
-                                      notify('Couldn’t mark it done — Planning may still be starting.');
-                                      return;
-                                    }
-                                    notify(
-                                      r.toast ||
-                                        (r.delivered === 'direct'
-                                          ? `Done — ${o.title}`
-                                          : 'Marked done — Planning applies it on next open.'),
-                                      r.delivered === 'direct' ? undefined : r.url,
-                                    );
-                                  });
-                              }}
+                              disabled={primaryBusy !== null}
+                              onClick={() =>
+                                primarySend(
+                                  'block.done',
+                                  { blockId: scheduledWork.primary!.id },
+                                  'Done',
+                                  'Couldn’t mark it done — Planning may still be starting.',
+                                )
+                              }
                             >
                               Mark done
                             </Button>
@@ -1202,7 +1398,7 @@ export function TodayWorkspace({
             </section>}
 
             {/* ── 6. RECENT WORK ── */}
-            {(recentWork.length > 0 || showStarterCards) && <section aria-label="Recent work">
+            {(recentWork.length > 0 || showStarterCards) && <section aria-label="Recent work" className="anim-rise" style={{ animationDelay: '160ms' }}>
               <SectionHeader title="Recent Work"
                 count={recentWork.length}
                 action={
@@ -1249,12 +1445,15 @@ export function TodayWorkspace({
                 />
               )}
             </section>}
-          </div>
+          </div>}
 
-          {/* Right Column (5 cols on lg): Review + Course Overview + Recent Activity */}
-          <div className="space-y-6 lg:col-span-5">
+          {/* When the left side is empty, promote the always-present review
+              and course sections into a balanced two-column workspace. */}
+          <div className={hasLeftColumnContent
+            ? 'space-y-6 lg:col-span-5'
+            : 'grid grid-cols-1 gap-6 lg:col-span-12 lg:grid-cols-2'}>
             {/* ── 4. REVIEW & FOLLOW-UP ── */}
-            <section aria-label="Review and follow-up">
+            <section aria-label="Review and follow-up" className="anim-rise" style={{ animationDelay: '80ms' }}>
               <SectionHeader title="Review Queue"
                 count={reviewItems.length}
               />
@@ -1358,7 +1557,7 @@ export function TodayWorkspace({
             </section>
 
             {/* ── 5. COURSE OVERVIEW ── */}
-            <section aria-label="Course overview">
+            <section aria-label="Course overview" className="anim-rise" style={{ animationDelay: '140ms' }}>
               <SectionHeader title="Course Overview"
                 count={courseGroups.length}
                 action={
@@ -1465,7 +1664,7 @@ export function TodayWorkspace({
 
             {/* ── This Week — session minutes by day (only when any logged) ── */}
             {weekStrip && (
-              <section aria-label="Minutes logged this week">
+              <section className={hasLeftColumnContent ? 'anim-rise' : 'anim-rise lg:col-span-2'} style={{ animationDelay: '200ms' }} aria-label="Minutes logged this week">
                 <SectionHeader
                   title="This Week"
                   action={
@@ -1480,6 +1679,11 @@ export function TodayWorkspace({
                   type="button"
                   onClick={() => onGo('#/p/timer?p=stats')}
                   title="Open the session ledger"
+                  aria-label={`Session minutes this week, ${
+                    weekStrip.total >= 60
+                      ? `${Math.floor(weekStrip.total / 60)}h${weekStrip.total % 60 ? ` ${weekStrip.total % 60}m` : ''}`
+                      : `${weekStrip.total}m`
+                  } logged — open the Timer ledger`}
                   className="flex w-full cursor-pointer items-end gap-1.5 rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] px-3.5 pb-2 pt-3 text-left hover:border-[var(--color-line-2)]"
                 >
                   {weekStrip.days.map((d, i) => (
@@ -1508,7 +1712,7 @@ export function TodayWorkspace({
             {(() => {
               const visible = feed.filter((f) => matchesCourseFilter(f.course));
               return visible.length > 0 && (
-              <section aria-label="Recent workspace activity">
+              <section className={hasLeftColumnContent ? 'anim-rise' : 'anim-rise lg:col-span-2'} style={{ animationDelay: '220ms' }} aria-label="Recent workspace activity">
                 <SectionHeader title="Recent Activity" />
                 <div className="divide-y divide-[var(--color-line)] overflow-hidden rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)]">
                   {visible.slice(0, feedExpanded ? 30 : 5).map((f, idx) => (
@@ -1545,7 +1749,7 @@ export function TodayWorkspace({
         </div>
 
         {/* ── 7. SPECIALIZED TOOLS DIRECTORY STRIP (Compact, functional names first) ── */}
-        <section aria-label="Workspace tools" className="pt-2 border-t border-[var(--color-line)]">
+        <section aria-label="Workspace tools" className="anim-rise pt-2 border-t border-[var(--color-line)]" style={{ animationDelay: '260ms' }}>
           <SectionHeader title="Tools" />
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             {PLACES.map((p) => {
@@ -1566,7 +1770,7 @@ export function TodayWorkspace({
                   <div>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="h-5 w-5 shrink-0 text-[var(--color-accent)]">
+                        <span className="h-5 w-5 shrink-0 text-[var(--color-accent)] transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
                           {p.glyph}
                         </span>
                         <span className="text-[13.5px] font-semibold text-[var(--color-ink)] group-hover:text-[var(--color-accent)] truncate">

@@ -1027,7 +1027,7 @@ export function mountFlashcards(rootEl: HTMLElement, query: string) {
         else if (res && res.ok) {
           if (res.delivered === 'queued') {
             /* not landed yet — say so instead of claiming the mark */
-            toast('Queued for the register — stamps on next open');
+            toast('Queued for Attendance. It will appear there when you next open it.');
           } else if (res.url) {
             _bridgeLogged = true;
             renderDeckBridge(d);

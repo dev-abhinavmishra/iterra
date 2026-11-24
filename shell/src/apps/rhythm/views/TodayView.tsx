@@ -15,6 +15,7 @@ import { addDaysISO, fmtDay, fmtDayFull, fmtTime, fmtWeekRange, todayISO, weekSt
 import { folioInbox, planFolio, type FolioCommitment } from '../lib/iterra-adapter';
 import { EXCEPTION_LABEL, FRICTION_LABEL, cx } from '../lib/utils';
 import { usePlayhead } from '../lib/playhead';
+import { useMotionEnabled } from '../lib/motionPreference';
 import { useSharedFocus } from '../lib/iterra';
 import { Pad } from '../components/Pad';
 import { Lamp } from '../components/Lamp';
@@ -649,7 +650,7 @@ export function MeasureStrip({ routine, weekStart, today, size = 15 }: { routine
   const entries = useRegister((s) => s.entries);
   const exceptions = useRegister((s) => s.exceptions);
   const motion = useRegister((s) => s.settings.motion);
-  const play = usePlayhead(motion === 'full');
+  const play = usePlayhead(useMotionEnabled(motion));
   const todayIdx = useMemo(() => {
     for (let i = 0; i < 7; i++) if (addDaysISO(weekStart, i) === today) return i;
     return -1;
@@ -791,10 +792,10 @@ function ExceptionSheet({
    already on the register (name match) reads "on the register" instead. */
 function FolioInbox() {
   const [rows, setRows] = useState<FolioCommitment[] | null>(null);
-  const routineNames = useRegister((s) =>
-    Object.values(s.routines)
-      .map((r) => r.name.trim().toLowerCase())
-      .join(''),
+  const routines = useRegister((s) => s.routines);
+  const planned = useMemo(
+    () => new Set(Object.values(routines).map((r) => r.name.trim().toLowerCase())),
+    [routines],
   );
   useEffect(() => {
     let live = true;
@@ -806,7 +807,7 @@ function FolioInbox() {
     };
   }, []);
   if (!rows?.length) return null;
-  const planned = new Set(routineNames.split(''));
+
   return (
     <section className="mt-6" aria-label="From the folio">
       <div className="kicker mb-2">From the folio — open commitments</div>

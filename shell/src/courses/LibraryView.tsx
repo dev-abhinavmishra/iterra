@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Search, Plus, FileText, Layers, Sigma, Calendar } from 'lucide-react';
+import { AtlasMasthead } from '../mosaic/AtlasMasthead';
+import './workspace-atlas.css';
+import { readShelf, subscribeShelf } from '../shelf';
 import type { Entity, StoreEntity } from '../hub';
 import { Button, EmptyState, Input, Select, Tabs } from '../ui/primitives';
 import {
@@ -27,13 +30,28 @@ export function LibraryView({
   onGo: (url: string) => void;
   onEnter: (place: string) => void;
 }) {
-  const [filter, setFilter] = useState<LibraryFilter>('all');
-  const [query, setQuery] = useState('');
-  /* starts on the ambient filter but is local state: 'All courses' (value
-     '') must be able to clear it — falling back to the ambient value here
-     would make that option a dead end while a course filter is active */
-  const [coursePick, setCoursePick] = useState<string>(activeCourseFilter);
-  useEffect(() => setCoursePick(activeCourseFilter), [activeCourseFilter]);
+  const storageKey = 'iterra.library.view.' + activeCourseFilter;
+  const [initial] = useState(() => {
+    try { return new URLSearchParams(sessionStorage.getItem(storageKey) || ''); }
+    catch { return new URLSearchParams(); }
+  });
+  const firstFilter = initial.get('category');
+  const [filter, setFilter] = useState<LibraryFilter>(
+    firstFilter === 'materials' || firstFilter === 'practice' || firstFilter === 'schedule' || firstFilter === 'results' ? firstFilter : 'all'
+  );
+  const [query, setQuery] = useState(initial.get('q') || '');
+  const [coursePick, setCoursePick] = useState(initial.get('course') ?? activeCourseFilter);
+  const [pinnedOnly, setPinnedOnly] = useState(initial.get('pins') === '1');
+  const [sort, setSort] = useState(initial.get('sort') === 'name' ? 'name' : 'recent');
+  const [pins, setPins] = useState(readShelf);
+  useEffect(() => subscribeShelf(setPins), []);
+  const pinnedUrls = useMemo(() => new Set(pins.map(pin => pin.url)), [pins]);
+  useEffect(() => {
+    const state = new URLSearchParams({ q: query, course: coursePick, category: filter, pins: pinnedOnly ? '1' : '0', sort });
+    try { sessionStorage.setItem(storageKey, state.toString()); } catch { /* Storage may be disabled. */ }
+  }, [storageKey, query, coursePick, filter, pinnedOnly, sort]);
+  const narrowed = Boolean(query || coursePick || pinnedOnly || filter !== 'all');
+  const resetFilters = () => { setQuery(''); setCoursePick(''); setFilter('all'); setPinnedOnly(false); };
 
   const allObjects = useMemo<WorkspaceObject[]>(() => {
     const out: WorkspaceObject[] = [];
@@ -91,6 +109,7 @@ export function LibraryView({
     const q = query.trim().toLowerCase();
     const cFilter = coursePick.trim().toLowerCase();
     return allObjects.filter((o) => {
+      if (pinnedOnly && !pinnedUrls.has(o.url)) return false;
       if (cFilter) {
         if (cFilter === 'unfiled') {
           if (o.course || o.topic) return false;
@@ -106,11 +125,11 @@ export function LibraryView({
           .filter(Boolean)
           .join(' ')
           .toLowerCase();
-        if (!hay.includes(q)) return false;
+        if (!q.split(/\s+/).every(word => hay.includes(word))) return false;
       }
       return true;
     });
-  }, [allObjects, query, coursePick]);
+  }, [allObjects, query, coursePick, pinnedOnly, pinnedUrls]);
 
   const filtered = useMemo(
     () =>
@@ -120,63 +139,58 @@ export function LibraryView({
         if (filter === 'schedule' && !['block', 'commitment', 'assignment', 'routine', 'experiment', 'followup'].includes(o.type)) return false;
         if (filter === 'results' && !['assessment', 'grade', 'scan', 'session'].includes(o.type)) return false;
         return true;
-      }),
-    [contextObjects, filter],
+      }).sort((a, b) => sort === 'name' ? a.title.localeCompare(b.title, undefined, { numeric: true }) : (b.updatedAt || 0) - (a.updatedAt || 0)),
+    [contextObjects, filter, sort],
   );
 
   /* pages of rows — a multi-semester workspace can carry thousands of
      entities; render the first page and expand on demand */
   const PAGE = 150;
   const [shown, setShown] = useState(PAGE);
-  useEffect(() => setShown(PAGE), [query, coursePick, filter]);
+  useEffect(() => setShown(PAGE), [query, coursePick, filter, pinnedOnly, sort]);
 
   return (
     <div className="terrain-map min-h-full">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8 space-y-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="font-mono text-[10.5px] font-semibold uppercase tracking-[0.14em] text-[var(--color-accent)]">
-              Workspace Repository
-            </div>
-            <h1 className="font-place text-[24px] font-semibold text-[var(--color-ink)]">
-              Library
-            </h1>
-            <p className="mt-0.5 text-[13px] text-[var(--color-mute)]">
-              Browse, filter, and connect notes, study materials, decks, problems, schedules, and results across every tool.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="secondary"
-              size="xs"
-              icon={<FileText className="h-3.5 w-3.5" />}
-              onClick={() => onEnter('ink')}
-            >
-              New Note
-            </Button>
-            <Button
-              variant="secondary"
-              size="xs"
-              icon={<Layers className="h-3.5 w-3.5" />}
-              onClick={() => onEnter('flashcards')}
-            >
-              New Deck
-            </Button>
-            <Button
-              variant="secondary"
-              size="xs"
-              icon={<Sigma className="h-3.5 w-3.5" />}
-              onClick={() => onEnter('proof')}
-            >
-              New Problem
-            </Button>
-          </div>
-        </div>
+        <AtlasMasthead
+          object="books"
+          eyebrow="the Stacks"
+          title="Study library"
+          sub="Find a note, reopen a deck, or pick up the work you pinned."
+          actions={
+            <>
+              <Button
+                variant="secondary"
+                size="xs"
+                icon={<FileText className="h-3.5 w-3.5" />}
+                onClick={() => onEnter('ink')}
+              >
+                Open Ink
+              </Button>
+              <Button
+                variant="secondary"
+                size="xs"
+                icon={<Layers className="h-3.5 w-3.5" />}
+                onClick={() => onEnter('flashcards')}
+              >
+                Open Flashcards
+              </Button>
+              <Button
+                variant="secondary"
+                size="xs"
+                icon={<Sigma className="h-3.5 w-3.5" />}
+                onClick={() => onEnter('proof')}
+              >
+                Open Proof
+              </Button>
+            </>
+          }
+        />
 
         {/* Filter Bar */}
         <div className="rounded-[6px] border border-[var(--color-line)] bg-[var(--color-sheet)] p-3.5 space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[220px]">
+            <div className="relative flex-1 min-w-[min(100%,200px)]">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--color-faint)]" />
               <Input
                 value={query}
@@ -202,7 +216,7 @@ export function LibraryView({
             </Select>
           </div>
 
-          <div className="-mb-3.5">
+          <div className="-mb-3.5 overflow-x-auto">
             <Tabs<LibraryFilter>
               ariaLabel="Object category filter"
               active={filter}
@@ -234,6 +248,14 @@ export function LibraryView({
           </div>
         </div>
 
+        <div className="study-results-bar">
+          <span role="status">{filtered.length} {filtered.length === 1 ? 'item' : 'items'}</span>
+          <button type="button" className="study-pin-filter" aria-pressed={pinnedOnly} onClick={() => setPinnedOnly(value => !value)}>Pinned only</button>
+          <Select aria-label="Sort library" value={sort} onChange={e => setSort(e.target.value)}>
+            <option value="recent">Recently updated</option><option value="name">Title A–Z</option>
+          </Select>
+          {narrowed && <button type="button" className="study-reset" onClick={resetFilters}>Clear filters</button>}
+        </div>
         {/* Results List */}
         {filtered.length > 0 ? (
           <div>
@@ -251,32 +273,28 @@ export function LibraryView({
             {filtered.length > shown && (
               <button
                 type="button"
-                onClick={() => setShown(filtered.length)}
+                onClick={() => setShown(current => current + PAGE)}
                 className="mt-2 w-full rounded-[6px] border border-dashed border-[var(--color-line)] py-2 text-[12px] font-medium text-[var(--color-mute)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
               >
-                Show all {filtered.length} objects ({filtered.length - shown} more)
+                Show {Math.min(PAGE, filtered.length - shown)} more
               </button>
             )}
           </div>
         ) : (
           <EmptyState
             icon={<Plus className="h-4 w-4" />}
-            title={query || coursePick ? 'No matching workspace objects' : 'Your workspace library is empty'}
+            title={narrowed ? 'No matching items' : 'Your workspace library is empty'}
             description={
-              query || coursePick
-                ? 'Try clearing the search filter or selecting "All courses".'
+              narrowed
+                ? 'Clear the filters to see the rest of your library.'
                 : 'Create notes, import study sheets, build flashcard decks, or schedule course blocks to populate your library.'
             }
             actions={
-              query || coursePick ? (
+              narrowed ? (
                 <Button
                   variant="secondary"
                   size="xs"
-                  onClick={() => {
-                    setQuery('');
-                    setCoursePick('');
-                    setFilter('all');
-                  }}
+                  onClick={resetFilters}
                 >
                   Reset Filters
                 </Button>

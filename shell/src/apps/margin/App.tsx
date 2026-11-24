@@ -18,6 +18,7 @@ import { initDB, getAllNotes, saveNote, deleteNote, getSettings, saveSettings, m
 import { refreshUsage, initAuth } from './services/usageService';
 import { wireMargin, setMarginSource } from './iterra';
 import { placeActive } from '../active';
+import { AtlasMasthead } from '../../mosaic/AtlasMasthead';
 import './index.css';
 
 const WELCOME_NOTE = (): Note => ({
@@ -380,6 +381,22 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                 onUpgrade={() => setShowUpgradeModal(true)}
                 onOpenPalette={() => setPaletteOpen(true)}
             />
+
+            {/* Painted cartouche — the margin's own header band. Hidden in the
+                editor (document-first sheet) and the recorder (immersive mic
+                session); browse/study/settings keep it. Rendered outside the
+                keyed view transition so it persists as chrome instead of
+                remounting (and replaying its animation) on every view change. */}
+            {currentView !== View.EDITOR && currentView !== View.RECORDER && (
+                <AtlasMasthead
+                    compact
+                    object="none"
+                    place="margin"
+                    title="Study Materials"
+                    sub="Lecture recordings, imported documents, marginalia, and study sheets."
+                    className="mx-4 md:mx-6 mt-4 mb-3 shrink-0"
+                />
+            )}
 
             <AnimatePresence mode="wait">
                 <motion.div

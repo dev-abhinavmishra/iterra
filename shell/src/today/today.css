@@ -1,0 +1,271 @@
+/* Today hero — a compact atlas instrument: serif greeting, live stats, and
+   the signature globe, echoing the landing sky without leaving the workspace. */
+
+.today-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  align-items: center;
+  gap: clamp(18px, 3vw, 44px);
+  padding: clamp(24px, 3.6vw, 46px) clamp(22px, 4vw, 52px);
+  border-radius: 12px;
+  color: #f6efda;
+  background: radial-gradient(ellipse at 72% 28%, #315c40 0%, #183e2c 36%, #102f24 68%, #0b231a 100%);
+  box-shadow: 0 22px 44px -26px rgb(11 35 26 / 0.6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .today-hero { animation: today-hero-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+}
+
+@keyframes today-hero-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes today-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes today-appear {
+  from { opacity: 0.1; transform: translateY(8px) scale(0.965); }
+  to { opacity: 1; transform: none; }
+}
+
+/* staggered entrance — copy lines arrive in reading order, the instrument
+   surfaces a beat later like the landing's atlas-appear */
+@media (prefers-reduced-motion: no-preference) {
+  .today-hero-eyebrow { animation: today-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.1s both; }
+  .today-hero-title { animation: today-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.18s both; }
+  .today-hero-sub { animation: today-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.28s both; }
+  .today-hero-actions { animation: today-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) 0.4s both; }
+  .today-hero-stats { animation: today-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.52s both; }
+  .today-instrument { animation: today-appear 1s cubic-bezier(0.18, 0.73, 0.2, 1) 0.24s both; }
+}
+
+/* faint survey grid, same language as the landing sky */
+.today-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.3;
+  background-image:
+    linear-gradient(#89b0a01f 1px, transparent 1px),
+    linear-gradient(90deg, #89b0a01f 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(115deg, transparent, #000 62%);
+}
+
+/* corner registration ticks */
+.today-hero::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  z-index: -1;
+  border: 1px solid #d7bf8442;
+  background:
+    linear-gradient(#ddc690, #ddc690) left top / 25px 1px,
+    linear-gradient(#ddc690, #ddc690) left top / 1px 25px,
+    linear-gradient(#ddc690, #ddc690) right bottom / 25px 1px,
+    linear-gradient(#ddc690, #ddc690) right bottom / 1px 25px;
+  background-repeat: no-repeat;
+}
+
+/* drifting starfield — reuses the landing's atlas-stars layer, dimmed so
+   the copy stays primary */
+.today-hero .atlas-stars { opacity: 0.55; }
+
+/* slow contour survey behind the copy, kept faint so stats stay legible */
+.today-contours {
+  position: absolute;
+  z-index: -1;
+  inset: -6%;
+  pointer-events: none;
+  background: center / cover url('/atlas/contours.webp');
+  opacity: 0.14;
+  mask-image: linear-gradient(24deg, #000 0%, transparent 42%, transparent 70%, #000 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .today-contours { animation: atlas-survey 30s ease-in-out infinite alternate; }
+}
+
+.today-hero-copy { position: relative; z-index: 2; min-width: 0; }
+
+.today-hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 600 10.5px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #d9c690;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.today-hero-eyebrow::before {
+  content: "";
+  flex: none;
+  width: 22px;
+  height: 1px;
+  background: #d9c690aa;
+}
+.today-hero-glyph {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  fill: #e2b86e;
+}
+
+.today-hero-title {
+  margin: 16px 0 10px;
+  font-family: Newsreader, Georgia, serif;
+  font-weight: 450;
+  font-size: clamp(36px, 4.8vw, 60px);
+  line-height: 1.0;
+  letter-spacing: -0.045em;
+}
+.today-hero-title em {
+  color: #c8e8a5;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.today-hero-sub {
+  max-width: 52ch;
+  margin: 0;
+  color: #cfdccf;
+  font-size: clamp(13px, 1.15vw, 15px);
+  line-height: 1.55;
+}
+.today-hero-sub strong { color: #f6efda; font-weight: 600; }
+
+.today-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: 22px;
+}
+.today-hero-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid #d9eabc;
+  border-radius: 5px;
+  background: #d1e8aa;
+  color: #112827;
+  font: 600 13.5px/1 var(--font-sans);
+  cursor: pointer;
+  transition: background-color 140ms ease, transform 160ms cubic-bezier(0.3, 1.4, 0.4, 1);
+}
+.today-hero-btn:hover { background: #e5f3c8; }
+.today-hero-btn:active { transform: scale(0.97); }
+.today-hero-btn.secondary {
+  background: transparent;
+  border-color: #d7bf8466;
+  color: #f6efda;
+}
+.today-hero-btn.secondary:hover { background: rgb(255 255 255 / 0.08); }
+.today-hero-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 42px;
+  padding: 0 4px;
+  background: none;
+  border: 0;
+  color: #e8d9a8;
+  font: 600 13.5px/1 var(--font-sans);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.today-hero-link:hover { color: #f6efda; }
+.today-hero-btn:focus-visible,
+.today-hero-link:focus-visible {
+  outline: 2px solid #e8d9a8;
+  outline-offset: 2px;
+}
+
+.today-hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  margin: 26px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid #d7bf8433;
+}
+.today-hero-stat { min-width: 0; }
+.today-hero-stat dt {
+  font: 600 9.5px/1.4 'IBM Plex Mono', monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #e2d0a0;
+}
+.today-hero-stat dd {
+  margin: 5px 0 0;
+  font-family: Newsreader, Georgia, serif;
+  font-size: clamp(24px, 2.6vw, 32px);
+  line-height: 1;
+  color: #f6efda;
+  font-variant-numeric: tabular-nums;
+}
+
+/* the instrument cluster — dial, orbits, and a live sweep-second clock,
+   sized down from the landing hero so it sits beside the copy */
+.today-instrument {
+  position: relative;
+  width: 100%;
+  max-width: 250px;
+  aspect-ratio: 1.08;
+  margin-inline: auto;
+}
+
+.today-clock {
+  position: absolute;
+  width: 56%;
+  aspect-ratio: 1;
+  left: 22%;
+  top: 50%;
+  translate: 0 -50%;
+  overflow: visible;
+}
+.today-clock-rim { fill: none; stroke: #d7bf8440; stroke-width: 1; }
+.today-clock-tick { stroke: #d7bf8477; stroke-width: 1; stroke-linecap: round; }
+.today-clock-tick.major { stroke: #e8d9a8; stroke-width: 2; }
+.today-clock-hand line { stroke: #f6efda; stroke-linecap: round; }
+.today-clock-hand.hour line { stroke-width: 6; }
+.today-clock-hand.min line { stroke-width: 4; }
+.today-clock-hand.sec line { stroke: #e8bf7b; stroke-width: 1.6; }
+.today-clock-hand.sec circle { fill: #e8bf7b; }
+.today-clock-pin { fill: #e8bf7b; }
+
+/* instrument date window — week + day-of-year readout under the clock */
+.today-clock-readout {
+  position: absolute;
+  left: 50%;
+  bottom: 1%;
+  translate: -50% 0;
+  font: 600 9px/1 'IBM Plex Mono', monospace;
+  letter-spacing: 0.24em;
+  color: #d9c690;
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .today-hero { grid-template-columns: 1fr; padding: 24px 20px 26px; }
+  /* the instrument is a desktop luxury — on small screens it would push the
+     actual work below the fold, so the hero stays a compact banner */
+  .today-instrument { display: none; }
+  .today-hero-stats { gap: 10px 22px; }
+}
+
+@media print {
+  .today-hero { display: none; }
+}

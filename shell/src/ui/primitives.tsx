@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Link2, ArrowUpRight, ChevronDown } from 'lucide-react';
+import { useIterraGlass } from './glass';
 
 /* ── Buttons ─────────────────────────────────────────────────────────────── */
 
@@ -67,7 +68,7 @@ export function IconButton({
       title={label}
       className={`inline-flex items-center justify-center rounded-[5px] border transition-colors cursor-pointer ${dim} ${
         active
-          ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] border-[var(--color-accent)]/40'
+          ? 'bg-[var(--color-accent-soft)] text-[var(--color-accent)] border-[var(--color-accent)]/40 hover:bg-[var(--color-accent-soft-2)]'
           : 'bg-transparent text-[var(--color-mute)] border-transparent hover:bg-[var(--color-sheet-2)] hover:text-[var(--color-ink)]'
       } ${className}`}
       {...rest}
@@ -334,6 +335,7 @@ export function Dialog({
   onClose,
   title,
   subtitle,
+  descriptionId,
   children,
   maxWidth = 'max-w-lg',
 }: {
@@ -341,6 +343,7 @@ export function Dialog({
   onClose: () => void;
   title: string;
   subtitle?: string;
+  descriptionId?: string;
   children: React.ReactNode;
   maxWidth?: string;
 }) {
@@ -401,6 +404,7 @@ export function Dialog({
       role="dialog"
       aria-modal="true"
       aria-label={title}
+      aria-describedby={descriptionId}
     >
       <div
         ref={panelRef}
@@ -475,6 +479,9 @@ export function DropdownMenu({
   const wrapRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLElement>(null);
+  /* menus float over real content — liquid glass rim makes the edge read
+     as a lens rather than a pane. Re-arms each time the panel mounts. */
+  useIterraGlass<HTMLDivElement>({ radius: 14, bezel: 14, blur: 8 }, open, panelRef);
 
   function close({ restoreFocus = false }: { restoreFocus?: boolean } = {}) {
     setOpen(false);
@@ -515,7 +522,7 @@ export function DropdownMenu({
       {open && (
         <div
           ref={panelRef}
-          className={`anim-pop absolute z-50 min-w-[190px] rounded-[6px] border border-[var(--color-line-2)] bg-[var(--color-sheet)] p-1 shadow-xl ${
+          className={`anim-pop it-glass-fallback absolute z-50 min-w-[190px] rounded-[14px] p-1 ${
             side === 'top' ? 'bottom-full mb-1' : 'top-full mt-1'
           } ${align === 'right' ? 'right-0' : 'left-0'}`}
           onClick={(e) => e.stopPropagation()}

@@ -116,7 +116,7 @@ export function RoutineForm({
         <Field label="Minimum version (optional)" hint="the smallest version that still counts">
           <input className="f-input" value={minLabel} onChange={(e) => setMinLabel(e.target.value)} placeholder="e.g. open the deck" />
         </Field>
-        <Field label="Quiet window (optional)" hint="a time range, never an alarm">
+        <Field label="Quiet window (optional)" hint="A time range shown with this routine; no reminders or alarms are sent.">
           <div className="flex items-center gap-2">
             <input className="f-input" type="time" value={windowStart} onChange={(e) => setWindowStart(e.target.value)} aria-label="window start" />
             <span className="mono text-[11px] text-ink-faint">–</span>

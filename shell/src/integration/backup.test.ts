@@ -206,6 +206,42 @@ describe('backup validation and restore', () => {
       await deleteDatabase('ModularAINotesDB');
     }
   });
+
+  it('reports an unreadable owned database instead of skipping its clear during restore', async () => {
+    const notes = await createDatabase('ModularAINotesDB', 'notes', 'id');
+    let restored: IDBDatabase | undefined;
+    try {
+      await putRecord(notes, 'notes', { id: 'personal', value: 'keep until restore is possible' });
+      notes.close();
+      localStorage.setItem('personal', 'before');
+
+      const actualOpen = actualIndexedDB.open.bind(actualIndexedDB);
+      let notesOpens = 0;
+      vi.stubGlobal('indexedDB', indexedDbFixture({
+        open: ((name: string, ...args: unknown[]) => {
+          // The first open is the pre-restore backup snapshot. Deny the next
+          // open, which is the restore's attempt to clear this omitted DB;
+          // later opens used by rollback are allowed through.
+          if (name === 'ModularAINotesDB' && ++notesOpens === 2) {
+            const request: Record<string, unknown> = { error: new Error('owned DB temporarily unreadable') };
+            queueMicrotask(() => (request.onerror as (() => void) | undefined)?.());
+            return request as unknown as IDBOpenDBRequest;
+          }
+          return actualOpen(name, ...(args as [number?]));
+        }) as IDBFactory['open'],
+      }));
+
+      await expect(restoreBackup(valid())).rejects.toThrow('owned DB temporarily unreadable');
+      expect(localStorage.getItem('personal')).toBe('before');
+      restored = await createDatabase('ModularAINotesDB', 'notes', 'id');
+      expect(await getRecords(restored, 'notes')).toEqual([{ id: 'personal', value: 'keep until restore is possible' }]);
+    } finally {
+      notes.close();
+      restored?.close();
+      await deleteDatabase('ModularAINotesDB');
+      vi.unstubAllGlobals();
+    }
+  });
 });
 
 
@@ -270,4 +306,39 @@ describe('complete backup export', () => {
     await expect(collectBackup()).rejects.toThrow('IndexedDB is unavailable');
     vi.unstubAllGlobals();
   });
+});
+
+it('drops account credentials and sync ownership from older backup files', () => {
+  const backup = parseBackup(JSON.stringify({
+    format: 'iterra-backup', v: 1, at: 1,
+    localStorage: {
+      'sb-example-auth-token': 'private session',
+      'sb-example-auth-token-code-verifier': 'private verifier',
+      'iterra.v1.sync.owner': 'old-owner',
+      'iterra.v1.sync.enabled': '1',
+      'iterra.v1.sync.out': 'old-queue',
+      'iterra.v1.accent': 'rose',
+    },
+  }));
+  expect(backup.localStorage).toEqual({ 'iterra.v1.accent': 'rose' });
+});
+
+it('preserves the destination account when exporting and restoring study data', async () => {
+  localStorage.setItem('sb-workspace-auth-token', 'destination-session');
+  localStorage.setItem('iterra.v1.sync.owner', 'destination-owner');
+  try {
+    const exported = await collectBackup();
+    expect(exported.localStorage).not.toHaveProperty('sb-workspace-auth-token');
+    expect(Object.keys(exported.localStorage)).not.toContain('iterra.v1.sync.owner');
+    await restoreBackup({ ...exported, localStorage: {
+      ...exported.localStorage, 'sb-workspace-auth-token': 'source-session',
+      'iterra.v1.sync.owner': 'source-owner', 'iterra.v1.sync.enabled': '1',
+    } });
+    expect(localStorage.getItem('sb-workspace-auth-token')).toBe('destination-session');
+    expect(localStorage.getItem('iterra.v1.sync.owner')).toBe('destination-owner');
+    expect(localStorage.getItem('iterra.v1.sync.enabled')).not.toBe('1');
+  } finally {
+    localStorage.removeItem('sb-workspace-auth-token');
+    localStorage.removeItem('iterra.v1.sync.owner');
+  }
 });

@@ -6,6 +6,26 @@ passing unit test does not close a browser, usability, provider, or deployment g
 
 ## Current assignments
 
+User-requested follow-up (November 21): complete the Supabase integration first,
+then rework Planning using clearer binder-like tabs while retaining its established
+style, and audit light/dark accessibility throughout the app. Add a student-facing
+gradebook based on the existing grade capabilities, and correct Today's unbalanced
+layout shown in the supplied screenshot (large empty left column next to Review
+Queue and Course Overview). Inspect the existing workflows before choosing whether
+the gradebook belongs in an existing tool or a separate place. Validate responsive
+layouts and both themes; keep the Supabase work and personal data safe.
+
+Additional user requests: improve each app's loading state and add restrained,
+reduced-motion-aware animation; rewrite awkward product copy in natural language.
+Verify a complete cross-app path: bring assignments and other work into Boxed,
+organize it, start a distinct focus session, complete it with satisfying feedback,
+and later record a grade against the exact assignment. Audit current Boxed,
+Timer, Planning, and grade capabilities before extending the flow.
+Planning and Boxed agenda items should propagate automatically in both directions
+from a single user entry, with stable identity, edits, completion and deletion
+handled predictably rather than requiring repeated manual imports. Verify that
+automatic propagation neither duplicates tasks nor overwrites personal changes.
+
 The active implementation owners are Luna agents. Native durability and selective
 offline loading are at an implementation freeze for the next serialized typecheck,
 full suite, root build, and browser verification. Nine native transaction regressions passed,

@@ -27,7 +27,8 @@ import { exportRegister, parseRegisterBackup } from '../lib/backup';
 
 export const DEFAULT_SETTINGS: AppSettings = {
   weekStartsOn: 1,
-  motion: 'full',
+  // New registers follow the OS; persisted full/reduced choices stay explicit.
+  motion: 'system',
   timerBaseUrl: '/apps/timer',
   inkBaseUrl: '/apps/ink',
   modularBaseUrl: 'https://modularaistack.vercel.app',

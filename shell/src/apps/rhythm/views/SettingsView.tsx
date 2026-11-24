@@ -78,8 +78,9 @@ export function SettingsView() {
             <select
               className="f-select"
               value={s.settings.motion}
-              onChange={(e) => s.updateSettings({ motion: e.target.value as 'full' | 'reduced' })}
+              onChange={(e) => s.updateSettings({ motion: e.target.value as 'system' | 'full' | 'reduced' })}
             >
+              <option value="system">System — follow device preference</option>
               <option value="full">Full — pads bloom, playhead sweeps</option>
               <option value="reduced">Reduced — instant steps</option>
             </select>
