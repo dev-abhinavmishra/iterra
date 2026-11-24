@@ -112,7 +112,9 @@
    live by MosaicObject; hover lifts and tilts the medallion */
 .atlas-mh-globe {
   position: absolute;
-  z-index: 1;
+  /* above .atlas-mh-body (z 2) — the body is a full-width flex layer that
+     would otherwise swallow every pointer event over the accent */
+  z-index: 3;
   right: clamp(14px, 3vw, 40px);
   top: 50%;
   translate: 0 -50%;
