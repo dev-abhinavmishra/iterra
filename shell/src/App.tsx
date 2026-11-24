@@ -70,6 +70,7 @@ import { Dialog, DropdownMenu, IconButton } from './ui/primitives';
 import { WorkspaceDataGate } from './WorkspaceDataGate';
 import { WorkspaceHomeButton } from './ui/WorkspaceHomeButton';
 import { type WorkspaceObject } from './ui/ObjectRow';
+import { useIterraGlass } from './ui/glass';
 
 const readHash = () => parseHash(window.location.hash);
 
@@ -217,6 +218,11 @@ export default function App() {
   const active = routeState.place;
   const course = routeState.course;
   const section: WorkspaceSection = routeState.section;
+  /* the compact bottom tab bar is the mobile primary nav — it wears the
+     same liquid-glass lens as the header band. The nav only exists off
+     the welcome section, so `active` tracks that and re-arms on mount. */
+  const bottomNavRef = useRef<HTMLElement>(null);
+  useIterraGlass<HTMLElement>('navigation', section !== 'welcome', bottomNavRef);
 
   const toolOrigin = useRef({ url: '#/today', label: 'Today' });
   useEffect(() => {
@@ -617,11 +623,14 @@ export default function App() {
 
   const totalPendingIntakes = Object.values(intakes).reduce((acc, transfer) => acc + (transfer?.count || 0), 0);
 
+  /* Course context is explicit-only: the route's course, the picker
+     selection, or an object the user inspected. Ambient sources
+     (shared.activeCourse, resolvedObject) persist across reloads and
+     leaked the last-viewed course into every fresh session. */
   const effectiveCourseContext =
     course ||
     courseFilter ||
-    resolvedObject?.course ||
-    ((shared.activeCourse?.v as any)?.code as string) ||
+    manualObject?.course ||
     '';
 
   /* Course-context menu body — shared between the header selector (md+) and
@@ -1333,6 +1342,7 @@ export default function App() {
           *plus* safe-area padding — a fixed h-14 + padding would squeeze the
           items on home-indicator devices. Matches --iterra-bottom-inset. */}
       {section !== 'welcome' && <nav
+        ref={bottomNavRef}
         aria-label="Primary navigation — compact"
         className="border-t border-[var(--color-line-2)] bg-[var(--color-sheet)] flex h-[calc(3.5rem+env(safe-area-inset-bottom,0px))] shrink-0 items-stretch pb-[env(safe-area-inset-bottom)] lg:hidden"
       >

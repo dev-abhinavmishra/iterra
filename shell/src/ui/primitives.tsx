@@ -499,7 +499,7 @@ export function DropdownMenu({
   return (
     <div
       ref={wrapRef}
-      className={`relative inline-block ${className}`}
+      className={`relative inline-flex ${className}`}
       onBlur={(e) => {
         if (open && !e.currentTarget.contains(e.relatedTarget)) setOpen(false);
       }}
