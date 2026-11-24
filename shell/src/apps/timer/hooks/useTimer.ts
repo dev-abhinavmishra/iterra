@@ -38,6 +38,16 @@ export function useCountdown() {
     setRunning(true);
   };
   const stop = () => { setRunning(false); };
+  /* grow a live session — running: endAt shifts so the tick math picks it
+     up; paused: the banked remainder grows and resume() re-arms from it.
+     totalMs grows too so the progress ratio stays honest. Safe on an
+     armed-but-unstarted board (remainingMs === totalMs). */
+  const extend = (ms: number) => {
+    if (!(ms > 0)) return;
+    endAt.current += ms;
+    setTotalMs((t) => t + ms);
+    setRemainingMs((r) => r + ms);
+  };
   const reset = (ms: number) => {
     setRunning(false);
     setTotalMs(ms);
@@ -46,7 +56,7 @@ export function useCountdown() {
 
   const progress = totalMs > 0 ? 1 - remainingMs / totalMs : 0;
   const secondsLeft = Math.ceil(remainingMs / 1000);
-  return { totalMs, remainingMs, secondsLeft, running, progress, start, pause, resume, stop, reset, setRemainingMs, setTotalMs };
+  return { totalMs, remainingMs, secondsLeft, running, progress, start, pause, resume, stop, reset, extend, setRemainingMs, setTotalMs };
 }
 
 /* rAF-driven stopwatch — millisecond smooth, anchored to timestamps. */

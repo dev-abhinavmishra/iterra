@@ -221,16 +221,17 @@ export function inTerrain(): boolean {
    localStorage-backed: an op that lands right before the ?intake= landing
    navigates the frame must survive the reload, not die with module state. */
 const TIMER_OPS_KEY = 'timer.ops.v1';
-export function queuedTimerControls(): { op: string; at: number }[] {
+export interface TimerControlOp { op: string; at: number; minutes?: number }
+export function queuedTimerControls(): TimerControlOp[] {
   try {
     const arr = JSON.parse(localStorage.getItem(TIMER_OPS_KEY) || '[]');
     return Array.isArray(arr) ? arr : [];
   } catch { return []; }
 }
-export function pushTimerControl(op: string) {
+export function pushTimerControl(op: string, minutes?: number) {
   try {
     const arr = queuedTimerControls();
-    arr.push({ op, at: Date.now() });
+    arr.push(minutes ? { op, at: Date.now(), minutes } : { op, at: Date.now() });
     localStorage.setItem(TIMER_OPS_KEY, JSON.stringify(arr.slice(-8)));
   } catch { /* full/blocked storage — the live event path still works */ }
 }
@@ -326,16 +327,24 @@ export function registerAdapter() {
     intakes: {
       'timer.start': onTimerStart,
       /* steer a live session from anywhere in the terrain: the ambient
-         rail's ❚❚/▶/✓ sends {op} here; TimerView's own listener executes
-         it against the real countdown. Ops: pause | resume | finish.
+         rail's ❚❚/▶/✓ and the shell's TimerPopup send {op} here;
+         TimerView's own listener executes it against the real countdown.
+         Ops: pause | resume | finish | extend (extend carries minutes).
          The op queues BEFORE dispatch — an op landing while the view is
          still mounting (the ?intake= landing just navigated this frame)
          would otherwise dispatch into nothing yet report delivered. */
-      'timer.control': async (rec: { payload?: { op?: string } }) => {
+      'timer.control': async (rec: { payload?: { op?: string; minutes?: number } }) => {
         const op = rec?.payload?.op;
-        if (op !== 'pause' && op !== 'resume' && op !== 'finish') return { ok: false };
-        pushTimerControl(op);
-        window.dispatchEvent(new CustomEvent('timer:control', { detail: { op } }));
+        const rawMin = rec?.payload?.minutes;
+        const minutes = typeof rawMin === 'number' && Number.isFinite(rawMin)
+          ? Math.min(180, Math.max(1, Math.round(rawMin))) : undefined;
+        const ok = op === 'pause' || op === 'resume' || op === 'finish' ||
+          (op === 'extend' && minutes !== undefined);
+        if (!ok || !op) return { ok: false };
+        pushTimerControl(op, op === 'extend' ? minutes : undefined);
+        window.dispatchEvent(new CustomEvent('timer:control', {
+          detail: { op, minutes: op === 'extend' ? minutes : undefined },
+        }));
         return { url: '/apps/timer/' };
       },
     },

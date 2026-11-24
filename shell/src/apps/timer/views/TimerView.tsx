@@ -181,7 +181,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       try {
         if (v) {
           if (!sessionIdRef.current) sessionIdRef.current = `sess_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
-          localStorage.setItem(LIVE_SESSION_KEY, JSON.stringify({ ...v, intent, syllabus, thenBreak, sessionId: sessionIdRef.current }));
+          localStorage.setItem(LIVE_SESSION_KEY, JSON.stringify({ ...v, intent, syllabus, thenBreak, sessionId: sessionIdRef.current, at: Date.now() }));
         } else {
           sessionIdRef.current = null;
           localStorage.removeItem(LIVE_SESSION_KEY);
@@ -764,7 +764,7 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
   /* returns whether the op actually applied — an op arriving before the
      countdown is armed stays queued so the drain retries it when state
      catches up (the ?intake= landing race) */
-  const applyOp = (op: string): boolean => {
+  const applyOp = (op: string, minutes?: number): boolean => {
     const jot = (type: 'session.paused' | 'session.resumed') => {
       const it = (window as any).iterra;
       try {
@@ -781,16 +781,24 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       return true;
     }
     if (op === 'finish' && hasTime) { finishEarly(); return true; }
+    /* extend grows the armed session — the shell popup's '+5'. totalMs
+       moves with it, so the publish effect re-beats endsAt/remainingSec
+       for every other frame reading the live blob. */
+    if (op === 'extend' && hasTime && !done && cd.remainingMs > 0) {
+      cd.extend(Math.min(180, Math.max(1, minutes ?? 5)) * 60000);
+      return true;
+    }
     return false;
   };
 
   useEffect(() => {
     const onCtl = (e: Event) => {
-      const op = (e as CustomEvent<{ op?: string }>).detail?.op;
+      const d = (e as CustomEvent<{ op?: string; minutes?: number }>).detail;
+      const op = d?.op;
       if (!op) return;
       /* applied → consume the queued copy so the drain can't re-run it;
          not applicable yet → leave queued for the drain below */
-      if (applyOp(op)) {
+      if (applyOp(op, d?.minutes)) {
         const entry = queuedTimerControls().find((x) => x.op === op);
         if (entry) dequeueTimerControl(entry);
       }
@@ -811,8 +819,9 @@ export default function TimerView({ presetMinutes = 25, presetName, linkQuery = 
       const applicable =
         (entry.op === 'pause' && running) ||
         (entry.op === 'resume' && !running && hasTime && cd.remainingMs > 0) ||
-        (entry.op === 'finish' && hasTime);
-      if (applicable && applyOp(entry.op)) dequeueTimerControl(entry);
+        (entry.op === 'finish' && hasTime) ||
+        (entry.op === 'extend' && hasTime && !done && cd.remainingMs > 0);
+      if (applicable && applyOp(entry.op, entry.minutes)) dequeueTimerControl(entry);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, hasTime, isBreak, cd.remainingMs]);

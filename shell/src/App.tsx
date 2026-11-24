@@ -28,6 +28,7 @@ import {
   Wrench,
   EllipsisVertical,
   Settings2,
+  Timer as TimerGlyph,
 } from 'lucide-react';
 import { PLACES, PLACE_MAP } from './places';
 import { SettingsSurface } from './settings/SettingsSurface';
@@ -68,6 +69,7 @@ import { useWorkspaceAccent } from './ui/accent';
 import { StudyEntities } from './integration/StudySessionPlan';
 import { Dialog, DropdownMenu, IconButton } from './ui/primitives';
 import { WorkspaceDataGate } from './WorkspaceDataGate';
+import { TimerPopup } from './timer/TimerPopup';
 import { WorkspaceHomeButton } from './ui/WorkspaceHomeButton';
 import { type WorkspaceObject } from './ui/ObjectRow';
 import { useIterraGlass } from './ui/glass';
@@ -600,6 +602,14 @@ export default function App() {
     void sendTo({ to: 'timer', action: 'timer.control', payload: { op } });
   };
 
+  /* the passive timer popup steers sessions without navigating — mounting
+     the place in the background (keep-alive, display:none) wakes its
+     adapter + views so control ops apply immediately instead of queueing
+     behind a cold chunk load. Never changes the route. */
+  const ensurePlaceMounted = useCallback((id: string) => {
+    setMounted((m) => (m[id] !== undefined ? m : { ...m, [id]: '' }));
+  }, []);
+
   const quickStartFocus = (courseCode?: string) => {
     void sendTo({
       to: 'timer',
@@ -975,6 +985,25 @@ export default function App() {
             <kbd className="hidden sm:inline rounded border border-[var(--color-line)] bg-[var(--color-sheet)] px-1 font-mono text-[10px]">
               ⌘K
             </kbd>
+          </button>
+
+          {/* Timer — a live session toggles the floating popup; idle,
+              the glyph is just a shortcut into the place */}
+          <button
+            type="button"
+            onClick={() =>
+              focusLive
+                ? window.dispatchEvent(new CustomEvent('iterra:timer-popup'))
+                : enter('timer')
+            }
+            className="relative inline-flex h-7 w-7 items-center justify-center rounded-[5px] border border-[var(--color-line)] bg-[var(--color-paper)]/70 text-[var(--color-mute)] hover:border-[var(--color-accent)] hover:text-[var(--color-ink)] cursor-pointer"
+            title={focusLive ? 'Timer — quick controls' : 'Open Timer'}
+            aria-label={focusLive ? 'Timer quick controls' : 'Open Timer'}
+          >
+            <TimerGlyph className="h-3.5 w-3.5" />
+            {focusLive && (
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border border-[var(--color-sheet)] bg-[var(--color-accent)]" />
+            )}
           </button>
 
           {/* Active Focus Session Status & Inline Controls */}
@@ -1436,6 +1465,14 @@ export default function App() {
         panelOpen={contextOpen}
         onEnter={enter}
         onGo={goUrl}
+      />
+
+      {/* Passive timer widget — reads the live-session blob, steers via
+          timer.control; renders nothing until a session is actually live
+          and never navigates on its own */}
+      <TimerPopup
+        onEnter={enter}
+        ensurePlace={ensurePlaceMounted}
       />
 
       {/* Keyboard Shortcuts Dialog */}
