@@ -5,6 +5,8 @@
    gold hairlines, Newsreader display type, IBM Plex Mono labels. */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { GUIDES, GUIDE_BY_SLUG } from './seo-guides-data.mjs';
+import { COMPARE_PAGES } from './seo-compare-data.mjs';
 
 export const SITE = 'https://iterrapp.vercel.app';
 
@@ -247,6 +249,41 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;lett
 .index-grid .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block;margin-top:.3rem}
 .index-grid .d{font-size:.92rem;color:var(--mute);display:block;margin-top:.5rem;line-height:1.5}
 
+/* ── comparison & alternatives pages (Chunk A) ────────── */
+.compare-table{width:100%;border-collapse:collapse;font-size:.98rem}
+.compare-table th,.compare-table td{padding:.7rem .9rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.compare-table thead th{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border-bottom:2px solid var(--line2)}
+.compare-table tbody th{font-weight:600;white-space:nowrap}
+.compare-table td:first-of-type{color:var(--mute)}
+.wins-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.win-card{border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.5rem;background:var(--sheet)}
+.win-card.us{border-color:#9db8a4;background:linear-gradient(180deg,#f2f7f1,var(--sheet))}
+.win-card.them{background:var(--sheet)}
+.win-card h3{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.9rem}
+.win-card.us h3{color:var(--accent)}
+.win-card.them h3{color:var(--faint)}
+.win-card ul{list-style:none;padding:0;display:grid;gap:.6rem}
+.win-card li{padding-left:1.3rem;position:relative;font-size:.98rem;line-height:1.5}
+.win-card li::before{content:"";position:absolute;left:0;top:.55em;width:.5rem;height:.5rem;border-radius:50%}
+.win-card.us li::before{background:var(--accent)}
+.win-card.them li::before{border:1.5px solid var(--line2)}
+.verdict{background:var(--night2);color:var(--cream);border-radius:14px;padding:clamp(26px,4vw,44px);position:relative;overflow:hidden}
+.verdict::before{content:"";position:absolute;inset:0;background:url('/atlas/contours.webp') center/cover;opacity:.16;pointer-events:none}
+.verdict>div{position:relative}
+.verdict .mono{color:var(--gold);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:.9rem}
+.verdict p{color:var(--sage2);max-width:62ch;font-size:1.08rem;line-height:1.7}
+.verdict p strong{color:var(--cream)}
+.faq-list{display:grid;gap:.6rem;max-width:56rem}
+details.faq{border:1px solid var(--line);border-radius:10px;background:var(--sheet);padding:.9rem 1.2rem}
+details.faq summary{cursor:pointer;font-weight:600;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;gap:1rem;align-items:baseline}
+details.faq summary::after{content:"+";font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:1.2rem}
+details.faq[open] summary::after{content:"–"}
+details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.98rem;line-height:1.65}
+.related-row{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1.4rem}
+.related-row a{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.05em;border:1px solid var(--line2);border-radius:999px;padding:.4rem .95rem;color:var(--accent);text-decoration:none;background:var(--sheet)}
+.related-row a:hover{border-color:var(--accent)}
+@media(max-width:720px){.wins-grid{grid-template-columns:1fr}}
+
 /* ── footer — mirrors .atlas-end ──────────────────────── */
 footer.site{position:relative;isolation:isolate;overflow:hidden;background:var(--night2);color:var(--cream);padding:clamp(40px,6vw,72px) 0 clamp(56px,8vw,96px)}
 footer.site::before{content:"";position:absolute;inset:0;z-index:-2;background:url('/atlas/contours.webp') center/cover;opacity:.2}
@@ -257,6 +294,32 @@ footer.site::after{content:"";position:absolute;inset:0;z-index:-1;background:ra
 .foot-links a{color:var(--sage2);text-decoration:none;font-size:.95rem;border-bottom:1px solid transparent}
 .foot-links a:hover{color:var(--gold3);border-color:var(--gold2)}
 .foot-meta{margin-top:1.6rem;color:#9db3a4;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.06em}
+
+/* ── guides / long-form articles ──────────────────────── */
+.prose{max-width:46rem}
+.prose h2{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:clamp(1.45rem,3vw,1.85rem);letter-spacing:-.02em;line-height:1.25;margin:2.8rem 0 .9rem}
+.prose p{font-size:1.08rem;line-height:1.78;color:#2c352f;margin-bottom:1.15rem}
+.prose ul{margin:0 0 1.3rem;padding-left:1.35rem}
+.prose li{font-size:1.05rem;line-height:1.7;color:#2c352f;margin-bottom:.5rem}
+.prose a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--gold2)}
+.prose a:hover{color:var(--accent2)}
+.prose strong{font-weight:600}
+.prose .callout{border-left:3px solid var(--gold);background:var(--sheet);padding:1rem 1.35rem;margin:1.7rem 0;border-radius:0 10px 10px 0}
+.prose .callout p{margin:0;font-size:1.03rem;color:var(--mute);font-style:italic;line-height:1.65}
+.tool-inline{display:block;border:1px solid var(--line);border-radius:12px;background:var(--sheet);padding:1.1rem 1.35rem;margin:1.5rem 0;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s}
+.tool-inline:hover{border-color:var(--gold2);background:var(--sheet2)}
+.tool-inline .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block}
+.tool-inline .t{font-family:Newsreader,Georgia,serif;font-size:1.32rem;font-weight:500;letter-spacing:-.01em;display:block;margin-top:.25rem}
+.tool-inline .d{font-size:.92rem;color:var(--mute);display:block;margin-top:.4rem;line-height:1.5}
+.meta-row{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin-top:1.5rem;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--sage2)}
+.related{margin-top:3.5rem;padding-top:2rem;border-top:1px solid var(--line)}
+.related h2{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:1.2rem}
+.rel-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.rel-grid a{display:block;background:var(--sheet);padding:1.15rem 1.3rem;text-decoration:none;color:var(--ink);transition:background .15s}
+.rel-grid a:hover{background:var(--sheet2)}
+.rel-grid .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block}
+.rel-grid .t{font-family:Newsreader,Georgia,serif;font-size:1.25rem;font-weight:500;letter-spacing:-.01em;display:block;margin-top:.3rem;line-height:1.3}
+.guide-index-hero .lede{max-width:56ch}
 
 @media(max-width:720px){
   nav.tools{display:none}
@@ -277,6 +340,33 @@ function jsonLd(obj) {
   return `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
 }
 
+/* Minimal inline markup for guide prose: **bold**, *italic*, [text](/path).
+   Content is authored in seo-guides-data.mjs — no user input reaches this. */
+function inline(s) {
+  let out = esc(s);
+  out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+  out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+  return out;
+}
+
+function renderBlocks(blocks) {
+  return blocks
+    .map((b) => {
+      if (b.k === 'p') return `<p>${inline(b.t)}</p>`;
+      if (b.k === 'ul')
+        return `<ul>${b.items.map((i) => `<li>${inline(i)}</li>`).join('')}</ul>`;
+      if (b.k === 'callout') return `<div class="callout"><p>${inline(b.t)}</p></div>`;
+      if (b.k === 'tool') {
+        const t = TOOLS.find((x) => x.id === b.tool);
+        if (!t) return '';
+        return `<a class="tool-inline" href="${t.path}"><span class="k mono">${esc(t.kicker)} · the ${esc(t.name)} place</span><span class="t">${esc(t.name)}</span><span class="d">${esc(t.lede.split('.')[0])}.</span></a>`;
+      }
+      return '';
+    })
+    .join('\n');
+}
+
 const NAV_LINKS = TOOLS.map((t) => `<a href="${t.path}">${esc(t.name)}</a>`).join('\n');
 
 function header(activePath) {
@@ -287,6 +377,9 @@ function header(activePath) {
 <a class="brand" href="/"><span class="emblem" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Iterra</a>
 <nav class="tools" aria-label="Iterra tools">
 ${links}
+<a href="/guides">Guides</a>
+<a href="/compare">Compare</a>
+<a href="/alternatives">Alternatives</a>
 <a class="open" href="/#/today">Open workspace →</a>
 </nav>
 </header>`;
@@ -298,6 +391,9 @@ function footer() {
 <div class="foot-links">
 <a href="/">Overview</a>
 <a href="/tools">All tools</a>
+<a href="/guides">Guides</a>
+<a href="/compare">Compare</a>
+<a href="/alternatives">Alternatives</a>
 ${TOOLS.map((t) => `<a href="${t.path}">${esc(t.name)}</a>`).join('\n')}
 </div>
 <div class="foot-meta">FREE · LOCAL-FIRST · COURSE-AWARE — NO ACCOUNT REQUIRED</div>
@@ -354,10 +450,13 @@ export function renderToolPage(tool) {
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="${esc(tool.title)}" />
 <meta property="og:description" content="${esc(tool.description)}" />
-<meta property="og:image" content="${SITE}/shots/${tool.id}.webp" />
+<meta property="og:image" content="${SITE}/og/tool-${tool.id}.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(tool.title)}" />
 <meta name="twitter:description" content="${esc(tool.description)}" />
+<meta name="twitter:image" content="${SITE}/og/tool-${tool.id}.png" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
 <style>${CSS}</style>
@@ -391,6 +490,224 @@ ${feats}
 <a class="ghost" href="/tools">All eight tools</a>
 </div>
 </div></div>
+</section>
+</div>
+${footer()}
+</body>
+</html>
+`;
+}
+
+export function renderGuidePage(guide) {
+  const url = `${SITE}/guides/${guide.slug}`;
+  const hm = guide.title.match(/^(.*?)<em>(.*?)<\/em>(.*)$/s) || [null, guide.title, '', ''];
+  const h1html = `${esc(hm[1])}${hm[2] ? `<em>${esc(hm[2])}</em>` : ''}${esc(hm[3] || '')}`;
+  const sections = guide.sections
+    .map(
+      (s) => `<section class="gsec">
+${s.h2 ? `<h2>${inline(s.h2)}</h2>` : ''}
+<div class="prose">${renderBlocks(s.blocks)}</div>
+</section>`,
+    )
+    .join('\n');
+  const related = (guide.related || [])
+    .map((slug) => GUIDE_BY_SLUG[slug])
+    .filter(Boolean);
+  const relatedHtml = related.length
+    ? `<section class="related"><h2 class="mono">Keep reading</h2>
+<ul class="rel-grid">
+${related
+  .map(
+    (r) => `<li><a href="/guides/${r.slug}"><span class="k mono">${esc(r.kicker)}</span><span class="t">${esc(r.title.replace(/<\/?em>/g, ''))}</span></a></li>`,
+  )
+  .join('\n')}
+</ul></section>`
+    : '';
+  const toolsUsed = (guide.tools || [])
+    .map((id) => TOOLS.find((t) => t.id === id))
+    .filter(Boolean);
+  const toolsHtml = toolsUsed.length
+    ? `<section class="block">
+<div class="connect"><div>
+<span class="mono">Put it to work</span>
+<h3>The terrain does the remembering.</h3>
+<p>Every guide above ends in practice. These tools are where the method lives — local-first, course-aware, no account required.</p>
+<div class="cta">
+${toolsUsed.map((t) => `<a class="ghost" href="${t.path}">${esc(t.name)} →</a>`).join('\n')}
+<a class="ghost" href="/#/today">Open workspace</a>
+</div>
+</div></div>
+</section>`
+    : '';
+  const faqHtml = guide.faq?.length
+    ? `<section class="gsec"><h2>Questions students ask</h2>
+<div class="prose">
+${guide.faq
+  .map(
+    (f) => `<h3 style="font-family:Newsreader,Georgia,serif;font-size:1.2rem;font-weight:600;margin:1.6rem 0 .4rem">${esc(f.q)}</h3><p>${inline(f.a)}</p>`,
+  )
+  .join('\n')}
+</div></section>`
+    : '';
+  const dateFmt = (d) =>
+    new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Article',
+        headline: guide.title.replace(/<\/?em>/g, ''),
+        description: guide.description,
+        url,
+        image: `${SITE}/og/guide-${guide.slug}.png`,
+        datePublished: guide.datePublished,
+        dateModified: guide.dateModified || guide.datePublished,
+        author: { '@type': 'Organization', name: 'Iterra', url: `${SITE}/` },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Iterra',
+          logo: { '@type': 'ImageObject', url: `${SITE}/icon-512.png` },
+        },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+        isPartOf: { '@type': 'WebSite', name: 'Iterra', url: `${SITE}/` },
+      },
+      ...(guide.faq?.length
+        ? [
+            {
+              '@type': 'FAQPage',
+              mainEntity: guide.faq.map((f) => ({
+                '@type': 'Question',
+                name: f.q,
+                acceptedAnswer: { '@type': 'Answer', text: f.a.replace(/\*\*|\*/g, '') },
+              })),
+            },
+          ]
+        : []),
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Iterra', item: `${SITE}/` },
+          { '@type': 'ListItem', position: 2, name: 'Guides', item: `${SITE}/guides` },
+          { '@type': 'ListItem', position: 3, name: guide.title.replace(/<\/?em>/g, ''), item: url },
+        ],
+      },
+    ],
+  };
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>${esc(guide.seoTitle)}</title>
+<meta name="description" content="${esc(guide.description)}" />
+<link rel="canonical" href="${url}" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Iterra" />
+<meta property="og:url" content="${url}" />
+<meta property="og:title" content="${esc(guide.seoTitle)}" />
+<meta property="og:description" content="${esc(guide.description)}" />
+<meta property="og:image" content="${SITE}/og/guide-${guide.slug}.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="article:published_time" content="${guide.datePublished}" />
+<meta property="article:modified_time" content="${guide.dateModified || guide.datePublished}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${esc(guide.seoTitle)}" />
+<meta name="twitter:description" content="${esc(guide.description)}" />
+<meta name="twitter:image" content="${SITE}/og/guide-${guide.slug}.png" />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+${FONTS}
+<style>${CSS}</style>
+${jsonLd(ld)}
+</head>
+<body>
+${header('/guides')}
+<section class="hero"><div class="wrap">
+<div class="kicker mono">Iterra Guides · ${esc(guide.kicker)}</div>
+<h1>${h1html}</h1>
+<p class="lede">${esc(guide.lede)}</p>
+<div class="meta-row"><span>${dateFmt(guide.datePublished)}</span><span>${guide.readMinutes} min read</span><span><a href="/guides" style="color:inherit">All guides</a></span></div>
+</div></section>
+<div class="wrap">
+<article>
+${sections}
+${faqHtml}
+${toolsHtml}
+${relatedHtml}
+</article>
+</div>
+${footer()}
+</body>
+</html>
+`;
+}
+
+export function renderGuidesIndex() {
+  const url = `${SITE}/guides`;
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        name: 'Iterra study guides',
+        description: 'Practical, research-backed guides to studying better — planning, memory, focus, and the tools that make it stick.',
+        url,
+      },
+      {
+        '@type': 'ItemList',
+        itemListElement: GUIDES.map((g, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: g.title.replace(/<\/?em>/g, ''),
+          url: `${SITE}/guides/${g.slug}`,
+        })),
+      },
+    ],
+  };
+  const cards = GUIDES.map(
+    (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${esc(g.kicker)} · ${g.readMinutes} min</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+  ).join('\n');
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Study Guides — How to Learn Better | Iterra</title>
+<meta name="description" content="Practical, research-backed guides to studying better: semester planning, spaced repetition, active recall, pomodoro, time blocking, finals week, and more — plus the free tools that make it stick." />
+<link rel="canonical" href="${url}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Iterra" />
+<meta property="og:url" content="${url}" />
+<meta property="og:title" content="Iterra Study Guides — How to Learn Better" />
+<meta property="og:description" content="Research-backed guides to studying better, from semester planning to spaced repetition." />
+<meta property="og:image" content="${SITE}/og/guides.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Iterra Study Guides — How to Learn Better" />
+<meta name="twitter:description" content="Research-backed guides to studying better." />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+${FONTS}
+<style>${CSS}</style>
+${jsonLd(ld)}
+</head>
+<body>
+${header('/guides')}
+<section class="hero"><div class="wrap">
+<div class="kicker mono">Iterra Guides</div>
+<h1>Study better, <em>with evidence</em></h1>
+<p class="lede">Practical guides to the methods that actually work — planning, memory, focus, and the tools that make them stick. No productivity fluff; just what the research supports and what students actually need.</p>
+</div></section>
+<div class="wrap">
+<section class="block" style="border-bottom:none">
+<h2 class="sec mono">Browse the guides</h2>
+<ul class="index-grid">
+${cards}
+</ul>
+<div class="cta" style="margin-top:2.5rem">
+<a class="primary" href="/#/today">Open the workspace →</a>
+<a class="ghost" href="/tools">All tools</a>
+</div>
 </section>
 </div>
 ${footer()}
@@ -458,11 +775,319 @@ ${footer()}
 `;
 }
 
+/* ── Chunk A: comparison & alternatives pages ─────────── */
+
+const COMPARE_SHOT = '/shots/today.webp';
+
+function compareHead({ title, description, url, image }) {
+  return `<title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}" />
+<link rel="canonical" href="${url}" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="Iterra" />
+<meta property="og:url" content="${url}" />
+<meta property="og:title" content="${esc(title)}" />
+<meta property="og:description" content="${esc(description)}" />
+<meta property="og:image" content="${SITE}${image || COMPARE_SHOT}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${esc(title)}" />
+<meta name="twitter:description" content="${esc(description)}" />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+${FONTS}
+<style>${CSS}</style>`;
+}
+
+function emH1(h1) {
+  const hm = String(h1).match(/^(.*?)<em>(.*?)<\/em>(.*)$/s) || [null, h1, '', ''];
+  return `${esc(hm[1])}${hm[2] ? `<em>${esc(hm[2])}</em>` : ''}${esc(hm[3] || '')}`;
+}
+
+function compareLd(page, url, extra = []) {
+  const graph = [
+    {
+      '@type': 'WebPage',
+      name: page.title,
+      description: page.description,
+      url,
+      isPartOf: { '@type': 'WebSite', name: 'Iterra', url: `${SITE}/` },
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Iterra', url: `${SITE}/` },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: page.section === 'compare' ? 'Compare' : 'Alternatives',
+            url: `${SITE}/${page.section}`,
+          },
+          { '@type': 'ListItem', position: 3, name: page.rival === 'roundup' ? 'Best study apps' : page.title, url },
+        ],
+      },
+    },
+    ...extra,
+  ];
+  return { '@context': 'https://schema.org', '@graph': graph };
+}
+
+function faqLd(faqs) {
+  return {
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  };
+}
+
+export function renderComparePage(page) {
+  const base = page.section === 'compare' ? 'compare' : 'alternatives';
+  const slug = page.slug;
+  const url = `${SITE}/${base}/${slug}`;
+  const rivalLabel = page.rival === 'roundup' ? 'the field' : page.rival === 'generic planners' ? 'typical free planners' : page.rival;
+
+  const tableRows = page.table.rows
+    .map(
+      (r) => `<tr><th scope="row">${esc(r[0])}</th>${r
+        .slice(1)
+        .map((c) => `<td>${esc(c)}</td>`)
+        .join('')}</tr>`,
+    )
+    .join('\n');
+  const thead = `<thead><tr><th scope="col"></th>${page.table.headers
+    .slice(1)
+    .map((h) => `<th scope="col">${esc(h)}</th>`)
+    .join('')}</tr></thead>`;
+
+  const winsHtml = `
+<div class="wins-grid">
+<div class="win-card us"><h3>Where Iterra wins</h3><ul>
+${page.iterraWins.map((w) => `<li>${esc(w)}</li>`).join('\n')}
+</ul></div>
+<div class="win-card them"><h3>Where ${esc(rivalLabel)} wins</h3><ul>
+${page.rivalWins.map((w) => `<li>${esc(w)}</li>`).join('\n')}
+</ul></div>
+</div>`;
+
+  const faqHtml = page.faqs?.length
+    ? `<section class="block">
+<h2 class="sec mono">Questions students ask</h2>
+<div class="faq-list">
+${page.faqs
+  .map(
+    (f) => `<details class="faq"><summary>${esc(f.q)}</summary><div class="a">${esc(f.a)}</div></details>`,
+  )
+  .join('\n')}
+</div>
+</section>`
+    : '';
+
+  const relatedHtml = page.related?.length
+    ? `<div class="related-row">
+${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
+</div>`
+    : '';
+
+  const ld = compareLd(
+    page,
+    url,
+    page.kind === 'roundup'
+      ? [{ '@type': 'ItemList', itemListElement: page.table.rows.map((r, i) => ({ '@type': 'ListItem', position: i + 1, name: r[1] })) }]
+      : page.faqs?.length
+        ? [faqLd(page.faqs)]
+        : [],
+  );
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+${compareHead({ title: page.title, description: page.description, url })}
+${jsonLd(ld)}
+</head>
+<body>
+${header(`/${base}/${slug}`)}
+<section class="hero"><div class="wrap">
+<div class="kicker mono">${esc(page.kicker)} · Iterra terrain</div>
+<h1>${emH1(page.h1)}</h1>
+<p class="lede">${esc(page.lede)}</p>
+</div></section>
+<div class="wrap">
+<figure class="plate">
+<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" /></div>
+<figcaption><span>Iterra · the integrated study terrain</span><span>Local-first · free · no account</span></figcaption>
+</figure>
+<section class="block">
+<h2 class="sec mono">At a glance</h2>
+<div style="overflow-x:auto">
+<table class="compare-table">
+${thead}
+<tbody>
+${tableRows}
+</tbody>
+</table>
+</div>
+</section>
+<section class="block">
+<h2 class="sec mono">The honest split</h2>
+${winsHtml}
+</section>
+<section class="block">
+<div class="verdict"><div>
+<span class="mono">The verdict</span>
+<p>${page.verdict.replace(/<em>/g, '<strong>').replace(/<\/em>/g, '</strong>')}</p>
+<div class="cta">
+<a class="primary" href="/#/today">Open Iterra — free, no account →</a>
+<a class="ghost" href="/${base}">All ${base === 'compare' ? 'comparisons' : 'alternatives'}</a>
+</div>
+${relatedHtml}
+</div></div>
+</section>
+${faqHtml}
+</div>
+${footer()}
+</body>
+</html>
+`;
+}
+
+function indexCards(pages, base) {
+  return pages
+    .map(
+      (p) => `<li><a href="/${base}/${p.slug}"><span class="k mono">${esc(p.kicker)}</span><span class="t">${esc(p.h1.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(p.description)}</span></a></li>`,
+    )
+    .join('\n');
+}
+
+export function renderCompareIndex() {
+  const url = `${SITE}/compare`;
+  const pages = COMPARE_PAGES.filter((p) => p.section === 'compare');
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        name: 'Iterra comparisons',
+        description: 'Honest head-to-head comparisons between Iterra and the study tools students actually use.',
+        url,
+      },
+    ],
+  };
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Compare Iterra — Honest Study App Comparisons</title>
+<meta name="description" content="Head-to-head comparisons between Iterra and Notion, Quizlet, Anki, StudySmarter and Structured — where each wins, who should pick which." />
+<link rel="canonical" href="${url}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Iterra" />
+<meta property="og:url" content="${url}" />
+<meta property="og:title" content="Compare Iterra — Honest Study App Comparisons" />
+<meta property="og:description" content="Where Iterra wins, where the competition wins, and who should pick which." />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+${FONTS}
+<style>${CSS}</style>
+${jsonLd(ld)}
+</head>
+<body>
+${header('/compare')}
+<section class="hero"><div class="wrap">
+<div class="kicker mono">Head-to-head</div>
+<h1>Compare <em>honestly.</em></h1>
+<p class="lede">Every comparison below admits where the other tool wins — because a comparison you can’t trust is just an ad. These are written by the people who make Iterra, and they say so.</p>
+</div></section>
+<div class="wrap">
+<section class="block" style="border-bottom:none">
+<h2 class="sec mono">Iterra vs the tools you know</h2>
+<ul class="index-grid">
+${indexCards(pages, 'compare')}
+</ul>
+<div class="cta" style="margin-top:2.5rem">
+<a class="primary" href="/#/today">Open the workspace →</a>
+<a class="ghost" href="/alternatives">Looking for alternatives instead?</a>
+</div>
+</section>
+</div>
+${footer()}
+</body>
+</html>
+`;
+}
+
+export function renderAlternativesIndex() {
+  const url = `${SITE}/alternatives`;
+  const pages = COMPARE_PAGES.filter((p) => p.section === 'alternatives');
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        name: 'Study app alternatives',
+        description: 'Honest alternatives to the study apps students outgrow — Quizlet, Notion, Anki, StudySmarter and more.',
+        url,
+      },
+    ],
+  };
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Study App Alternatives — Honest Picks for Students</title>
+<meta name="description" content="The best alternatives to Quizlet, Notion, Anki and StudySmarter for students — compared on price, privacy, offline use and what the app actually does." />
+<link rel="canonical" href="${url}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Iterra" />
+<meta property="og:url" content="${url}" />
+<meta property="og:title" content="Study App Alternatives — Honest Picks for Students" />
+<meta property="og:description" content="When the app you outgrew isn't enough anymore." />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+${FONTS}
+<style>${CSS}</style>
+${jsonLd(ld)}
+</head>
+<body>
+${header('/alternatives')}
+<section class="hero"><div class="wrap">
+<div class="kicker mono">Way out</div>
+<h1>Outgrew the <em>app?</em></h1>
+<p class="lede">Every study app here was built to do one thing well. When one thing isn't enough anymore, these are the honest exits — including ours, and when it isn't the right one.</p>
+</div></section>
+<div class="wrap">
+<section class="block" style="border-bottom:none">
+<h2 class="sec mono">Picks by what you’re leaving</h2>
+<ul class="index-grid">
+${indexCards(pages, 'alternatives')}
+</ul>
+<div class="cta" style="margin-top:2.5rem">
+<a class="primary" href="/#/today">Try Iterra — free, no account →</a>
+<a class="ghost" href="/compare">Prefer head-to-head?</a>
+</div>
+</section>
+</div>
+${footer()}
+</body>
+</html>
+`;
+}
+
 export function renderSitemap(lastmod = new Date().toISOString().slice(0, 10)) {
   const urls = [
     { loc: `${SITE}/`, priority: '1.0', freq: 'weekly' },
     { loc: `${SITE}/tools`, priority: '0.8', freq: 'weekly' },
+    { loc: `${SITE}/guides`, priority: '0.8', freq: 'weekly' },
+    { loc: `${SITE}/compare`, priority: '0.8', freq: 'weekly' },
+    { loc: `${SITE}/alternatives`, priority: '0.8', freq: 'weekly' },
+    ...COMPARE_PAGES.map((p) => ({
+      loc: `${SITE}/${p.section}/${p.slug}`,
+      priority: '0.7',
+      freq: 'monthly',
+    })),
     ...TOOLS.map((t) => ({ loc: `${SITE}${t.path}`, priority: '0.7', freq: 'monthly' })),
+    ...GUIDES.map((g) => ({ loc: `${SITE}/guides/${g.slug}`, priority: '0.7', freq: 'monthly' })),
   ];
   const body = urls
     .map(
@@ -483,11 +1108,26 @@ ${body}
 
 export function writeSeoPages(distDir) {
   mkdirSync(join(distDir, 'tools'), { recursive: true });
+  mkdirSync(join(distDir, 'guides'), { recursive: true });
   writeFileSync(join(distDir, 'tools', 'index.html'), renderToolsIndex());
+  writeFileSync(join(distDir, 'guides', 'index.html'), renderGuidesIndex());
+  mkdirSync(join(distDir, 'compare'), { recursive: true });
+  mkdirSync(join(distDir, 'alternatives'), { recursive: true });
+  writeFileSync(join(distDir, 'compare', 'index.html'), renderCompareIndex());
+  writeFileSync(join(distDir, 'alternatives', 'index.html'), renderAlternativesIndex());
+  for (const page of COMPARE_PAGES) {
+    const dir = join(distDir, page.section, page.slug);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'index.html'), renderComparePage(page));
+  }
   for (const tool of TOOLS) {
     mkdirSync(join(distDir, 'tools', tool.id), { recursive: true });
     writeFileSync(join(distDir, 'tools', tool.id, 'index.html'), renderToolPage(tool));
   }
+  for (const guide of GUIDES) {
+    mkdirSync(join(distDir, 'guides', guide.slug), { recursive: true });
+    writeFileSync(join(distDir, 'guides', guide.slug, 'index.html'), renderGuidePage(guide));
+  }
   writeFileSync(join(distDir, 'sitemap.xml'), renderSitemap());
-  console.log(`seo: wrote /tools index + ${TOOLS.length} tool pages + sitemap.xml`);
+  console.log(`seo: wrote /tools index + ${TOOLS.length} tool pages + /guides index + ${GUIDES.length} guides + /compare + /alternatives indexes + ${COMPARE_PAGES.length} compare pages + sitemap.xml`);
 }
