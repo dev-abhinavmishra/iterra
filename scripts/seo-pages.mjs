@@ -198,10 +198,11 @@ header.site{position:sticky;top:0;z-index:10;display:flex;align-items:center;jus
 .emblem{display:grid;grid-template:repeat(2,7px)/repeat(2,7px);gap:2px;transform:rotate(45deg)}
 .emblem i{background:#a1d2a1;box-shadow:inset 1px 1px #d4eac1}
 .emblem i:nth-child(2){background:#dfd6a0}.emblem i:nth-child(3){background:#65a582}
-nav.tools{display:flex;align-items:center;gap:2px;background:#284636;border-radius:9px;padding:3px;overflow-x:auto;scrollbar-width:none}
+nav.tools{display:flex;align-items:center;gap:2px;flex:0 1 auto;min-width:0;max-width:100%;background:#284636;border-radius:9px;padding:3px;overflow-x:auto;scrollbar-width:none}
 nav.tools::-webkit-scrollbar{display:none}
-nav.tools a{white-space:nowrap;display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border-radius:7px;color:var(--parch);font-family:'IBM Plex Mono',monospace;font-size:12px;text-decoration:none}
+nav.tools a{white-space:nowrap;display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border-radius:7px;color:var(--parch);font-family:'IBM Plex Mono',monospace;font-size:12px;text-decoration:none;transition:background .15s,color .15s}
 nav.tools a:hover{background:#e1ebd312}
+nav.tools a.on{color:var(--gold3);background:#e2b86e14}
 nav.tools a.open{color:var(--gold3)}
 
 /* ── hero — mirrors .atlas-sky ────────────────────────── */
@@ -209,15 +210,20 @@ nav.tools a.open{color:var(--gold3)}
 .hero::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.32;background-image:linear-gradient(#89b0a01f 1px,transparent 1px),linear-gradient(90deg,#89b0a01f 1px,transparent 1px);background-size:56px 56px;mask-image:linear-gradient(120deg,transparent,#000 70%)}
 .hero::after{content:"";position:absolute;inset:clamp(14px,3vw,28px);z-index:-1;border:1px solid #d7bf8442;background:linear-gradient(#ddc690,#ddc690) left top/25px 1px,linear-gradient(#ddc690,#ddc690) left top/1px 25px,linear-gradient(#ddc690,#ddc690) right bottom/25px 1px,linear-gradient(#ddc690,#ddc690) right bottom/1px 25px;background-repeat:no-repeat}
 .kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+.crumbs{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#c8b78d;margin-bottom:1.4rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.crumbs a{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+.crumbs a:hover{color:var(--gold3);border-color:#d9c89755}
+.crumbs .sep{color:#8ba392}
 h1{font-family:Newsreader,Georgia,serif;font-weight:450;letter-spacing:-.045em;font-size:clamp(2.4rem,6vw,4.6rem);line-height:1.04;max-width:20ch;margin:.5rem 0 1.1rem}
 h1 em{color:var(--sage);font-style:italic;font-weight:400}
 .lede{max-width:52ch;color:var(--sage2);font-size:clamp(1.02rem,1.6vw,1.25rem);line-height:1.65}
 .hero .wrap{position:relative}
 
-/* screenshot plate — overlaps hero bottom onto paper */
-.plate{position:relative;z-index:2}
+/* screenshot plate — pulled up over the hero's lower padding for an editorial overlap */
+.plate{position:relative;z-index:2;margin-top:clamp(-72px,-5vw,-44px)}
 .frame{border:1px solid var(--gold2);border-radius:12px;overflow:hidden;background:var(--night2);box-shadow:0 1px 0 #fff8 inset,0 30px 60px -30px rgba(16,46,36,.55)}
-.frame img{display:block;width:100%;height:auto}
+.frame img{display:block;width:100%;height:auto;transition:transform .6s cubic-bezier(.2,.6,.2,1)}
+.frame:hover img{transform:scale(1.012)}
 .frame figcaption{display:flex;justify-content:space-between;gap:1rem;padding:.7rem 1rem;border-top:1px solid #d9c89740;color:#cbbd95;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
 
 /* ── body sections on paper ───────────────────────────── */
@@ -238,23 +244,32 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;lett
 .cta a{display:inline-flex;align-items:center;gap:.5rem;padding:.8rem 1.5rem;border-radius:7px;text-decoration:none;font-size:1rem;transition:transform .15s,background .15s}
 .cta .primary{background:#d1e8aa;color:#112827;font-weight:600}
 .cta .primary:hover{background:#e5f3c8;transform:translateY(-1px)}
-.cta .ghost{border:1px solid var(--gold2);color:var(--cream)}
-.cta .ghost:hover{border-color:var(--gold);color:var(--gold3)}
+.cta .ghost{border:1px solid var(--line2);color:var(--ink)}
+.cta .ghost:hover{border-color:var(--accent);color:var(--accent2)}
+.connect .cta .ghost,.verdict .cta .ghost{border-color:var(--gold2);color:var(--cream)}
+.connect .cta .ghost:hover,.verdict .cta .ghost:hover{border-color:var(--gold);color:var(--gold3)}
 
 /* ── tools index ──────────────────────────────────────── */
 .index-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(15.5rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.index-grid a{display:block;background:var(--sheet);padding:1.3rem 1.4rem;text-decoration:none;color:var(--ink);transition:background .15s}
+.index-grid a{position:relative;display:block;background:var(--sheet);padding:1.3rem 2.6rem 1.3rem 1.4rem;text-decoration:none;color:var(--ink);transition:background .15s}
+.index-grid a::after{content:"→";position:absolute;right:1.1rem;top:1.15rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s}
 .index-grid a:hover{background:var(--sheet2)}
+.index-grid a:hover::after{opacity:1;transform:none}
 .index-grid .t{font-family:Newsreader,Georgia,serif;font-size:1.45rem;font-weight:500;letter-spacing:-.02em;display:block}
 .index-grid .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block;margin-top:.3rem}
 .index-grid .d{font-size:.92rem;color:var(--mute);display:block;margin-top:.5rem;line-height:1.5}
 
 /* ── comparison & alternatives pages (Chunk A) ────────── */
-.compare-table{width:100%;border-collapse:collapse;font-size:.98rem}
+.compare-table{width:100%;min-width:36rem;border-collapse:collapse;font-size:.98rem}
 .compare-table th,.compare-table td{padding:.7rem .9rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .compare-table thead th{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border-bottom:2px solid var(--line2)}
-.compare-table tbody th{font-weight:600;white-space:nowrap}
+.compare-table tbody th{font-weight:600;white-space:nowrap;position:sticky;left:0;background:var(--sheet);z-index:1;box-shadow:1px 0 0 var(--line)}
 .compare-table td:first-of-type{color:var(--mute)}
+.compare-table .us{background:#eef4ea}
+.compare-table thead .us{color:var(--accent)}
+.compare-table tbody tr.us td{background:#f4f8f2}
+.compare-table tbody tr.us td.us{background:#e2edde}
+@media(prefers-reduced-motion:no-preference){.compare-table tbody tr{transition:background .15s}.compare-table tbody tr:not(.us):hover td{background:#faf6ea}}
 .wins-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .win-card{border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.5rem;background:var(--sheet)}
 .win-card.us{border-color:#9db8a4;background:linear-gradient(180deg,#f2f7f1,var(--sheet))}
@@ -297,7 +312,15 @@ footer.site::after{content:"";position:absolute;inset:0;z-index:-1;background:ra
 
 /* ── guides / long-form articles ──────────────────────── */
 .prose{max-width:46rem}
-.prose h2{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:clamp(1.45rem,3vw,1.85rem);letter-spacing:-.02em;line-height:1.25;margin:2.8rem 0 .9rem}
+.prose h2{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:clamp(1.45rem,3vw,1.85rem);letter-spacing:-.02em;line-height:1.25;margin:2.8rem 0 .9rem;scroll-margin-top:96px}
+.guide-article{max-width:52rem}
+.toc{border:1px solid #d9c89755;border-radius:12px;background:#183e2c12;padding:1.1rem 1.4rem;margin:2rem 0 1rem}
+.toc .tk{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.7rem}
+.toc ol{list-style:none;padding:0;display:grid;gap:.45rem;counter-reset:toc}
+.toc li{counter-increment:toc;font-size:.98rem;line-height:1.5}
+.toc li::before{content:counter(toc,decimal-leading-zero) " · ";font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.08em}
+.toc a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--accent);border-color:var(--gold2)}
 .prose p{font-size:1.08rem;line-height:1.78;color:#2c352f;margin-bottom:1.15rem}
 .prose ul{margin:0 0 1.3rem;padding-left:1.35rem}
 .prose li{font-size:1.05rem;line-height:1.7;color:#2c352f;margin-bottom:.5rem}
@@ -306,24 +329,32 @@ footer.site::after{content:"";position:absolute;inset:0;z-index:-1;background:ra
 .prose strong{font-weight:600}
 .prose .callout{border-left:3px solid var(--gold);background:var(--sheet);padding:1rem 1.35rem;margin:1.7rem 0;border-radius:0 10px 10px 0}
 .prose .callout p{margin:0;font-size:1.03rem;color:var(--mute);font-style:italic;line-height:1.65}
-.tool-inline{display:block;border:1px solid var(--line);border-radius:12px;background:var(--sheet);padding:1.1rem 1.35rem;margin:1.5rem 0;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s}
+.tool-inline{position:relative;display:block;border:1px solid var(--line);border-radius:12px;background:var(--sheet);padding:1.1rem 2.8rem 1.1rem 1.35rem;margin:1.5rem 0;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s}
+.tool-inline::after{content:"→";position:absolute;right:1.3rem;top:1.15rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;transition:transform .15s}
 .tool-inline:hover{border-color:var(--gold2);background:var(--sheet2)}
+.tool-inline:hover::after{transform:translateX(3px)}
 .tool-inline .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block}
 .tool-inline .t{font-family:Newsreader,Georgia,serif;font-size:1.32rem;font-weight:500;letter-spacing:-.01em;display:block;margin-top:.25rem}
 .tool-inline .d{font-size:.92rem;color:var(--mute);display:block;margin-top:.4rem;line-height:1.5}
 .meta-row{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin-top:1.5rem;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--sage2)}
+.meta-row a{color:var(--gold3);text-decoration:none;border-bottom:1px solid #d9c89755}
+.meta-row a:hover{border-color:var(--gold)}
 .related{margin-top:3.5rem;padding-top:2rem;border-top:1px solid var(--line)}
 .related h2{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:1.2rem}
 .rel-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.rel-grid a{display:block;background:var(--sheet);padding:1.15rem 1.3rem;text-decoration:none;color:var(--ink);transition:background .15s}
+.rel-grid a{position:relative;display:block;background:var(--sheet);padding:1.15rem 2.5rem 1.15rem 1.3rem;text-decoration:none;color:var(--ink);transition:background .15s}
+.rel-grid a::after{content:"→";position:absolute;right:1rem;top:1.05rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s}
 .rel-grid a:hover{background:var(--sheet2)}
+.rel-grid a:hover::after{opacity:1;transform:none}
 .rel-grid .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block}
 .rel-grid .t{font-family:Newsreader,Georgia,serif;font-size:1.25rem;font-weight:500;letter-spacing:-.01em;display:block;margin-top:.3rem;line-height:1.3}
 .guide-index-hero .lede{max-width:56ch}
 
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
 @media(max-width:720px){
-  nav.tools{display:none}
+  nav.tools a{font-size:11px;padding:0 9px;min-height:32px}
   .feats .t{font-size:1.02rem}
+  .plate{margin-top:-40px}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cta a{transition:none}}
 `;
@@ -370,19 +401,27 @@ function renderBlocks(blocks) {
 const NAV_LINKS = TOOLS.map((t) => `<a href="${t.path}">${esc(t.name)}</a>`).join('\n');
 
 function header(activePath) {
+  const section = '/' + String(activePath).split('/')[1];
+  const sec = (p) => (p === section ? ' class="on" aria-current="page"' : '');
   const links = TOOLS.map(
-    (t) => `<a href="${t.path}"${t.path === activePath ? ' aria-current="page"' : ''}>${esc(t.name)}</a>`,
+    (t) => `<a href="${t.path}"${t.path === activePath ? ' class="on" aria-current="page"' : ''}>${esc(t.name)}</a>`,
   ).join('\n');
   return `<header class="site">
 <a class="brand" href="/"><span class="emblem" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Iterra</a>
 <nav class="tools" aria-label="Iterra tools">
 ${links}
-<a href="/guides">Guides</a>
-<a href="/compare">Compare</a>
-<a href="/alternatives">Alternatives</a>
+<a href="/guides"${sec('/guides')}>Guides</a>
+<a href="/compare"${sec('/compare')}>Compare</a>
+<a href="/alternatives"${sec('/alternatives')}>Alternatives</a>
 <a class="open" href="/#/today">Open workspace →</a>
 </nav>
 </header>`;
+}
+
+function crumbs(items) {
+  return `<nav class="crumbs mono" aria-label="Breadcrumb">${items
+    .map((c) => (c.href ? `<a href="${c.href}">${esc(c.label)}</a>` : `<span>${esc(c.label)}</span>`))
+    .join('<span class="sep">/</span>')}</nav>`;
 }
 
 function footer() {
@@ -465,6 +504,7 @@ ${jsonLd(ld)}
 <body>
 ${header(tool.path)}
 <section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools', href: '/tools' }, { label: tool.name }])}
 <div class="kicker mono">${esc(tool.kicker)} · the ${esc(tool.name)} place</div>
 <h1>${h1html}</h1>
 <p class="lede">${esc(tool.lede)}</p>
@@ -487,7 +527,7 @@ ${feats}
 <p>${esc(tool.name)} shares a live picture of your courses with every other tool in Iterra — your planner knows when reviews are due, your notes surface in course dossiers, and everything works offline in your browser. No account required; your data never leaves your machine unless you choose sync.</p>
 <div class="cta">
 <a class="primary" href="/#/p/${tool.id}">Open ${esc(tool.name)} in Iterra →</a>
-<a class="ghost" href="/tools">All eight tools</a>
+<a class="ghost" href="/tools">All ${TOOLS.length} tools</a>
 </div>
 </div></div>
 </section>
@@ -502,14 +542,31 @@ export function renderGuidePage(guide) {
   const url = `${SITE}/guides/${guide.slug}`;
   const hm = guide.title.match(/^(.*?)<em>(.*?)<\/em>(.*)$/s) || [null, guide.title, '', ''];
   const h1html = `${esc(hm[1])}${hm[2] ? `<em>${esc(hm[2])}</em>` : ''}${esc(hm[3] || '')}`;
+  const slugify = (s) =>
+    String(s).toLowerCase().replace(/<[^>]+>/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'section';
+  const usedIds = new Set();
+  const tocItems = [];
   const sections = guide.sections
-    .map(
-      (s) => `<section class="gsec">
-${s.h2 ? `<h2>${inline(s.h2)}</h2>` : ''}
-<div class="prose">${renderBlocks(s.blocks)}</div>
-</section>`,
-    )
+    .map((s) => {
+      let h2html = '';
+      if (s.h2) {
+        let id = slugify(s.h2);
+        while (usedIds.has(id)) id += '-x';
+        usedIds.add(id);
+        tocItems.push({ id, label: s.h2 });
+        h2html = `<h2 id="${id}">${inline(s.h2)}</h2>`;
+      }
+      return `<section class="gsec">
+<div class="prose">${h2html}${renderBlocks(s.blocks)}</div>
+</section>`;
+    })
     .join('\n');
+  const tocHtml =
+    tocItems.length >= 3
+      ? `<nav class="toc" aria-label="In this guide"><span class="tk">In this guide</span><ol>${tocItems
+          .map((t) => `<li><a href="#${t.id}">${inline(t.label)}</a></li>`)
+          .join('')}</ol></nav>`
+      : '';
   const related = (guide.related || [])
     .map((slug) => GUIDE_BY_SLUG[slug])
     .filter(Boolean);
@@ -540,13 +597,15 @@ ${toolsUsed.map((t) => `<a class="ghost" href="${t.path}">${esc(t.name)} →</a>
 </section>`
     : '';
   const faqHtml = guide.faq?.length
-    ? `<section class="gsec"><h2>Questions students ask</h2>
-<div class="prose">
+    ? `<section class="gsec"><div class="prose">
+<h2>Questions students ask</h2>
+<div class="faq-list">
 ${guide.faq
   .map(
-    (f) => `<h3 style="font-family:Newsreader,Georgia,serif;font-size:1.2rem;font-weight:600;margin:1.6rem 0 .4rem">${esc(f.q)}</h3><p>${inline(f.a)}</p>`,
+    (f) => `<details class="faq"><summary>${esc(f.q)}</summary><div class="a">${inline(f.a)}</div></details>`,
   )
   .join('\n')}
+</div>
 </div></section>`
     : '';
   const dateFmt = (d) =>
@@ -623,13 +682,15 @@ ${jsonLd(ld)}
 <body>
 ${header('/guides')}
 <section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.title.replace(/<\/?em>/g, '') }])}
 <div class="kicker mono">Iterra Guides · ${esc(guide.kicker)}</div>
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
-<div class="meta-row"><span>${dateFmt(guide.datePublished)}</span><span>${guide.readMinutes} min read</span><span><a href="/guides" style="color:inherit">All guides</a></span></div>
+<div class="meta-row"><span>${dateFmt(guide.datePublished)}</span><span>${guide.readMinutes} min read</span><span><a href="/guides">All guides</a></span></div>
 </div></section>
 <div class="wrap">
-<article>
+<article class="guide-article">
+${tocHtml}
 ${sections}
 ${faqHtml}
 ${toolsHtml}
@@ -694,6 +755,7 @@ ${jsonLd(ld)}
 <body>
 ${header('/guides')}
 <section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
 <div class="kicker mono">Iterra Guides</div>
 <h1>Study better, <em>with evidence</em></h1>
 <p class="lede">Practical guides to the methods that actually work — planning, memory, focus, and the tools that make them stick. No productivity fluff; just what the research supports and what students actually need.</p>
@@ -724,7 +786,7 @@ export function renderToolsIndex() {
       {
         '@type': 'CollectionPage',
         name: 'Iterra study tools',
-        description: 'The eight tools of the Iterra study workspace.',
+        description: `The ${TOOLS.length} tools of the Iterra study workspace.`,
         url,
       },
     ],
@@ -738,13 +800,13 @@ export function renderToolsIndex() {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Iterra Study Tools — Planner, Flashcards, Notes, Timer & More</title>
-<meta name="description" content="Eight study tools in one local-first workspace: time-blocking planner, spaced-repetition flashcards, linked notes, pomodoro timer, math workbench, attendance, grading, and study materials." />
+<meta name="description" content="Nine study tools in one local-first workspace: time-blocking planner, spaced-repetition flashcards, linked notes, pomodoro timer, math workbench, attendance, grading, and study materials." />
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Iterra Study Tools — Planner, Flashcards, Notes, Timer & More" />
-<meta property="og:description" content="Eight study tools in one local-first workspace for students." />
+<meta property="og:description" content="Nine study tools in one local-first workspace for students." />
 <meta property="og:image" content="${SITE}/og/tools.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -757,8 +819,9 @@ ${jsonLd(ld)}
 <body>
 ${header('/tools')}
 <section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools' }])}
 <div class="kicker mono">The terrain</div>
-<h1>Eight tools. <em>One study workspace.</em></h1>
+<h1>Nine tools. <em>One study workspace.</em></h1>
 <p class="lede">Iterra gives every course a place. Plan the week, review the cards, write the notes, run the timer, work the math — all local-first, all connected.</p>
 </div></section>
 <div class="wrap">
@@ -853,17 +916,20 @@ export function renderComparePage(page) {
   const url = `${SITE}/${base}/${slug}`;
   const rivalLabel = page.rival === 'roundup' ? 'the field' : page.rival === 'generic planners' ? 'typical free planners' : page.rival;
 
+  const isVs = page.kind === 'vs';
   const tableRows = page.table.rows
-    .map(
-      (r) => `<tr><th scope="row">${esc(r[0])}</th>${r
+    .map((r) => {
+      const usRow = !isVs && r[0] === 'Iterra';
+      const cells = r
         .slice(1)
-        .map((c) => `<td>${esc(c)}</td>`)
-        .join('')}</tr>`,
-    )
+        .map((c, i) => `<td${isVs && i === 0 ? ' class="us"' : ''}>${esc(c)}</td>`)
+        .join('');
+      return `<tr${usRow ? ' class="us"' : ''}><th scope="row">${esc(r[0])}</th>${cells}</tr>`;
+    })
     .join('\n');
   const thead = `<thead><tr><th scope="col"></th>${page.table.headers
     .slice(1)
-    .map((h) => `<th scope="col">${esc(h)}</th>`)
+    .map((h, i) => `<th scope="col"${isVs && i === 0 ? ' class="us"' : ''}>${esc(h)}</th>`)
     .join('')}</tr></thead>`;
 
   const winsHtml = `
@@ -916,13 +982,14 @@ ${jsonLd(ld)}
 <body>
 ${header(`/${base}/${slug}`)}
 <section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: base === 'compare' ? 'Compare' : 'Alternatives', href: `/${base}` }, { label: String(page.h1).replace(/<\/?em>/g, '') }])}
 <div class="kicker mono">${esc(page.kicker)} · Iterra terrain</div>
 <h1>${emH1(page.h1)}</h1>
 <p class="lede">${esc(page.lede)}</p>
 </div></section>
 <div class="wrap">
 <figure class="plate">
-<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" /></div>
+<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
 <figcaption><span>Iterra · the integrated study terrain</span><span>Local-first · free · no account</span></figcaption>
 </figure>
 <section class="block">
@@ -1006,6 +1073,7 @@ ${jsonLd(ld)}
 <body>
 ${header('/compare')}
 <section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Compare' }])}
 <div class="kicker mono">Head-to-head</div>
 <h1>Compare <em>honestly.</em></h1>
 <p class="lede">Every comparison below admits where the other tool wins — because a comparison you can’t trust is just an ad. These are written by the people who make Iterra, and they say so.</p>
@@ -1067,6 +1135,7 @@ ${jsonLd(ld)}
 <body>
 ${header('/alternatives')}
 <section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Alternatives' }])}
 <div class="kicker mono">Way out</div>
 <h1>Outgrew the <em>app?</em></h1>
 <p class="lede">Every study app here was built to do one thing well. When one thing isn't enough anymore, these are the honest exits — including ours, and when it isn't the right one.</p>

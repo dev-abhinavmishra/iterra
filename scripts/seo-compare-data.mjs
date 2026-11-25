@@ -17,7 +17,7 @@ export const COMPARE_PAGES = [
       'Iterra vs Notion for students: Notion is a flexible workspace you build yourself; Iterra is a ready-made study terrain with planner, flashcards, notes, timer and grading. Compare features, price and privacy.',
     h1: 'Iterra <em>vs</em> Notion',
     kicker: 'Head-to-head',
-    lede: 'Notion can become anything — including a study system — if you invest the hours to build it. Iterra is already built: eight study tools wired into one course-aware workspace. Here is where each actually wins.',
+    lede: 'Notion can become anything — including a study system — if you invest the hours to build it. Iterra is already built: nine study tools wired into one course-aware workspace. Here is where each actually wins.',
     table: T(
       ['Quality', 'Iterra', 'Notion'],
       [
@@ -578,7 +578,7 @@ export const COMPARE_PAGES = [
       F('What is the best free study app in 2026?',
         'Iterra for an all-in-one private workspace; Quizlet for flashcards specifically; Anki for serious spaced repetition. All have meaningful free tiers.'),
       F('What is the best all-in-one study app?',
-        'Iterra (free, local-first, eight integrated tools) or StudySmarter/Vaia (freemium, AI-heavy). Iterra wins on price and privacy; Vaia on AI content generation.'),
+        'Iterra (free, local-first, nine integrated tools) or StudySmarter/Vaia (freemium, AI-heavy). Iterra wins on price and privacy; Vaia on AI content generation.'),
       F('Do I need more than one study app?',
         'Ideally no — juggling five single-purpose apps is why studying fragments. Iterra was built specifically to collapse that into one terrain.'),
       F('Are these study apps safe for student data?',
@@ -586,7 +586,7 @@ export const COMPARE_PAGES = [
     ],
     related: [
       { href: '/compare', label: 'All comparisons' },
-      { href: '/tools', label: 'All eight Iterra tools' },
+      { href: '/tools', label: 'All nine Iterra tools' },
       { href: '/alternatives/free-study-planner', label: 'Free study planners compared' },
     ],
   },

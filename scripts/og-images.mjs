@@ -119,7 +119,7 @@ const CARDS = [
   {
     file: 'home.png',
     kicker: 'Iterra — All-in-One Study Workspace',
-    title: 'Eight tools. <em>One study workspace.</em>',
+    title: 'Nine tools. <em>One study workspace.</em>',
     dek: 'Plan the week, review the cards, write the notes, run the timer, work the math — all local-first, all connected.',
     shot: '/shots/today.webp',
     alt: 'The Iterra Today workspace',

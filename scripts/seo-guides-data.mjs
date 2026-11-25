@@ -922,7 +922,7 @@ export const GUIDES = [
       {
         h2: 'Iterra’s approach',
         blocks: [
-          { k: 'p', t: 'Iterra is built local-first by design. Your notes, flashcards, schedules, and study materials live in your browser’s local storage — no account required, no server holding your data hostage. The eight tools share a local workspace that works offline, exports when you need it to, and never requires you to trust a platform with your intellectual life.' },
+          { k: 'p', t: 'Iterra is built local-first by design. Your notes, flashcards, schedules, and study materials live in your browser’s local storage — no account required, no server holding your data hostage. The nine tools share a local workspace that works offline, exports when you need it to, and never requires you to trust a platform with your intellectual life.' },
           { k: 'p', t: 'This isn’t an accident of architecture — it’s a commitment to the principle that *your work belongs to you*. The terrain is yours; the apps are just tools that help you work in it.' },
           { k: 'tool', tool: 'ink', t: 'Ink keeps your notes local-first — wiki-links, daily pages, course tags, all in your browser.' },
           { k: 'tool', tool: 'margin', t: 'Margin stores your study materials locally — recordings, PDFs, handouts — filed by course.' },
