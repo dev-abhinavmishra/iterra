@@ -625,7 +625,7 @@ ${header('/guides')}
 <section class="hero"><div class="wrap">
 <div class="kicker mono">Iterra Guides · ${esc(guide.kicker)}</div>
 <h1>${h1html}</h1>
-<p class="lede">${esc(guide.lede)}</p>
+<p class="lede">${inline(guide.lede)}</p>
 <div class="meta-row"><span>${dateFmt(guide.datePublished)}</span><span>${guide.readMinutes} min read</span><span><a href="/guides" style="color:inherit">All guides</a></span></div>
 </div></section>
 <div class="wrap">
