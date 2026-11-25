@@ -76,6 +76,7 @@ and enables `iterra.doc()` shared stores.
 | ink | `{ open, notes, todayWords }` — active note title, note count |
 | gradestack | `{ lastMark: { name, pct } | null, assessments }` |
 | margin | `{ notes, last }` — note count, last-edited title |
+| boxed | `{ top, scheduled, active }` — top items, time boxes, live block title |
 
 Keep summaries small; return `null` when the store isn't ready.
 
@@ -150,6 +151,10 @@ Also honored:
   app's link surface now answers dead ends aloud (rhythm toasts a missing
   `?routine=` name, proof toasts missing `?problem=`/`?attempt=` ids,
   ink restores a trashed note or notices a deleted one).
+- **boxed**: `?date=<YYYY-MM-DD>` → open that day's board; `?focusBlock=<id>`
+  (with `date`) → land on the Time Boxed zone scrolled to that block — the
+  timer's file-back target; `?task=<taskId>` → scroll to and flash the row.
+  Consumed params strip from the hash like the rest.
 - **flashcards**: `?p=<surface>` → `decks|library` deselect to the shelves;
   `review|learn|quiz|write|cards` switch the current deck's mode —
   `?deck=<id>&p=<mode>` lands a deck ON the named mode in one link
@@ -199,6 +204,7 @@ missing, stale, or written by an app that isn't running — always check `at`.
 | `shared.session` | proof | all | `{ v: { topic, minutes, active } \| null, by:'proof', at }` |
 | `shared.register` | rhythm | all | `{ v: { marked, pending } \| null, by:'rhythm', at }` |
 | `shared.markbook` | gradestack | all | `{ v: { assessment, scored, total } \| null, by:'gradestack', at }` |
+| `shared.board` | boxed | all | `{ v: { top, scheduled, active, plannedMin } \| null, by:'boxed', at }` — the Daily Board's day at a glance |
 
 Each app's public context doc `iterra.doc('<app>')` may carry richer state
 for anyone who wants more than the commons fields.

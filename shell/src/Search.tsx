@@ -36,6 +36,9 @@ const SEND_TARGETS: { to: string; action: string; label: string; payload?: Recor
      slip's materialRef (the slip's Start opens the deck/note), and the
      entity's course/courseId stand in when no payload course is sent */
   { to: 'syllabus', action: 'block.plan', label: 'Schedule a study block in Planning' },
+  /* task.add reads the sent entity itself: title/estimate/course bind onto a
+     dump row; entity.courseId/course/topic stand in when payload is bare */
+  { to: 'boxed', action: 'task.add', label: 'Add to Daily Board' },
   { to: 'timer', action: 'timer.start', label: 'Start a 25-minute focus session in Timer' },
 ];
 

@@ -18,6 +18,7 @@ const APPS = [
   { name: 'ink', file: 'shell/src/apps/ink/lib/iterra-adapter.ts' },
   { name: 'margin', file: 'shell/src/apps/margin/iterra-adapter.ts' },
   { name: 'flashcards', file: 'shell/src/apps/flashcards/iterra-adapter.ts' },
+  { name: 'boxed', file: 'shell/src/apps/boxed/iterra-adapter.ts' },
 ];
 
 let fail = 0;

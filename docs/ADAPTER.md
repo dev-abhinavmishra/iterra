@@ -15,6 +15,7 @@ interface.
 | ink | `apps/ink/src/lib/iterra-adapter.ts` | " |
 | margin | `apps/margin/iterra-adapter.ts` | " |
 | flashcards | `apps/flashcards/iterra-adapter.js` | `<script>` in index.html (vanilla JS) |
+| boxed | `shell/src/apps/boxed/iterra-adapter.ts` | imported once from the place entry |
 
 Each adapter must export/init `registerAdapter()` (TS) or call
 `iterra.adapter({...})` at boot (JS) with this shape:
@@ -110,6 +111,7 @@ Emit only types in the catalogue — others are rejected.
 | `problem.create` | proof | `{payload:{topic?, prompt?, course?, courseId?, difficulty?, tags?, source?}}` → a problem on the bench |
 | `weights.import` | gradestack | `{payload:{courseId}}` → pull categories/weights from syllabus |
 | `study-plan.request` | syllabus | `{payload:{courseId, examId?}}` → open generated plan |
+| `task.add` | boxed | `{entity|payload:{title, estimateMin?, zone?, date?, course?, courseId?, topic?, commitmentId?}}` → a row in the brain dump (`zone:'top'` files into priorities); redelivery dedupes on the intake id; `{url:'…?date=<d>',toast}` |
 | `event.intake` | rhythm | legacy `?event` query intake — keep working |
 
 Anything else: the intake stays `pending` until an app registers a handler.

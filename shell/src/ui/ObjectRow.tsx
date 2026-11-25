@@ -124,6 +124,7 @@ export const QUICK_SEND_TARGETS = [
   { to: 'proof', action: 'problem.create', label: 'Send to Calculations' },
   { to: 'rhythm', action: 'routine.plan', label: 'Schedule in Attendance' },
   { to: 'syllabus', action: 'block.plan', label: 'Plan a study block' },
+  { to: 'boxed', action: 'task.add', label: 'Add to Daily Board' },
 ] as const;
 
 export function ObjectRow({
