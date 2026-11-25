@@ -41,7 +41,10 @@ export default async function handler(req: any, res: any) {
                         role: 'user',
                         content: `Based on this text, generate a short, descriptive title (max 6 words). Respond with ONLY the title, no quotes. Text: ${transcript.slice(0, 1000)}`,
                     }],
-                    { maxTokens: 30, temperature: 0.5 }
+                    /* thinking-tier models burn tokens on <thought> blocks
+                       before the title — 30 truncated them mid-reasoning
+                       and shipped the scratchpad as the note title */
+                    { maxTokens: 400, temperature: 0.5 }
                 );
                 return res.status(200).json({ content: content.trim().replace(/^["']|["']$/g, '') || 'New Session' });
             } catch {

@@ -22,6 +22,11 @@ interface ProviderDef {
     apiKey?: string;
     model: string;
     visionModel?: string;
+    /* Tried in order when the primary model fails — a saturated or retired
+       model (e.g. gemma-4-31b-it's recurring 503s) shouldn't take the whole
+       provider down while a sibling model on the same key is healthy. */
+    modelFallbacks?: string[];
+    visionFallbacks?: string[];
     extraHeaders?: Record<string, string>;
 }
 
@@ -40,6 +45,10 @@ const PROVIDERS: ProviderDef[] = [
            models (15 RPM / 500 RPD) and natively multimodal, so it stays fast
            even when the primary model's daily quota is spent. */
         visionModel: process.env.GEMINI_VISION_MODEL || 'gemini-3.5-flash-lite',
+        /* gemma-4-31b-it is the throughput pick but Google frequently 503s it
+           under load; the flash-lite tier answers the same key reliably. */
+        modelFallbacks: [process.env.GEMINI_MODEL_FALLBACK || 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite'],
+        visionFallbacks: ['gemini-2.5-flash-lite'],
     },
     {
         id: 'groq',
@@ -78,6 +87,14 @@ export interface CompletionResult {
     model: string;
 }
 
+/* Thinking-tier Gemini/Gemma models inline their reasoning as
+   <thought>…</thought> blocks in `content`. Left in, a title call returns
+   the model's scratchpad as the note title and note generation gets
+   prefixed with chain-of-thought. Strip full blocks; a response that is
+   ALL thought counts as empty so the next model gets the request. */
+const stripThoughts = (s: string): string =>
+    s.replace(/<thought>[\s\S]*?(<\/thought>|$)/gi, '').replace(/<\/thought>/gi, '').trim();
+
 const activeProviders = (vision: boolean) =>
     PROVIDERS.filter(p => p.apiKey && (!vision || p.visionModel));
 
@@ -101,45 +118,51 @@ export async function chatCompletion(
     const failures: string[] = [];
 
     for (const p of providers) {
-        const model = (opts.vision ? p.visionModel : p.model) as string;
-        try {
-            const res = await fetch(`${p.baseURL}/chat/completions`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${p.apiKey}`,
-                    ...(p.extraHeaders || {}),
-                },
-                body: JSON.stringify({
-                    model,
-                    messages,
-                    max_tokens: opts.maxTokens ?? 2048,
-                    temperature: opts.temperature ?? 0.6,
-                }),
-            });
+        const primary = (opts.vision ? p.visionModel : p.model) as string;
+        const fallbacks = opts.vision ? p.visionFallbacks : p.modelFallbacks;
+        const models = [...new Set([primary, ...(fallbacks || [])])];
 
-            if (!res.ok) {
-                const detail = (await res.text()).slice(0, 200);
-                failures.push(`${p.id}(${res.status})`);
-                console.warn(`[providers] ${p.label} failed ${res.status}: ${detail}`);
-                // For rate-limits/server errors we fail over; for other 4xx (bad
-                // model, etc.) we also move on so a single misconfig can't break the app.
+        for (const model of models) {
+            try {
+                const res = await fetch(`${p.baseURL}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${p.apiKey}`,
+                        ...(p.extraHeaders || {}),
+                    },
+                    body: JSON.stringify({
+                        model,
+                        messages,
+                        max_tokens: opts.maxTokens ?? 2048,
+                        temperature: opts.temperature ?? 0.6,
+                    }),
+                });
+
+                if (!res.ok) {
+                    const detail = (await res.text()).slice(0, 200);
+                    failures.push(`${p.id}:${model}(${res.status})`);
+                    console.warn(`[providers] ${p.label}/${model} failed ${res.status}: ${detail}`);
+                    // For rate-limits/server errors we fail over; for other 4xx (bad
+                    // model, etc.) we also move on so a single misconfig can't break the app.
+                    continue;
+                }
+
+                const data = await res.json();
+                const raw: string | undefined = data?.choices?.[0]?.message?.content;
+                const content = typeof raw === 'string' ? stripThoughts(raw) : '';
+                if (!content) {
+                    failures.push(`${p.id}:${model}(empty)`);
+                    continue;
+                }
+
+                console.log(`[providers] served by ${p.label} (${model})`);
+                return { content, provider: p.label, model };
+            } catch (err: any) {
+                failures.push(`${p.id}:${model}(${err?.message || 'network'})`);
+                console.warn(`[providers] ${p.label}/${model} threw: ${err?.message}`);
                 continue;
             }
-
-            const data = await res.json();
-            const content: string | undefined = data?.choices?.[0]?.message?.content;
-            if (!content || !content.trim()) {
-                failures.push(`${p.id}(empty)`);
-                continue;
-            }
-
-            console.log(`[providers] served by ${p.label} (${model})`);
-            return { content, provider: p.label, model };
-        } catch (err: any) {
-            failures.push(`${p.id}(${err?.message || 'network'})`);
-            console.warn(`[providers] ${p.label} threw: ${err?.message}`);
-            continue;
         }
     }
 
