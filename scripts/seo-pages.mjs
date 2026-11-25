@@ -356,7 +356,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
   .feats .t{font-size:1.02rem}
   .plate{margin-top:-40px}
 }
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cta a{transition:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cta a,.frame img,.index-grid a::after,.rel-grid a::after,.tool-inline::after{transition:none}}
 `;
 
 const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
