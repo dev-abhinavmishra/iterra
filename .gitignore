@@ -16,7 +16,6 @@ shot-*.png
 scripts/[abcd]-*.cjs
 # local dev scratch — sync probes, QA screenshots, render artifacts
 tmp/
-shell/public/shots/
 /*.png
 scripts/*.png
 .vercel
