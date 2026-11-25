@@ -115,8 +115,25 @@ async function snapshotLanding(base) {
   };
   let browser = await tryLaunch();
   if (!browser) {
-    // CI images usually lack a browser — install playwright's chromium once
-    // and retry. Failure is non-fatal: the SPA shell still ships full meta.
+    // Serverless-friendly chromium (@sparticuz/chromium ships a self-contained
+    // binary built for Amazon Linux — the Vercel build image). Preferred over
+    // downloading playwright's build, which then lacks system shared libs.
+    try {
+      const sparticuz = (await import('@sparticuz/chromium')).default;
+      const exePath = await sparticuz.executablePath();
+      browser = await chromium.launch({
+        headless: true,
+        executablePath: exePath,
+        args: sparticuz.args,
+      });
+      console.log('prerender: using @sparticuz/chromium');
+    } catch (e) {
+      console.log(`prerender: sparticuz chromium unavailable (${String(e).split('\n')[0]})`);
+    }
+  }
+  if (!browser) {
+    // Last resort: install playwright's chromium + deps (works on dev boxes
+    // and Ubuntu CI; AL2023 lacks apt so install-deps may fail — non-fatal).
     const require = createRequire(import.meta.url);
     let cli = null;
     try {
