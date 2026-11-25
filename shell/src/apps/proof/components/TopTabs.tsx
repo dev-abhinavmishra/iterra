@@ -13,6 +13,7 @@ function Turnstile() {
 }
 
 export type ViewKey =
+  | 'today'
   | 'library'
   | 'session'
   | 'attempt'
@@ -23,6 +24,7 @@ export type ViewKey =
   | 'settings';
 
 const TABS: { key: ViewKey; label: string; kbd: string }[] = [
+  { key: 'today', label: 'Today', kbd: 'T' },
   { key: 'library', label: 'Library', kbd: 'L' },
   { key: 'session', label: 'Session', kbd: 'S' },
   { key: 'ledger', label: 'Errors', kbd: 'E' },
@@ -77,7 +79,7 @@ export function TopTabs({
               aria-current={route.view === t.key ? 'page' : undefined}
             >
               {t.label}
-              {t.key === 'session' && due > 0 && (
+              {t.key === 'today' && due > 0 && (
                 <span aria-label={`${due} problems due for review`} className="ml-1.5 rounded-full border border-[rgb(var(--correct-rgb)/0.6)] px-1.5 text-[9px] text-[rgb(244_242_234/0.75)] dtab--on:text-[var(--color-correct-deep)]">
                   {due}
                 </span>

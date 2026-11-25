@@ -20,7 +20,8 @@ export function Onboarding({ goView, onAddProblem }: { goView: (v: ViewKey) => v
         <p className="mt-3 text-[13.5px] leading-relaxed text-[var(--color-ink-soft)] sm:mt-4 sm:text-[14px]">
           Practice solving problems before you look at the solution. Show your work, use a hint
           when you need one, then compare your answer with the worked solution and record what
-          went wrong. Problems return when they are due for review.
+          went wrong. Problems return when they are due for review. Inside the terrain, problems can
+          also arrive from Planning, a course dossier, Search, or another app's send menu.
         </p>
         <div className="mt-4 flex flex-wrap gap-2 sm:mt-6 sm:gap-3">
           <button className="btn btn--blueprint" onClick={onAddProblem}>Add your first problem</button>

@@ -633,6 +633,11 @@
 .it-place-proof .chip--blue { border-color: rgb(var(--blueprint-rgb) / 0.5); color: var(--color-blueprint-deep); }
 .it-place-proof .chip--violet { border-color: rgb(var(--correct-rgb) / 0.5); color: var(--color-correct-deep); }
 .it-place-proof .chip--amber { border-color: rgb(var(--hint-rgb) / 0.55); color: var(--color-hint-deep); }
+.it-place-proof .chip--pulse {
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: normal;
+}
 
 /* ── Hint treatment — amber belongs to hints only ─────────────── */
 .it-place-proof .hint-pane {

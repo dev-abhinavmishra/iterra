@@ -9,7 +9,7 @@ import { cn, fmtDateTime } from '../lib/utils';
 import { DocView } from '../components/DocView';
 import { DrawPad } from '../components/DrawPad';
 import { ProofRail } from '../components/ProofRail';
-import { RetestChip } from '../components/TerrainChips';
+import { PlanRetryButton, RetestChip } from '../components/TerrainChips';
 import type { ViewKey } from '../components/TopTabs';
 import { CheckCircle2, Circle, ArrowRight, Download, Layers, NotebookPen, RotateCcw } from 'lucide-react';
 
@@ -126,28 +126,6 @@ export function CompareView({
        silently leave the session runner's queue (sessionId loss) */
     const a = startAttempt(problem.id, attempt.sessionId);
     onAttempt(a);
-  };
-
-  /* Workflow: proof → folio — open the shared schedule-review modal bound
-     to this exact problem (scheduleProblemRetry also stamps Proof's own
-     spaced queue, so the two never diverge). */
-  const planRetryInFolio = () => {
-    if (!problem) return;
-    const course = problem.courseId
-      ? useWorkbench.getState().courses[problem.courseId]?.code
-      : undefined;
-    window.dispatchEvent(new CustomEvent('iterra:modal', {
-      detail: {
-        kind: 'schedule-review',
-        materialRef: { app: 'proof', type: 'problem', id: problem.id },
-        materialTitle: problem.topic || 'untitled problem',
-        inheritedCourse: course,
-        inheritedCourseId: problem.courseId || undefined,
-        inheritedTopic: problem.topic || undefined,
-        followUpForRef: `proof:attempt:${attemptId}`,
-        defaultPhase: 'practice',
-      },
-    }));
   };
 
   if (!attempt || !problem) {
@@ -430,9 +408,7 @@ export function CompareView({
               <span className="inline-flex items-center gap-1.5"><RotateCcw size={12} /> Retry now</span>
             </button>
             {(window as any).__iterraIntegrated && (
-              <button className="btn btn--ghost" onClick={planRetryInFolio} title="Schedule a linked retry block in the Planning folio">
-                <span className="inline-flex items-center gap-1.5"><ArrowRight size={12} /> Plan retry</span>
-              </button>
+              <PlanRetryButton problem={problem} attemptId={attemptId} />
             )}
             <button className="btn btn--blueprint" onClick={() => (attempt.sessionId ? goSession(attempt.sessionId) : goView('library'))}>
               {attempt.sessionId ? 'Back to session' : 'Back to library'} <ArrowRight size={12} className="ml-1 inline" />

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useWorkbench } from './store';
 import { TopTabs, type ViewKey } from './components/TopTabs';
+import { TodayView } from './views/TodayView';
 import { LibraryView } from './views/LibraryView';
 import { SessionSetupView } from './views/SessionSetupView';
 import { AttemptDesk } from './views/AttemptDesk';
@@ -12,6 +13,7 @@ import { SettingsView } from './views/SettingsView';
 import { Onboarding } from './views/Onboarding';
 import { HelpOverlay } from './components/HelpOverlay';
 import type { InboundLink } from './lib/links';
+import type { Attempt } from './lib/types';
 import './lib/iterra';
 import './index.css';
 import { placeActive } from '../active';
@@ -52,9 +54,10 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
      archived — same rule the adapter's presence summary reports */
   const due = useWorkbench((s) => s.dueReviews().length);
   const booted = useWorkbench((s) => s.booted);
+  const inbound = useWorkbench((s) => s.inbound);
   const consumeInbound = useWorkbench((s) => s.consumeInbound);
 
-  const [route, setRoute] = useState<RouteState>({ view: 'library' });
+  const [route, setRoute] = useState<RouteState>({ view: 'today' });
   const [helpOpen, setHelpOpen] = useState(false);
   const [onboardingSeen, setOnboardingSeen] = useState(false);
   const [createProblemOnLibrary, setCreateProblemOnLibrary] = useState(false);
@@ -94,6 +97,10 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
     selectProblemFor(attemptId);
     setRoute({ view: 'compare', compareAttemptId: attemptId });
   };
+  const openAttempt = (a: Attempt) => {
+    if (a.submittedAt) openCompare(a.id);
+    else startAttempt(a.id, a.sessionId);
+  };
 
   /* ?settings — the terrain's central settings surface deep-links here;
      consumed params strip so the same link fires again later */
@@ -117,7 +124,7 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
   useEffect(() => {
     const p = new URLSearchParams(query).get('p');
     const VIEWS: Record<string, ViewKey> = {
-      library: 'library', session: 'session', ledger: 'ledger',
+      today: 'today', library: 'library', session: 'session', ledger: 'ledger',
       progress: 'progress', import: 'import', settings: 'settings',
     };
     const view = p && VIEWS[p];
@@ -144,23 +151,25 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
-  // inbound deep links (Syllabus session requests, ?problem=<id>) — once, after boot
+  // inbound deep links (Syllabus session requests, ?problem=<id>) — once per
+  // delivery; `inbound` is state so a link arriving while already mounted
+  // (iterra.open on a live place) still routes instead of sitting unconsumed
   useEffect(() => {
-    if (!booted) return;
-    const inbound = consumeInbound();
-    if (inbound?.kind === 'syllabus-session') {
-      // carry the consumed link down — SessionSetupView reads it as a prop,
-      // a second consumeInbound() would always see null
-      setRoute({ view: 'session', inbound });
-    } else if ((inbound?.kind === 'problem' || inbound?.kind === 'attempt') && inbound.attemptId) {
+    if (!booted || !inbound) return;
+    const link = consumeInbound();
+    if (!link) return;
+    if (link.kind === 'syllabus-session') {
+      // carry the consumed link down — SessionSetupView reads it as a prop
+      setRoute({ view: 'session', inbound: link });
+    } else if ((link.kind === 'problem' || link.kind === 'attempt') && link.attemptId) {
       /* ?attempt=<id> naming a submitted attempt lands on compare — the
          work is read-only on the desk anyway; the verdict, the worked
          proof and the retry affordance all live on the compare pane */
-      const a = useWorkbench.getState().attempts[inbound.attemptId];
+      const a = useWorkbench.getState().attempts[link.attemptId];
       if (a?.submittedAt) setRoute({ view: 'compare', compareAttemptId: a.id });
-      else setRoute({ view: 'attempt', attemptId: inbound.attemptId });
+      else setRoute({ view: 'attempt', attemptId: link.attemptId });
     }
-  }, [booted, consumeInbound]);
+  }, [booted, inbound, consumeInbound]);
 
   useEffect(() => {
     if ((window as any).__iterraIntegrated) return;
@@ -183,6 +192,7 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
       }
       if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
       const views: Record<string, ViewKey> = {
+        t: 'today',
         l: 'library',
         s: 'session',
         e: 'ledger',
@@ -209,9 +219,9 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
 
   return (
     <div className="flex h-full flex-col">
-      {/* painted cartouche — the bench's front page (library) only; session
+      {/* painted cartouche — the bench's front page (today) only; session
           and attempt views stay clear of the banner */}
-      {route.view === 'library' && (
+      {route.view === 'today' && (
       <AtlasMasthead
         compact
         object="compass"
@@ -227,6 +237,15 @@ function ProofWorkbench({ query = '' }: { query?: string }) {
           <Onboarding goView={goView} onAddProblem={addFirstProblem} />
         ) : (
           <>
+            {route.view === 'today' && (
+              <TodayView
+                onAttempt={(a) => startAttempt(a.id, a.sessionId)}
+                onOpenAttempt={openAttempt}
+                onSession={(sess) => nav({ view: 'session', sessionId: sess.id })}
+                goView={goView}
+                onAddProblem={addFirstProblem}
+              />
+            )}
             {route.view === 'library' && (
               <LibraryView
                 onAttempt={(a) => startAttempt(a.id, a.sessionId)}

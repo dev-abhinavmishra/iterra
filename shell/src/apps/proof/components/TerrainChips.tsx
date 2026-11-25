@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import type { Attempt, Problem } from '../lib/types';
 import { docToText } from '../lib/doc';
 import { openDeep } from '../lib/iterra';
+import { useWorkbench } from '../store';
 import { SquareArrowOutUpRight } from 'lucide-react';
 
 const iterra = () => (window as any).iterra;
@@ -64,6 +65,46 @@ export function RetestChip({ attemptId }: { attemptId: string }) {
       onClick={() => openDeep(state.url)}
     >
       {state.due ? 'retest due' : 'retest scheduled'} →
+    </button>
+  );
+}
+
+export function PlanRetryButton({
+  problem,
+  attemptId,
+  className = 'btn btn--ghost !py-1.5',
+}: {
+  problem: Problem;
+  attemptId?: string;
+  className?: string;
+}) {
+  if (!(window as any).__iterraIntegrated) return null;
+  const course = problem.courseId ? useWorkbench.getState().courses[problem.courseId]?.code : undefined;
+  return (
+    <button
+      type="button"
+      className={className}
+      title="Schedule a linked retry block in Planning"
+      onClick={() =>
+        window.dispatchEvent(
+          new CustomEvent('iterra:modal', {
+            detail: {
+              kind: 'schedule-review',
+              materialRef: { app: 'proof', type: 'problem', id: problem.id },
+              materialTitle: problem.topic || docToText(problem.promptDoc, 80) || 'untitled problem',
+              inheritedCourse: course,
+              inheritedCourseId: problem.courseId || undefined,
+              inheritedTopic: problem.topic || undefined,
+              followUpForRef: attemptId ? `proof:attempt:${attemptId}` : `proof:problem:${problem.id}`,
+              defaultPhase: 'practice',
+            },
+          }),
+        )
+      }
+    >
+      <span className="inline-flex items-center gap-1.5">
+        <SquareArrowOutUpRight size={12} /> Plan retry
+      </span>
     </button>
   );
 }

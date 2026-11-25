@@ -1,4 +1,5 @@
 const KEYS: [string, string][] = [
+  ['T', 'Today'],
   ['L', 'Library'],
   ['S', 'Session setup'],
   ['E', 'Error ledger'],
