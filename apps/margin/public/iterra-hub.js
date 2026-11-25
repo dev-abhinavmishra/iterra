@@ -567,7 +567,12 @@
   function validateEvent(type, payload) {
     if (typeof type !== 'string' || !EVENT_TYPES[type]) return badWrite('event type not in catalogue: ' + type, { type: type });
     var p = payload && typeof payload === 'object' ? payload : {};
-    try { JSON.stringify(p); } catch (e) { return badWrite('event payload not serializable', p); }
+    /* require a real JSON round-trip — a bare try/catch lets functions and
+       symbols through (JSON.stringify returns undefined, doesn't throw) and
+       the record then fails inside the IDB put instead of here. */
+    var pj;
+    try { pj = JSON.stringify(p); } catch (e) { pj = null; }
+    if (typeof pj !== 'string') return badWrite('event payload not serializable', p);
     return { ok: true, type: type, payload: p };
   }
 
@@ -1220,6 +1225,15 @@
       var v = validateEntity(opts.entity);
       if (!v.ok) return Promise.resolve(v);
       entity = v.entity;
+    }
+    /* payload rides verbatim into the store record — the LS fallback
+       JSON-stringifies the whole bucket and IDB structured-clones, so a
+       circular or function payload must be rejected up front with the
+       contract shape, not fail deep inside the write. */
+    if (opts.payload !== undefined) {
+      var pj;
+      try { pj = JSON.stringify(opts.payload); } catch (e) { pj = null; }
+      if (typeof pj !== 'string') return Promise.resolve(badWrite('intake.payload not JSON-serializable', opts));
     }
     var rec = {
       id: 'in-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8),
