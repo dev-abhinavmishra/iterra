@@ -471,7 +471,7 @@ ${header(tool.path)}
 </div></section>
 <div class="wrap">
 <figure class="plate">
-<div class="frame"><img src="/shots/${tool.id}.webp" alt="${esc(tool.name)} inside the Iterra study workspace" width="1440" height="900" /></div>
+<div class="frame"><img src="/shots/${tool.id}.webp" alt="${esc(tool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
 <figcaption><span>Iterra · ${esc(tool.name)}</span><span>Local-first study terrain</span></figcaption>
 </figure>
 <section class="block">
@@ -745,6 +745,10 @@ export function renderToolsIndex() {
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Iterra Study Tools — Planner, Flashcards, Notes, Timer & More" />
 <meta property="og:description" content="Eight study tools in one local-first workspace for students." />
+<meta property="og:image" content="${SITE}/og/tools.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
 <style>${CSS}</style>
@@ -788,10 +792,13 @@ function compareHead({ title, description, url, image }) {
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="${esc(title)}" />
 <meta property="og:description" content="${esc(description)}" />
-<meta property="og:image" content="${SITE}${image || COMPARE_SHOT}" />
+<meta property="og:image" content="${image || `${SITE}/og/compare.png`}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(title)}" />
 <meta name="twitter:description" content="${esc(description)}" />
+<meta name="twitter:image" content="${image || `${SITE}/og/compare.png`}" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
 <style>${CSS}</style>`;
@@ -903,7 +910,7 @@ ${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-${compareHead({ title: page.title, description: page.description, url })}
+${compareHead({ title: page.title, description: page.description, url, image: `${SITE}/og/${page.section}.png` })}
 ${jsonLd(ld)}
 </head>
 <body>
@@ -987,6 +994,10 @@ export function renderCompareIndex() {
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Compare Iterra — Honest Study App Comparisons" />
 <meta property="og:description" content="Where Iterra wins, where the competition wins, and who should pick which." />
+<meta property="og:image" content="${SITE}/og/compare.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
 <style>${CSS}</style>
@@ -1044,6 +1055,10 @@ export function renderAlternativesIndex() {
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Study App Alternatives — Honest Picks for Students" />
 <meta property="og:description" content="When the app you outgrew isn't enough anymore." />
+<meta property="og:image" content="${SITE}/og/alternatives.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
 <style>${CSS}</style>
