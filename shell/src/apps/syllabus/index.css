@@ -54,7 +54,7 @@
 
   --shadow-sheet: 0 1px 0 rgb(255 255 255 / 0.35) inset, 0 10px 28px rgb(0 0 0 / 0.42), 0 2px 6px rgb(0 0 0 / 0.3);
   --shadow-slip: 0 1px 2px rgb(0 0 0 / 0.18), 0 6px 14px rgb(0 0 0 / 0.14);
-  --shadow-tab: 2px 2px 5px rgb(0 0 0 / 0.35);
+  --shadow-tab: -3px 2px 6px rgb(0 0 0 / 0.35);
 
   --animate-stamp: stamp 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   --animate-slip-in: slip-in 0.3s cubic-bezier(0.22, 0.9, 0.3, 1) both;
@@ -133,7 +133,7 @@
   --course-rust-rgb: 160 90 44;
   --shadow-sheet: 0 1px 0 rgb(255 255 255 / 0.35) inset, 0 10px 28px rgb(0 0 0 / 0.42), 0 2px 6px rgb(0 0 0 / 0.3);
   --shadow-slip: 0 1px 2px rgb(0 0 0 / 0.18), 0 6px 14px rgb(0 0 0 / 0.14);
-  --shadow-tab: 2px 2px 5px rgb(0 0 0 / 0.35);
+  --shadow-tab: -3px 2px 6px rgb(0 0 0 / 0.35);
   --animate-stamp: stamp 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) both;
   --animate-slip-in: slip-in 0.3s cubic-bezier(0.22, 0.9, 0.3, 1) both;
   --animate-block-slide: block-slide 0.45s cubic-bezier(0.25, 0.8, 0.25, 1) both;
@@ -365,7 +365,8 @@
   letter-spacing: 0.12em;
   color: rgb(255 255 255 / 0.92);
   padding: 14px 7px;
-  border-radius: 0 5px 5px 0;
+  width: 100%;
+  border-radius: 5px 0 0 5px;
   box-shadow: var(--shadow-tab);
   cursor: pointer;
   position: relative;
@@ -373,10 +374,10 @@
   transform: translateX(0);
 }
 .it-place-syllabus .ctab:hover {
-  transform: translateX(8px);
+  transform: translateX(-6px);
 }
 .it-place-syllabus .ctab--on {
-  transform: translateX(12px);
+  transform: translateX(-8px);
   filter: brightness(1.12) saturate(1.1);
 }
 .it-place-syllabus .ctab:focus-visible {
@@ -647,6 +648,7 @@
   }
 
   .it-place-syllabus .ctab {
+    width: auto;
     writing-mode: horizontal-tb;
     white-space: nowrap;
     padding: 7px 10px;

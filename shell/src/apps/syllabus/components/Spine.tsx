@@ -40,7 +40,7 @@ export function Spine({ term, courses, activeCourseId, onOpenCourse, onOpenSemes
       <div className="syllabus-spine-rule mx-3 border-t border-[#34383f]" />
 
       {/* course tabs */}
-      <div className="syllabus-course-tabs flex-1 overflow-y-auto py-3 flex flex-col gap-1.5 items-end pr-5 pl-2 -mr-5">
+      <div className="syllabus-course-tabs flex-1 overflow-y-auto py-3 flex flex-col gap-1.5 items-end pl-2">
         {active.map((c) => (
           <button
             key={c.id}
