@@ -39,4 +39,9 @@ cp packages/hub/iterra-hub.js dist/iterra-hub.js
 # graph policy consumed by the selective service worker
 node scripts/emit-sw-manifest.mjs
 
+# SEO pass: static marketing pages + sitemap always; landing prerender
+# snapshot when a Chromium is available (skips gracefully on bare CI).
+echo "── seo prerender"
+node scripts/prerender.mjs || echo "seo prerender failed — dist still valid"
+
 echo "── terrain built → dist/"

@@ -101,6 +101,10 @@ Vercel installs them before the build, with output in `dist`. Margin's API funct
 need `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`/`ANON_KEY`, and `GROQ_API_KEY`
 project env vars — without them Margin still runs local-first.
 
+After the Vite build, `scripts/prerender.mjs` emits the SEO surface into
+`dist/`: static `/tools/*` marketing pages, `sitemap.xml`, and a prerendered
+landing snapshot when a Chromium is available. See `docs/SEO.md`.
+
 ## Rhythm
 
 `apps/rhythm` is vendored at the weekly-sequencer rehaul (upstream branch

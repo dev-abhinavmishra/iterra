@@ -6,6 +6,7 @@
   "scripts": {
     "sync:hub": "bash scripts/sync-hub.sh",
     "build": "bash scripts/build.sh",
+    "seo": "node scripts/prerender.mjs",
     "dev": "cd shell && npm run dev",
     "dev:apps": "bash scripts/dev-apps.sh",
     "lint": "cd shell && npm run lint",
