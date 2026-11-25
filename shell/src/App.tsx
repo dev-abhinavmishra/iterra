@@ -427,12 +427,12 @@ export default function App() {
           : section === 'library'
             ? 'Library · Iterra'
             : section === 'welcome'
-              ? 'Iterra — Study Terrain'
+              ? 'Iterra — All-in-One Study Workspace for Students'
               : section === 'today'
                 ? 'Today · Iterra'
                 : section === 'settings'
                   ? 'Settings · Iterra'
-                  : 'Iterra — Study Terrain';
+                  : 'Iterra — All-in-One Study Workspace for Students';
   }, [active, course, section]);
 
   const enter = useCallback((id: string) => {
