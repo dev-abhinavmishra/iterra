@@ -440,7 +440,7 @@ export default function App() {
   }, []);
 
   const goHome = useCallback(() => {
-    window.location.hash = '/';
+    window.location.hash = '/today';
   }, []);
 
   const goToday = useCallback(() => {

@@ -4,15 +4,59 @@ import { PLACE_MAP } from '../places';
 
 type ToolSettingsModule = { default: ComponentType };
 
+/* A deploy landing while the tab is open 404s the old hashed chunks —
+   the dynamic import then fails with "Failed to fetch dynamically
+   imported module". Retry once for transient fetches; if it still
+   fails, reload once so the page picks up the new build instead of
+   stranding the user on an error card. The sessionStorage guard keeps
+   a still-broken build from reload-looping. */
+const CHUNK_RELOAD_KEY = 'iterra:tool-settings-chunk-reload';
+const CHUNK_RELOAD_WINDOW_MS = 60_000;
+
+function isChunkLoadError(error: unknown): boolean {
+  const msg = error instanceof Error ? error.message : String(error);
+  return /dynamically imported module|ChunkLoadError|Failed to fetch/i.test(msg);
+}
+
+function reloadForStaleChunks(): boolean {
+  try {
+    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
+    if (Date.now() - last < CHUNK_RELOAD_WINDOW_MS) return false;
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  } catch {
+    return false;
+  }
+  window.location.reload();
+  return true;
+}
+
+function loadSettingsModule(loader: () => Promise<ToolSettingsModule>): Promise<ToolSettingsModule> {
+  return loader().catch((error) => {
+    if (!isChunkLoadError(error)) throw error;
+    return new Promise<ToolSettingsModule>((resolve, reject) => {
+      window.setTimeout(() => {
+        loader().then(resolve, (retryError) => {
+          if (isChunkLoadError(retryError) && reloadForStaleChunks()) {
+            /* the page is reloading — stay pending so React.lazy never
+               sees a rejection it would cache forever */
+            return;
+          }
+          reject(retryError);
+        });
+      }, 800);
+    });
+  });
+}
+
 const loaders: Record<string, () => Promise<ToolSettingsModule>> = {
-  timer: () => import('./toolSettings/timer'),
-  ink: () => import('./toolSettings/ink'),
-  rhythm: () => import('./toolSettings/rhythm'),
-  proof: () => import('./toolSettings/proof'),
-  syllabus: () => import('./toolSettings/syllabus'),
-  gradestack: () => import('./toolSettings/gradestack'),
-  margin: () => import('./toolSettings/margin'),
-  flashcards: () => import('./toolSettings/flashcards'),
+  timer: () => loadSettingsModule(() => import('./toolSettings/timer')),
+  ink: () => loadSettingsModule(() => import('./toolSettings/ink')),
+  rhythm: () => loadSettingsModule(() => import('./toolSettings/rhythm')),
+  proof: () => loadSettingsModule(() => import('./toolSettings/proof')),
+  syllabus: () => loadSettingsModule(() => import('./toolSettings/syllabus')),
+  gradestack: () => loadSettingsModule(() => import('./toolSettings/gradestack')),
+  margin: () => loadSettingsModule(() => import('./toolSettings/margin')),
+  flashcards: () => loadSettingsModule(() => import('./toolSettings/flashcards')),
 };
 
 const components = new Map<string, LazyExoticComponent<ComponentType>>();

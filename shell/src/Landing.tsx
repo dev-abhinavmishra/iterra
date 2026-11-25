@@ -53,7 +53,7 @@ export function LandingPage({ onEnter, onGo }: { onEnter: (id: string) => void; 
         <div className="atlas-hero">
           <div className="atlas-copy">
             <div className="atlas-wordmark"><span className="atlas-emblem" aria-hidden="true"><i /><i /><i /><i /></span> Iterra</div>
-            <h1 id="atlas-title" tabIndex={-1}>A world for<br />your <em>studies.</em></h1>
+            <h1 id="atlas-title" tabIndex={-1}>A world for{' '}<br />your <em>studies.</em></h1>
             <p>Give every course a place. Bring your plans, notes, and practice together in one study workspace.</p>
             <div className="atlas-actions">
               <button className="atlas-enter" onClick={() => onGo('#/today')}>Open Today <ArrowRight size={17} /></button>
