@@ -5,10 +5,12 @@
 // rate-limited (HTTP 429) or has a transient server error, we transparently move
 // on to the next configured provider.
 //
-// Order matters: Gemini (Google AI Studio) is PRIMARY — it has the most
-// generous free-tier RPM/RPD of the configured providers (gemma-4-31b-it and
-// the flash-lite tier run ~15 RPM / hundreds-to-thousands RPD vs ~20 RPD for
-// the flash chat models). Groq/NVIDIA/OpenRouter remain as fallbacks.
+// Order matters: Vercel AI Gateway is PRIMARY when AI_GATEWAY_API_KEY is set —
+// one key reaches many models, and the free tier covers the chat workload.
+// Gemini (Google AI Studio) is next — it has the most generous free-tier
+// RPM/RPD of the configured providers (gemma-4-31b-it and the flash-lite tier
+// run ~15 RPM / hundreds-to-thousands RPD vs ~20 RPD for the flash chat
+// models). Groq/NVIDIA/OpenRouter remain as fallbacks.
 //
 // NOTE: gemini-2.5-flash is deprecated (Google routes it to gemini-3.6-flash
 // and only grants ~20 RPD on the free tier) — do NOT use it as a default.
@@ -31,6 +33,20 @@ interface ProviderDef {
 }
 
 const PROVIDERS: ProviderDef[] = [
+    {
+        id: 'gateway',
+        label: 'Vercel AI Gateway',
+        /* OpenAI-compatible endpoint — the gateway routes `model` to the
+           upstream provider and aggregates billing/quota in one place. */
+        baseURL: 'https://ai-gateway.vercel.sh/v1',
+        apiKey: process.env.AI_GATEWAY_API_KEY,
+        /* Free-tier models only (per the gateway model list). Override with
+           AI_GATEWAY_MODEL / AI_GATEWAY_MODEL_FALLBACK (comma-separated). */
+        model: process.env.AI_GATEWAY_MODEL || 'nvidia/nemotron-3.5-lightning-free',
+        modelFallbacks: (process.env.AI_GATEWAY_MODEL_FALLBACK ||
+            'reflection/beam-free,nvidia/nemotron-3.5-lightning-free,recursive/flint-v1.0,stealth/glyph-cluster')
+            .split(',').map((s) => s.trim()).filter(Boolean),
+    },
     {
         id: 'gemini',
         label: 'Gemini',
@@ -111,7 +127,7 @@ export async function chatCompletion(
         throw new Error(
             opts.vision
                 ? 'No vision-capable AI provider is configured.'
-                : 'No AI providers are configured. Set at least one of GEMINI_API_KEY, GROQ_API_KEY, NVIDIA_API_KEY or OPENROUTER_API_KEY.'
+                : 'No AI providers are configured. Set at least one of AI_GATEWAY_API_KEY, GEMINI_API_KEY, GROQ_API_KEY, NVIDIA_API_KEY or OPENROUTER_API_KEY.'
         );
     }
 

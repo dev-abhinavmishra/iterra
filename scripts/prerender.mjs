@@ -10,6 +10,8 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { writeSeoPages } from './seo-pages.mjs';
 
 const DIST = path.resolve(process.argv[2] || 'dist');
@@ -103,12 +105,30 @@ async function snapshotLanding(base) {
   const attempts = exe
     ? [{ executablePath: exe }]
     : [{ channel: 'chrome' }, { channel: 'msedge' }, {}];
-  let browser;
-  for (const opts of attempts) {
+  const tryLaunch = async () => {
+    for (const opts of attempts) {
+      try {
+        return await chromium.launch({ headless: true, ...opts });
+      } catch { /* try the next */ }
+    }
+    return null;
+  };
+  let browser = await tryLaunch();
+  if (!browser) {
+    // CI images usually lack a browser — install playwright's chromium once
+    // and retry. Failure is non-fatal: the SPA shell still ships full meta.
     try {
-      browser = await chromium.launch({ headless: true, ...opts });
-      break;
-    } catch { /* try the next */ }
+      const require = createRequire(import.meta.url);
+      const cli = require.resolve('playwright-core/cli.js');
+      console.log('prerender: installing playwright chromium…');
+      execFileSync(process.execPath, [cli, 'install', 'chromium'], {
+        stdio: 'inherit',
+        timeout: 300000,
+      });
+      browser = await tryLaunch();
+    } catch (e) {
+      console.log(`prerender: browser install failed (${String(e).split('\n')[0]})`);
+    }
   }
   if (!browser) {
     console.log('prerender: no usable browser — skipping landing snapshot');
