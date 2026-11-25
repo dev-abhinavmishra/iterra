@@ -117,15 +117,34 @@ async function snapshotLanding(base) {
   if (!browser) {
     // CI images usually lack a browser — install playwright's chromium once
     // and retry. Failure is non-fatal: the SPA shell still ships full meta.
+    const require = createRequire(import.meta.url);
+    let cli = null;
     try {
-      const require = createRequire(import.meta.url);
-      const cli = require.resolve('playwright-core/cli.js');
+      // package.json is exported even when ./cli.js is not
+      cli = path.join(path.dirname(require.resolve('playwright-core/package.json')), 'cli.js');
+    } catch {
+      try { cli = require.resolve('playwright-core/cli.js'); } catch { /* give up below */ }
+    }
+    if (!cli || !fs.existsSync(cli)) {
+      console.log('prerender: playwright cli not resolvable — skipping landing snapshot');
+      return;
+    }
+    try {
       console.log('prerender: installing playwright chromium…');
       execFileSync(process.execPath, [cli, 'install', 'chromium'], {
         stdio: 'inherit',
         timeout: 300000,
       });
       browser = await tryLaunch();
+      if (!browser) {
+        // Browser downloaded but system libs may be missing — try deps once.
+        console.log('prerender: chromium present but will not launch — installing deps…');
+        execFileSync(process.execPath, [cli, 'install-deps', 'chromium'], {
+          stdio: 'inherit',
+          timeout: 300000,
+        });
+        browser = await tryLaunch();
+      }
     } catch (e) {
       console.log(`prerender: browser install failed (${String(e).split('\n')[0]})`);
     }
