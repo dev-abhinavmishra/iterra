@@ -1017,7 +1017,7 @@ export default function App({ query = '', wakeTick = 0 }: { query?: string; wake
             requestAnimationFrame(() => inputRef.current?.focus());
           }}
         >
-          +
+          <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
         </button>
       </nav>
 

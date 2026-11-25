@@ -38,6 +38,8 @@ export interface AtlasMastheadProps {
   globe?: boolean;
   /** Slimmer band for app headers — less padding, smaller type. */
   compact?: boolean;
+  /** Even smaller band — a single-line-ish strip for dense shelves. */
+  slim?: boolean;
   className?: string;
 }
 
@@ -56,6 +58,7 @@ export function AtlasMasthead({
   object,
   globe,
   compact = false,
+  slim = false,
   className,
 }: AtlasMastheadProps) {
   const p = place ? PLACE_MAP[place] : undefined;
@@ -64,7 +67,7 @@ export function AtlasMasthead({
   const [imgFailed, setImgFailed] = useState(false);
   return (
     <header
-      className={`atlas-masthead${compact ? ' compact' : ''}${className ? ` ${className}` : ''}`}
+      className={`atlas-masthead${compact ? ' compact' : ''}${slim ? ' slim' : ''}${className ? ` ${className}` : ''}`}
       aria-label={typeof title === 'string' ? title : (p?.place ?? eyebrow)}
     >
       <div className="atlas-mh-stars" aria-hidden="true" />

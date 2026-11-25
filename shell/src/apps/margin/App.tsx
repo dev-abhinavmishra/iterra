@@ -372,10 +372,14 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                 shelf) only; editor, recorder, study, analysis, bookmarks,
                 history and settings stay clear of the banner. Rendered
                 outside the keyed view transition so it persists as chrome
-                instead of remounting (and replaying its animation). */}
+                instead of remounting (and replaying its animation). The
+                column wrapper keeps the row-flex parent from stretching the
+                banner to full height — without it the masthead becomes a
+                giant side panel instead of a slim strip. */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
             {currentView === View.LIBRARY && (
                 <AtlasMasthead
-                    compact
+                    slim
                     object="margin"
                     place="margin"
                     title="Study Materials"
@@ -396,6 +400,7 @@ const App: React.FC<{ query?: string }> = ({ query = '' }) => {
                     {renderView()}
                 </motion.div>
             </AnimatePresence>
+            </div>
 
             <CommandPalette
                 open={paletteOpen}

@@ -121,7 +121,10 @@ the shared channel instead.)
 
 Also honored:
 - **ink**: `?note=<id>` → select note (set activeNoteId) + navigate home;
-  `?p=<route>` → navigate the desk router (wastebasket, review, daily…)
+  `?p=<route>` → navigate the desk router (`favorites|recent|tags|focus|
+  insights|web|trash`); `?p=daily` or `?p=today` → ensure today's journal
+  note and open it (an action, not a route — Today is a page within the
+  desk, not a separate view)
 - **gradestack**: `?assessment=<id>` → open that test's detail (history/analytics);
   `?p=<route>` → navigate the book (`builder|scan|analytics|history|settings`),
   remaining params carry into the page's own query
