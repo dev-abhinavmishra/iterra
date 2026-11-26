@@ -944,6 +944,57 @@ export default function App() {
               )}
             </DropdownMenu>
           </div>
+
+          {/* Learn — links out to the static guides/comparison marketing pages */}
+          <div className="flex items-center">
+            <DropdownMenu
+              align="left"
+              trigger={(open, toggle) => (
+                <button
+                  type="button"
+                  onClick={toggle}
+                  aria-expanded={open}
+                  title="Study guides and honest comparisons"
+                  className="inline-flex items-center gap-1.5 rounded-[5px] px-2.5 py-1.5 text-[12.5px] font-medium text-[var(--color-mute)] hover:bg-[var(--color-sheet-2)] hover:text-[var(--color-ink)] cursor-pointer"
+                >
+                  <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+                  <span className="hidden sm:inline">Learn</span>
+                  <ChevronDown className="h-3 w-3 opacity-70" />
+                </button>
+              )}
+            >
+              {(close) => (
+                <div className="w-72 p-1">
+                  <div className="px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-faint)]">
+                    Guides & comparisons
+                  </div>
+                  {(
+                    [
+                      ['/guides', 'Study guides', 'Research-backed methods for planning, memory, and focus'],
+                      ['/guides/plan-a-semester', 'Plan a semester', 'Syllabus extraction to weekly reviews'],
+                      ['/guides/spaced-repetition-explained', 'Spaced repetition, explained', 'The technique the research keeps ranking first'],
+                      ['/guides/how-to-study-for-finals-week', 'Finals week survival', 'Triage, sleep, and the two-week window'],
+                      ['/compare', 'Honest comparisons', 'Iterra vs Notion, Quizlet, Anki and more'],
+                      ['/alternatives', 'Alternatives', 'When the app you outgrew isn’t enough'],
+                      ['/tools', 'All study tools', 'The nine places of the terrain'],
+                    ] as const
+                  ).map(([href, label, desc]) => (
+                    <a
+                      key={href}
+                      href={href}
+                      onClick={() => close()}
+                      className="flex w-full items-center gap-2.5 rounded-[5px] px-2.5 py-2 text-left transition-colors hover:bg-[var(--color-sheet-hover)] text-[var(--color-ink)]"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px] font-semibold">{label}</span>
+                        <span className="block truncate text-[11px] text-[var(--color-mute)]">{desc}</span>
+                      </span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Center/Right: Course Context + Global Search + Active Focus Status + Save Status + Controls */}

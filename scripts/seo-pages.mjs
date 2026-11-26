@@ -340,6 +340,47 @@ const TOOL_NEIGHBORS = {
   proof: ['gradestack', 'flashcards', 'timer'],
 };
 
+/* Longer-form "closer look" copy per tool — the walkthrough paragraphs that
+   turn a feature list into a page worth reading. */
+const TOOL_TOURS = {
+  boxed: [
+    'Most planners fail the same way: they ask you to decide what matters before you’ve emptied your head. Boxed inverts that. The brain dump comes first — every errand, worry, and half-formed intention lands in one place, where it stops looping in your skull. Only then do you choose.',
+    'The time-boxing step is where the day becomes real. “Study biology” is a wish; “bio reading, 2–4pm” is a commitment your future self can keep or break honestly. Unfinished boxes roll forward instead of evaporating, so tomorrow’s dump starts from the truth rather than a cleaned-up fiction.',
+  ],
+  syllabus: [
+    'The Folio is where a semester stops being a rumor. You enter courses once — meeting times, rooms, instructor notes — and the schedule becomes the skeleton every other tool hangs off. Planned study blocks land on real days; attendance and deadlines inherit the same course context.',
+    'What makes it different from a generic calendar is that it knows what a course *is* in Iterra. A block tagged to Organic Chemistry can surface its readings, its flashcard deck’s due count, and its notes without you filing anything twice. The schedule is the index.',
+  ],
+  rhythm: [
+    'Routines are the least glamorous and most honest tool here. Rhythm doesn’t motivate you — it keeps a faithful record of what you actually did, which is the only data a habit needs. Weekly routines, attendance logs, and streaks live in one place so “am I showing up?” has a real answer.',
+    'Students consistently overestimate willpower and underestimate friction. Rhythm is built for the second problem: logging takes seconds, streaks make skipping visible, and the weekly review turns vague guilt into a pattern you can adjust.',
+  ],
+  flashcards: [
+    'Flashcards in Iterra are built around the boring truth that rereading feels productive and isn’t. Every deck supports active recall — you answer before you flip — and spaced review schedules cards based on how well you actually knew them, not on a fixed timer.',
+    'The writing drills matter more than they sound. Typing an answer is a harder, more honest test than recognizing one, and it’s the mode that transfers to exams. Decks attach to courses, so a card made during lecture week resurfaces during review week without any filing on your part.',
+  ],
+  ink: [
+    'Ink treats notes as a thinking surface, not a storage unit. Wiki-links let a concept in one lecture connect to a concept in another; daily pages give you a low-friction place to think out loud; folders keep courses from dissolving into one long scroll.',
+    'The focus-writing mode is the quiet killer feature. Distraction-free prose with your links and references one keystroke away means the note stays connected to the rest of your thinking without competing with it for attention.',
+  ],
+  margin: [
+    'Margin is the shelf behind the desk. Recordings, PDFs, handouts, and imported class files live here, filed by course, ready to surface wherever you’re working — a recording’s timestamp can point at the moment a concept was explained.',
+    'It exists because study materials have a habit of scattering across downloads folders and chat apps. Keeping them course-tagged means “what was that example the professor gave?” is a search, not an archaeology project.',
+  ],
+  gradestack: [
+    'GradeStack is the part of studying nobody enjoys and everybody needs. It builds assessments, reads completed answer sheets back in, and keeps a gradebook that shows score trends over time — so a bad week reads as data instead of a verdict.',
+    'The error log is the real study tool hiding inside it. Missed questions get filed where you’ll actually see them again, which closes the loop between being graded and getting better.',
+  ],
+  timer: [
+    'The Instruments are deliberately analog in spirit: a countdown, an interval route, a stopwatch, and a session ledger. No streaks, no guilt mechanics — just honest timekeeping for work that needs a boundary.',
+    'Focus sessions pair naturally with time-boxed planning. Park a 50-minute block from Boxed here, and the timer holds the boundary while the plan holds the intention. The session log at the end of the week is the most truthful productivity metric you’ll find.',
+  ],
+  proof: [
+    'Proof is a workbench, not an answer machine. It walks math problems step by step — derivations, substitutions, checks — so you can follow the reasoning rather than just copy the result. Every problem you miss gets filed in an error log for review.',
+    'It connects to GradeStack for the assessment side of the same course: the workbench builds the problem sets, the mark book reads the results, and the error log makes sure today’s mistake becomes next week’s recall.',
+  ],
+};
+
 /* Palette + type lifted from shell/src/landing.css and index.css so these
    static pages sit visually inside the same world as the app. */
 const CSS = `
@@ -363,12 +404,6 @@ header.site{position:sticky;top:0;z-index:10;display:flex;align-items:center;jus
 .emblem{display:grid;grid-template:repeat(2,7px)/repeat(2,7px);gap:2px;transform:rotate(45deg)}
 .emblem i{background:#a1d2a1;box-shadow:inset 1px 1px #d4eac1}
 .emblem i:nth-child(2){background:#dfd6a0}.emblem i:nth-child(3){background:#65a582}
-nav.tools{display:flex;align-items:center;gap:2px;flex:0 1 auto;min-width:0;max-width:100%;background:#284636;border-radius:9px;padding:3px;overflow-x:auto;scrollbar-width:none}
-nav.tools::-webkit-scrollbar{display:none}
-nav.tools a{white-space:nowrap;display:inline-flex;align-items:center;min-height:34px;padding:0 12px;border-radius:7px;color:var(--parch);font-family:'IBM Plex Mono',monospace;font-size:12px;text-decoration:none;transition:background .15s,color .15s}
-nav.tools a:hover{background:#e1ebd312}
-nav.tools a.on{color:var(--gold3);background:#e2b86e14}
-nav.tools a.open{color:var(--gold3)}
 
 /* ── hero — mirrors .atlas-sky ────────────────────────── */
 .hero{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 72% 30%,#315c40 0%,#183e2c 34%,#102f24 62%,#0b231a 100%);color:var(--cream);padding:clamp(48px,8vw,110px) 0 clamp(56px,8vw,96px)}
@@ -415,32 +450,22 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;lett
 .connect .cta .ghost,.verdict .cta .ghost{border-color:var(--gold2);color:var(--cream)}
 .connect .cta .ghost:hover,.verdict .cta .ghost:hover{border-color:var(--gold);color:var(--gold3)}
 
-/* ── tools index ──────────────────────────────────────── */
-.index-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(15.5rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.index-grid a{position:relative;display:flex;flex-direction:column;min-height:10.75rem;background:var(--sheet);padding:1.3rem 2.6rem 1.3rem 1.4rem;text-decoration:none;color:var(--ink);transition:background .15s}
-.index-grid a::after{content:"→";position:absolute;right:1.1rem;top:1.15rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s}
-.index-grid a:hover{background:var(--sheet2)}
-.index-grid a:hover::after{opacity:1;transform:none}
-.index-grid .t{font-family:Newsreader,Georgia,serif;font-size:1.45rem;font-weight:500;letter-spacing:-.02em;display:block;line-height:1.2}
-.index-grid .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block;margin-top:.35rem}
-.index-grid .d{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.92rem;color:var(--mute);margin-top:.55rem;line-height:1.5}
-.skin-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));gap:1rem}
-.skin-card{display:flex;flex-direction:column;gap:.8rem;border:1px solid var(--line);border-radius:14px;background:var(--sheet);padding:1.2rem 1.3rem;text-decoration:none;color:var(--ink);transition:border-color .15s,transform .15s}
-.skin-card:hover{border-color:var(--gold2);transform:translateY(-2px)}
-.skin-card .top{display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.skin-card .t{font-family:Newsreader,Georgia,serif;font-size:1.45rem;font-weight:500;letter-spacing:-.02em}
-.skin-card .use{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.swatches{display:flex;gap:.35rem}
-.swatches i{width:1.6rem;height:1.6rem;border-radius:5px;border:1px solid #0002}
-.skin-card .tagline{font-size:.94rem;color:var(--mute);line-height:1.55}
-.skin-links{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:auto}
-.skin-links a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;border:1px solid var(--line2);border-radius:999px;padding:.35rem .75rem;color:var(--accent);text-decoration:none;background:var(--paper)}
-.skin-links a:hover{border-color:var(--accent)}
+/* ── editorial index rows — hairline-separated list, no card boxes ── */
+.rows{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+.rows>li{border-bottom:1px solid var(--line)}
+.rows a{position:relative;display:block;padding:1.35rem 2.8rem 1.35rem .25rem;text-decoration:none;color:var(--ink);transition:background .15s}
+.rows a::after{content:"→";position:absolute;right:.25rem;top:1.45rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s}
+.rows a:hover{background:var(--sheet2)}
+.rows a:hover::after{opacity:1;transform:none}
+.rows .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block}
+.rows .t{font-family:Newsreader,Georgia,serif;font-size:1.4rem;font-weight:500;letter-spacing:-.02em;display:block;margin-top:.3rem;line-height:1.25}
+.rows .d{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:.94rem;color:var(--mute);margin-top:.45rem;line-height:1.55;max-width:64ch}
+.rows .meta{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);display:block;margin-top:.5rem}
 
 /* ── comparison & alternatives pages (Chunk A) ────────── */
 .compare-table{width:100%;min-width:36rem;border-collapse:collapse;font-size:.98rem}
 .compare-table th,.compare-table td{padding:.7rem .9rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-.compare-table thead th{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border-bottom:2px solid var(--line2)}
+.compare-table thead th{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);border-bottom:2px solid var(--line2);position:sticky;top:52px;z-index:2;background:var(--sheet)}
 .compare-table tbody th{font-weight:600;white-space:nowrap;position:sticky;left:0;background:var(--sheet);z-index:1;box-shadow:1px 0 0 var(--line)}
 .compare-table td:first-of-type{color:var(--mute)}
 .compare-table .us{background:#eef4ea}
@@ -448,10 +473,10 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;lett
 .compare-table tbody tr.us td{background:#f4f8f2}
 .compare-table tbody tr.us td.us{background:#e2edde}
 @media(prefers-reduced-motion:no-preference){.compare-table tbody tr{transition:background .15s}.compare-table tbody tr:not(.us):hover td{background:#faf6ea}}
-.wins-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
-.win-card{border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.5rem;background:var(--sheet)}
-.win-card.us{border-color:#9db8a4;background:linear-gradient(180deg,#f2f7f1,var(--sheet))}
-.win-card.them{background:var(--sheet)}
+.wins-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.75rem}
+.win-card{border-top:1px solid var(--line2);padding-top:1.3rem;background:none}
+.win-card.us{border-top:2px solid var(--accent)}
+.win-card.them{border-top:1px solid var(--line2)}
 .win-card h3{font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.9rem}
 .win-card.us h3{color:var(--accent)}
 .win-card.them h3{color:var(--faint)}
@@ -466,8 +491,9 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;lett
 .verdict .mono{color:var(--gold);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;display:block;margin-bottom:.9rem}
 .verdict p{color:var(--sage2);max-width:62ch;font-size:1.08rem;line-height:1.7}
 .verdict p strong{color:var(--cream)}
-.faq-list{display:grid;gap:.6rem;max-width:56rem}
-details.faq{border:1px solid var(--line);border-radius:10px;background:var(--sheet);padding:.9rem 1.2rem}
+.faq-list{display:grid;max-width:56rem}
+details.faq{border-bottom:1px solid var(--line);padding:.95rem 0}
+details.faq:first-child{border-top:1px solid var(--line)}
 details.faq summary{cursor:pointer;font-weight:600;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;gap:1rem;align-items:baseline}
 details.faq summary::after{content:"+";font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:1.2rem}
 details.faq[open] summary::after{content:"–"}
@@ -521,13 +547,14 @@ footer.site::after{content:"";position:absolute;inset:0;z-index:-1;background:ra
 .meta-row a:hover{border-color:var(--gold)}
 .related{margin-top:3.5rem;padding-top:2rem;border-top:1px solid var(--line)}
 .related h2{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:1.2rem}
-.rel-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.rel-grid a{position:relative;display:flex;flex-direction:column;min-height:7.5rem;background:var(--sheet);padding:1.15rem 2.5rem 1.15rem 1.3rem;text-decoration:none;color:var(--ink);transition:background .15s}
-.rel-grid a::after{content:"→";position:absolute;right:1rem;top:1.05rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s}
+.rel-grid{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+.rel-grid>li{border-bottom:1px solid var(--line)}
+.rel-grid a{position:relative;display:block;padding:1.1rem 2.8rem 1.1rem .25rem;text-decoration:none;color:var(--ink);transition:background .15s}
+.rel-grid a::after{content:"→";position:absolute;right:.25rem;top:1.2rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;opacity:0;transform:translateX(-4px);transition:opacity .15s,transform .15s}
 .rel-grid a:hover{background:var(--sheet2)}
 .rel-grid a:hover::after{opacity:1;transform:none}
 .rel-grid .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block}
-.rel-grid .t{font-family:Newsreader,Georgia,serif;font-size:1.25rem;font-weight:500;letter-spacing:-.01em;display:block;margin-top:.35rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rel-grid .t{font-family:Newsreader,Georgia,serif;font-size:1.25rem;font-weight:500;letter-spacing:-.01em;display:block;margin-top:.3rem;line-height:1.3}
 .guide-index-hero .lede{max-width:56ch}
 
 /* ── conversion & reading aids ────────────────────────── */
@@ -549,11 +576,12 @@ footer.site::after{content:"";position:absolute;inset:0;z-index:-1;background:ra
 .article-end{margin-top:3rem;padding:1.4rem 1.5rem;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,var(--sheet),var(--sheet2));display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem}
 .article-end p{font-family:Newsreader,Georgia,serif;font-size:1.25rem;letter-spacing:-.02em;color:var(--ink);max-width:34ch;line-height:1.3}
 .article-end .mono{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:.35rem}
-.workflow{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:1.4rem}
-.workflow .step{display:grid;grid-template-columns:auto 1fr;gap:1rem;background:var(--sheet);padding:1rem 1.2rem}
-.workflow .n{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);padding-top:.15rem}
+.workflow{border-top:1px solid var(--line);margin-top:1.4rem}
+.workflow .step{display:grid;grid-template-columns:auto 1fr;gap:1rem;padding:1.05rem .25rem;border-bottom:1px solid var(--line)}
+.workflow .n{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);padding-top:.2rem}
 .workflow .t{font-family:Newsreader,Georgia,serif;font-size:1.12rem;font-weight:500;line-height:1.35}
 .workflow .d{grid-column:2;color:var(--mute);font-size:.92rem;line-height:1.55}
+@media(max-width:720px){.workflow .d{grid-column:1}}
 
 /* ── article chrome: progress bar, TOC rail, ad slots ──── */
 .read-progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;pointer-events:none;background:#d9c89733}
@@ -577,213 +605,53 @@ footer.site::after{content:"";position:absolute;inset:0;z-index:-1;background:ra
 .ad-slot .ad-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:.45rem}
 .ad-slot .ad-msg{font-size:.95rem;color:var(--mute);font-style:italic;line-height:1.55}
 .ad-slot .ad-msg a{color:var(--accent)}
+.tldr{border-left:3px solid var(--accent);background:var(--sheet);padding:1rem 1.35rem;margin:1.8rem 0;border-radius:0 10px 10px 0}
+.tldr .tk{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:.55rem}
+.tldr p{font-size:1.05rem;line-height:1.7;color:#2c352f;margin:0}
+.tour{max-width:46rem}
+.tour h3{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:1.4rem;letter-spacing:-.02em;margin:1.6rem 0 .5rem}
+.tour p{font-size:1.05rem;line-height:1.75;color:#2c352f;margin-bottom:1rem}
+.pager{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:3.5rem;padding-top:2rem;border-top:1px solid var(--line)}
+.pager .dir{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);display:block}
+.pager a{display:block;margin-top:.45rem;text-decoration:none;color:var(--ink)}
+.pager a .t{font-family:Newsreader,Georgia,serif;font-size:1.25rem;font-weight:500;letter-spacing:-.01em;line-height:1.3;display:block;transition:color .15s}
+.pager a:hover .t{color:var(--accent)}
+.pager .next{text-align:right}
+@media(max-width:720px){.pager{grid-template-columns:1fr;gap:1.6rem}}
+
+/* ── app-style navbar with dropdowns ──────────────────── */
+.appnav{display:flex;align-items:center;gap:2px;flex:0 1 auto;min-width:0}
+.appnav .drop{position:relative}
+.appnav .drop-btn{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;padding:6px 10px;border:0;border-radius:7px;background:none;color:var(--parch);font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;text-decoration:none;transition:background .15s,color .15s}
+.appnav .drop-btn:hover,.appnav .drop-btn[aria-expanded="true"]{background:#e1ebd312;color:var(--gold3)}
+.appnav .drop-btn.on{color:var(--gold3)}
+.appnav .drop-btn .car{display:inline-block;transition:transform .15s}
+.appnav .drop-btn[aria-expanded="true"] .car{transform:rotate(180deg)}
+.appnav .panel{position:absolute;top:calc(100% + 8px);right:0;min-width:15rem;background:var(--sheet);border:1px solid var(--line2);border-radius:12px;box-shadow:0 24px 50px -20px rgba(16,46,36,.45);padding:.5rem;opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s,transform .15s,visibility .15s;z-index:50}
+.appnav .drop:hover .panel,.appnav .drop:focus-within .panel,.appnav .drop.open .panel{opacity:1;visibility:visible;transform:none}
+.appnav .panel-head{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:.55rem .75rem .35rem}
+.appnav .panel a{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;padding:.55rem .75rem;border-radius:8px;text-decoration:none;color:var(--ink);transition:background .12s}
+.appnav .panel a:hover{background:var(--sheet2)}
+.appnav .panel a .n{font-size:.92rem;font-weight:600;white-space:nowrap}
+.appnav .panel a .p{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
+.appnav .panel a .d{display:block;font-size:.82rem;color:var(--mute);margin-top:.15rem;white-space:normal}
+.appnav .panel.wide{min-width:19rem}
+.appnav .open-app{margin-left:6px;white-space:nowrap;padding:6px 13px;border-radius:7px;background:#d1e8aa;color:#112827;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-decoration:none;transition:background .15s}
+.appnav .open-app:hover{background:#e5f3c8}
+@media(max-width:900px){.appnav .drop-btn{padding:6px 8px;font-size:11px}}
+@media(max-width:720px){
+  .appnav .app-link{display:none}
+  .appnav .panel{position:fixed;top:60px;left:12px;right:12px;min-width:0;max-height:70vh;overflow-y:auto}
+}
 
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:4px}
 @media(max-width:720px){
-  nav.tools a{font-size:11px;padding:0 9px;min-height:32px}
+  .appnav{gap:0}
   .feats .t{font-size:1.02rem}
   .plate{margin-top:-40px}
 }
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cta a,.frame img,.index-grid a::after,.rel-grid a::after,.tool-inline::after{transition:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cta a,.frame img,.rows a::after,.rel-grid a::after,.tool-inline::after,.appnav .panel,.appnav .drop-btn .car{transition:none}}
 `;
-
-export const SKINS = [
-  {
-    id: 'atlas',
-    name: 'Atlas Editorial',
-    tagline: 'The canonical marketing look — deep-green sky, paper body, gold hairlines.',
-    use: 'Production default',
-    swatches: ['#102f24', '#f4f1e8', '#2b5440', '#e2b86e'],
-  },
-  {
-    id: 'graphite',
-    name: 'Graphite Instruments',
-    tagline: 'The app’s dark workstation mode translated into marketing chrome.',
-    use: 'Dark-mode product tour',
-    swatches: ['#0f1318', '#6fbf9f', '#e2b86e', '#e8edf3'],
-  },
-  {
-    id: 'folio',
-    name: 'Specimen Folio',
-    tagline: 'A warmer archive-book treatment with specimen labels and index cards.',
-    use: 'Guides and editorial essays',
-    swatches: ['#f6efdf', '#315f47', '#b98436', '#232b24'],
-  },
-  {
-    id: 'survey',
-    name: 'Survey Map',
-    tagline: 'Cartographic contours, dashed routes, and legend-style navigation.',
-    use: 'Comparison and alternatives pages',
-    swatches: ['#edf0e2', '#2f5d45', '#c69a4b', '#203026'],
-  },
-  {
-    id: 'nightdesk',
-    name: 'Night Desk',
-    tagline: 'A lamplight manuscript palette for late-study reading.',
-    use: 'Long-form guides',
-    swatches: ['#171310', '#d9a75f', '#f1e7d4', '#9bc7a4'],
-  },
-  {
-    id: 'studio',
-    name: 'Studio Grid',
-    tagline: 'A quieter Swiss-grid interpretation with sharper rules and less ornament.',
-    use: 'Tools index and product pages',
-    swatches: ['#fbfbf8', '#101512', '#23553e', '#b98936'],
-  },
-];
-
-const SKIN_CSS = {
-  atlas: `/* Atlas Editorial — canonical tokens live in the base stylesheet. */`,
-
-  graphite: `
-html[data-skin="graphite"]{
-  --paper:#0f1318;--sheet:#151a21;--sheet2:#1b222b;--line:#2b3440;--line2:#3d4857;
-  --ink:#e8edf3;--mute:#aeb8c5;--faint:#8794a4;--accent:#6fbf9f;--accent2:#8fd3b4;
-  --night:#0a0e12;--night2:#0d1218;--night3:#121923;--cream:#eef3ea;--parch:#e8e2d2;
-  --gold:#e2b86e;--gold2:#cbb27a;--gold3:#f4d896;--sage:#a9d8b7;--sage2:#c2cfc4;
-}
-html[data-skin="graphite"] body{background-image:linear-gradient(#ffffff07 1px,transparent 1px),linear-gradient(90deg,#ffffff07 1px,transparent 1px);background-size:56px 56px}
-html[data-skin="graphite"] .hero{background:radial-gradient(ellipse at 72% 24%,#1b2b33 0%,#101923 36%,#0b1016 66%,#080b0f 100%)}
-html[data-skin="graphite"] header.site{background:#080b0f}
-html[data-skin="graphite"] nav.tools{background:#151a21}
-html[data-skin="graphite"] .frame{background:#0d1218;box-shadow:0 1px 0 #ffffff12 inset,0 30px 60px -34px #000}
-html[data-skin="graphite"] .frame figcaption{background:#121821;color:#aeb8c5}
-html[data-skin="graphite"] section.block{border-bottom-color:#242d38}
-html[data-skin="graphite"] .prose p,html[data-skin="graphite"] .prose li{color:#c9d2dc}
-html[data-skin="graphite"] .prose a{color:#9bd3b8}
-html[data-skin="graphite"] .callout{background:#121821;border-left-color:var(--gold)}
-html[data-skin="graphite"] .takeaways{background:#121821;border-color:#2b3440}
-html[data-skin="graphite"] .takeaways li{color:#aeb8c5}
-html[data-skin="graphite"] .ad-slot{border-color:#46536a;background:repeating-linear-gradient(45deg,#141a22,#141a22 14px,#10151c 14px,#10151c 28px)}
-html[data-skin="graphite"] .index-grid,html[data-skin="graphite"] .rel-grid{background:#242d38}
-html[data-skin="graphite"] .index-grid a,html[data-skin="graphite"] .rel-grid a{background:#121821}
-html[data-skin="graphite"] .index-grid a:hover,html[data-skin="graphite"] .rel-grid a:hover{background:#18212b}
-html[data-skin="graphite"] .compare-table th,html[data-skin="graphite"] .compare-table td{border-bottom-color:#242d38}
-html[data-skin="graphite"] .compare-table thead th{color:#8794a4}
-html[data-skin="graphite"] .compare-table tbody th{background:#121821;box-shadow:1px 0 0 #242d38}
-html[data-skin="graphite"] .compare-table .us,html[data-skin="graphite"] .compare-table tbody tr.us td{background:#15231e}
-html[data-skin="graphite"] .compare-table tbody tr.us td.us{background:#1b342a}
-html[data-skin="graphite"] .win-card,html[data-skin="graphite"] details.faq{background:#121821;border-color:#2b3440}
-html[data-skin="graphite"] .win-card.us{background:linear-gradient(180deg,#15231e,#121821);border-color:#476b58}
-html[data-skin="graphite"] .verdict{background:#0d1218}
-html[data-skin="graphite"] .cta .primary{background:#d8f0df;color:#0b1512}
-html[data-skin="graphite"] .toc-rail ol{border-left-color:#2b3440}
-html[data-skin="graphite"] .toc-rail li a.on{color:#9bd3b8}
-html[data-skin="graphite"] .rail-meter i{background:#1b222b}
-html[data-skin="graphite"] .fact{border-color:#46536a;background:#15231e55}
-`,
-
-  folio: `
-html[data-skin="folio"]{
-  --paper:#f6efdf;--sheet:#fbf7ec;--sheet2:#eee4cf;--line:#d8c9a8;--line2:#bfae85;
-  --ink:#232b24;--mute:#5c665a;--faint:#7b715c;--accent:#315f47;--accent2:#264b38;
-  --night:#20392d;--night2:#1c3328;--night3:#284636;--cream:#f7efdc;--parch:#f2e7cf;
-  --gold:#b98436;--gold2:#c9a86a;--gold3:#f0d49a;--sage:#a9c98e;--sage2:#d7dcc8;
-}
-html[data-skin="folio"] body{background-image:radial-gradient(#b8a77c14 1px,transparent 1px);background-size:22px 22px}
-html[data-skin="folio"] .hero{background:radial-gradient(ellipse at 70% 28%,#356049 0%,#244434 36%,#1b3328 66%,#14271e 100%)}
-html[data-skin="folio"] .kicker{color:var(--gold3)}
-html[data-skin="folio"] .prose h2{padding-bottom:.45rem;border-bottom:1px solid var(--line)}
-html[data-skin="folio"] .takeaways{border:1px solid #c9b78f;border-left:4px double var(--gold);background:#fffaf0;box-shadow:3px 4px 0 #d8c9a833}
-html[data-skin="folio"] .takeaways li{color:#4f5a50}
-html[data-skin="folio"] .index-grid a,html[data-skin="folio"] .rel-grid a{box-shadow:inset 0 0 0 1px #fff8}
-html[data-skin="folio"] .index-grid a:hover,html[data-skin="folio"] .rel-grid a:hover{background:#f3ead2}
-html[data-skin="folio"] .ad-slot{border-color:#b99b5f;background:repeating-linear-gradient(45deg,#fff8e8,#fff8e8 14px,#f5ecd4 14px,#f5ecd4 28px)}
-html[data-skin="folio"] .ad-slot .ad-msg{color:#6f6248}
-html[data-skin="folio"] .compare-table tbody tr.us td{background:#eef4e8}
-html[data-skin="folio"] .win-card.us{background:linear-gradient(180deg,#eef4e8,var(--sheet));border-color:#9db8a4}
-html[data-skin="folio"] .verdict{background:#1c3328}
-html[data-skin="folio"] .cta .primary{background:#e7d39a;color:#20392d}
-html[data-skin="folio"] .toc-rail li a.on{color:var(--accent)}
-html[data-skin="folio"] .sec-index{color:var(--accent)}
-`,
-
-  survey: `
-html[data-skin="survey"]{
-  --paper:#edf0e2;--sheet:#f8faf0;--sheet2:#e2e8d4;--line:#c4d0b4;--line2:#9fb38b;
-  --ink:#203026;--mute:#55685a;--faint:#6f7f68;--accent:#2f5d45;--accent2:#264b38;
-  --night:#183326;--night2:#143022;--night3:#1b4634;--cream:#f4f2df;--parch:#eef0da;
-  --gold:#c69a4b;--gold2:#b7a06b;--gold3:#f2d795;--sage:#b7d39a;--sage2:#d9dfc8;
-}
-html[data-skin="survey"] body{background-image:linear-gradient(#9fb38b12 1px,transparent 1px),linear-gradient(90deg,#9fb38b12 1px,transparent 1px);background-size:48px 48px}
-html[data-skin="survey"] .hero{background:radial-gradient(ellipse at 72% 28%,#315f49 0%,#234534 36%,#183326 66%,#10241b 100%)}
-html[data-skin="survey"] .hero::before{background-image:url('/atlas/contours.webp');background-size:cover;opacity:.16;mask-image:linear-gradient(120deg,transparent,#000 70%)}
-html[data-skin="survey"] .hero::after{border-style:dashed}
-html[data-skin="survey"] .kicker::before{content:"";display:inline-block;width:.55rem;height:.55rem;margin-right:.55rem;border:1px solid currentColor;transform:rotate(45deg) translateY(-1px)}
-html[data-skin="survey"] .index-grid,html[data-skin="survey"] .rel-grid{border-style:dashed}
-html[data-skin="survey"] .index-grid a,html[data-skin="survey"] .rel-grid a{background-image:linear-gradient(#2f5d4508 1px,transparent 1px);background-size:100% 28px}
-html[data-skin="survey"] .prose h2{letter-spacing:-.01em}
-html[data-skin="survey"] .sec-index{color:var(--accent)}
-html[data-skin="survey"] .takeaways{border-style:dashed;border-color:#9fb38b;background:#fbfdf4}
-html[data-skin="survey"] .ad-slot{border-style:dashed;border-color:#9fb38b;background-color:#f4f7e8;background-image:radial-gradient(#9fb38b66 1px,transparent 1.5px);background-size:18px 18px}
-html[data-skin="survey"] .toc-rail ol{border-left-style:dashed}
-html[data-skin="survey"] .toc-rail li a.on{border-left-style:solid}
-html[data-skin="survey"] .compare-table{border:1px solid var(--line)}
-html[data-skin="survey"] .compare-table th,html[data-skin="survey"] .compare-table td{border-bottom:1px dashed var(--line)}
-html[data-skin="survey"] .win-card{border-style:dashed}
-html[data-skin="survey"] .cta .primary{background:#d7e4b8;color:#183326}
-`,
-
-  nightdesk: `
-html[data-skin="nightdesk"]{
-  --paper:#171310;--sheet:#211a15;--sheet2:#2a2119;--line:#4a3c2d;--line2:#66513b;
-  --ink:#f1e7d4;--mute:#cbb99f;--faint:#a8977b;--accent:#9bc7a4;--accent2:#b7d8bd;
-  --night:#120e0b;--night2:#17120e;--night3:#1f1812;--cream:#f5ecd9;--parch:#ecdcc0;
-  --gold:#d9a75f;--gold2:#b98d4f;--gold3:#f0c987;--sage:#a9d0b4;--sage2:#d8c7ab;
-}
-html[data-skin="nightdesk"] body{background-image:radial-gradient(#d9a75f10 1px,transparent 1px);background-size:26px 26px}
-html[data-skin="nightdesk"] .hero{background:radial-gradient(ellipse at 70% 18%,#4a3520 0%,#2a1d14 38%,#171310 72%,#100c09 100%)}
-html[data-skin="nightdesk"] .hero::after{border-color:#d9a75f55}
-html[data-skin="nightdesk"] header.site{background:#120e0b}
-html[data-skin="nightdesk"] nav.tools{background:#241c15}
-html[data-skin="nightdesk"] .prose,html[data-skin="nightdesk"] .prose p,html[data-skin="nightdesk"] .prose li{font-family:Newsreader,Georgia,serif}
-html[data-skin="nightdesk"] .prose p,html[data-skin="nightdesk"] .prose li{color:#d8c9b2}
-html[data-skin="nightdesk"] .takeaways{background:#efe3c8;border-color:#66513b;box-shadow:0 18px 40px -30px #000}
-html[data-skin="nightdesk"] .takeaways .tk,html[data-skin="nightdesk"] .takeaways li{color:#4c4132}
-html[data-skin="nightdesk"] .index-grid a,html[data-skin="nightdesk"] .rel-grid a{background:#1e1712}
-html[data-skin="nightdesk"] .index-grid a:hover,html[data-skin="nightdesk"] .rel-grid a:hover{background:#282017}
-html[data-skin="nightdesk"] .ad-slot{border-color:#66513b;background:repeating-linear-gradient(45deg,#241c15,#241c15 14px,#1e1712 14px,#1e1712 28px)}
-html[data-skin="nightdesk"] .compare-table tbody th{background:#1e1712;box-shadow:1px 0 0 #4a3c2d}
-html[data-skin="nightdesk"] .compare-table .us,html[data-skin="nightdesk"] .compare-table tbody tr.us td{background:#2a2119}
-html[data-skin="nightdesk"] .win-card,html[data-skin="nightdesk"] details.faq{background:#1e1712;border-color:#4a3c2d}
-html[data-skin="nightdesk"] .cta .primary{background:#f0c987;color:#2a1d14}
-html[data-skin="nightdesk"] .verdict{background:#120e0b}
-html[data-skin="nightdesk"] .toc-rail li a.on{color:#f0c987}
-html[data-skin="nightdesk"] .rail-meter i{background:#2a2119}
-html[data-skin="nightdesk"] .fact{border-color:#66513b;background:#d9a75f14}
-`,
-
-  studio: `
-html[data-skin="studio"]{
-  --paper:#fbfbf8;--sheet:#ffffff;--sheet2:#f0f2ee;--line:#d8ddd6;--line2:#aeb8ae;
-  --ink:#101512;--mute:#4c5a52;--faint:#65736a;--accent:#23553e;--accent2:#1b4534;
-  --night:#101512;--night2:#151b17;--night3:#1d2922;--cream:#f5f7f2;--parch:#eef2ea;
-  --gold:#b98936;--gold2:#cbb27a;--gold3:#f2d795;--sage:#9ec2ae;--sage2:#d8e2d6;
-}
-html[data-skin="studio"] .hero{background:#101512}
-html[data-skin="studio"] .hero::before{opacity:.18;background-size:72px 72px}
-html[data-skin="studio"] .hero::after{inset:18px}
-html[data-skin="studio"] h1{letter-spacing:-.06em}
-html[data-skin="studio"] .index-grid,html[data-skin="studio"] .rel-grid{border-radius:6px}
-html[data-skin="studio"] .index-grid a,html[data-skin="studio"] .rel-grid a{border-radius:0;min-height:9rem}
-html[data-skin="studio"] .prose h2{border-top:2px solid var(--ink);padding-top:1rem}
-html[data-skin="studio"] .takeaways{border-left:4px solid var(--accent);border-radius:6px;background:#f4f7f2}
-html[data-skin="studio"] .sec-index{color:var(--accent)}
-html[data-skin="studio"] .ad-slot{border-radius:6px;border-color:#aeb8ae;background:repeating-linear-gradient(45deg,#f7f9f5,#f7f9f5 14px,#eef2ec 14px,#eef2ec 28px)}
-html[data-skin="studio"] .cta .primary{background:var(--accent);color:var(--cream)}
-html[data-skin="studio"] .cta .primary:hover{background:var(--accent2);transform:none}
-html[data-skin="studio"] .win-card.us{background:#eef5ef;border-color:#8eaa9b}
-html[data-skin="studio"] .verdict{background:#151b17}
-html[data-skin="studio"] .toc-rail li a.on{border-left-color:var(--accent);color:var(--accent)}
-html[data-skin="studio"] .toc-rail li a.on{font-weight:600}
-html[data-skin="studio"] .rail-meter i::after{background:linear-gradient(90deg,var(--accent),var(--sage))}
-html[data-skin="studio"] .fact{border-color:#aeb8ae;background:#23553e12}
-`,
-};
-
-function cssForSkin(skinId = 'atlas') {
-  return `${CSS}\n${SKIN_CSS[skinId] || SKIN_CSS.atlas}`;
-}
 
 /* Reading-progress bar + scrollspy — vanilla JS, no dependencies. The bar
    tracks the article container (not the page) so it reads honestly. */
@@ -808,15 +676,6 @@ function readProgressScript(targetSel, spySel) {
 const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />`;
-
-/* Optional marketing skins are applied client-side via ?skin=<id>. The
-   canonical pages stay Atlas; skins are reviewable on the same URLs without
-   creating duplicate indexable content. */
-const SKIN_BOOT = `<script>!function(){var m=location.search.match(/[?&]skin=([a-z0-9-]+)/),p=location.pathname,id='atlas';
-if(p.indexOf('/tools')===0)id='studio';else if(p.indexOf('/guides')===0)id='folio';else if(p.indexOf('/compare')===0||p.indexOf('/alternatives')===0)id='survey';
-if(m&&/^[a-z0-9-]+$/.test(m[1]))id=m[1];
-document.documentElement.dataset.skin=id;
-if(id!=='atlas'){var l=document.createElement('link');l.rel='stylesheet';l.href='/design-skins/'+id+'.css';document.head.appendChild(l);}}();</script>`;
 
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -857,22 +716,67 @@ function renderBlocks(blocks) {
     .join('\n');
 }
 
-const NAV_LINKS = TOOLS.map((t) => `<a href="${t.path}">${esc(t.name)}</a>`).join('\n');
+/* The nine places, mirroring shell/src/places.tsx — same ids so the
+   dropdown deep-links land on the real workspace routes. */
+const NAV_PLACES = [
+  ['boxed', 'Daily Board', 'Boxed', 'Dump it all, pick what matters, and time-box the work'],
+  ['syllabus', 'Planning', 'the Folio', 'Courses, commitments, and daily work blocks'],
+  ['rhythm', 'Attendance', 'the Register', 'Habits, weekly routines, and study cadence'],
+  ['flashcards', 'Flashcards', 'the Cardfile', 'Decks, active recall, quizzes, and writing drills'],
+  ['ink', 'Notes', 'the Desk', 'Long-form writing, linked notes, and daily pages'],
+  ['margin', 'Study Materials', 'the Margin', 'Recordings, documents, and class files'],
+  ['gradestack', 'Assessments', 'the Mark Book', 'Scan answer sheets, grade, and track score trends'],
+  ['timer', 'Timer', 'the Instruments', 'Focus sessions, intervals, stopwatch, and time logs'],
+  ['proof', 'Calculations', 'the Workbench', 'Step-by-step math problems, proofs, and an error log'],
+];
 
+const NAV_LEARN = [
+  ['/guides', 'Study guides', 'Research-backed methods for planning, memory, and focus'],
+  ['/guides/plan-a-semester', 'Plan a semester', 'Syllabus to weekly reviews'],
+  ['/guides/spaced-repetition-explained', 'Spaced repetition', 'The technique research keeps ranking first'],
+  ['/guides/how-to-study-for-finals-week', 'Finals week survival', 'Triage, sleep, and the two-week window'],
+  ['/compare', 'Honest comparisons', 'Iterra vs Notion, Quizlet, Anki and more'],
+  ['/alternatives', 'Alternatives', 'When the app you outgrew isn’t enough'],
+];
+
+/* Mirrors the app's navbar (shell/src/App.tsx): brand, workspace links,
+   Tools and Learn dropdowns, and the workspace CTA. Dropdowns open on
+   hover and keyboard focus — no JS required. */
 function header(activePath) {
   const section = '/' + String(activePath).split('/')[1];
-  const sec = (p) => (p === section ? ' class="on" aria-current="page"' : '');
-  const links = TOOLS.map(
-    (t) => `<a href="${t.path}"${t.path === activePath ? ' class="on" aria-current="page"' : ''}>${esc(t.name)}</a>`,
+  const toolsOn = section === '/tools' ? ' on' : '';
+  const learnOn = ['/', '/guides', '/compare', '/alternatives'].includes(section) ? ' on' : '';
+  const appBtn = (hash, label) =>
+    `<a class="drop-btn app-link" href="/#/${hash}">${label}</a>`;
+  const placeLinks = NAV_PLACES.map(
+    ([id, label, place, desc]) =>
+      `<a href="/#/p/${id}"><span><span class="n">${label}</span><span class="d">${desc}</span></span><span class="p">${place}</span></a>`,
+  ).join('\n');
+  const learnLinks = NAV_LEARN.map(
+    ([href, label, desc]) => `<a href="${href}"><span><span class="n">${label}</span><span class="d">${desc}</span></span></a>`,
   ).join('\n');
   return `<header class="site">
 <a class="brand" href="/"><span class="emblem" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Iterra</a>
-<nav class="tools" aria-label="Iterra tools">
-${links}
-<a href="/guides"${sec('/guides')}>Guides</a>
-<a href="/compare"${sec('/compare')}>Compare</a>
-<a href="/alternatives"${sec('/alternatives')}>Alternatives</a>
-<a class="open" href="/#/today">Open workspace →</a>
+<nav class="appnav" aria-label="Iterra workspace">
+${appBtn('today', 'Today')}
+${appBtn('courses', 'Courses')}
+${appBtn('library', 'Library')}
+<div class="drop">
+<button type="button" class="drop-btn${toolsOn}" aria-haspopup="true">Tools <span class="car" aria-hidden="true">▾</span></button>
+<div class="panel wide" role="menu">
+<div class="panel-head">The terrain · nine places</div>
+${placeLinks}
+<a href="/tools"><span><span class="n">All tools overview</span><span class="d">Every place, what it does, and how they connect</span></span></a>
+</div>
+</div>
+<div class="drop">
+<button type="button" class="drop-btn${learnOn}" aria-haspopup="true">Learn <span class="car" aria-hidden="true">▾</span></button>
+<div class="panel wide" role="menu">
+<div class="panel-head">Guides & comparisons</div>
+${learnLinks}
+</div>
+</div>
+<a class="open-app" href="/#/today">Open workspace →</a>
 </nav>
 </header>`;
 }
@@ -908,6 +812,15 @@ export function renderToolPage(tool) {
     .join('\n');
   const facts = tool.facts || ['Free', 'No account', 'Local-first', 'Works offline'];
   const factHtml = `<div class="fact-strip">${facts.map((f) => `<span class="fact">${esc(f)}</span>`).join('')}</div>`;
+  const tour = TOOL_TOURS[tool.id] || [];
+  const tourHtml = tour.length
+    ? `<section class="block">
+<h2 class="sec mono">A closer look at ${esc(tool.name)}</h2>
+<div class="tour">
+${tour.map((p) => `<p>${esc(p)}</p>`).join('\n')}
+</div>
+</section>`
+    : '';
   const workflowHtml = tool.workflow?.length
     ? `<section class="block">
 <h2 class="sec mono">How ${esc(tool.name)} fits a study day</h2>
@@ -994,7 +907,7 @@ ${neighbors
 <meta name="twitter:image" content="${SITE}/og/tool-${tool.id}.png" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
-<style>${cssForSkin()}</style>${SKIN_BOOT}
+<style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
 <body>
@@ -1017,6 +930,7 @@ ${factHtml}
 ${feats}
 </ul>
 </section>
+${tourHtml}
 ${workflowHtml}
 ${tool.faqs?.length ? `<section class="block">
 <h2 class="sec mono">Questions students ask</h2>
@@ -1098,6 +1012,16 @@ ${related
   .join('\n')}
 </ul></section>`
     : '';
+  const gi = GUIDES.findIndex((g) => g.slug === guide.slug);
+  const prevGuide = gi > 0 ? GUIDES[gi - 1] : null;
+  const nextGuide = gi >= 0 && gi < GUIDES.length - 1 ? GUIDES[gi + 1] : null;
+  const pagerHtml =
+    prevGuide || nextGuide
+      ? `<nav class="pager" aria-label="More guides">
+${prevGuide ? `<a href="/guides/${prevGuide.slug}"><span class="dir">← Previous guide</span><span class="t">${esc(prevGuide.title.replace(/<\/?em>/g, ''))}</span></a>` : '<span></span>'}
+${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir">Next guide →</span><span class="t">${esc(nextGuide.title.replace(/<\/?em>/g, ''))}</span></a>` : ''}
+</nav>`
+      : '';
   const toolsUsed = (guide.tools || [])
     .map((id) => TOOLS.find((t) => t.id === id))
     .filter(Boolean);
@@ -1201,7 +1125,7 @@ ${guide.faq
 <meta name="twitter:image" content="${SITE}/og/guide-${guide.slug}.png" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
-<style>${cssForSkin()}</style>${SKIN_BOOT}
+<style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
 <body>
@@ -1228,6 +1152,7 @@ ${articleEndHtml}
 </article>
 ${tocRail}
 </div>
+${pagerHtml}
 ${toolsHtml}
 ${relatedHtml}
 </div>
@@ -1284,7 +1209,7 @@ export function renderGuidesIndex() {
 <meta name="twitter:description" content="Research-backed guides to studying better." />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
-<style>${cssForSkin()}</style>${SKIN_BOOT}
+<style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
 <body>
@@ -1298,7 +1223,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
 <div class="wrap">
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Browse the guides</h2>
-<ul class="index-grid">
+<ul class="rows">
 ${cards}
 </ul>
 <div class="cta" style="margin-top:2.5rem">
@@ -1348,7 +1273,7 @@ export function renderToolsIndex() {
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
-<style>${cssForSkin()}</style>${SKIN_BOOT}
+<style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
 <body>
@@ -1362,7 +1287,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools' }])}
 <div class="wrap">
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Choose your place</h2>
-<ul class="index-grid">
+<ul class="rows">
 ${cards}
 </ul>
 <div class="cta" style="margin-top:2.5rem">
@@ -1399,7 +1324,7 @@ function compareHead({ title, description, url, image }) {
 <meta name="twitter:image" content="${image || `${SITE}/og/compare.png`}" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
-<style>${cssForSkin()}</style>${SKIN_BOOT}`;
+<style>${CSS}</style>`;
 }
 
 function emH1(h1) {
@@ -1432,6 +1357,13 @@ function compareLd(page, url, extra = []) {
     ...extra,
   ];
   return { '@context': 'https://schema.org', '@graph': graph };
+}
+
+function tldrOf(html, max = 240) {
+  const plain = String(html).replace(/<[^>]+>/g, '');
+  const cut = plain.slice(0, max);
+  const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+  return end > 80 ? cut.slice(0, end + 1).trim() : `${cut.replace(/[,;:—–-]\s*\S*$/, '')}…`;
 }
 
 function faqLd(faqs) {
@@ -1529,6 +1461,7 @@ ${factHtml}
 <div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
 <figcaption><span>Iterra · the integrated study terrain</span><span>Local-first · free · no account</span></figcaption>
 </figure>
+<aside class="tldr"><span class="tk mono">In short</span><p>${esc(tldrOf(page.verdict))}</p></aside>
 <section class="block">
 <h2 class="sec mono">At a glance</h2>
 <div style="overflow-x:auto">
@@ -1608,7 +1541,7 @@ export function renderCompareIndex() {
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
-<style>${cssForSkin()}</style>${SKIN_BOOT}
+<style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
 <body>
@@ -1622,7 +1555,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Compare' }])}
 <div class="wrap">
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Iterra vs the tools you know</h2>
-<ul class="index-grid">
+<ul class="rows">
 ${indexCards(pages, 'compare')}
 </ul>
 <div class="cta" style="margin-top:2.5rem">
@@ -1670,7 +1603,7 @@ export function renderAlternativesIndex() {
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
-<style>${cssForSkin()}</style>${SKIN_BOOT}
+<style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
 <body>
@@ -1684,68 +1617,12 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Alternatives' }])}
 <div class="wrap">
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Picks by what you’re leaving</h2>
-<ul class="index-grid">
+<ul class="rows">
 ${indexCards(pages, 'alternatives')}
 </ul>
 <div class="cta" style="margin-top:2.5rem">
 <a class="primary" href="/#/today">Try Iterra — free, no account →</a>
 <a class="ghost" href="/compare">Prefer head-to-head?</a>
-</div>
-</section>
-</div>
-${footer()}
-</body>
-</html>
-`;
-}
-
-export function renderDesignIndex() {
-  const url = `${SITE}/designs`;
-  const cards = SKINS.map((s) => {
-    const q = `?skin=${s.id}`;
-    return `<li><a class="skin-card" href="/guides/plan-a-semester${q}">
-<div class="top"><span class="t">${esc(s.name)}</span><span class="use">${esc(s.use)}</span></div>
-<div class="swatches" aria-hidden="true">${s.swatches.map((c) => `<i style="background:${c}"></i>`).join('')}</div>
-<p class="tagline">${esc(s.tagline)}</p>
-<div class="skin-links">
-<a href="/guides/plan-a-semester${q}">Guide</a>
-<a href="/tools/flashcards${q}">Tool</a>
-<a href="/compare/iterra-vs-notion${q}">Compare</a>
-<a href="/tools${q}">Index</a>
-</div>
-</a></li>`;
-  }).join('\n');
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="robots" content="noindex,nofollow" />
-<title>Iterra marketing design lab</title>
-<meta name="description" content="Internal design review: six marketing skins for Iterra's static study pages." />
-<link rel="canonical" href="${url}" />
-<link rel="icon" type="image/svg+xml" href="/icon.svg" />
-${FONTS}
-<style>${cssForSkin()}</style>${SKIN_BOOT}
-</head>
-<body>
-${header('/designs')}
-<section class="hero"><div class="wrap">
-${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Design lab' }])}
-<div class="kicker mono">Internal review</div>
-<h1>Six skins, <em>one terrain</em></h1>
-<p class="lede">Each section now wears its assigned skin — folio for guides, survey for comparisons, studio for tools — and Atlas stays the default everywhere else. Add <code>?skin=&lt;id&gt;</code> to any marketing URL to preview any variant; guides, tools, indexes, comparisons, and alternatives all respond to the same skin layer.</p>
-<div class="fact-strip"><span class="fact">No duplicate SEO pages</span><span class="fact">Same content, different chrome</span><span class="fact">?skin= overrides the section default</span></div>
-</div></section>
-<div class="wrap">
-<section class="block" style="border-bottom:none">
-<h2 class="sec mono">Choose a direction</h2>
-<ul class="skin-grid">
-${cards}
-</ul>
-<div class="cta" style="margin-top:2.5rem">
-<a class="primary" href="/guides/plan-a-semester">Open canonical guide</a>
-<a class="ghost" href="/tools">All tools</a>
 </div>
 </section>
 </div>
@@ -1790,12 +1667,6 @@ ${body}
 export function writeSeoPages(distDir) {
   mkdirSync(join(distDir, 'tools'), { recursive: true });
   mkdirSync(join(distDir, 'guides'), { recursive: true });
-  mkdirSync(join(distDir, 'design-skins'), { recursive: true });
-  mkdirSync(join(distDir, 'designs'), { recursive: true });
-  for (const skin of SKINS) {
-    writeFileSync(join(distDir, 'design-skins', `${skin.id}.css`), `${SKIN_CSS[skin.id] || SKIN_CSS.atlas}\n`);
-  }
-  writeFileSync(join(distDir, 'designs', 'index.html'), renderDesignIndex());
   writeFileSync(join(distDir, 'tools', 'index.html'), renderToolsIndex());
   writeFileSync(join(distDir, 'guides', 'index.html'), renderGuidesIndex());
   mkdirSync(join(distDir, 'compare'), { recursive: true });

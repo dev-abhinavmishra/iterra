@@ -20,10 +20,8 @@ const PAGES = [
   ['compare-vs-notion', '/compare/iterra-vs-notion'],
   ['alt-index', '/alternatives'],
   ['alt-best', '/alternatives/best-study-apps'],
-  ['designs-index', '/designs'],
-  ['guide-folio', '/guides/plan-a-semester?skin=folio'],
-  ['compare-survey', '/compare/iterra-vs-notion?skin=survey'],
-  ['tool-nightdesk', '/tools/flashcards?skin=nightdesk'],
+  ['tool-boxed-tour', '/tools/boxed'],
+  ['guide-finals', '/guides/how-to-study-for-finals-week'],
 ];
 
 function findExe() {
