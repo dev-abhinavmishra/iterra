@@ -812,7 +812,11 @@ const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
 /* Optional marketing skins are applied client-side via ?skin=<id>. The
    canonical pages stay Atlas; skins are reviewable on the same URLs without
    creating duplicate indexable content. */
-const SKIN_BOOT = `<script>!function(){var m=location.search.match(/[?&]skin=([a-z0-9-]+)/),id=m?m[1]:'atlas';if(!/^[a-z0-9-]+$/.test(id))id='atlas';document.documentElement.dataset.skin=id;if(id!=='atlas'){var l=document.createElement('link');l.rel='stylesheet';l.href='/design-skins/'+id+'.css';document.head.appendChild(l);}}();</script>`;
+const SKIN_BOOT = `<script>!function(){var m=location.search.match(/[?&]skin=([a-z0-9-]+)/),p=location.pathname,id='atlas';
+if(p.indexOf('/tools')===0)id='studio';else if(p.indexOf('/guides')===0)id='folio';else if(p.indexOf('/compare')===0||p.indexOf('/alternatives')===0)id='survey';
+if(m&&/^[a-z0-9-]+$/.test(m[1]))id=m[1];
+document.documentElement.dataset.skin=id;
+if(id!=='atlas'){var l=document.createElement('link');l.rel='stylesheet';l.href='/design-skins/'+id+'.css';document.head.appendChild(l);}}();</script>`;
 
 function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -1730,8 +1734,8 @@ ${header('/designs')}
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Design lab' }])}
 <div class="kicker mono">Internal review</div>
 <h1>Six skins, <em>one terrain</em></h1>
-<p class="lede">The canonical pages stay Atlas. Add <code>?skin=&lt;id&gt;</code> to any marketing URL to review a variant — guides, tools, indexes, comparisons, and alternatives all respond to the same skin layer.</p>
-<div class="fact-strip"><span class="fact">No duplicate SEO pages</span><span class="fact">Same content, different chrome</span><span class="fact">Atlas remains default</span></div>
+<p class="lede">Each section now wears its assigned skin — folio for guides, survey for comparisons, studio for tools — and Atlas stays the default everywhere else. Add <code>?skin=&lt;id&gt;</code> to any marketing URL to preview any variant; guides, tools, indexes, comparisons, and alternatives all respond to the same skin layer.</p>
+<div class="fact-strip"><span class="fact">No duplicate SEO pages</span><span class="fact">Same content, different chrome</span><span class="fact">?skin= overrides the section default</span></div>
 </div></section>
 <div class="wrap">
 <section class="block" style="border-bottom:none">
