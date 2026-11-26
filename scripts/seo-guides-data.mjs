@@ -22,7 +22,7 @@ export const GUIDES = [
     kicker: 'The Long View',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 9,
+    readMinutes: 12,
     keywords: ['how to plan a semester', 'semester planner', 'college schedule planner', 'study schedule'],
     tools: ['syllabus', 'boxed', 'rhythm'],
     related: ['weekly-study-routine', 'time-blocking-for-students', 'how-to-study-for-finals-week'],
@@ -93,6 +93,22 @@ export const GUIDES = [
           { k: 'p', t: 'There’s a reason every guide to surviving college says the same thing: the semester is a system, and systems are easiest to set at the beginning. Two hours of syllabus extraction, one honest look at your real weekly hours, and a structure you’re willing to review — that’s the whole secret. Everything else is just executing it.' },
         ],
       },
+      {
+        h2: 'What to do when the plan falls apart',
+        blocks: [
+          { k: 'p', t: 'Plans fail in predictable ways: a block gets skipped three times running, an assignment takes twice the time you budgeted, or the week just collapses. The mistake is treating the first crack as proof the whole structure was wrong.' },
+          { k: 'p', t: 'The fix is smaller than it feels. When a block slips, don’t rebuild the week — move the work. Put the missed block tomorrow, accept that something else slides, and keep the rest of the plan standing. A plan you’re still using on a bad week is worth more than a perfect plan you abandoned in week five.' },
+
+        ],
+      },
+      {
+        h2: 'Studying with other people, on purpose',
+        blocks: [
+          { k: 'p', t: 'A semester plan is mostly a solo document, but the people around you change how well it works. A weekly hour with classmates — comparing what everyone extracted from the syllabus, quizzing each other before the midterm — catches the blind spots a private plan can’t.' },
+          { k: 'p', t: 'You don’t need a formal study group. One reliable person to compare deadline lists with, one classmate to trade practice problems, is enough. The plan tells you what to do; other people make sure you actually do it.' },
+
+        ],
+      },
     ],
   },
 
@@ -105,7 +121,7 @@ export const GUIDES = [
     kicker: 'Study Methods',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 8,
+    readMinutes: 11,
     keywords: ['spaced repetition', 'what is spaced repetition', 'spaced repetition app', 'how does spaced repetition work'],
     tools: ['flashcards'],
     related: ['flashcard-best-practices', 'active-recall-vs-rereading', 'building-a-weekly-study-routine'],
@@ -180,6 +196,22 @@ export const GUIDES = [
           { k: 'p', t: 'Spaced repetition is forgetting, harnessed. Review material at the edge of loss, grade your recall honestly, and let the intervals expand. Do it daily, keep cards atomic, and use it for the facts that need to be *automatic* — then spend your deeper thinking on everything else.' },
         ],
       },
+      {
+        h2: 'How to schedule reviews without an app',
+        blocks: [
+          { k: 'p', t: 'The algorithm matters less than the habit. If you’re doing this by hand: review new material the same day, again the next day, then stretch to three days, a week, two weeks. Write the next review date on the card itself — physical or digital — and let the pile tell you what’s due.' },
+          { k: 'p', t: 'Leitner boxes are the paper version: cards you got right move to a box reviewed less often; cards you missed stay in the first box and come back tomorrow. It’s crude compared to a real scheduler and it works shockingly well.' },
+
+        ],
+      },
+      {
+        h2: 'Where spacing stops helping',
+        blocks: [
+          { k: 'p', t: 'Honesty check: spaced repetition is for *retention* — vocabulary, formulas, definitions, facts you need cold at 9am on exam day. It’s the wrong tool for material you need to *understand*: essay arguments, design principles, anything where the question changes every time.' },
+          { k: 'p', t: 'And it won’t save a bad encoding. If you never actually learned the material — just highlighted it — no review schedule will dig it out later. Spacing makes memories durable; it can’t manufacture them.' },
+
+        ],
+      },
     ],
   },
 
@@ -192,7 +224,7 @@ export const GUIDES = [
     kicker: 'Focus',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 8,
+    readMinutes: 11,
     keywords: ['pomodoro technique', 'pomodoro for studying', 'focus timer', 'study breaks'],
     tools: ['timer'],
     related: ['time-blocking-for-students', 'weekly-study-routine', 'active-recall-vs-rereading'],
@@ -271,6 +303,22 @@ export const GUIDES = [
           { k: 'p', t: 'Use the pomodoro technique if starting is your problem, if your breaks tend to stretch into hours, or if you need external structure to stay honest. Skip it if you’re already self-regulating well, or if your work demands unbroken concentration. Either way, the deeper lesson stands: *work in bounded intervals and take real breaks* — the specific numbers are yours to choose.' },
         ],
       },
+      {
+        h2: 'What to do on the breaks',
+        blocks: [
+          { k: 'p', t: 'The five-minute break is not a phone break. Stand up, look at something far away, drink water, let your eyes leave the screen. The research behind pomodoro isn’t really about the timer — it’s about alternating focused attention with genuine rest, and a break spent scrolling is just a shorter work session wearing a costume.' },
+          { k: 'p', t: 'After four sessions, take the long break seriously: fifteen to thirty minutes, away from the desk. That’s when the consolidation happens — the part where today’s work becomes tomorrow’s memory.' },
+
+        ],
+      },
+      {
+        h2: 'When pomodoro is the wrong tool',
+        blocks: [
+          { k: 'p', t: 'Pomodoro assumes your work breaks into clean units. It fits flashcard sessions, problem sets, reading blocks. It fits poorly: writing a single essay that needs two uninterrupted hours of flow, lab work with long setups, group projects where your pace isn’t yours to set.' },
+          { k: 'p', t: 'For those, use the timer differently — not as a chop but as a boundary. One long session, timer running in the corner, telling you when to stop rather than when to start something new.' },
+
+        ],
+      },
     ],
   },
 
@@ -283,7 +331,7 @@ export const GUIDES = [
     kicker: 'Planning',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 9,
+    readMinutes: 12,
     keywords: ['time blocking', 'time blocking for students', 'weekly schedule template', 'daily planner'],
     tools: ['boxed', 'syllabus'],
     related: ['plan-a-semester', 'pomodoro-technique-for-deep-study', 'weekly-study-routine'],
@@ -362,6 +410,22 @@ export const GUIDES = [
           { k: 'p', t: 'Time blocking works because it’s not really about time — it’s about *decisions*. Every block you place the night before is a decision you don’t have to make when you’re tired. Every block you protect is a promise to your future self that the plan is real. Do it for two weeks and the structure starts carrying you; do it for a semester and it becomes invisible — which is exactly the point.' },
         ],
       },
+      {
+        h2: 'Time blocking vs. a to-do list',
+        blocks: [
+          { k: 'p', t: 'A to-do list answers ’what needs doing.’ A time block answers ’when.’ Students who keep both usually discover the list keeps growing while the blocks keep shrinking — because ’study biology’ was never a task, it was a mood.' },
+          { k: 'p', t: 'The test: if you can’t put a start time and an end time on it, it isn’t planned yet. Blocks force specificity — ’bio reading, 2–4pm Tuesday’ — and specificity is what survives contact with a real week.' },
+
+        ],
+      },
+      {
+        h2: 'Blocking when your week is irregular',
+        blocks: [
+          { k: 'p', t: 'Athletes, shift workers, students with rotating lab schedules — the fixed weekly template doesn’t fit everyone. The fix is blocking in two passes: fixed commitments first (classes, work, sleep), then flexible blocks labelled by *type* rather than *subject* — ’deep work,’ ’errands,’ ’buffer’ — and assign the actual task the morning of.' },
+          { k: 'p', t: 'Loose blocks beat no blocks. A labelled three-hour window you fill at 9am beats a perfect plan that assumed a schedule you don’t have.' },
+
+        ],
+      },
     ],
   },
 
@@ -374,7 +438,7 @@ export const GUIDES = [
     kicker: 'Notes',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 8,
+    readMinutes: 11,
     keywords: ['how to take lecture notes', 'note taking methods', 'cornell notes', 'lecture notes app'],
     tools: ['ink', 'margin'],
     related: ['active-recall-vs-rereading', 'flashcard-best-practices', 'weekly-study-routine'],
@@ -455,6 +519,22 @@ export const GUIDES = [
           { k: 'p', t: 'If the answer is no, the notes are a transcript. Rewrite them — not by copying, but by asking "what was the argument?" and answering it in your own compressed prose. That rewrite *is* the studying.' },
         ],
       },
+      {
+        h2: 'The 24-hour review that doubles retention',
+        blocks: [
+          { k: 'p', t: 'Whatever you captured in the lecture, revisit it within a day — not to rewrite, just to read. The spacing research is blunt about this: a five-minute skim the next morning does more for retention than an hour of ’studying’ a week later.' },
+          { k: 'p', t: 'The review is also when gaps show themselves. If a section of your notes is a blur, the lecture didn’t land — flag it, find the reading or a classmate’s version, and fix it while the lecture is still warm enough to ask questions about.' },
+
+        ],
+      },
+      {
+        h2: 'Notes for asynchronous courses',
+        blocks: [
+          { k: 'p', t: 'Recorded lectures and slide decks are a different medium: you can pause, but you lose the social pressure that makes live note-taking work. The fix is treating the recording like a live lecture — one pass, notes as you go, no rewinding to fill gaps. Rewatch only for flagged sections.' },
+          { k: 'p', t: 'For slide-only courses, read the deck *before* the lecture if you can. Notes taken on top of slides you’ve already seen are thinner but smarter — you’re listening for what the professor emphasizes, not transcribing what’s on screen.' },
+
+        ],
+      },
     ],
   },
 
@@ -467,7 +547,7 @@ export const GUIDES = [
     kicker: 'Study Methods',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 8,
+    readMinutes: 11,
     keywords: ['active recall', 'rereading vs active recall', 'retrieval practice', 'how to study effectively'],
     tools: ['flashcards', 'proof'],
     related: ['spaced-repetition-explained', 'flashcard-best-practices', 'how-to-study-for-finals-week'],
@@ -540,6 +620,22 @@ export const GUIDES = [
           { k: 'p', t: 'Rereading is a activity; active recall is a *practice*. One exposes you to material; the other forces you to produce it. The research is settled, the mechanism is understood, and the practical advice is simple: if you’re not struggling to remember something, you’re probably not studying it — you’re just looking at it.' },
         ],
       },
+      {
+        h2: 'The three-question method',
+        blocks: [
+          { k: 'p', t: 'Active recall doesn’t require flashcards. After any study session, close the book and answer three questions out loud or on paper: What was the main claim? What evidence supported it? What would I say if someone asked me to explain it in one sentence?' },
+          { k: 'p', t: 'If the answers are fuzzy, that’s the signal — not a character flaw, just information about what didn’t encode. Go back to exactly that part and try again. Three honest questions beat an hour of confident-looking highlighting.' },
+
+        ],
+      },
+      {
+        h2: 'Where each method actually wins',
+        blocks: [
+          { k: 'p', t: 'Rereading isn’t useless — it’s just weak for retention. It’s fine for first exposure, for getting the shape of a chapter, for material you’ll never be tested on. Where it fails is the exam room: familiarity is not recall, and the gap between ’I recognize this’ and ’I can produce this’ is where grades are lost.' },
+          { k: 'p', t: 'The practical split: read once to understand the terrain, then switch to recall for everything that counts. Understanding tells you where to aim; recall is what lands the hit.' },
+
+        ],
+      },
     ],
   },
 
@@ -552,7 +648,7 @@ export const GUIDES = [
     kicker: 'Exam Season',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 10,
+    readMinutes: 13,
     keywords: ['how to study for finals', 'finals week study plan', 'final exam prep', 'study for finals week'],
     tools: ['flashcards', 'timer', 'boxed'],
     related: ['active-recall-vs-rereading', 'spaced-repetition-explained', 'plan-a-semester'],
@@ -640,6 +736,22 @@ export const GUIDES = [
           { k: 'p', t: 'When it’s over, do two things: write down what worked and what didn’t (for next semester), and actually rest. Finals week is a sprint; recovery is part of the training. The students who do well consistently aren’t the ones who suffer most — they’re the ones who recover best.' },
         ],
       },
+      {
+        h2: 'The night before, done properly',
+        blocks: [
+          { k: 'p', t: 'Cramming is a tax you pay for earlier avoidance — but if finals week is already here, the damage-control version is real: one light review pass the night before, then sleep. Not ’pull an all-nighter,’ not ’cram until 3am,’ just ninety minutes of honest review and a real night’s rest.' },
+          { k: 'p', t: 'Sleep is not optional here. Memory consolidation happens during it — the material you reviewed at 10pm gets filed while you sleep, not while you stare at the ceiling. The all-nighter feels productive and produces worse recall the next morning.' },
+
+        ],
+      },
+      {
+        h2: 'After finals: the two-week window',
+        blocks: [
+          { k: 'p', t: 'The worst study mistake is treating finals week as the finish line. Courses often have a cumulative final or a portfolio due in the first two weeks back — and employers and grad schools know the transcript isn’t the whole story.' },
+          { k: 'p', t: 'Use the post-finals fortnight deliberately: bank the knowledge you just built into long-term storage with light review, archive the semester’s materials properly, and — this matters — rest before the next term starts. Burnout in week one of spring is a choice you make in January.' },
+
+        ],
+      },
     ],
   },
 
@@ -652,7 +764,7 @@ export const GUIDES = [
     kicker: 'Routines',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 8,
+    readMinutes: 11,
     keywords: ['study routine', 'weekly study schedule', 'study schedule template', 'how to study consistently'],
     tools: ['rhythm', 'syllabus', 'boxed'],
     related: ['time-blocking-for-students', 'plan-a-semester', 'pomodoro-technique-for-deep-study'],
@@ -728,6 +840,22 @@ export const GUIDES = [
           { k: 'p', t: 'A weekly study routine doesn’t produce results in a week — it produces results in a semester. But the mechanism is simple: every week you follow the routine, you’re depositing small amounts of learning that compound. Miss a week, and the deposits pause. Follow it for twelve weeks, and the accumulation is the difference between a student who studies and a student who *is* a student.' },
         ],
       },
+      {
+        h2: 'Designing your week around energy, not time',
+        blocks: [
+          { k: 'p', t: 'Most routines fail because they’re built on the clock instead of the person. Some people’s deep focus lives at 8am; others hit it at 9pm. Map your energy for one honest week — when you actually feel sharp, when you coast, when you crash — and put the hard work in the sharp hours.' },
+          { k: 'p', t: 'The routine that survives isn’t the ambitious one; it’s the one that fits the human running it. A 6am routine you hate is a 6am routine you quit by week three.' },
+
+        ],
+      },
+      {
+        h2: 'When the routine breaks',
+        blocks: [
+          { k: 'p', t: 'Routines break — illness, travel, a bad week, a relationship problem. The routine’s job isn’t to prevent breaking; it’s to make restarting cheap. Decide in advance what ’back to normal’ looks like: probably not the full routine, just the first two blocks of it.' },
+          { k: 'p', t: 'The students who fall apart are the ones who treat one broken week as proof the routine failed. The ones who last treat it as weather — expected, survivable, and over soon enough.' },
+
+        ],
+      },
     ],
   },
 
@@ -740,7 +868,7 @@ export const GUIDES = [
     kicker: 'Flashcards',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 8,
+    readMinutes: 11,
     keywords: ['how to make flashcards', 'flashcard study tips', 'flashcards best practices', 'spaced repetition flashcards'],
     tools: ['flashcards'],
     related: ['spaced-repetition-explained', 'active-recall-vs-rereading', 'lecture-notes-that-actually-stick'],
@@ -831,6 +959,22 @@ export const GUIDES = [
           { k: 'p', t: 'Write cards that ask questions your future self needs answered, review them honestly and frequently, and prune without mercy. Flashcards aren’t magic — they’re a mirror that shows you exactly what you don’t know, every day, until you do.' },
         ],
       },
+      {
+        h2: 'Writing cards that don’t suck',
+        blocks: [
+          { k: 'p', t: 'The card is where most spaced repetition dies. Bad cards ask ’What is mitosis?’ — a prompt so broad the answer is a paragraph. Good cards ask one specific thing: ’What are the four phases of mitosis, in order?’ or ’Why does the sodium-potassium pump need ATP?’' },
+          { k: 'p', t: 'The test: could a classmate answer this card in five seconds without a textbook? If the answer needs a sentence of context to make sense, the card is doing two jobs — split it into two cards. One idea per card, always.' },
+
+        ],
+      },
+      {
+        h2: 'How many new cards per day',
+        blocks: [
+          { k: 'p', t: 'The number everyone wants doesn’t exist — it depends on your retention rate and your available minutes. A reasonable starting point: new cards per day is about the number you can review in twenty minutes. If reviews start backing up, cut new cards; if you finish early every day, add more.' },
+          { k: 'p', t: 'The algorithm only works if you do the reviews. A thousand perfect cards reviewed never is worth less than fifty cards you actually do — the schedule exists to serve the habit, not the other way around.' },
+
+        ],
+      },
     ],
   },
 
@@ -843,7 +987,7 @@ export const GUIDES = [
     kicker: 'Privacy & Ownership',
     datePublished: '2026-11-25',
     dateModified: '2026-11-25',
-    readMinutes: 9,
+    readMinutes: 12,
     keywords: ['local first software', 'local first notes', 'private note taking app', 'offline notes app', 'data ownership'],
     tools: ['ink', 'margin'],
     related: ['lecture-notes-that-actually-stick', 'flashcard-best-practices', 'plan-a-semester'],
@@ -933,6 +1077,22 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Local-first software isn’t a luxury or a niche preference — it’s the difference between renting your own intellectual output and owning it. For students, whose notes and study materials are often their most valuable assets, this isn’t about ideology. It’s about not losing years of work because a platform changed its mind, went bankrupt, or decided your data was more valuable as training material than as yours.' },
           { k: 'p', t: 'Choose tools that treat your data as yours. The best ones already do.' },
+        ],
+      },
+      {
+        h2: 'What local-first actually means for your data',
+        blocks: [
+          { k: 'p', t: 'Local-first sounds like a slogan until you understand the trade: your data lives on your device, which means it’s fast, private, and works offline — but it also means *you* are responsible for backups. The honest version of the deal: export your data regularly, keep a copy somewhere, and the privacy is real rather than promised.' },
+          { k: 'p', t: 'The benefit isn’t ideology, it’s practical. No account to forget, no password to lose, no company pivot that turns your notes into a hostage situation. Your study materials outlive any platform decision.' },
+
+        ],
+      },
+      {
+        h2: 'When cloud sync is actually better',
+        blocks: [
+          { k: 'p', t: 'Honesty: if you study across three devices daily, live collaboration matters, or you need to share decks with a class, a cloud-first tool is the right call. Local-first wins on privacy, speed, and longevity; cloud wins on ubiquity and sharing.' },
+          { k: 'p', t: 'The mature answer for most students is both: keep the canonical work local-first, share what needs sharing through exports and links. Iterra’s whole pitch is that the studying itself — planning, recall, notes, timing — doesn’t need a server at all.' },
+
         ],
       },
     ],
