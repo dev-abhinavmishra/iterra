@@ -32,6 +32,18 @@ export const TOOLS = [
       { q: "What happens to tasks I don't finish?", a: "They don't vanish. Unfinished boxes roll forward so tomorrow's dump starts honest instead of starting over." },
       { q: "Is Boxed a calendar or a to-do list?", a: "It's the step between them. A to-do list says what; a calendar says when. Boxed turns 'study bio' into 'bio reading, 2–4pm, Tuesday' — a commitment small enough to keep." },
     ],
+    facts: [
+      'Brain dump first',
+      'Time-boxed blocks',
+      'Rolls work forward',
+      'No account'
+    ],
+    workflow: [
+      { t: 'Dump the day', d: 'Empty your head into Boxed first — tasks, worries, half-ideas. Nothing gets prioritized until it’s out.' },
+      { t: 'Pick the vital few', d: 'Choose the three to five boxes that would make today a win. Everything else waits or rolls.' },
+      { t: 'Time-box each one', d: 'Give each chosen task a realistic block — 25 minutes for admin, 90 for deep work — and let the timer hold you to it.' },
+      { t: 'Close the loop', d: 'At day’s end, unfinished boxes roll forward honestly instead of vanishing into guilt.' }
+    ],
     keywords: ['time blocking app', 'daily planner', 'brain dump app', 'to-do list'],
   },
   {
@@ -54,6 +66,18 @@ export const TOOLS = [
       { q: "Do I have to set up every course manually?", a: "Once per term, yes — and that's the point. Ten minutes of setup in week one buys you a semester of 'what's due when' answered automatically." },
       { q: "Does Syllabus replace my Google Calendar?", a: "It plans the study blocks; your calendar keeps the lectures. Most students run both — Syllabus decides what to work on, the calendar decides where you physically are." },
       { q: "What if my schedule changes mid-semester?", a: "The folio is meant to be edited, not worshipped. Move a block, drop a commitment, and the week replans around it." },
+    ],
+    facts: [
+      'Term setup once',
+      'Weekly block grid',
+      'Commitment tracking',
+      'Timer-linked'
+    ],
+    workflow: [
+      { t: 'Set the term once', d: 'Enter courses, meeting times, and grading weights in the first week. The folio does the remembering after that.' },
+      { t: 'Place weekly blocks', d: 'Assign recurring study blocks per course at times you actually have energy — same slots every week.' },
+      { t: 'Track commitments', d: 'Add assignments and exams as they’re announced; the plan rearranges around real deadlines.' },
+      { t: 'Launch from the block', d: 'When a block arrives, start its bound focus session so planning and timing stay linked.' }
     ],
     keywords: ['study planner', 'class schedule organizer', 'assignment tracker', 'course planner'],
   },
@@ -78,6 +102,18 @@ export const TOOLS = [
       { q: "Do missed days break everything?", a: "Streaks reset, patterns don't. The register is honest about the gap and keeps going — one bad week doesn't erase the semester." },
       { q: "Can it track attendance as well as habits?", a: "Yes — that's the 'register' idea. Class attendance and study sessions live on the same weekly grid." },
     ],
+    facts: [
+      'Weekly register',
+      'Habit + attendance',
+      'Streak signals',
+      'Feeds Today'
+    ],
+    workflow: [
+      { t: 'Register the week', d: 'Lay out classes, habits, and study sessions on the weekly grid so consistency is visible.' },
+      { t: 'Log honestly', d: 'Mark what happened — attendance, sessions, streaks — even when the answer is “missed.”' },
+      { t: 'Read the pattern', d: 'Use cadence signals on Today to see whether you’re showing up, not just whether you feel busy.' },
+      { t: 'Adjust the cue', d: 'When a habit slips, change the trigger or the time — the register shows where the week leaks.' }
+    ],
     keywords: ['habit tracker', 'routine tracker', 'study consistency', 'attendance tracker'],
   },
   {
@@ -100,6 +136,18 @@ export const TOOLS = [
       { q: "Is this real spaced repetition or just flashcards?", a: "Real scheduling — cards come due based on how you answered, not on a fixed rotation. It's deliberately simpler than Anki's engine, which is the point." },
       { q: "Can I import decks from Quizlet or Anki?", a: "Cards can come in through links the workspace shares. There's no bulk CSV importer yet — if your deck lives in a file, copy-paste is still faster than rebuilding it." },
       { q: "Do my decks sync to my phone?", a: "Iterra runs in the browser and works offline after first load. Sync across devices isn't wired up yet — treat it as your study device's cardfile." },
+    ],
+    facts: [
+      'Spaced scheduling',
+      'Quizzes + drills',
+      'Due counts on Today',
+      'Decks stay local'
+    ],
+    workflow: [
+      { t: 'Make cards from notes', d: 'Turn lecture notes into atomic questions within a day — one idea per card, recall over recognition.' },
+      { t: 'Review what’s due', d: 'Let the scheduler surface today’s cards; ten honest minutes beats an hour of cramming.' },
+      { t: 'Grade without mercy', d: 'Mark “again” when recall fails — the interval resets and the card earns its place.' },
+      { t: 'Prune and grow slowly', d: 'Add new cards only as fast as reviews stay current; archive mastered decks at term’s end.' }
     ],
     keywords: ['flashcards', 'spaced repetition', 'active recall', 'Anki alternative'],
   },
@@ -124,6 +172,18 @@ export const TOOLS = [
       { q: "Does Ink support markdown?", a: "Ink is built for long-form writing with wiki-links between notes. Pasting markdown works; it isn't a markdown editor first." },
       { q: "Can notes connect to my courses and cards?", a: "Yes — notes can be tagged to courses and wiki-linked to each other, so a lecture note can surface inside the course dossier alongside its flashcards." },
     ],
+    facts: [
+      'Wiki-linked notes',
+      'Course-tagged',
+      'Daily pages',
+      'Local-first'
+    ],
+    workflow: [
+      { t: 'Capture in daily pages', d: 'Keep lecture notes and thinking in daily pages so the raw stream is never lost.' },
+      { t: 'Link as you understand', d: 'Wiki-link concepts to courses and other notes so ideas connect while they’re fresh.' },
+      { t: 'Review within a day', d: 'Revisit notes within 24 hours, fill gaps, and write the cue questions that make them testable.' },
+      { t: 'Let courses cite it', d: 'Tag notes to courses so they surface inside dossiers alongside cards and materials.' }
+    ],
     keywords: ['note taking app', 'linked notes', 'Zettelkasten', 'lecture notes app'],
   },
   {
@@ -146,6 +206,18 @@ export const TOOLS = [
       { q: "What can I store in Margin?", a: "Recordings, PDFs, slides, scanned handouts — the raw material of a course, filed by course and topic so Notes and Flashcards can reach it." },
       { q: "Is Margin a Google Drive replacement?", a: "No — Drive stores files; Margin organizes course material. Think of it as the shelf your notes and cards draw from, not a sync client." },
       { q: "Is there a storage limit?", a: "Everything lives in your browser, so you're bounded by browser storage — generous for documents and recordings, but very large media libraries are worth keeping elsewhere too." },
+    ],
+    facts: [
+      'Course-filed shelf',
+      'Docs + recordings',
+      'Cited by tools',
+      'Browser storage'
+    ],
+    workflow: [
+      { t: 'File by course', d: 'Drop recordings, PDFs, and handouts onto the course shelf as they arrive.' },
+      { t: 'Let tools reach it', d: 'Notes, cards, and dossiers can cite what’s on the shelf instead of duplicating it.' },
+      { t: 'Review the raw material', d: 'Use document chat and analysis to interrogate slides and readings before class.' },
+      { t: 'Export what matters', d: 'Keep the shelf local-first; export anything you’d be sad to lose.' }
     ],
     keywords: ['study material organizer', 'lecture notes storage', 'course files', 'PDF organizer for students'],
   },
@@ -170,6 +242,18 @@ export const TOOLS = [
       { q: "Is GradeStack only for teachers?", a: "Teachers get the roster and class analytics; anyone self-quizzing gets the same builder and grading without the classroom layer." },
       { q: "Can it grade freeform written answers?", a: "No — it's built for structured answer sheets (bubbles and scantron-style marks), not essay grading. For written work, Ink's notes and Proof's error log do the heavy lifting." },
     ],
+    facts: [
+      'Printable sheets',
+      'Camera grading',
+      'Score trends',
+      'Roster support'
+    ],
+    workflow: [
+      { t: 'Build the assessment', d: 'Create the quiz and printable bubble sheet in one pass — questions map to the sheet automatically.' },
+      { t: 'Print and sit', d: 'Hand out the sheet; students fill bubbles while you prepare the capture.' },
+      { t: 'Scan and grade', d: 'Photograph sheets with the device camera; grading runs in the browser with no scanner needed.' },
+      { t: 'Read the trends', d: 'Score analytics show which concepts the class missed — feed that back into review.' }
+    ],
     keywords: ['bubble sheet grading', 'quiz maker', 'scantron alternative', 'classroom grading tool'],
   },
   {
@@ -193,6 +277,18 @@ export const TOOLS = [
       { q: "Does Timer track time even when I'm not in a session?", a: "It logs sessions you start — honest focus time, not ambient surveillance. The ledger shows what you actually sat down for." },
       { q: "Can I use the timer without the rest of Iterra?", a: "Timer lives inside the workspace — open Iterra in a mobile browser and it's there, offline, no account." },
     ],
+    facts: [
+      'Pomodoro + intervals',
+      'Session ledger',
+      'Launches from blocks',
+      'Works offline'
+    ],
+    workflow: [
+      { t: 'Pick the work', d: 'Choose the task or Syllabus block you’re about to do — the timer starts from the plan, not from guilt.' },
+      { t: 'Set the interval', d: 'Use a pomodoro for shallow work or a longer route for deep blocks; the method fits the task.' },
+      { t: 'Take real breaks', d: 'Breaks mean stepping away — the ledger counts sessions, not screen time.' },
+      { t: 'Let minutes file back', d: 'Completed sessions return to the planner and Today rail, so the week shows honest focus time.' }
+    ],
     keywords: ['pomodoro timer', 'focus timer', 'study timer', 'time tracking for students'],
   },
   {
@@ -215,6 +311,18 @@ export const TOOLS = [
       { q: "Does Proof just solve the problem for me?", a: "No — it's a workbench, not an answer machine. You work the steps; Proof keeps the problem set, your derivations, and resurfaces what you missed." },
       { q: "What subjects does it cover?", a: "Math-first: problem sets, step-by-step working, and an error log that brings missed concepts back around for review." },
       { q: "Is it a graphing calculator replacement?", a: "It complements one — Proof is for practicing method, not for computing answers quickly. The error log is what makes it study software instead of a solver." },
+    ],
+    facts: [
+      'Step-by-step workbench',
+      'Error log review',
+      'Course-linked sets',
+      'Feeds Today queue'
+    ],
+    workflow: [
+      { t: 'Assign the set', d: 'Pick course-linked problem sets matched to what the syllabus says is coming.' },
+      { t: 'Work the steps', d: 'Attempt problems before checking anything — the struggle is where the learning happens.' },
+      { t: 'Log the misses', d: 'The error log captures what went wrong so missed concepts come back for review.' },
+      { t: 'Feed the queue', d: 'Weak areas resurface in Today and review queues instead of disappearing into a gradebook.' }
     ],
     keywords: ['math problem solver', 'step by step math', 'error log study', 'math workbench'],
   },
