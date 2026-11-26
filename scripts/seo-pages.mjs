@@ -383,6 +383,8 @@ footer.site::after{content:"";position:absolute;inset:0;z-index:-1;background:ra
 /* ── guides / long-form articles ──────────────────────── */
 .prose{max-width:46rem}
 .prose h2{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:clamp(1.45rem,3vw,1.85rem);letter-spacing:-.02em;line-height:1.25;margin:2.8rem 0 .9rem;scroll-margin-top:96px}
+.prose h2 .h-anchor{font-family:'IBM Plex Mono',monospace;font-size:.5em;font-weight:400;color:var(--gold);text-decoration:none;opacity:0;margin-left:.55rem;vertical-align:.12em;transition:opacity .15s}
+.prose h2:hover .h-anchor,.prose h2 .h-anchor:focus-visible{opacity:1}
 .guide-article{max-width:52rem}
 .toc{border:1px solid #d9c89755;border-radius:12px;background:#183e2c12;padding:1.1rem 1.4rem;margin:2rem 0 1rem}
 .toc .tk{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:.7rem}
@@ -661,7 +663,7 @@ html[data-skin="studio"] .takeaways{border-left:4px solid var(--accent);border-r
 html[data-skin="studio"] .sec-index{color:var(--accent)}
 html[data-skin="studio"] .ad-slot{border-radius:6px;border-color:#aeb8ae;background:repeating-linear-gradient(45deg,#f7f9f5,#f7f9f5 14px,#eef2ec 14px,#eef2ec 28px)}
 html[data-skin="studio"] .cta .primary{background:var(--accent);color:var(--cream)}
-html[data-skin="studio"] .cta .primary:hover{background:var(--accent-2);transform:none}
+html[data-skin="studio"] .cta .primary:hover{background:var(--accent2);transform:none}
 html[data-skin="studio"] .win-card.us{background:#eef5ef;border-color:#8eaa9b}
 html[data-skin="studio"] .verdict{background:#151b17}
 html[data-skin="studio"] .toc-rail li a.on{border-left-color:var(--accent);color:var(--accent)}
@@ -944,7 +946,7 @@ export function renderGuidePage(guide) {
       while (usedIds.has(id)) id += '-x';
       usedIds.add(id);
       tocItems.push({ id, label: s.h2 });
-      h2html = `<h2 id="${id}"><span class="sec-index" aria-hidden="true">${String(si + 1).padStart(2, '0')}</span>${inline(s.h2)}</h2>`;
+      h2html = `<h2 id="${id}"><span class="sec-index" aria-hidden="true">${String(si + 1).padStart(2, '0')}</span>${inline(s.h2)}<a class="h-anchor" href="#${id}" aria-label="Link to this section">#</a></h2>`;
     }
     return `<section class="gsec">
 <div class="prose">${h2html}${renderBlocks(s.blocks)}</div>
