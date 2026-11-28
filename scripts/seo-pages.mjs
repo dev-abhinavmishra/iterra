@@ -639,6 +639,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .toc li::before{content:counter(toc,decimal-leading-zero) " · ";font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);letter-spacing:.08em}
 .toc a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}
 .toc a:hover{color:var(--accent);border-color:var(--gold2)}
+@media(max-width:719px){.toc ol{max-height:15rem;overflow-y:auto;scrollbar-width:thin;padding-right:.4rem}}
 .prose p{font-size:1.06rem;line-height:1.78;color:#333a34;margin-bottom:1.15rem}
 .prose ul{margin:0 0 1.3rem;padding-left:1.35rem}
 .prose li{font-size:1.04rem;line-height:1.7;color:#333a34;margin-bottom:.5rem}
@@ -773,6 +774,8 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .pull::before{content:"“";display:block;font-size:3.4rem;line-height:.6;color:var(--gold);opacity:.8;margin-bottom:1.1rem;font-style:normal}
 .pull::after{content:"”";display:block;font-size:3.4rem;line-height:.6;color:var(--gold);opacity:.8;margin-top:1.1rem;font-style:normal}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:1.8rem 0}
+.hero-stats{max-width:44rem;text-align:left}
+.hero-stats .stat{text-align:left;padding:1.1rem 1.3rem}
 .stat{background:var(--sheet);padding:1.3rem 1.2rem;text-align:center}
 .stat .v{display:block;font-family:Newsreader,Georgia,serif;font-size:clamp(1.7rem,3vw,2.3rem);font-weight:500;letter-spacing:-.03em;color:var(--accent);line-height:1.1}
 .stat .l{display:block;margin-top:.45rem;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);line-height:1.5}
@@ -1512,6 +1515,11 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
 <div class="kicker mono">Iterra Guides</div>
 <h1>Study better, <em>with evidence</em></h1>
 <p class="lede">Practical guides to the methods that actually work — planning, memory, focus, and the tools that make them stick. No productivity fluff; just what the research supports and what students actually need.</p>
+<div class="stats hero-stats">
+<div class="stat"><span class="v">${GUIDES.length}</span><span class="l">Guides, all free</span></div>
+<div class="stat"><span class="v">~${Math.round(GUIDES.reduce((a, g) => a + (g.readMinutes || 8), 0) / 60 * 10) / 10} hrs</span><span class="l">Total reading time</span></div>
+<div class="stat"><span class="v">${TOOLS.length}</span><span class="l">Tools to put them to work</span></div>
+</div>
 </div></section>
 <div class="wrap">
 <section class="block" style="border-bottom:none">
@@ -1872,6 +1880,9 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Compare' }])}
 <p class="lede">Every comparison below admits where the other tool wins — because a comparison you can’t trust is just an ad. These are written by the people who make Iterra, and they say so.</p>
 </div></section>
 <div class="wrap">
+<figure class="plate">
+<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
+</figure>
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Iterra vs the tools you know</h2>
 <ul class="rows">
@@ -1935,6 +1946,9 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Alternatives' }])}
 <p class="lede">Every study app here was built to do one thing well. When one thing isn't enough anymore, these are the honest exits — including ours, and when it isn't the right one.</p>
 </div></section>
 <div class="wrap">
+<figure class="plate">
+<div class="frame"><img src="/shots/flashcards.webp" alt="Iterra flashcards — one of the tools covered in these comparisons" width="1440" height="900" loading="lazy" decoding="async" /></div>
+</figure>
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Picks by what you’re leaving</h2>
 ${(() => {
