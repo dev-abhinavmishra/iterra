@@ -732,6 +732,46 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .compare-table .col{background:#f5eedd!important}
 .compare-table thead th.col{background:#eee2c6!important}
 
+/* ── data & text representations inside articles ──────── */
+.steps{list-style:none;padding:0;margin:1.6rem 0;counter-reset:step;display:grid;gap:.9rem}
+.steps li{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:baseline;padding:1rem 1.2rem;border:1px solid var(--line);border-radius:12px;background:var(--sheet);transition:border-color .2s,transform .2s,box-shadow .2s}
+.steps li:hover{border-color:rgba(43,84,64,.4);transform:translateY(-2px);box-shadow:0 14px 28px -18px rgba(43,84,64,.45)}
+.steps .n{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:.1em;padding-top:.15rem}
+.steps li>span:last-child{font-size:1rem;line-height:1.65;color:#333a34}
+.pull{margin:2.4rem auto;max-width:38rem;text-align:center;font-family:Newsreader,Georgia,serif;font-size:clamp(1.4rem,2.6vw,1.75rem);font-weight:480;font-style:italic;line-height:1.4;letter-spacing:-.015em;color:var(--ink);position:relative;padding:0 1rem}
+.pull::before{content:"“";display:block;font-size:3.4rem;line-height:.6;color:var(--gold);opacity:.8;margin-bottom:1.1rem;font-style:normal}
+.pull::after{content:"”";display:block;font-size:3.4rem;line-height:.6;color:var(--gold);opacity:.8;margin-top:1.1rem;font-style:normal}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:1.8rem 0}
+.stat{background:var(--sheet);padding:1.3rem 1.2rem;text-align:center}
+.stat .v{display:block;font-family:Newsreader,Georgia,serif;font-size:clamp(1.7rem,3vw,2.3rem);font-weight:500;letter-spacing:-.03em;color:var(--accent);line-height:1.1}
+.stat .l{display:block;margin-top:.45rem;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);line-height:1.5}
+.defs{margin:1.6rem 0;border-top:1px solid var(--line)}
+.def{display:grid;grid-template-columns:minmax(8rem,.34fr) 1fr;gap:1.2rem;padding:.95rem .25rem;border-bottom:1px solid var(--line)}
+.def dt{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);padding-top:.2rem}
+.def dd{margin:0;font-size:1rem;line-height:1.7;color:#333a34}
+@media(max-width:560px){.def{grid-template-columns:1fr;gap:.3rem}}
+.table-wrap{overflow-x:auto;margin:1.8rem 0;border:1px solid var(--line);border-radius:12px;background:var(--sheet)}
+.prose-table{width:100%;min-width:34rem;border-collapse:collapse;font-size:.95rem}
+.prose-table th,.prose-table td{padding:.7rem .95rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.55}
+.prose-table thead th{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);background:#f4f1e6;position:sticky;top:0}
+.prose-table tbody tr:last-child td{border-bottom:none}
+.prose-table tbody tr{transition:background .15s}
+.prose-table tbody tr:hover td{background:#faf6ea}
+.prose-table td:first-child{font-weight:600;color:var(--ink)}
+.guide-article.dc .gsec:first-of-type .prose p:first-of-type::first-letter{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:3.5em;float:left;line-height:.8;padding:.08em .14em 0 0;color:var(--accent)}
+.topic{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:2.2rem 0 .4rem}
+.topic::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.topic:first-child{margin-top:0}
+.skip{position:fixed;top:-60px;left:16px;z-index:100;background:var(--accent);color:#fff;padding:.6rem 1rem;border-radius:8px;font-size:13px;text-decoration:none;transition:top .2s}
+.skip:focus{top:12px}
+@media print{
+  .side,.topbar,.scrim,.read-progress,.ad-slot,.toc-rail,.pager,.author-card,.cta,.byline .av{display:none!important}
+  .main{margin-left:0}.content,.foot{background:#fff}
+  body::before,body::after{display:none}
+  .hero{padding-top:0}
+  .prose-table,.table-wrap,.steps li,.def{break-inside:avoid}
+}
+
 /* ── polish: selection, scrollbars, reveal-on-scroll ──── */
 ::selection{background:#d9c89766}
 .toc-rail::-webkit-scrollbar{width:5px}
@@ -809,6 +849,25 @@ function renderBlocks(blocks) {
       if (b.k === 'ul')
         return `<ul>${b.items.map((i) => `<li>${inline(i)}</li>`).join('')}</ul>`;
       if (b.k === 'callout') return `<div class="callout"><p>${inline(b.t)}</p></div>`;
+      if (b.k === 'quote') return `<blockquote class="pull">${inline(b.t)}</blockquote>`;
+      if (b.k === 'steps')
+        return `<ol class="steps">${b.items
+          .map((s, i) => `<li><span class="n mono">${String(i + 1).padStart(2, '0')}</span><span>${inline(s)}</span></li>`)
+          .join('')}</ol>`;
+      if (b.k === 'stats')
+        return `<div class="stats">${b.items
+          .map((s) => `<div class="stat"><span class="v">${esc(s.v)}</span><span class="l">${esc(s.l)}</span></div>`)
+          .join('')}</div>`;
+      if (b.k === 'deflist')
+        return `<dl class="defs">${b.items
+          .map((d) => `<div class="def"><dt>${inline(d.t)}</dt><dd>${inline(d.d)}</dd></div>`)
+          .join('')}</dl>`;
+      if (b.k === 'table')
+        return `<div class="table-wrap"><table class="prose-table"><thead><tr>${b.head
+          .map((h) => `<th scope="col">${inline(h)}</th>`)
+          .join('')}</tr></thead><tbody>${b.rows
+          .map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`)
+          .join('')}</tbody></table></div>`;
       if (b.k === 'tool') {
         const t = TOOLS.find((x) => x.id === b.tool);
         if (!t) return '';
@@ -834,6 +893,7 @@ function header(activePath) {
     navLink(`/${p.section}/${p.slug}`, esc(String(p.h1).replace(/<\/?em>/g, ''))),
   ).join('\n');
   return `<div class="docs">
+<a class="skip" href="#content">Skip to content</a>
 <aside class="side">
 <a class="brand" href="/"><span class="emblem" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Iterra</a>
 <a class="searchbox" href="/#/today">Search the workspace<kbd>⌘K</kbd></a>
@@ -867,7 +927,7 @@ ${compareLinks}
 <a class="tb-brand" href="/"><span class="emblem" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Iterra</a>
 <a class="tb-open" href="/#/today">Open ↗</a>
 </header>
-<main class="content">
+<main class="content" id="content">
 `;
 }
 
@@ -961,6 +1021,16 @@ ${tool.workflow
   const neighbors = (TOOL_NEIGHBORS[tool.id] || TOOLS.filter((t) => t.id !== tool.id).slice(0, 3).map((t) => t.id))
     .map((id) => TOOLS.find((t) => t.id === id))
     .filter(Boolean);
+  const ti = TOOLS.findIndex((t) => t.id === tool.id);
+  const prevTool = ti > 0 ? TOOLS[ti - 1] : null;
+  const nextTool = ti >= 0 && ti < TOOLS.length - 1 ? TOOLS[ti + 1] : null;
+  const toolPagerHtml =
+    prevTool || nextTool
+      ? `<nav class="pager" aria-label="More tools">
+${prevTool ? `<a href="${prevTool.path}"><span class="dir">← Previous tool</span><span class="t">${esc(prevTool.name)}</span></a>` : '<span></span>'}
+${nextTool ? `<a class="next" href="${nextTool.path}"><span class="dir">Next tool →</span><span class="t">${esc(nextTool.name)}</span></a>` : ''}
+</nav>`
+      : '';
   const relatedToolsHtml = neighbors.length
     ? `<section class="block">
 <h2 class="sec mono">Keep exploring the terrain</h2>
@@ -1018,6 +1088,7 @@ ${neighbors
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
 <title>${esc(tool.title)}</title>
 <meta name="description" content="${esc(tool.description)}" />
 <link rel="canonical" href="${url}" />
@@ -1068,6 +1139,7 @@ ${tool.faqs.map((f) => `<details class="faq"><summary>${esc(f.q)}</summary><div 
 </div>
 </section>` : ''}
 ${relatedToolsHtml}
+${toolPagerHtml}
 <section class="block">
 <div class="connect"><div>
 <span class="mono">One workspace, not another tab</span>
@@ -1247,6 +1319,7 @@ ${guide.faq
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
 <title>${esc(guide.seoTitle)}</title>
 <meta name="description" content="${esc(guide.description)}" />
 <link rel="canonical" href="${url}" />
@@ -1275,7 +1348,7 @@ ${heroHtml}
 <div class="wrap">
 ${coverHtml}
 <div class="guide-layout">
-<article class="guide-article">
+<article class="guide-article${variant === 2 ? ' dc' : ''}">
 ${tocHtml}
 ${takeawaysHtml}
 ${sectionsHtml}
@@ -1318,14 +1391,30 @@ export function renderGuidesIndex() {
       },
     ],
   };
-  const cards = GUIDES.map(
-    (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${esc(g.kicker)} · ${dateFmt(g.datePublished)} · ${g.readMinutes} min</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
-  ).join('\n');
+  const topics = [];
+  for (const g of GUIDES) {
+    let t = topics.find((x) => x.k === g.kicker);
+    if (!t) {
+      t = { k: g.kicker, items: [] };
+      topics.push(t);
+    }
+    t.items.push(g);
+  }
+  const cards = topics
+    .map(
+      (t) => `<h3 class="topic">${esc(t.k)} · ${t.items.length}</h3><ul class="rows">${t.items
+        .map(
+          (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${esc(g.kicker)} · ${dateFmt(g.datePublished)} · ${g.readMinutes} min</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+        )
+        .join('\n')}</ul>`,
+    )
+    .join('\n');
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
 <title>Study Guides — How to Learn Better | Iterra</title>
 <meta name="description" content="Practical, research-backed guides to studying better: semester planning, spaced repetition, active recall, pomodoro, time blocking, finals week, and more — plus the free tools that make it stick." />
 <link rel="canonical" href="${url}" />
@@ -1356,9 +1445,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
 <div class="wrap">
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Browse the guides</h2>
-<ul class="rows">
 ${cards}
-</ul>
 <div class="cta" style="margin-top:2.5rem">
 <a class="primary" href="/#/today">Open the workspace →</a>
 <a class="ghost" href="/tools">All tools</a>
@@ -1392,6 +1479,7 @@ export function renderToolsIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
 <title>Iterra Study Tools — Planner, Flashcards, Notes, Timer & More</title>
 <meta name="description" content="Nine study tools in one local-first workspace: time-blocking planner, spaced-repetition flashcards, linked notes, pomodoro timer, math workbench, attendance, grading, and study materials." />
 <link rel="canonical" href="${url}" />
@@ -1580,6 +1668,7 @@ ${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
 ${compareHead({ title: page.title, description: page.description, url, image: `${SITE}/og/${page.section}.png`, published: page.datePublished, modified: page.dateModified })}
 ${jsonLd(ld)}
 </head>
@@ -1664,6 +1753,7 @@ export function renderCompareIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
 <title>Compare Iterra — Honest Study App Comparisons</title>
 <meta name="description" content="Head-to-head comparisons between Iterra and Notion, Quizlet, Anki, StudySmarter and Structured — where each wins, who should pick which." />
 <link rel="canonical" href="${url}" />
@@ -1726,6 +1816,7 @@ export function renderAlternativesIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
 <title>Study App Alternatives — Honest Picks for Students</title>
 <meta name="description" content="The best alternatives to Quizlet, Notion, Anki and StudySmarter for students — compared on price, privacy, offline use and what the app actually does." />
 <link rel="canonical" href="${url}" />
