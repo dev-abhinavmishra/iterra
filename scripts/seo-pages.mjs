@@ -1791,7 +1791,7 @@ ${FONTS}
 ${jsonLd(ld)}
 </head>
 <body class="pt-guide">
-${header('/guides')}
+${header(`/guides/${guide.slug}`)}
 ${heroHtml}
 <div class="wrap">
 ${coverHtml}
@@ -2240,7 +2240,7 @@ ${FONTS}
 ${jsonLd(ld)}
 </head>
 <body class="pt-topic">
-${header('/guides')}
+${header(`/topics/${topic.slug}`)}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: topic.kicker }])}
 <div class="kicker mono">Iterra Guides · ${esc(topic.kicker)}</div>
@@ -2329,7 +2329,7 @@ ${FONTS}
 ${jsonLd(ld)}
 </head>
 <body class="pt-topics">
-${header('/guides')}
+${header('/topics')}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: 'Topics' }])}
 <div class="kicker mono">Iterra Guides</div>
