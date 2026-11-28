@@ -935,6 +935,7 @@ body.reader .guide-article{max-width:46rem}
 .prose-fig{margin:2.4rem 0}
 .prose-fig .frame{box-shadow:0 1px 2px rgba(31,36,31,.05),0 24px 50px -30px rgba(31,36,31,.4)}
 .prose-fig figcaption{margin-top:.7rem;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
+.vh{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .cols{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line2);margin:1.8rem 0;padding:0;list-style:none}
 .col{padding:1.15rem 1.4rem 1.25rem 0;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:.5rem}
 .col:last-child{border-right:0;padding-right:0}
@@ -1188,7 +1189,7 @@ function renderBlocks(blocks) {
           .map((d) => `<div class="def"><dt>${inline(d.t)}</dt><dd>${inline(d.d)}</dd></div>`)
           .join('')}</dl>`;
       if (b.k === 'table')
-        return `<div class="table-wrap"><table class="prose-table"><thead><tr>${b.head
+        return `<div class="table-wrap"><table class="prose-table">${b.caption ? `<caption class="vh">${esc(b.caption)}</caption>` : ''}<thead><tr>${b.head
           .map((h) => `<th scope="col">${inline(h)}</th>`)
           .join('')}</tr></thead><tbody>${b.rows
           .map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`)
@@ -2664,6 +2665,7 @@ ${cTocHtml}
 <h2 class="sec mono">At a glance</h2>
 <div style="overflow-x:auto">
 <table class="compare-table">
+<caption class="vh">${esc(`Iterra compared with ${rivalLabel}`)}</caption>
 ${thead}
 <tbody>
 ${tableRows}
