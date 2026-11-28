@@ -724,7 +724,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .ctoc{display:flex;flex-wrap:wrap;gap:.45rem;margin:0 0 1.6rem}
 .ctoc a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.42rem .9rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
 .ctoc a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
-.compare-body .block[id]{scroll-margin-top:24px}
+.block[id]{scroll-margin-top:24px}
 .pager{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:3rem;padding-top:1.8rem;border-top:1px solid var(--line)}
 .pager .dir{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);display:block}
 .pager .pk{font-family:'IBM Plex Mono',monospace;font-size:9px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--faint);background:rgba(255,255,255,.5);margin-left:.3rem}
@@ -1199,7 +1199,7 @@ export function renderToolPage(tool) {
   const factHtml = `<div class="fact-strip">${facts.map((f) => `<span class="fact">${esc(f)}</span>`).join('')}</div>`;
   const tour = TOOL_TOURS[tool.id] || [];
   const tourHtml = tour.length
-    ? `<section class="block">
+    ? `<section class="block" id="closer-look">
 <h2 class="sec mono">A closer look at ${esc(tool.name)}</h2>
 <div class="tour">
 ${tour.map((p) => `<p>${esc(p)}</p>`).join('\n')}
@@ -1207,7 +1207,7 @@ ${tour.map((p) => `<p>${esc(p)}</p>`).join('\n')}
 </section>`
     : '';
   const workflowHtml = tool.workflow?.length
-    ? `<section class="block">
+    ? `<section class="block" id="study-day">
 <h2 class="sec mono">How ${esc(tool.name)} fits a study day</h2>
 <div class="workflow">
 ${tool.workflow
@@ -1234,7 +1234,7 @@ ${nextTool ? `<a class="next" href="${nextTool.path}"><span class="dir">Next too
 </nav>`
       : '';
   const relatedToolsHtml = neighbors.length
-    ? `<section class="block">
+    ? `<section class="block" id="explore">
 <h2 class="sec mono">Keep exploring the terrain</h2>
 <ul class="rel-grid">
 ${neighbors
@@ -1326,7 +1326,8 @@ ${factHtml}
 <div class="frame"><img src="/shots/${tool.id}.webp" alt="${esc(tool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
 
 </figure>
-<section class="block">
+<nav class="ctoc" aria-label="On this page"><a href="#what">What it does</a>${tour.length ? '<a href="#closer-look">A closer look</a>' : ''}${tool.workflow?.length ? '<a href="#study-day">A study day</a>' : ''}${tool.faqs?.length ? '<a href="#faq">Questions</a>' : ''}<a href="#explore">Keep exploring</a></nav>
+<section class="block" id="what">
 <h2 class="sec mono">What ${esc(tool.name)} does</h2>
 <ul class="feats">
 ${feats}
@@ -1334,7 +1335,7 @@ ${feats}
 </section>
 ${tourHtml}
 ${workflowHtml}
-${tool.faqs?.length ? `<section class="block">
+${tool.faqs?.length ? `<section class="block" id="faq">
 <h2 class="sec mono">Questions students ask</h2>
 <div class="faq-list">
 ${tool.faqs.map((f) => `<details class="faq"><summary>${esc(f.q)}</summary><div class="a">${esc(f.a)}</div></details>`).join('\n')}
