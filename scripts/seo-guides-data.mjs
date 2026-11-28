@@ -4740,14 +4740,14 @@ export const GUIDES = [
             'Drill those types with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'This is the step where the studying actually happens — the test shows the gaps, the review fills them.' },
         ],
       },
       {
         h2: 'Quantitative: the data-sufficiency game',
         blocks: [
           { k: 'p', t: 'The Quant section tests arithmetic, algebra, geometry, and data sufficiency. The data sufficiency questions are unique to the GMAT — they test whether you can determine if there\'s enough information to answer, not whether you can solve the problem.' },
-          { k: 'p', t: 'Practice problems are the study method. Work through them until the patterns are automatic — the exam rewards speed and accuracy, not deep understanding.' },
+          { k: 'p', t: 'Problems are the curriculum — fluency comes from reps, not rereads.' },
         ],
       },
       {
@@ -4862,7 +4862,7 @@ export const GUIDES = [
             'Drill those subjects with focused practice.',
             'Retest on a timer — the score gap is your progress report.',
           ]},
-          { k: 'p', t: 'The review is the step that teaches — without it, a practice test is just a measurement; with it, the test becomes the lesson.' },
+          { k: 'p', t: 'Without review, the practice test only measures; with it, every miss becomes a lesson.' },
         ],
       },
       {
@@ -4972,7 +4972,7 @@ export const GUIDES = [
             'Drill those sections with focused practice.',
             'Run another timed test and compare scores.',
           ]},
-          { k: 'p', t: 'Skip the review and you measured yourself without improving. With review, every missed question becomes a study rep.' },
+          { k: 'p', t: 'No review means no improvement — the misses stay misses.' },
         ],
       },
       {
@@ -5091,7 +5091,7 @@ export const GUIDES = [
             'Rebuild those sections with targeted reps.',
             'Repeat a timed test and measure the difference.',
           ]},
-          { k: 'p', t: 'This is where the studying actually happens: reviewing what the practice test exposed.' },
+          { k: 'p', t: 'The real study starts here — working through what the test exposed.' },
         ],
       },
       {
@@ -5105,8 +5105,8 @@ export const GUIDES = [
       {
         h2: 'Reading and Quant: the familiar game',
         blocks: [
-          { k: 'p', t: 'Reading Comprehension and Quantitative Reasoning are similar to other standardized tests — reading passages with questions, and math problems. The strategy is the same: read the questions first, then the passage or problem with those questions in mind.' },
-          { k: 'p', t: 'For Quant, the math is mostly high-school level — algebra, geometry, and data analysis. Practice problems are the study method.' },
+          { k: 'p', t: 'The verbal and quant sections transfer directly from other exams — same passage-map and problem-solving skills, different content.' },
+          { k: 'p', t: 'Quant is high-school math under time pressure — algebra, geometry, data analysis. Reps build the speed.' },
         ],
       },
       {
@@ -5210,22 +5210,22 @@ export const GUIDES = [
             'Practice just the weak sections until they flip.',
             'Come back with another timed test — progress is a number, not a feeling.',
           ]},
-          { k: 'p', t: 'A practice test without review is just a measurement. The review is what turns it into a study session.' },
+          { k: 'p', t: 'A test without a debrief is data without action — review is where it becomes studying.' },
         ],
       },
       {
         h2: 'The science sections: content plus strategy',
         blocks: [
           { k: 'p', t: 'The Survey of Natural Sciences and Physics sections test content knowledge — you need to know the material, not just the patterns. Focus on the high-yield topics: cell biology, biochemistry, anatomy, organic chemistry, and physics formulas.' },
-          { k: 'p', t: 'Practice problems are the study method — the exam rewards speed and accuracy. Work through problems until the patterns are automatic.' },
+          { k: 'p', t: 'Speed and accuracy come from reps — work problems until the patterns are reflexes.' },
           { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the high-yield science content — the vocabulary and formulas that every question assumes you know.' },
         ],
       },
       {
         h2: 'Reading and Quant: the familiar game',
         blocks: [
-          { k: 'p', t: 'Reading Comprehension and Quantitative Reasoning are similar to other standardized tests — reading passages with questions, and math problems. The strategy is the same: read the questions first, then the passage or problem with those questions in mind.' },
-          { k: 'p', t: 'For Quant, the math is mostly high-school level — algebra, geometry, and data analysis. Practice problems are the study method.' },
+          { k: 'p', t: 'RC and QR work like they do everywhere: questions first, then the text, then the math.' },
+          { k: 'p', t: 'The quant math tops out at high-school level; the exam tests fluency, not difficulty.' },
         ],
       },
       {
@@ -5314,7 +5314,7 @@ export const GUIDES = [
             'Drill those topics with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'Review is the payoff: every missed question becomes a rep for next time.' },
         ],
       },
       {
@@ -5420,7 +5420,7 @@ export const GUIDES = [
             'Run focused sets on the sections that beat you.',
             'Retest on a timer — the score gap is your progress report.',
           ]},
-          { k: 'p', t: 'The review is the step that teaches — without it, a practice test is just a measurement; with it, the test becomes the lesson.' },
+          { k: 'p', t: 'The teaching happens in the review — the test just shows you where to look.' },
         ],
       },
       {
@@ -5539,7 +5539,7 @@ export const GUIDES = [
             'Work the weak sections in isolation.',
             'Run another timed test and compare scores.',
           ]},
-          { k: 'p', t: 'Skip the review and you measured yourself without improving. With review, every missed question becomes a study rep.' },
+          { k: 'p', t: 'The review converts measurement into practice; skip it and you only measured.' },
         ],
       },
       {
@@ -5652,7 +5652,7 @@ export const GUIDES = [
             'Drill those areas with focused practice.',
             'Repeat a timed test and measure the difference.',
           ]},
-          { k: 'p', t: 'This is where the studying actually happens: reviewing what the practice test exposed.' },
+          { k: 'p', t: 'This is the payoff section: the test found the gaps, now you fill them.' },
         ],
       },
       {
@@ -5778,7 +5778,7 @@ export const GUIDES = [
             'Drill those words with flashcards and context sentences.',
             'Take another practice section to measure progress.',
           ]},
-          { k: 'p', t: 'A practice test without review is just a measurement. The review is what turns it into a study session.' },
+          { k: 'p', t: 'The measurement is free; the learning is in the review.' },
         ],
       },
       {
@@ -6036,7 +6036,7 @@ export const GUIDES = [
         h2: 'The concept-vs-calculation balance',
         blocks: [
           { k: 'p', t: 'Chemistry has two halves: conceptual questions ("why does this reaction happen?") and calculation problems ("how much product forms?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
-          { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
+          { k: 'p', t: 'Weight problems over concepts — roughly three-fifths doing, two-fifths understanding.' },
           { k: 'versus', a: { k: 'Concepts', t: 'The why — mechanisms and trends that explain what the numbers mean.' }, b: { k: 'Calculations', t: 'The reps — stoichiometry and equilibrium drills that build speed.' } },
         ],
       },
@@ -6250,7 +6250,7 @@ export const GUIDES = [
             'Identify the question types you miss most.',
             'Rebuild those question types with targeted reps.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'The test is the diagnostic; the review is the treatment.' },
         ],
       },
       {
@@ -6402,7 +6402,7 @@ export const GUIDES = [
         h2: 'The concept-vs-calculation balance',
         blocks: [
           { k: 'p', t: 'Statistics has two halves: conceptual questions ("what does this result mean?") and calculation problems ("what is the p-value?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
-          { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
+          { k: 'p', t: 'Split time about 60/40 toward problems; concepts support, problems build.' },
           { k: 'versus', a: { k: 'Concepts', t: 'The why — knowing what a p-value actually claims before you compute one.' }, b: { k: 'Calculations', t: 'The reps — worked problems that make the formulas automatic.' } },
         ],
       },
@@ -6871,7 +6871,7 @@ export const GUIDES = [
             'Drill those areas with focused practice.',
             'Come back with another timed test — progress is a number, not a feeling.',
           ]},
-          { k: 'p', t: 'The review is the step that teaches — without it, a practice test is just a measurement; with it, the test becomes the lesson.' },
+          { k: 'p', t: 'Skip the debrief and you have a score, not a study plan.' },
         ],
       },
       {
@@ -8180,7 +8180,7 @@ export const GUIDES = [
             { t: 'Qualitative', d: 'Case studies, archival research, fieldwork — explores meanings and processes. Common in comparative politics and political theory.' },
             { t: 'Mixed methods', d: 'Both — quantitative for patterns, qualitative for mechanisms. The gold standard for complex questions.' },
           ]},
-          { k: 'p', t: 'The methods course is not about memorizing statistics — it is about knowing which method answers which question. A student who understands the trade-offs can critique any study.' },
+          { k: 'p', t: 'Methods courses test judgment, not recall — which method fits which question is the skill.' },
         ],
       },
       {
