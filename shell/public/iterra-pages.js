@@ -151,6 +151,14 @@ if(fimgs.length){
     });
   });
 });
+var rp=document.querySelector('.read-progress');
+if(rp){
+  var rpBar=rp.querySelector('i'),rpArt=document.querySelector(rp.getAttribute('data-pg')||'.content');
+  if(rpBar&&rpArt){
+    var rpTick=function(){var r=rpArt.getBoundingClientRect(),total=r.height-window.innerHeight,p=total>0?Math.min(1,Math.max(0,-r.top/total)):0;rpBar.style.transform='scaleX('+p+')';var meter=document.querySelector('.rail-meter i'),label=document.querySelector('[data-read-label]');if(meter){meter.style.setProperty('--p',p);meter.classList.toggle('on',p>0&&p<1);}if(label)label.textContent=Math.round(p*100)+'% read';};
+    addEventListener('scroll',rpTick,{passive:true});rpTick();
+  }
+}
 var railNav=document.querySelector('.toc-rail nav');
 if(railNav&&'IntersectionObserver' in window){
   var rlinks=[].slice.call(railNav.querySelectorAll('a'));

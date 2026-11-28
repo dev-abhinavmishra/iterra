@@ -1117,16 +1117,7 @@ const JS_NAME = JS_SRC
 /* Reading-progress bar + scrollspy — vanilla JS, no dependencies. The bar
    tracks the article container (not the page) so it reads honestly. */
 function readProgressScript(targetSel) {
-  return `<div class="read-progress" aria-hidden="true"><i></i></div>
-<script>
-(function(){
-  var bar=document.querySelector('.read-progress i'),art=document.querySelector('${targetSel}');
-  if(bar&&art){
-    var tick=function(){var r=art.getBoundingClientRect(),total=r.height-window.innerHeight,p=total>0?Math.min(1,Math.max(0,-r.top/total)):0;bar.style.transform='scaleX('+p+')';var meter=document.querySelector('.rail-meter i'),label=document.querySelector('[data-read-label]');if(meter){meter.style.setProperty('--p',p);meter.classList.toggle('on',p>0&&p<1);}if(label)label.textContent=Math.round(p*100)+'% read';};
-    addEventListener('scroll',tick,{passive:true});tick();
-  }
-})();
-</script>`;
+  return `<div class="read-progress" data-pg="${targetSel}" aria-hidden="true"><i></i></div>`;
 }
 
 const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com" />
