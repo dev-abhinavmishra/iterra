@@ -2052,7 +2052,7 @@ export function renderGuidesIndex() {
   const picksHtml = PICKS.map((slug) => GUIDES.find((g) => g.slug === slug))
     .filter(Boolean)
     .map(
-      (g) => `<a class="pick" href="/guides/${g.slug}"><span class="pk mono">Start here</span><span class="pt">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="pd">${esc(g.description.split('.')[0])}.</span><span class="pm">${dateFmt(g.datePublished)} · ${g.readMinutes} min</span></a>`,
+      (g) => `<a class="pick" href="/guides/${g.slug}"><span class="pk mono">Start here</span><span class="pt">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="pd">${esc(g.description.split('.')[0])}.</span><span class="pm"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${g.readMinutes} min</span></a>`,
     )
     .join('\n');
   const cards = topics
@@ -2712,7 +2712,7 @@ ${footer()}
 function indexCards(pages, base) {
   return pages
     .map(
-      (p) => `<li><a href="/${base}/${p.slug}"><span class="k mono">${p.datePublished ? dateFmt(p.datePublished) : ''}</span><span class="t">${esc(p.h1.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(p.description)}</span></a></li>`,
+      (p) => `<li><a href="/${base}/${p.slug}"><span class="k mono">${p.datePublished ? `<time datetime="${p.datePublished}">${dateFmt(p.datePublished)}</time>` : ''}</span><span class="t">${esc(p.h1.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(p.description)}</span></a></li>`,
     )
     .join('\n');
 }
