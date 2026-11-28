@@ -2472,6 +2472,102 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-a-test-in-one-night',
+    title: 'How to study for a test <em>in one night</em>',
+    seoTitle: 'How to Study for a Test in One Night: Cramming Strategy',
+    description:
+      'Survive a one-night cram session: triage the material, use active recall, practice problems, and protect your sleep — the highest-yield strategy for last-minute studying.',
+    kicker: 'Study Methods',
+    datePublished: '2027-01-26',
+    dateModified: '2027-01-30',
+    readMinutes: 7,
+    keywords: ['how to study for a test in one night', 'cramming for a test', 'last minute study', 'all nighter study'],
+    tools: ['flashcards', 'timer'],
+    related: ['how-to-study-for-finals-week', 'how-to-use-practice-tests', 'how-to-avoid-study-burnout'],
+    lede: 'One-night study sessions are a bad plan — but they happen, and sometimes they’re unavoidable. The question isn’t whether you should have started earlier; it’s how to squeeze the most learning out of the hours you have left. The answer: triage ruthlessly, study actively, and protect your sleep.',
+    takeaways: [
+      'Triage the material into three piles — study what’s weighted, skip what isn’t.',
+      'Active recall beats rereading; flashcards or blank-page recall are the highest-yield moves.',
+      'Sleep is not optional — memory consolidation happens overnight.'
+    ],
+    faq: [
+      {
+        q: 'Is cramming ever effective?',
+        a: 'For recognition-based tests — multiple choice, vocabulary, formulas — a focused night of active recall can get you through. For deep understanding or cumulative finals, it’s a bandage, not a fix. It’s damage control, not a strategy.',
+      },
+      {
+        q: 'Should I pull an all-nighter before a test?',
+        a: 'No. Memory consolidation happens during sleep — a student who studies until 4am remembers less than one who stops at midnight and sleeps six hours. The extra study hours are offset by worse recall the next morning.',
+      },
+      {
+        q: 'What should I do first in a cram session?',
+        a: 'Spend the first 30 minutes triaging — sort the material into high-priority (weighted topics you don’t know), medium-priority (partial knowledge), and skip (low yield or already known). Study the high-priority pile first with active recall.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Triage: what to study and what to skip',
+        blocks: [
+          { k: 'p', t: 'One-night study sessions are a bad plan — but they happen, and sometimes they’re unavoidable. The question isn’t whether you should have started earlier; it’s how to squeeze the most learning out of the hours you have left. The answer: triage ruthlessly, study actively, and protect your sleep.' },
+          { k: 'p', t: 'With one night, you can’t learn everything — so don’t try. Spend the first 30 minutes sorting the material into three piles: the stuff that’s heavily weighted on the test, the stuff you already mostly know, and the stuff that probably won’t appear.' },
+          { k: 'deflist', items: [
+            { t: 'High priority', d: 'Heavily weighted topics and things you don’t know at all — study these first and hardest.' },
+            { t: 'Medium priority', d: 'Topics you partially know or that appear occasionally — review after the high-priority pile.' },
+            { t: 'Skip', d: 'Low-yield material and topics you already know cold — don’t spend a single minute here.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The order of operations for one night',
+        blocks: [
+          { k: 'p', t: 'The sequence matters more than the total hours. A night of cramming works best when it follows this shape:' },
+          { k: 'steps', items: [
+            'First 30 minutes: triage the material and build a hit list of topics.',
+            'Next 2-3 hours: study the highest-priority topics using active recall — not rereading.',
+            'After a break: move to medium-priority topics and practice problems.',
+            'Last hour: review your hit list once more and sleep — don’t pull an all-nighter.',
+          ]},
+          { k: 'callout', t: 'Sleep is not optional. Memory consolidation happens during sleep — a student who studies until 4am remembers less than one who stops at midnight and sleeps six hours.' },
+        ],
+      },
+      {
+        h2: 'Active recall beats rereading every time',
+        blocks: [
+          { k: 'p', t: 'The single most effective thing you can do in a cram session is close the book and try to recall the material. Flashcards, blank-page recall, teaching the material out loud — all of these force your brain to retrieve, which is the act of learning.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards turns your notes into retrieval practice in minutes — the fastest way to convert a pile of notes into active recall.' },
+        ],
+      },
+      {
+        h2: 'Practice problems: the multiplier',
+        blocks: [
+          { k: 'p', t: 'For math, science, and problem-solving courses, doing practice problems is worth more than rereading notes. Problems teach you the *application* of concepts, which is what exams actually test. Start with the easiest problems to build momentum, then work up.' },
+          { k: 'p', t: 'When you get stuck, don’t stare at the problem for twenty minutes — look at the solution, understand the step you missed, then do a similar problem yourself to confirm you can do it independently.' },
+        ],
+      },
+      {
+        h2: 'The exam-morning protocol',
+        blocks: [
+          { k: 'p', t: 'If you studied until midnight, the morning matters: eat something real, arrive early, and do a quick 10-minute review of your hit list — not a full re-study. Your brain consolidates overnight; trust it.' },
+          { k: 'p', t: 'During the exam, manage your time ruthlessly. Answer the questions you know first, flag the hard ones, and come back. A cram session gives you fragments of knowledge — the test-taking strategy helps you assemble them under pressure.' },
+        ],
+      },
+      {
+        h2: 'The honest truth about cramming',
+        blocks: [
+          { k: 'p', t: 'Cramming works for recognition — you’ll remember enough to pass, maybe enough to do well. What it doesn’t do is build durable understanding. If this course matters beyond the final, you’ll need to relearn the material properly later.' },
+          { k: 'quote', t: 'The best use of a one-night session is as a damage-control measure, not a strategy.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'p', t: 'One-night study is triage, not coverage: pick the highest-yield material, study it actively, practice problems, and protect your sleep. It’s not the ideal way to learn — but it’s the best way to survive a bad situation.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
