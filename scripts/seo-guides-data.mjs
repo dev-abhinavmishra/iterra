@@ -5697,6 +5697,109 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-acc',
+    title: 'How to study for the <em>ACC</em>',
+    seoTitle: 'How to Study for the ACC: Accounting Certification Prep',
+    description:
+      'Beat the ACC with understanding, not memorization: learn the standards, practice the problem types, explain concepts in your own words, and focus on the high-yield content areas.',
+    kicker: 'Study Methods',
+    datePublished: '2027-10-05',
+    dateModified: '2027-10-09',
+    readMinutes: 7,
+    keywords: ['how to study for the ACC', 'ACC exam prep', 'accounting certification', 'ACC study guide'],
+    tools: ['proof', 'flashcards'],
+    related: ['how-to-study-for-the-bar-exam', 'how-to-study-economics', 'how-to-study-for-the-fe-exam'],
+    lede: 'The ACC exam is the test that proves you can do accounting — not just study it. But most students treat it like a content review: they memorize the rules, practice the problems, and hope the exam rewards their effort. The ACC rewards a different approach: understand the *why* behind each standard, and practice the problem types until they\'re automatic.',
+    takeaways: [
+      'Take a practice test first — the questions you miss tell you which areas to review.',
+      'Understand the standards, not just the rules — explain concepts in your own words.',
+      'Focus on the high-yield areas: financial accounting, managerial accounting, auditing.',
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the ACC?',
+        a: 'Most students need 3-6 months of consistent prep. The ACC covers a lot of material — financial accounting, managerial accounting, auditing, and tax. A structured study plan with daily practice problems works better than weekend cramming.',
+      },
+      {
+        q: 'Is the ACC harder than CPA?',
+        a: 'The ACC is less comprehensive than the CPA but still rigorous. The ACC focuses on core accounting skills; the CPA covers more specialized areas like auditing, taxation, and business law. The ACC is a good stepping stone to the CPA.',
+      },
+      {
+        q: 'What\'s the pass rate for the ACC?',
+        a: 'Pass rates vary by cohort but are generally around 50-60%. The exam is challenging because it tests practical application, not just recall. Students who practice with real exam-style questions and review their mistakes thoroughly have the best chance of passing.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the ACC before you study it',
+        blocks: [
+          { k: 'p', t: 'The ACC is a professional certification exam — it covers financial accounting, managerial accounting, and auditing. The questions are practical: journal entries, financial statements, cost calculations, and audit procedures. It\'s not a trivia test; it\'s a skills test.' },
+          { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps organize accounting problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'The ACC study loop',
+        blocks: [
+          { k: 'p', t: 'ACC prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the standard or concept — read the text or watch a lecture.',
+            'Work through example problems — understand *why* each step works.',
+            'Solve problems independently — start with easy, then harder.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why revenue is recognized when earned understands accounting; a student who can only journalize doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The content areas: what to focus on',
+        blocks: [
+          { k: 'p', t: 'The ACC covers three main areas — focus on the high-yield topics:' },
+          { k: 'deflist', items: [
+            { t: 'Financial accounting', d: 'The income statement, balance sheet, and cash flow statement — know the formats cold.' },
+            { t: 'Managerial accounting', d: 'Cost behavior, budgeting, variance analysis — know the calculations.' },
+            { t: 'Auditing', d: 'Internal controls, audit procedures, evidence — know the concepts.' },
+            { t: 'Tax', d: 'The basics of income tax, deductions, and credits — know the rules.' },
+          ]},
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the standards, formulas, and definitions that every accounting problem assumes you know.' },
+        ],
+      },
+      {
+        h2: 'The problem-solving method',
+        blocks: [
+          { k: 'p', t: 'Accounting problems are puzzles — the answer isn\'t always obvious. The method:' },
+          { k: 'steps', items: [
+            'Read the problem carefully — identify what\'s given and what\'s asked.',
+            'Identify the relevant standard or concept — choose the right framework.',
+            'Solve step by step — show your work, check the logic.',
+            'Verify the answer — does it make accounting sense?',
+          ]},
+        ],
+      },
+      {
+        h2: 'The common ACC traps',
+        blocks: [
+          { k: 'p', t: 'Accounting problems have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'GAAP vs. tax', d: 'Accounting rules differ from tax rules — know the difference.' },
+            { t: 'Timing', d: 'Revenue and expense recognition has specific rules — know them.' },
+            { t: 'Materiality', d: 'Small errors can be immaterial — know when it matters.' },
+            { t: 'Journal entries', d: 'Debits and credits must balance — check your work.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The ACC isn\'t about memorizing rules — it\'s about understanding why they exist.' },
+          { k: 'p', t: 'Understand the standards, practice the problem types, explain the concepts, and check your work. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
