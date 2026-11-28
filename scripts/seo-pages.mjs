@@ -2132,6 +2132,9 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
 </div>
 </div></section>
 <div class="wrap">
+<figure class="plate">
+<div class="frame"><img src="/shots/ink.webp" alt="Iterra's Ink place — linked notes behind these study guides" width="1440" height="900" loading="eager" fetchpriority="high" decoding="async" /></div>
+</figure>
 <section class="block">
 <h2 class="sec mono">Start here</h2>
 <div class="picks">
@@ -2337,6 +2340,9 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, 
 <p class="lede">The guides, grouped the way students actually look for them — by the test they’re facing or the subject they’re drowning in.</p>
 </div></section>
 <div class="wrap">
+<figure class="plate">
+<div class="frame"><img src="/shots/margin.webp" alt="Iterra's Margin place — course materials behind the subject guides" width="1440" height="900" loading="eager" fetchpriority="high" decoding="async" /></div>
+</figure>
 <section class="block" style="border-bottom:none">
 <ul class="rows">
 ${cards}
