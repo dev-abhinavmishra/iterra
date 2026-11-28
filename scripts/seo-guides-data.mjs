@@ -545,11 +545,11 @@ export const GUIDES = [
         h2: 'The anatomy of a blocked week',
         blocks: [
           { k: 'p', t: 'A student’s week has three kinds of time: fixed commitments you can’t move, flexible time you can allocate, and slack you have to protect. Blocking is the art of assigning the flexible time deliberately.' },
-          { k: 'ul', items: [
-            'Fixed anchors: classes, work shifts, meals, sleep, commute. These are immovable — block them first.',
-            'Deep blocks: 60–120 minute sessions for the hardest work — essays, problem sets, dense reading. One subject per block; multitasking across courses is just switching costs.',
-            'Shallow blocks: 25–45 minute sessions for flashcards, email, admin, scheduling. These can be shorter and more frequent.',
-            'Buffer: at least 20% of your flexible time left unscheduled. This is where overruns go, where you recover, where life happens.',
+          { k: 'deflist', items: [
+            { t: 'Fixed anchors', d: 'Classes, work shifts, meals, sleep, commute. These are immovable — block them first.' },
+            { t: 'Deep blocks', d: '60–120 minute sessions for the hardest work — essays, problem sets, dense reading. One subject per block; multitasking across courses is just switching costs.' },
+            { t: 'Shallow blocks', d: '25–45 minute sessions for flashcards, email, admin, scheduling. These can be shorter and more frequent.' },
+            { t: 'Buffer', d: 'At least 20% of your flexible time left unscheduled. This is where overruns go, where you recover, where life happens.' },
           ]},
         ],
       },
@@ -557,7 +557,7 @@ export const GUIDES = [
         h2: 'Building your first block week',
         blocks: [
           { k: 'p', t: 'Don’t try to block every hour of every day. Start with three steps:' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Map your fixed commitments for the week — every class, shift, and standing obligation.',
             'Identify your three highest-leverage study tasks — the ones that would most move your grades if done well.',
             'Place each into a specific open slot, giving each a realistic time estimate plus 25% buffer.',
@@ -1260,11 +1260,11 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Remote and hybrid courses break the routine assumptions most guides make. There’s no “after class, go to the library” cue — the lecture ends and you’re already home, which means the transition to studying has to be built, not assumed.' },
           { k: 'p', t: 'A few adjustments that work:' },
-          { k: 'ul', items: [
-            'Create a physical boundary: a specific desk, a specific chair, a specific “study mode” — even if it’s just a different browser profile or a hat you put on. The cue has to be external because the environment isn’t.',
-            'Schedule the transition: after the last class ends, a 10-minute walk or chore before studying. Without the commute, the brain doesn’t register that “class mode” ended.',
-            'Use synchronous sessions as anchors: if you have live online classes, treat their end time like a real class end — the routine cue still works, it just needs a substitute trigger.',
-            'Guard the days that feel “free”: online semesters have no visual structure, so the calendar has to do the work. If Tuesday has no classes, that’s a deep-work day — block it before the week starts.',
+          { k: 'deflist', items: [
+            { t: 'Create a physical boundary', d: 'A specific desk, a specific chair, a specific “study mode” — even if it’s just a different browser profile or a hat you put on. The cue has to be external because the environment isn’t.' },
+            { t: 'Schedule the transition', d: 'After the last class ends, a 10-minute walk or chore before studying. Without the commute, the brain doesn’t register that “class mode” ended.' },
+            { t: 'Use synchronous sessions as anchors', d: 'If you have live online classes, treat their end time like a real class end — the routine cue still works, it just needs a substitute trigger.' },
+            { t: 'Guard the days that feel “free”', d: 'Online semesters have no visual structure, so the calendar has to do the work. If Tuesday has no classes, that’s a deep-work day — block it before the week starts.' },
           ]},
           { k: 'p', t: 'The routine doesn’t care where you are; it cares that the cue fires. Build the cue deliberately and the rest follows.' },
         ],
