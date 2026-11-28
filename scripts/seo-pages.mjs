@@ -928,6 +928,8 @@ body.reader .guide-article{max-width:46rem}
 .share a,.share button{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);text-decoration:none;background:none;border:1px solid var(--line2);border-radius:999px;padding:.32rem .85rem;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
 .share a:hover,.share button:hover{border-color:var(--accent);background:rgba(255,255,255,.5)}
 .share button.copied{border-color:var(--sage);color:var(--accent2)}
+.gsec{content-visibility:auto;contain-intrinsic-size:auto 640px}
+@supports not (content-visibility:auto){.gsec{content-visibility:visible}}
 .prose h3{font-family:Newsreader,Georgia,serif;font-weight:550;font-size:1.22rem;letter-spacing:-.02em;margin:2rem 0 .6rem;color:var(--ink);scroll-margin-top:84px}
 .prose-fig{margin:2.4rem 0}
 .prose-fig .frame{box-shadow:0 1px 2px rgba(31,36,31,.05),0 24px 50px -30px rgba(31,36,31,.4)}
