@@ -66,11 +66,11 @@ export const GUIDES = [
         h2: 'Time-block the recurring work, not just the deadlines',
         blocks: [
           { k: 'p', t: 'Deadlines give you milestones; blocks give you the actual hours. “Study chemistry this week” is a wish. “Chemistry, Tuesday 2–4pm and Thursday 7–9pm” is a structure — and structures survive bad days, because you don’t have to make a decision in the moment.' },
-          { k: 'ul', items: [
-            'Fixed anchors first: classes, work shifts, meals, sleep. Everything else is negotiable.',
-            'Then recurring blocks: two or three per course, at the times you actually have energy.',
-            'Then deadline chains: the specific sessions a paper or exam needs, placed backward from its date.',
-            'Then buffer: deliberately empty time you don’t assign to anything.',
+          { k: 'deflist', items: [
+            { t: 'Fixed anchors', d: 'Classes, work shifts, meals, sleep. Everything else is negotiable.' },
+            { t: 'Recurring blocks', d: 'Two or three per course, at the times you actually have energy.' },
+            { t: 'Deadline chains', d: 'The specific sessions a paper or exam needs, placed backward from its date.' },
+            { t: 'Buffer', d: 'Deliberately empty time you don’t assign to anything.' },
           ]},
           { k: 'p', t: 'The buffer isn’t laziness. It’s where the overflow goes when a block runs long, an assignment takes two sessions instead of one, or you just need a night off. A plan without slack breaks the first time something surprises you.' },
         ],
@@ -131,10 +131,10 @@ export const GUIDES = [
         h2: 'A worked example: extracting one syllabus',
         blocks: [
           { k: 'p', t: 'Extraction sounds abstract until you do it once. Here’s what it looks like for a typical course — say, Introductory Biology, three credits:' },
-          { k: 'ul', items: [
-            'Assignments: problem set 1 due Sept 8, lab reports monthly on the 20th, a five-page evolution essay due Oct 30.',
-            'Exams: two midterms (Oct 14, Nov 11) at 20% each, a cumulative final worth 30%, participation and labs making up the rest.',
-            'Recurring work the syllabus implies: weekly reading quizzes every Friday, lab prep the night before each Tuesday session.',
+          { k: 'deflist', items: [
+            { t: 'Assignments', d: 'Problem set 1 due Sept 8, lab reports monthly on the 20th, a five-page evolution essay due Oct 30.' },
+            { t: 'Exams', d: 'Two midterms (Oct 14, Nov 11) at 20% each, a cumulative final worth 30%, participation and labs making up the rest.' },
+            { t: 'Recurring work the syllabus implies', d: 'Weekly reading quizzes every Friday, lab prep the night before each Tuesday session.' },
           ]},
           { k: 'p', t: 'That’s maybe forty lines of text, but it answers almost every scheduling question you’ll have for the next four months. The essay due Oct 30 becomes a backward chain: outline by Oct 17, draft by Oct 24, revision Oct 27–29. The Friday reading quizzes become a standing Thursday-evening block. You never have to wonder “when do I start the essay” again — the syllabus already answered it.' },
           { k: 'p', t: 'Do this for every course in the same sitting, then put all of it on one calendar. Ten minutes per syllabus, done badly once, beats an hour of planning done perfectly later.' },
@@ -144,12 +144,12 @@ export const GUIDES = [
         h2: 'Week one, hour by hour',
         blocks: [
           { k: 'p', t: 'The first week has a specific job: convert syllabi into structure before the novelty wears off. A realistic version:' },
-          { k: 'ul', items: [
-            'Monday evening (2 hrs): pull every syllabus, extract deadlines and weights for all courses. Coffee, one page, no multitasking.',
-            'Tuesday (1 hr): map fixed anchors for the whole term — class times, work shifts, recurring commitments — onto a calendar.',
-            'Wednesday (1 hr): backward-chain the first major deadline in each course. If nothing is due for three weeks, chain the first reading quiz instead.',
-            'Thursday (30 min): place recurring weekly blocks — two or three per course, at times you genuinely have energy.',
-            'Friday (15 min): the first Sunday-evening review, two days early. What did you actually do? What did you miss? Adjust before week two starts.',
+          { k: 'table', head: ['When', 'The work'], rows: [
+            ['Monday evening · 2 hrs', 'Pull every syllabus, extract deadlines and weights for all courses. Coffee, one page, no multitasking.'],
+            ['Tuesday · 1 hr', 'Map fixed anchors for the whole term — class times, work shifts, recurring commitments — onto a calendar.'],
+            ['Wednesday · 1 hr', 'Backward-chain the first major deadline in each course. If nothing is due for three weeks, chain the first reading quiz instead.'],
+            ['Thursday · 30 min', 'Place recurring weekly blocks — two or three per course, at times you genuinely have energy.'],
+            ['Friday · 15 min', 'The first Sunday-evening review, two days early. What did you actually do? What did you miss? Adjust before week two starts.'],
           ]},
           { k: 'p', t: 'That’s about five hours total, most of it boring. It buys you a semester where “what should I be doing” is answered by a document instead of a mood.' },
         ],
@@ -219,10 +219,10 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Most systems grade each review on a four-point scale — roughly *again / hard / good / easy*. Recall it instantly and the interval stretches (one day becomes three, then a week). Fumble and the card drops back to a short interval. The schedule is personal: cards you know well drift out to months, cards you struggle with stay frequent until they don’t.' },
           { k: 'p', t: 'The result surprises people: the cards that show up most often are the ones you’re *closest* to remembering, not the ones you’ve forgotten. The system spends your time exactly where forgetting is about to happen.' },
-          { k: 'ul', items: [
-            'New cards enter at a moderate rate — a few dozen a day beats a hundred.',
-            'Reviews cluster into short daily sessions; ten minutes daily beats an hour weekly.',
-            'Cards you’ve seen twenty times eventually graduate to monthly or longer.',
+          { k: 'deflist', items: [
+            { t: 'New cards', d: 'Enter at a moderate rate — a few dozen a day beats a hundred.' },
+            { t: 'Reviews', d: 'Cluster into short daily sessions; ten minutes daily beats an hour weekly.' },
+            { t: 'Graduation', d: 'Cards you’ve seen twenty times eventually drift out to monthly or longer.' },
           ]},
         ],
       },
@@ -252,7 +252,7 @@ export const GUIDES = [
         h2: 'A first week that doesn’t collapse',
         blocks: [
           { k: 'p', t: 'The first week is where most spaced-repetition setups die, usually from ambition. A new student builds 400 cards, reviews for two hours, and quietly abandons the deck by day ten. Start smaller than feels necessary.' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Day one: ten to fifteen new cards from a single lecture or chapter. Not the whole course.',
             'Days two–seven: one honest session a day, roughly ten minutes — new cards plus whatever is due.',
             'End of week one: count what’s due tomorrow. If it’s over ~150 cards, you added too many — prune or slow down.',
@@ -286,9 +286,9 @@ export const GUIDES = [
         h2: 'Spacing vs. massing, with real numbers',
         blocks: [
           { k: 'p', t: 'The difference between spaced and massed review is easiest to see with an example. Say you have 100 vocabulary words to learn for a language course.' },
-          { k: 'ul', items: [
-            'Massed: one three-hour session on Sunday. By Thursday you remember maybe 30 of them. By exam day, fewer — the curve is already falling.',
-            'Spaced: twenty new words a day for five days, then reviews scheduled by the algorithm. Same total hours, spread out. A week later you still have most of them; a month later, nearly all.',
+          { k: 'deflist', items: [
+            { t: 'Massed', d: 'One three-hour session on Sunday. By Thursday you remember maybe 30 of them. By exam day, fewer — the curve is already falling.' },
+            { t: 'Spaced', d: 'Twenty new words a day for five days, then reviews scheduled by the algorithm. Same total hours, spread out. A week later you still have most of them; a month later, nearly all.' },
           ]},
           { k: 'p', t: 'The catch is that spacing *feels* worse. The massed session gives you the dopamine of “I studied for three hours.” Spacing gives you ten quiet minutes a day and cards you mostly know — which is exactly why it works and exactly why people quit it. The method asks you to trust arithmetic over intensity.' },
         ],
@@ -415,7 +415,7 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'A realistic session stack looks less heroic than the productivity screenshots suggest. Three deep blocks of fifty minutes with ten-minute breaks, one shallow block of flashcards and admin, and a proper lunch that involves leaving the desk — that’s a full, honest study day.' },
           { k: 'p', t: 'The breaks are where the method is won or lost. A five-minute break means standing up, water, a window — not a phone. The long break after the third or fourth block is the recovery your attention actually needs; skipping it just borrows energy from tomorrow.' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Morning: hardest subject first, while the day’s attention is still intact.',
             'Midday: shallower work — cards, notes review, scheduling.',
             'Afternoon: a second deep block, or practice problems if the morning went well.',
@@ -590,15 +590,15 @@ export const GUIDES = [
         h2: 'A blocked Tuesday, hour by hour',
         blocks: [
           { k: 'p', t: 'Theory is cheap; here’s what a blocked day actually feels like. A realistic Tuesday for a student taking four courses:' },
-          { k: 'ul', items: [
-            '8:00–9:30 — deep block: essay draft (English). Phone in another room. This is the hardest work, so it gets the freshest hour.',
-            '9:45–10:30 — class: Biology lecture. Fixed anchor, already blocked.',
-            '10:45–11:30 — shallow block: flashcards (all courses) + check Thursday’s reading quiz.',
-            '12:00–13:00 — lunch. Unscheduled on purpose — this is buffer that happens to be food.',
-            '13:30–15:00 — deep block: problem set (Math). Sixty–90 minutes, timer on.',
-            '15:30–16:00 — admin block: email, scheduling, the small stuff that otherwise leaks everywhere.',
-            '16:30–18:00 — open. This is the 20% buffer — the block that absorbs overruns, a group chat that runs long, or just a nap.',
-            '19:00–20:00 — shallow block: notes review for tomorrow’s classes.',
+          { k: 'table', head: ['Time', 'The block'], rows: [
+            ['8:00–9:30', 'Deep block: essay draft (English). Phone in another room — hardest work gets the freshest hour.'],
+            ['9:45–10:30', 'Class: Biology lecture. Fixed anchor, already blocked.'],
+            ['10:45–11:30', 'Shallow block: flashcards (all courses) + check Thursday’s reading quiz.'],
+            ['12:00–13:00', 'Lunch. Unscheduled on purpose — buffer that happens to be food.'],
+            ['13:30–15:00', 'Deep block: problem set (Math). Sixty–90 minutes, timer on.'],
+            ['15:30–16:00', 'Admin block: email, scheduling, the small stuff that otherwise leaks everywhere.'],
+            ['16:30–18:00', 'Open. The 20% buffer — absorbs overruns, a group chat that runs long, or just a nap.'],
+            ['19:00–20:00', 'Shallow block: notes review for tomorrow’s classes.'],
           ]},
           { k: 'p', t: 'Notice what’s *not* there: no “study chemistry” anywhere. Every block names a finishable task with a start and an end. When 1:30pm rolls around, you don’t decide anything — the calendar already did. That’s the entire mechanism working in your favor.' },
         ],
@@ -607,7 +607,7 @@ export const GUIDES = [
         h2: 'The Sunday reset',
         blocks: [
           { k: 'p', t: 'Time blocking fails quietly when the week is never reviewed — blocks get skipped, moved, or ignored until the whole system becomes decorative. The fix is a fifteen-minute Sunday ritual:' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Look at last week: which blocks happened, which moved, which vanished?',
             'For every block that didn’t happen, decide: was the time wrong, the task too big, or the week just chaotic?',
             'Fix one thing — not five. If Tuesday’s deep block keeps dying because of a standing meeting, move it. If the problem sets always take twice the time, double the estimate.',
@@ -697,7 +697,7 @@ export const GUIDES = [
         h2: 'The 10-minute after-class reset',
         blocks: [
           { k: 'p', t: 'This is the highest-leverage habit in note-taking, and almost nobody does it. Within 24 hours — ideally right after class — spend ten minutes on three things:' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Fill the gaps: clean up shorthand, complete interrupted thoughts, add anything you flagged with ?',
             'Add the cues: write 3–5 questions on the left margin (Cornell-style) or at the top of the page — things the notes should be able to answer',
             'Connect: write one sentence linking today’s material to something you already know — a previous lecture, another course, your own experience',
@@ -754,11 +754,11 @@ export const GUIDES = [
         h2: 'A note template you can steal',
         blocks: [
           { k: 'p', t: 'If you want a structure to start from, here’s a simple one that works for most lectures — no app required:' },
-          { k: 'ul', items: [
-            'Top of page: course, date, lecture topic — one line.',
-            'Main column (right two-thirds): your compressed notes — ideas, diagrams, formulas. Write for your future self, not for completeness.',
-            'Left margin (or a separate column): cue questions — written during the after-class reset, not during lecture. “Why does X happen before Y?” “What’s the difference between mitosis and meiosis again?”',
-            'Bottom: a 2–3 sentence summary — the lecture’s argument in your own words, written within 24 hours.',
+          { k: 'deflist', items: [
+            { t: 'Top of page', d: 'Course, date, lecture topic — one line.' },
+            { t: 'Main column (right two-thirds)', d: 'Your compressed notes — ideas, diagrams, formulas. Write for your future self, not for completeness.' },
+            { t: 'Left margin', d: 'Cue questions — written during the after-class reset, not during lecture. “Why does X happen before Y?” “What’s the difference between mitosis and meiosis again?”' },
+            { t: 'Bottom', d: 'A 2–3 sentence summary — the lecture’s argument in your own words, written within 24 hours.' },
           ]},
           { k: 'p', t: 'The Cornell method formalizes this exact layout; the template above is just the same idea without the branding. What matters isn’t the format — it’s that the left column forces you to generate questions, and the bottom forces you to compress. Both are retrieval practice disguised as note-taking.' },
         ],
@@ -767,11 +767,11 @@ export const GUIDES = [
         h2: 'Slides, readings, and what to do with each',
         blocks: [
           { k: 'p', t: 'Different course materials deserve different treatment. The mistake is treating them all as “stuff to read.”' },
-          { k: 'ul', items: [
-            'Slides: these are the professor’s emphasis map — what they chose to put on screen. Read them before class, note what’s missing, and during lecture write what the professor *adds* to the slides, not what’s already printed.',
-            'Readings: do them before class when possible, but don’t highlight — write marginal questions instead. “How does this connect to Tuesday’s lecture?” “What’s the counterargument?” Reading without a question is just exposure.',
-            'Recordings (async courses): treat them like live lectures — one pass, notes as you go, no rewinding to fill gaps. Rewatch only for flagged sections. The pause button is a trap; it turns a lecture into a transcription exercise.',
-            'Textbook chapters: read the summary and section headings first, then read for the gaps. If the lecture covers it, the textbook is reference material — know where to find it, don’t memorize it.',
+          { k: 'deflist', items: [
+            { t: 'Slides', d: 'The professor’s emphasis map — what they chose to put on screen. Read them before class, note what’s missing, and during lecture write what the professor *adds* to the slides, not what’s already printed.' },
+            { t: 'Readings', d: 'Do them before class when possible, but don’t highlight — write marginal questions instead. “How does this connect to Tuesday’s lecture?” “What’s the counterargument?” Reading without a question is just exposure.' },
+            { t: 'Recordings (async courses)', d: 'Treat them like live lectures — one pass, notes as you go, no rewinding to fill gaps. Rewatch only for flagged sections. The pause button is a trap; it turns a lecture into a transcription exercise.' },
+            { t: 'Textbook chapters', d: 'Read the summary and section headings first, then read for the gaps. If the lecture covers it, the textbook is reference material — know where to find it, don’t memorize it.' },
           ]},
           { k: 'p', t: 'The common thread: every material has a *job*. Slides tell you what matters. Readings give you depth. Lectures give you the professor’s framing. Notes are where you integrate all three — and integration is the learning.' },
         ],
@@ -917,7 +917,7 @@ export const GUIDES = [
         h2: 'A weekly recall habit',
         blocks: [
           { k: 'p', t: 'Active recall works best as a *weekly* practice, not just an exam-week panic. Here’s a simple version that takes about an hour:' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Monday: blank-page recall for last week’s hardest lecture — twenty minutes, no notes.',
             'Wednesday: flashcard review for all courses — whatever’s due, no cramming.',
             'Friday: teach-back session — pick one concept per course and explain it out loud to yourself or a friend.',
@@ -967,7 +967,7 @@ export const GUIDES = [
         h2: 'Triage before you study',
         blocks: [
           { k: 'p', t: 'The first mistake of finals week is treating all courses equally. They’re not equal — and neither are you. Before you open a book, spend an hour building a triage matrix:' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'List every exam: date, time, format (essay, multiple choice, problem-based, oral).',
             'For each course, note the exam’s weight in the final grade and your current standing.',
             'Estimate coverage needed: how much material, how well do you know it already, what are the highest-yield topics?',
@@ -981,7 +981,7 @@ export const GUIDES = [
         h2: 'The two-week arc',
         blocks: [
           { k: 'p', t: 'If you have two weeks (many schools now spread finals), the structure is:' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Days 1–3: Inventory. Gather all notes, past exams, practice problems, and study guides. Build your triage matrix. Identify the highest-yield material for each course — what topics appear most, what the professor emphasized, what past exams tested.',
             'Days 4–10: Distributed review. Rotate through courses in blocks — no more than two days on the same subject consecutively. Use active recall (flashcards, practice problems, blank-page summaries) rather than rereading.',
             'Days 11–14: Exam-specific prep. For each exam, do at least one full practice test under timed conditions. Review every mistake — not just the answer, but *why* you missed it.',
@@ -993,12 +993,12 @@ export const GUIDES = [
         h2: 'Daily structure during finals week',
         blocks: [
           { k: 'p', t: 'A sustainable finals-day looks like this:' },
-          { k: 'ul', items: [
-            'Morning (90–120 min): Your highest-priority course — the one with the soonest exam or biggest knowledge gap. Deep work before the day’s demands fragment your attention.',
-            'Midday (60–90 min): Second course, or continue the first if it’s still weak.',
-            'Afternoon (60–90 min): Third course, or a practice test for the morning’s subject.',
-            'Evening (60 min): Light review — flashcards, formula sheets, practice problems. No new material after dinner.',
-            'Night: Sleep. Non-negotiable. Memory consolidates during sleep; all-nighters trade tomorrow’s performance for tonight’s panic.',
+          { k: 'table', head: ['When', 'The block'], rows: [
+            ['Morning · 90–120 min', 'Your highest-priority course — the one with the soonest exam or biggest knowledge gap. Deep work before the day’s demands fragment your attention.'],
+            ['Midday · 60–90 min', 'Second course, or continue the first if it’s still weak.'],
+            ['Afternoon · 60–90 min', 'Third course, or a practice test for the morning’s subject.'],
+            ['Evening · 60 min', 'Light review — flashcards, formula sheets, practice problems. No new material after dinner.'],
+            ['Night', 'Sleep. Non-negotiable. Memory consolidates during sleep; all-nighters trade tomorrow’s performance for tonight’s panic.'],
           ]},
           { k: 'p', t: 'Use pomodoro or time-blocking inside these windows if it helps — but the structure above is the skeleton; the technique is just the muscle.' },
         ],
@@ -1015,11 +1015,11 @@ export const GUIDES = [
         h2: 'Course-specific tactics',
         blocks: [
           { k: 'p', t: 'Different exam formats reward different preparation:' },
-          { k: 'ul', items: [
-            'Multiple choice: Practice questions, not rereading. The exam tests discrimination between similar concepts — you need to practice *choosing*, not just *recognizing*.',
-            'Essays: Outline more essays than you write. Practice thesis statements, topic sentences, and evidence selection under time pressure. A timed outline beats an untimed essay.',
-            'Problem-based (math, physics, CS): Do problems, don’t read solutions. The struggle to set up the problem is where learning happens. Review mistakes by redoing them, not by reading the correct answer.',
-            'Oral exams: Practice explaining concepts aloud. If you can’t say it clearly, you don’t know it. Record yourself if possible.',
+          { k: 'deflist', items: [
+            { t: 'Multiple choice', d: 'Practice questions, not rereading. The exam tests discrimination between similar concepts — you need to practice *choosing*, not just *recognizing*.' },
+            { t: 'Essays', d: 'Outline more essays than you write. Practice thesis statements, topic sentences, and evidence selection under time pressure. A timed outline beats an untimed essay.' },
+            { t: 'Problem-based (math, physics, CS)', d: 'Do problems, don’t read solutions. The struggle to set up the problem is where learning happens. Review mistakes by redoing them, not by reading the correct answer.' },
+            { t: 'Oral exams', d: 'Practice explaining concepts aloud. If you can’t say it clearly, you don’t know it. Record yourself if possible.' },
           ]},
         ],
       },
@@ -1073,7 +1073,7 @@ export const GUIDES = [
         h2: 'The morning of the exam',
         blocks: [
           { k: 'p', t: 'Exam mornings have their own rhythm, and it’s mostly about not sabotaging yourself:' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Eat something — even if you’re not hungry. Low blood sugar produces the same panic as not knowing the material.',
             'Arrive early. The stress of being late is avoidable and disproportionate.',
             'Do a five-minute brain dump: write everything you know about the course on paper — key terms, formulas, main arguments. It primes recall and calms the panic spiral.',
@@ -1133,7 +1133,7 @@ export const GUIDES = [
         h2: 'Design the week, not the day',
         blocks: [
           { k: 'p', t: 'Daily routines are brittle — one bad morning and the whole day collapses. Weekly routines are resilient — a missed Monday session can be made up Wednesday without breaking anything. Design at the weekly level:' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Map your fixed commitments first: classes, work, sleep, recurring obligations.',
             'Identify your energy patterns: when are you sharpest? Block your hardest subjects there.',
             'Assign each course 2–3 recurring weekly sessions — same days, same times, same place if possible.',
@@ -1146,11 +1146,11 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The most reliable routines attach to things you already do automatically. Instead of “study chemistry at some point,” try “after my last class on Tuesday and Thursday, I go to the library for two hours.” The existing habit (class ending) becomes the trigger for the new one (studying).' },
           { k: 'p', t: 'This is called *habit stacking*, and it works because it removes the decision point. You’re not deciding whether to study — you’re just following the sequence. After a few weeks, the sequence runs itself.' },
-          { k: 'ul', items: [
-            'After morning coffee → 30 minutes of flashcards',
-            'After lunch → review yesterday’s notes',
-            'After last class → library block for the day’s hardest subject',
-            'Sunday evening → plan the week ahead',
+          { k: 'table', head: ['Existing cue', 'The session it triggers'], rows: [
+            ['After morning coffee', '30 minutes of flashcards'],
+            ['After lunch', 'Review yesterday’s notes'],
+            ['After last class', 'Library block for the day’s hardest subject'],
+            ['Sunday evening', 'Plan the week ahead'],
           ]},
         ],
       },
@@ -1280,11 +1280,11 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Card quality gets you halfway; scheduling gets you the rest. The research is consistent here: short, frequent sessions beat long, infrequent ones — ten minutes daily outperforms an hour weekly, because spacing is what builds durable memory.' },
           { k: 'p', t: 'Within each session, honesty matters. Grade your recall accurately:' },
-          { k: 'ul', items: [
-            'Again: you couldn’t recall it, or recalled it wrong. The card resets to a short interval.',
-            'Hard: you recalled it but it took effort or felt shaky. Short interval.',
-            'Good: clean recall with reasonable effort. Normal interval.',
-            'Easy: instant, effortless recall. Long interval.',
+          { k: 'deflist', items: [
+            { t: 'Again', d: 'You couldn’t recall it, or recalled it wrong. The card resets to a short interval.' },
+            { t: 'Hard', d: 'You recalled it but it took effort or felt shaky. Short interval.' },
+            { t: 'Good', d: 'Clean recall with reasonable effort. Normal interval.' },
+            { t: 'Easy', d: 'Instant, effortless recall. Long interval.' },
           ]},
           { k: 'p', t: 'The temptation to grade everything "good" or "easy" is the most common failure. If you’re not sure, grade lower — the algorithm will show you the card again sooner, which is exactly what you need.' },
         ],
@@ -1306,10 +1306,10 @@ export const GUIDES = [
         h2: 'When flashcards aren’t the right tool',
         blocks: [
           { k: 'p', t: 'Flashcards are for *atomic facts* — things that have a right answer and can be recalled in isolation. They’re the wrong tool for:' },
-          { k: 'ul', items: [
-            'Understanding complex systems — you can memorize that the Krebs cycle produces NADH, but cards won’t teach you *why* it matters. Pair cards with explanations and problem-solving.',
-            'Writing and argumentation — essays require synthesis, structure, and voice. Cards build vocabulary; they don’t build essays.',
-            'Skills that require practice — coding, math problem-solving, lab techniques. These need *doing*, not recalling.',
+          { k: 'deflist', items: [
+            { t: 'Understanding complex systems', d: 'You can memorize that the Krebs cycle produces NADH, but cards won’t teach you *why* it matters. Pair cards with explanations and problem-solving.' },
+            { t: 'Writing and argumentation', d: 'Essays require synthesis, structure, and voice. Cards build vocabulary; they don’t build essays.' },
+            { t: 'Skills that require practice', d: 'Coding, math problem-solving, lab techniques. These need *doing*, not recalling.' },
           ]},
           { k: 'p', t: 'The best students use cards as one tool in a larger system: cards for the facts that need to be automatic, practice problems for the skills that need to be fluent, and essays for the thinking that needs to be deep.' },
         ],
@@ -1318,7 +1318,7 @@ export const GUIDES = [
         h2: 'A deck’s life cycle',
         blocks: [
           { k: 'p', t: 'A healthy deck has a lifespan. It starts small — twenty cards from one lecture — grows as the course does, peaks when the material is densest, and shrinks as cards graduate to long intervals or get archived at semester’s end.' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Birth: cards made from your notes within a day of the lecture, while the material is still warm.',
             'Growth: ten to twenty new cards a day, only as fast as reviews stay current.',
             'Peak: due counts climb before exams; protect the daily session and let the schedule do the spacing.',
@@ -1365,12 +1365,12 @@ export const GUIDES = [
         h2: 'Card formats that work',
         blocks: [
           { k: 'p', t: 'Not all cards are equal. A few formats consistently outperform the generic term-definition card:' },
-          { k: 'ul', items: [
-            'Cloze deletion: hide one term in a sentence — “Mitosis produces ___ genetically identical cells.” Tests context, not just definition.',
-            'Image occlusion: for anatomy, diagrams, and maps — cover a label or region and recall what it is. Text-only cards can’t test visual memory.',
-            'Process cards: “What are the steps of X?” with the answer listing them in order. Essential for procedures and algorithms.',
-            'Comparison cards: “What’s the difference between X and Y?” Forces discrimination, not just recognition.',
-            'Application cards: “Given scenario Z, what’s the correct approach?” Tests whether you can *use* the concept, not just define it.',
+          { k: 'deflist', items: [
+            { t: 'Cloze deletion', d: 'Hide one term in a sentence — “Mitosis produces ___ genetically identical cells.” Tests context, not just definition.' },
+            { t: 'Image occlusion', d: 'For anatomy, diagrams, and maps — cover a label or region and recall what it is. Text-only cards can’t test visual memory.' },
+            { t: 'Process cards', d: '“What are the steps of X?” with the answer listing them in order. Essential for procedures and algorithms.' },
+            { t: 'Comparison cards', d: '“What’s the difference between X and Y?” Forces discrimination, not just recognition.' },
+            { t: 'Application cards', d: '“Given scenario Z, what’s the correct approach?” Tests whether you can *use* the concept, not just define it.' },
           ]},
           { k: 'p', t: 'The best format is the one that matches the material. Definitions for vocabulary, cloze for context, image occlusion for visuals, process cards for procedures. A deck of 30 well-formatted cards beats 100 generic ones every time.' },
         ],
@@ -1438,14 +1438,14 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'In 2019, a group of researchers at Ink & Switch published an essay that gave a name to an old idea: *local-first software*. The core insight is simple — in cloud apps, the server is the primary copy of your data and your device is just a cache. In local-first apps, the roles flip: your device holds the authoritative copy, and servers (if they exist at all) are secondary backups for syncing across devices.' },
           { k: 'p', t: 'The essay laid out seven ideals:' },
-          { k: 'ul', items: [
-            'No spinners: your work is at your fingertips, not waiting on a server.',
-            'Your work is not trapped on one device.',
-            'The network is optional — offline is a first-class state, not an error.',
-            'Seamless collaboration with colleagues.',
-            'The Long Now: your data is preserved for the long term.',
-            'Security and privacy by default.',
-            'You retain ultimate ownership and control.',
+          { k: 'deflist', items: [
+            { t: 'No spinners', d: 'Your work is at your fingertips, not waiting on a server.' },
+            { t: 'Not trapped', d: 'Your work is not trapped on one device.' },
+            { t: 'Optional network', d: 'Offline is a first-class state, not an error.' },
+            { t: 'Seamless collaboration', d: 'With colleagues, when the tool supports it.' },
+            { t: 'The Long Now', d: 'Your data is preserved for the long term.' },
+            { t: 'Security by default', d: 'Privacy is the baseline, not a setting.' },
+            { t: 'Ultimate ownership', d: 'You retain ownership and control.' },
           ]},
           { k: 'p', t: 'Not every app achieves all seven, but the direction is clear: the user’s data should serve the user, not the platform.' },
         ],
@@ -1454,11 +1454,11 @@ export const GUIDES = [
         h2: 'Why this matters for students specifically',
         blocks: [
           { k: 'p', t: 'Students are unusually vulnerable to platform risk. Your notes, flashcards, and study materials represent years of intellectual work — but they live in apps that can:' },
-          { k: 'ul', items: [
-            'Shut down (Google Reader, countless startups, your favorite note app from 2019)',
-            'Change terms (suddenly your data trains AI models, or requires a subscription)',
-            'Lose data (sync conflicts, account bans, accidental deletions that propagate everywhere)',
-            'Hold you hostage (export formats that are incomplete, proprietary, or require the app to read)',
+          { k: 'deflist', items: [
+            { t: 'Shut down', d: 'Google Reader, countless startups, your favorite note app from 2019.' },
+            { t: 'Change terms', d: 'Suddenly your data trains AI models, or requires a subscription.' },
+            { t: 'Lose data', d: 'Sync conflicts, account bans, accidental deletions that propagate everywhere.' },
+            { t: 'Hold you hostage', d: 'Export formats that are incomplete, proprietary, or require the app to read.' },
           ]},
           { k: 'p', t: 'A local-first app eliminates most of these risks. Your notes live in a file on your device — they survive the company going bankrupt, the service shutting down, or the platform changing its mind. The app can disappear; your work doesn’t.' },
         ],
@@ -1467,11 +1467,11 @@ export const GUIDES = [
         h2: 'The honest trade-offs',
         blocks: [
           { k: 'p', t: 'Local-first isn’t free. The trade-offs are real:' },
-          { k: 'ul', items: [
-            'Sync is harder. Real-time collaboration across devices is genuinely difficult without a server. Many local-first apps offer sync, but it’s often less seamless than cloud-native tools.',
-            'Backup is your responsibility. Cloud apps *feel* safe because the provider handles redundancy. Local-first means you need to export or sync regularly — the discipline replaces the illusion.',
-            'Collaboration features lag. Google Docs-style simultaneous editing is still a cloud advantage. Local-first tools are catching up but aren’t there yet for heavy collaboration.',
-            'Device loss = data loss (without backup). If your laptop dies and you haven’t exported, your notes are gone. Cloud apps at least offer account recovery.',
+          { k: 'deflist', items: [
+            { t: 'Sync is harder', d: 'Real-time collaboration across devices is genuinely difficult without a server. Many local-first apps offer sync, but it’s often less seamless than cloud-native tools.' },
+            { t: 'Backup is your responsibility', d: 'Cloud apps *feel* safe because the provider handles redundancy. Local-first means you need to export or sync regularly — the discipline replaces the illusion.' },
+            { t: 'Collaboration features lag', d: 'Google Docs-style simultaneous editing is still a cloud advantage. Local-first tools are catching up but aren’t there yet for heavy collaboration.' },
+            { t: 'Device loss = data loss (without backup)', d: 'If your laptop dies and you haven’t exported, your notes are gone. Cloud apps at least offer account recovery.' },
           ]},
           { k: 'p', t: 'For most students, these trade-offs are worth it — you’re not collaborating on a novel in real-time; you’re taking notes, making flashcards, and planning your week. The ownership and privacy advantages outweigh the sync conveniences.' },
         ],
@@ -1480,12 +1480,12 @@ export const GUIDES = [
         h2: 'What to look for in a local-first notes app',
         blocks: [
           { k: 'p', t: 'Not all "offline-capable" apps are local-first. Here’s what to check:' },
-          { k: 'ul', items: [
-            'Where does the data live? If the answer is "our servers," it’s not local-first. Look for "your device" or "local storage."',
-            'Can you export everything? Full export in an open format (Markdown, JSON, plain text) means you’re never locked in.',
-            'Does it work fully offline? Not just "cached" — genuinely functional without a network connection.',
-            'Who owns the data? Check the privacy policy. "We don’t sell your data" is different from "we can’t access your data."',
-            'What happens if the company disappears? Local-first apps that store data in open formats on your device survive the company. Cloud apps don’t.',
+          { k: 'deflist', items: [
+            { t: 'Where does the data live?', d: 'If the answer is "our servers," it’s not local-first. Look for "your device" or "local storage."' },
+            { t: 'Can you export everything?', d: 'Full export in an open format (Markdown, JSON, plain text) means you’re never locked in.' },
+            { t: 'Does it work fully offline?', d: 'Not just "cached" — genuinely functional without a network connection.' },
+            { t: 'Who owns the data?', d: 'Check the privacy policy. "We don’t sell your data" is different from "we can’t access your data."' },
+            { t: 'What happens if the company disappears?', d: 'Local-first apps that store data in open formats on your device survive the company. Cloud apps don’t.' },
           ]},
         ],
       },
@@ -1551,7 +1551,7 @@ export const GUIDES = [
         h2: 'A realistic backup routine',
         blocks: [
           { k: 'p', t: 'Local-first means *you* hold the keys, which means backups are your job. The good news: it’s a ten-minute monthly habit, not a project.' },
-          { k: 'ul', items: [
+          { k: 'steps', items: [
             'Monthly export: export notes, flashcards, and schedules to a folder you control — external drive, cloud storage, or both.',
             'Test the restore once: an untested backup is a rumor. Restore one file once a semester to confirm the export actually works.',
             'Version your critical work: if a tool supports it, keep dated exports before major revisions — finals week is not the time to discover corruption.',
