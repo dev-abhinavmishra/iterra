@@ -2032,6 +2032,43 @@ ${items}
 `;
 }
 
+export function renderLlmsTxt() {
+  const toolLines = TOOLS.map(
+    (t) => `- [${t.name} — ${t.path}](https://iterrapp.vercel.app${t.path}): ${t.lede.split('.')[0]}.`,
+  ).join('\n');
+  const guideLines = GUIDES.map(
+    (g) => `- [${g.title.replace(/<\/?em>/g, '')}](https://iterrapp.vercel.app/guides/${g.slug})`,
+  ).join('\n');
+  const cmpLines = COMPARE_PAGES.map(
+    (p) => `- [${String(p.h1).replace(/<\/?em>/g, '')}](https://iterrapp.vercel.app/${p.section}/${p.slug})`,
+  ).join('\n');
+  return `# Iterra
+
+> Iterra is a free, local-first, all-in-one study workspace for students. ${TOOLS.length} tools — time-blocking planner, course planner, habit tracker, spaced-repetition flashcards, linked notes, study material organizer, quiz & bubble-sheet grading, pomodoro/focus timer, and math workbench — unified in one browser-based environment. No account required; data lives on your device unless you choose sync.
+
+Canonical site: https://iterrapp.vercel.app
+
+## Tools
+
+${toolLines}
+
+All tools: https://iterrapp.vercel.app/tools
+
+## Guides
+
+${guideLines}
+
+All guides: https://iterrapp.vercel.app/guides
+RSS feed: https://iterrapp.vercel.app/feed.xml
+
+## Comparisons & alternatives
+
+${cmpLines}
+
+Sitemap: https://iterrapp.vercel.app/sitemap.xml
+`;
+}
+
 export function renderSitemap(lastmod = new Date().toISOString().slice(0, 10)) {
   const urls = [
     { loc: `${SITE}/`, priority: '1.0', freq: 'weekly' },
@@ -2089,5 +2126,6 @@ export function writeSeoPages(distDir) {
   }
   writeFileSync(join(distDir, 'sitemap.xml'), renderSitemap());
   writeFileSync(join(distDir, 'feed.xml'), renderFeed());
+  writeFileSync(join(distDir, 'llms.txt'), renderLlmsTxt());
   console.log(`seo: wrote /tools index + ${TOOLS.length} tool pages + /guides index + ${GUIDES.length} guides + /compare + /alternatives indexes + ${COMPARE_PAGES.length} compare pages + sitemap.xml`);
 }
