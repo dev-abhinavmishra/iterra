@@ -4383,6 +4383,99 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-bar-exam',
+    title: 'How to study for the <em>bar exam</em>',
+    seoTitle: 'How to Study for the Bar Exam: MBE, MEE, MPT Strategy',
+    description:
+      'Beat the bar exam with a system: know the format, practice the patterns, review every question, and manage your time ruthlessly — the bar rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-06-29',
+    dateModified: '2027-07-03',
+    readMinutes: 7,
+    keywords: ['how to study for the bar exam', 'bar exam prep', 'MBE study', 'bar exam strategy'],
+    tools: ['timer', 'proof'],
+    related: ['how-to-study-for-the-lsat', 'how-to-study-for-the-mcat', 'how-to-use-practice-tests'],
+    lede: 'The bar exam is the final boss of law school — a two-day test that covers every subject you studied, plus performance tests that require writing under pressure. But the bar rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'MBE is multiple choice, MEE is essays, MPT is performance tasks — each needs a different strategy.',
+      'Practice, review, repeat — the review is where learning happens.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the bar exam?',
+        a: 'Most students need 8-10 weeks of intensive prep. A focused 10-12 week plan with 20-30 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak subjects.',
+      },
+      {
+        q: 'How do I prepare for the MEE essays?',
+        a: 'Practice writing essays under timed conditions (30 minutes each). Use the IRAC structure — Issue, Rule, Analysis, Conclusion. The best essays don\'t just state the rule — they apply it to the facts systematically.',
+      },
+      {
+        q: 'How do I prepare for the MPT?',
+        a: 'Practice performance tasks — drafting memos, briefs, and contracts from provided materials. The MPT rewards clarity and organization, not just legal knowledge. Read the task instructions carefully and organize your answer logically.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The bar exam is the final boss of law school — a two-day test that covers every subject you studied, plus performance tests that require writing under pressure. But the bar rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.' },
+          { k: 'p', t: 'The bar exam has multiple sections: Multistate Bar Examination (MBE), Multistate Essay Examination (MEE), Multistate Performance Test (MPT), and state-specific components. The MBE is 200 multiple-choice questions; the MEE is 6 essays; the MPT is 2 performance tasks. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 1300 in MBE but struggles with essays should spend most of their time on essay writing.' },
+        ],
+      },
+      {
+        h2: 'The bar study loop',
+        blocks: [
+          { k: 'p', t: 'Bar prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the subjects you miss most.',
+            'Drill those subjects with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'MBE: the multiple-choice game',
+        blocks: [
+          { k: 'p', t: 'The MBE is 200 multiple-choice questions covering contracts, torts, constitutional law, criminal law, evidence, and real property. The questions are formulaic — once you learn the patterns, they become mechanical.' },
+          { k: 'deflist', items: [
+            { t: 'Contracts', d: 'Identify the offer, acceptance, consideration, and defenses.' },
+            { t: 'Torts', d: 'Identify the duty, breach, causation, and damages.' },
+            { t: 'Constitutional law', d: 'Identify the right, the restriction, and the level of scrutiny.' },
+            { t: 'Criminal law', d: 'Identify the actus reus, mens rea, and defenses.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'MEE: the essay game',
+        blocks: [
+          { k: 'p', t: 'The MEE is 6 essays covering the same subjects as the MBE. The strategy is IRAC — Issue, Rule, Analysis, Conclusion. Practice writing essays under timed conditions (30 minutes each).' },
+          { k: 'p', t: 'The best bar essays don\'t just state the rule — they *apply* it to the facts. Practice identifying the issues, stating the rules, and analyzing the facts systematically.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps structure the IRAC essay — issue, rule, analysis, conclusion — so the argument holds together under exam pressure.' },
+        ],
+      },
+      {
+        h2: 'MPT: the performance-test game',
+        blocks: [
+          { k: 'p', t: 'The MPT is 2 performance tasks — drafting a memo, brief, or contract from provided materials. The tasks test whether you can *do* legal work, not just know the law.' },
+          { k: 'p', t: 'The strategy: read the task instructions carefully, identify the audience and purpose, and organize your answer logically. The MPT rewards clarity and organization, not just legal knowledge.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The bar exam is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
