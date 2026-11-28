@@ -4107,6 +4107,93 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-improve-your-gpa',
+    title: 'How to <em>improve your GPA</em>',
+    seoTitle: 'How to Improve Your GPA: Triage, Schedule, Execute',
+    description:
+      'Raise your GPA by working smarter, not harder: audit your grades, triage the workload, build a study schedule, and get help early.',
+    kicker: 'Study Methods',
+    datePublished: '2027-06-08',
+    dateModified: '2027-06-12',
+    readMinutes: 6,
+    keywords: ['how to improve GPA', 'raise GPA', 'GPA improvement', 'how to get better grades'],
+    tools: ['boxed', 'flashcards'],
+    related: ['building-a-weekly-study-routine', 'how-to-focus-when-studying', 'how-to-study-for-finals-week'],
+    lede: 'Your GPA is a lagging indicator — it reflects the study habits you built months ago, not the ones you\'re building now. Improving it isn\'t about working harder; it\'s about working *smarter* on the courses that matter most. The students who raise their GPA fastest aren\'t the ones who study everything — they\'re the ones who triage ruthlessly and execute consistently.',
+    takeaways: [
+      'GPA is a portfolio — focus on the high-weight courses that are recoverable.',
+      'Triage the workload — a student who tries to improve everything improves nothing.',
+      'Get help early — recovery is faster in week 3 than week 10.'
+    ],
+    faq: [
+      {
+        q: 'How can I raise my GPA quickly?',
+        a: 'Focus on the courses with the most weight and the most room for improvement. A single A in a 4-credit course can move your GPA more than straight A\'s in two 1-credit electives. Audit your grades, triage ruthlessly, and execute consistently.',
+      },
+      {
+        q: 'Is it too late to improve my GPA this semester?',
+        a: 'It depends on the timing. If you\'re early in the semester, you have time to recover. If you\'re mid-semester, focus on the courses where improvement is still possible. If you\'re near the end, damage control — protect the grades you have and set up next semester better.',
+      },
+      {
+        q: 'Should I drop a course to protect my GPA?',
+        a: 'Only if the course is truly unrecoverable and dropping it protects your overall GPA. A W is better than an F, but it\'s not a free pass — it still shows on your transcript. Talk to your advisor before deciding.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'GPA is a portfolio, not a grade',
+        blocks: [
+          { k: 'p', t: 'Your GPA is a lagging indicator — it reflects the study habits you built months ago, not the ones you\'re building now. Improving it isn\'t about working harder; it\'s about working *smarter* on the courses that matter most. The students who raise their GPA fastest aren\'t the ones who study everything — they\'re the ones who triage ruthlessly and execute consistently.' },
+          { k: 'p', t: 'Every course is a different weight in your GPA — a 4-credit course matters more than a 1-credit seminar, and a course in your major matters more for grad school than an elective. Think of your GPA as a portfolio: you don\'t need every asset to perform, you need the high-weight ones to.' },
+          { k: 'p', t: 'Audit your current grades: which courses are dragging you down? Which are recoverable? Which are already strong? The audit tells you where to focus.' },
+        ],
+      },
+      {
+        h2: 'The GPA improvement loop',
+        blocks: [
+          { k: 'p', t: 'Improving your GPA follows a predictable cycle:' },
+          { k: 'steps', items: [
+            'Audit your grades — identify the courses dragging you down.',
+            'Triage the workload — focus on high-weight, recoverable courses.',
+            'Build a study schedule — consistent daily work beats weekend cramming.',
+            'Use active recall — flashcards, practice problems, teaching.',
+            'Track your progress — weekly grade checks keep you honest.',
+          ]},
+          { k: 'p', t: 'The triage step is crucial. A student who tries to improve everything improves nothing; a student who focuses on the two courses that matter most improves fast.' },
+          { k: 'tool', tool: 'boxed', t: 'Boxed helps you build the study schedule — time-block the high-priority courses and protect the time for them.' },
+        ],
+      },
+      {
+        h2: 'The course-selection strategy',
+        blocks: [
+          { k: 'p', t: 'Your GPA isn\'t just about studying — it\'s about course selection. A strategic student loads up on courses they can ace and balances the hard ones with the manageable ones. A student who takes five hard courses and gets three B\'s has a lower GPA than one who takes three hard and two easy and gets five A\'s.' },
+          { k: 'p', t: 'This isn\'t about avoiding challenge — it\'s about strategic sequencing. Take the hard courses when you have the bandwidth; take the easier ones when you\'re overloaded.' },
+        ],
+      },
+      {
+        h2: 'The recovery playbook',
+        blocks: [
+          { k: 'p', t: 'If you\'re behind in a course, the recovery playbook is specific: go to office hours, form a study group, use past exams, and ask the professor for help. The students who recover fastest aren\'t the ones who study more — they\'re the ones who get help sooner.' },
+          { k: 'p', t: 'Don\'t wait until the midterm to realize you\'re behind. The earlier you intervene, the more recoverable the grade. A student who gets help in week 3 has a much better shot than one who waits until week 10.' },
+        ],
+      },
+      {
+        h2: 'The habits that compound',
+        blocks: [
+          { k: 'p', t: 'The students who raise their GPA fastest share specific habits: they study daily (not just before exams), they use active recall (not just rereading), they track their grades weekly, and they ask for help early. These habits compound — small improvements in each course add up to a significant GPA increase over a semester.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Improving your GPA isn\'t about working harder — it\'s about working smarter on the courses that matter most.' },
+          { k: 'p', t: 'Audit your grades, triage the workload, build a study schedule, and get help early. The students who raise their GPA fastest aren\'t the ones who study everything — they\'re the ones who execute consistently on the right things.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
