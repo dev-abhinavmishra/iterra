@@ -5706,6 +5706,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked problem, start to finish',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "A ball is thrown upward at 20 m/s. How high does it go?" Most students freeze because there is no obvious formula — the method removes the freeze.' },
+          { k: 'steps', items: [
+            'What is given? Initial velocity 20 m/s upward, final velocity 0 at the top, acceleration −9.8 m/s².',
+            'What is asked? Maximum height — a distance, so the kinematics equation with v² is the tool.',
+            'Pick the equation: v² = u² + 2as, solve for s.',
+            'Solve: 0 = 400 + 2(−9.8)s, so s = 400/19.6 ≈ 20.4 m.',
+            'Sanity-check: does ~20 m make sense for a hard throw? Yes — a tall person is ~1.8 m.',
+          ]},
+          { k: 'p', t: 'The problem felt hard because the equation was not obvious — not because the physics was. Ten problems like this, worked slowly the first time, make the eleventh feel routine.' },
+        ],
+      },
+      {
         h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'Physics isn\'t about memorizing formulas — it\'s about understanding why they work.' },
@@ -5812,6 +5826,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked problem, start to finish',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic stoichiometry problem: "How many grams of water form when 4.0 g of H₂ reacts with excess O₂?" The problem looks intimidating — the method makes it mechanical.' },
+          { k: 'steps', items: [
+            'Write and balance the equation: 2H₂ + O₂ → 2H₂O.',
+            'Convert what you have to moles: 4.0 g H₂ ÷ 2.0 g/mol = 2.0 mol H₂.',
+            'Use the mole ratio: 2 mol H₂ produces 2 mol H₂O, so 2.0 mol H₂ → 2.0 mol H₂O.',
+            'Convert back to grams: 2.0 mol × 18.0 g/mol = 36.0 g H₂O.',
+            'Sanity-check: water is heavier than hydrogen — 36 g from 4 g of H₂ plus oxygen from the air is plausible.',
+          ]},
+          { k: 'p', t: 'Every stoichiometry problem is this same four-step bridge — grams to moles, mole ratio, moles to grams. Master the bridge once and a hundred problems become one problem.' },
+        ],
+      },
+      {
         h2: 'The bottom line',
         blocks: [
           { k: 'quote', t: 'Chemistry isn\'t about memorizing formulas — it\'s about understanding why reactions happen.' },
@@ -5915,6 +5943,20 @@ export const GUIDES = [
             { t: 'Cause vs. correlation', d: 'Biology questions test whether you understand *why*, not just *that*.' },
             { t: 'Exceptions', d: 'Biology is full of exceptions — the "rule" has a "but usually..."' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked recall session',
+        blocks: [
+          { k: 'p', t: 'Here is what "systems first" looks like in practice — a 25-minute session on the immune system, the unit everyone finds hardest:' },
+          { k: 'steps', items: [
+            'Blank page — write everything you remember about immune response: barriers, innate, adaptive, memory.',
+            'Check against notes — mark what you missed, not what you got wrong. Missing is the signal.',
+            'Rebuild the system — draw the response as a flow: pathogen → barrier → innate → adaptive → memory.',
+            'Attach the details — cell names and cytokines hang off the flowchart, not floating in space.',
+            'Close the book and redraw it tomorrow — the redraw is the exam rehearsal.',
+          ]},
+          { k: 'p', t: 'Notice what never happened: re-reading the chapter. The blank page did the teaching — every gap you found was a fact your brain admitted it did not own.' },
         ],
       },
       {
@@ -6131,6 +6173,20 @@ export const GUIDES = [
             { t: 'Sample size', d: 'Larger samples give more reliable results — small samples are noisy.' },
             { t: 'Significance vs. importance', d: 'Statistical significance doesn\'t mean practical importance.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked example, start to finish',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "A drug trial reports p = 0.03. What does that actually mean?" The calculation is trivial — the interpretation is where the points live.' },
+          { k: 'steps', items: [
+            'State the hypotheses: H₀ says the drug has no effect; H₁ says it does.',
+            'Read the p-value: 0.03 means that if the drug did nothing, results this extreme would appear only 3% of the time.',
+            'Apply the threshold: 0.03 < 0.05, so we reject H₀ — the result is statistically significant.',
+            'Say what it does not mean: significance is not importance — a huge sample can make a tiny effect "significant."',
+            'Write the conclusion in words: "We have evidence the drug works; we cannot yet say the effect is large."',
+          ]},
+          { k: 'p', t: 'Most statistics marks are lost in step four — students compute correctly, then overclaim. The exam is testing whether you know what the number licenses you to say.' },
         ],
       },
       {
@@ -6684,6 +6740,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked labeling session',
+        blocks: [
+          { k: 'p', t: 'Here is what "systems first" looks like for anatomy — a 30-minute session on the heart, the organ every anatomy course returns to:' },
+          { k: 'steps', items: [
+            'Sketch the heart from memory — chambers, vessels, valves. Ugly is fine; blank is not.',
+            'Label what you can — name the structures you placed correctly.',
+            'Find the gaps — the vessels you forgot, the valve you misplaced. Those are tomorrow\'s cards.',
+            'Trace one pathway — blood through the heart, valve by valve, until you can narrate it.',
+            'Re-sketch it closed-book tomorrow — the second sketch is the real test.',
+          ]},
+          { k: 'p', t: 'Anatomy rewards spatial memory, not verbal memory — the sketch is not a study aid, it is the study. Students who only re-read atlases recognize structures; students who draw them can find them on a cadaver or an exam.' },
+        ],
+      },
+      {
         h2: 'The bottom line',
         blocks: [
           { k: 'quote', t: 'Anatomy isn\'t about memorizing structures — it\'s about understanding systems.' },
@@ -6898,6 +6968,20 @@ export const GUIDES = [
             { t: 'Knowledge areas', d: 'Know the 10 areas and how they interrelate.' },
             { t: 'Agile vs. predictive', d: 'Know when to use which approach.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked situational question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic PMP scenario: "Your team missed the last three sprints. The sponsor wants a recovery plan by Friday. What do you do first?" The answer choices all sound reasonable — the method finds the right one.' },
+          { k: 'steps', items: [
+            'Read for the constraint — the deadline is Friday; the problem is recurring misses, not a one-off.',
+            'Recall the domain — this is Predictable, Agile or Hybrid territory: which approach does your plan actually claim to follow?',
+            'Eliminate the traps — "work weekends" and "add people" are classic wrong answers; they treat symptoms, not causes.',
+            'Choose the servant-leader move — inspect the sprint data, find the bottleneck, involve the team in the recovery plan.',
+            'Check against the ethics lens — the plan must protect the team\'s sustainability, not just the date.',
+          ]},
+          { k: 'p', t: 'PMP questions are designed so every option is defensible in isolation — the exam rewards the answer that addresses root cause, respects the framework you claimed, and keeps the team whole. Practice reading for those three filters.' },
         ],
       },
       {
