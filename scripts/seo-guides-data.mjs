@@ -3046,6 +3046,104 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-history',
+    title: 'How to <em>study history</em>',
+    seoTitle: 'How to Study History: Stories, Timelines, Essays',
+    description:
+      'Study history as a story, not a list: learn the narrative, draw the timeline, use significance-based recall, and practice the essay format most exams require.',
+    kicker: 'Study Methods',
+    datePublished: '2027-03-09',
+    dateModified: '2027-03-13',
+    readMinutes: 6,
+    keywords: ['how to study history', 'history study tips', 'history exam prep', 'how to memorize history'],
+    tools: ['ink', 'proof'],
+    related: ['how-to-study-science', 'write-faster-on-exams', 'active-recall-vs-rereading'],
+    lede: 'History is the subject where students most often confuse memorization with understanding. Dates and names are the surface; the real material is *why* things happened, how events connect, and what changed as a result. The students who do well learn history as a story with patterns, not a list of facts to recite.',
+    takeaways: [
+      'History is a story, not a list — find the through-line that connects events.',
+      'Draw the timeline — dates become a sequence you can navigate, not a list to memorize.',
+      'Practice essays — most history exams require argument, not just recall.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for a history exam?',
+        a: 'Learn the narrative arc first, then connect the details. Draw timelines for sequences, use significance-based flashcards ("what caused X" not "when was X"), and practice essays under timed conditions. History exams test understanding of patterns, not memorization of dates.',
+      },
+      {
+        q: 'Are flashcards effective for history?',
+        a: 'Yes, but differently than for vocabulary. Use event-significance cards — "what caused the French Revolution" rather than "when was the French Revolution." The goal is to recall the meaning and connections, not just the date.',
+      },
+      {
+        q: 'How do I write a history essay?',
+        a: 'Structure matters: thesis, evidence, analysis, conclusion. Practice under timed conditions. The best history students don\'t just know the facts — they can argue with them. Practice forming interpretations and supporting them with evidence.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'History is a story, not a list',
+        blocks: [
+          { k: 'p', t: 'History is the subject where students most often confuse memorization with understanding. Dates and names are the surface; the real material is *why* things happened, how events connect, and what changed as a result. The students who do well learn history as a story with patterns, not a list of facts to recite.' },
+          { k: 'p', t: 'The brain remembers stories better than lists. A timeline of dates is forgettable; a narrative of cause and effect is memorable. When you study history, look for the *through-line* — the theme that connects events, the pattern that repeats, the turning point that changed everything.' },
+          { k: 'p', t: 'Ask: what was the world like before this event? What changed because of it? What came next? These questions turn isolated facts into a connected narrative.' },
+        ],
+      },
+      {
+        h2: 'The history study loop',
+        blocks: [
+          { k: 'p', t: 'A productive history study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Read the material once for the big picture — the narrative arc.',
+            'Go back and learn the details — dates, names, places, terms.',
+            'Draw the timeline — see the sequence and spacing.',
+            'Explain it out loud — tell the story to an imaginary student.',
+            'Test yourself — recall the key events and their connections.',
+          ]},
+          { k: 'p', t: 'The timeline step is crucial for history. Dates are meaningless in isolation; on a timeline, they become a sequence you can navigate. A student who can see the shape of an era remembers it better than one who memorized a list.' },
+          { k: 'tool', tool: 'ink', t: 'Ink is built for the timeline step — sketch the sequence, label the events, and the shape of the era becomes visible.' },
+        ],
+      },
+      {
+        h2: 'Active recall for history',
+        blocks: [
+          { k: 'p', t: 'History flashcards work differently than vocabulary flashcards. Instead of "date = event," use "event = significance" or "theme = examples." The goal is to recall the *meaning*, not just the fact.' },
+          { k: 'deflist', items: [
+            { t: 'For events', d: '"What caused the French Revolution?" not "When was the French Revolution?"' },
+            { t: 'For themes', d: '"How did industrialization change society?" not "What is industrialization?"' },
+            { t: 'For people', d: '"Why was this person significant?" not "When was this person born?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The essay connection',
+        blocks: [
+          { k: 'p', t: 'Most history exams are essay-based — the goal is to construct an argument, not just recall facts. Practice writing essays under timed conditions. The structure matters: thesis, evidence, analysis, conclusion.' },
+          { k: 'p', t: 'The best history students don\'t just know the facts — they can *argue* with them. Practice forming interpretations: "This event was significant because..." or "Historians disagree about this because..."' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps structure the essay argument — thesis, evidence, analysis — so the argument holds together under exam pressure.' },
+        ],
+      },
+      {
+        h2: 'Common history study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common history study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing dates without understanding significance', d: 'Dates are labels for events — learn the event, not the date.' },
+            { t: 'Treating events as isolated', d: 'History is connected — each event causes the next.' },
+            { t: 'Not practicing essays', d: 'Most history exams require them — practice the format.' },
+            { t: 'Studying only before exams', d: 'History requires consistent review — the material accumulates.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'History rewards understanding, not memorization.' },
+          { k: 'p', t: 'Learn the narrative, connect the events, draw the timeline, and practice arguing with the material. The students who treat history as a story with patterns outperform the ones who treat it as a list of dates.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
