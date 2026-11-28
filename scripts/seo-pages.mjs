@@ -2004,7 +2004,7 @@ ${factHtml}
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
-${compareHead({ title: page.title, description: page.description, url, image: `${SITE}/og/${page.section}.png`, published: page.datePublished, modified: page.dateModified })}
+${compareHead({ title: page.title, description: page.description, url, image: `${SITE}/og/${page.section}-${slug}.png`, published: page.datePublished, modified: page.dateModified })}
 ${jsonLd(ld)}
 </head>
 <body>

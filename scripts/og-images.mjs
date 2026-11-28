@@ -13,6 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TOOLS } from './seo-pages.mjs';
 import { GUIDES } from './seo-guides-data.mjs';
+import { COMPARE_PAGES } from './seo-compare-data.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'shell', 'public');
@@ -163,6 +164,14 @@ const CARDS = [
     dek: t.lede.split('.')[0] + '.',
     shot: `/shots/${t.id}.webp`,
     alt: `${t.name} inside Iterra`,
+  })),
+  ...COMPARE_PAGES.map((p) => ({
+    file: `${p.section}-${p.slug}.png`,
+    kicker: `Iterra · ${p.kicker}`,
+    title: stripEm(String(p.h1 || p.title || p.slug)),
+    dek: (p.lede || p.description || '').split('.')[0] + '.',
+    shot: '/shots/today.webp',
+    alt: `${stripEm(String(p.h1 || p.slug))} — Iterra`,
   })),
   ...GUIDES.map((g) => ({
     file: `guide-${g.slug}.png`,
