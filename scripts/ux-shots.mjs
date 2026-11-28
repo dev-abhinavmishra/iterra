@@ -22,6 +22,9 @@ const PAGES = [
   ['alt-best', '/alternatives/best-study-apps'],
   ['tool-boxed-tour', '/tools/boxed'],
   ['guide-finals', '/guides/how-to-study-for-finals-week'],
+  ['topics-index', '/topics'],
+  ['topic-test-prep', '/topics/test-prep'],
+  ['not-found', '/404.html'],
 ];
 
 function findExe() {
