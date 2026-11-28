@@ -112,7 +112,7 @@ if(document.querySelector('.guide-article,.compare-table'))(function(){
   });
   var t=null;
   addEventListener('scroll',function(){
-    clearTimeout(t);t=setTimeout(function(){var f=frac();try{f>0.97?localStorage.removeItem(KEY):localStorage.setItem(KEY,String(f))}catch(e){}},400);
+    clearTimeout(t);t=setTimeout(function(){var f=frac();if(f>0.9){chip.style.display='none'}try{f>0.97?localStorage.removeItem(KEY):localStorage.setItem(KEY,String(f))}catch(e){}},400);
   },{passive:true});
 })();
 var pPrev=document.querySelector('.pager a:not(.next)'),pNext=document.querySelector('.pager .next');
