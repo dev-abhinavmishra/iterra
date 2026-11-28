@@ -114,6 +114,7 @@ export const GUIDES = [
       {
         h2: 'What to do when the plan falls apart',
         blocks: [
+          { k: 'figure', tool: 'boxed', caption: 'Every course deadline and recurring block, laid out on one canvas.' },
           { k: 'p', t: 'Plans fail in predictable ways: a block gets skipped three times running, an assignment takes twice the time you budgeted, or the week just collapses. The mistake is treating the first crack as proof the whole structure was wrong.' },
           { k: 'p', t: 'The fix is smaller than it feels. When a block slips, don’t rebuild the week — move the work. Put the missed block tomorrow, accept that something else slides, and keep the rest of the plan standing. A plan you’re still using on a bad week beats a perfect plan you abandoned in week five.' },
 
@@ -293,6 +294,7 @@ export const GUIDES = [
       {
         h2: 'The short version',
         blocks: [
+          { k: 'figure', tool: 'flashcards', caption: 'Recall prompts scheduled by the spacing curve, not by mood.' },
           { k: 'quote', t: 'Spaced repetition is forgetting, harnessed. Review material at the edge of loss, grade your recall honestly, and let the intervals expand. Do it daily, keep cards atomic, and use it for the facts that need to be *automatic* — then spend your deeper thinking on everything else.' },
         ],
       },
@@ -437,6 +439,7 @@ export const GUIDES = [
       {
         h2: 'The verdict',
         blocks: [
+          { k: 'figure', tool: 'timer', caption: 'A focus session, timed and defended.' },
           { k: 'p', t: 'Use the pomodoro technique if starting is your problem, if your breaks tend to stretch into hours, or if you need outside structure to stay honest. Skip it if you’re already self-regulating well, or if your work demands unbroken concentration. Either way, the deeper lesson stands: *work in bounded intervals and take real breaks* — the specific numbers are yours to choose.' },
         ],
       },
@@ -597,6 +600,7 @@ export const GUIDES = [
       {
         h2: 'The compounding effect',
         blocks: [
+          { k: 'figure', tool: 'boxed', caption: 'The day as a set of defended blocks, not a to-do list.' },
           { k: 'p', t: 'Time blocking works because it’s not really about time — it’s about *decisions*. Every block you place the night before is a decision you don’t have to make when you’re tired. Every block you protect is a promise to your future self that the plan is real. Do it for two weeks and the structure starts carrying you; do it for a semester and it disappears into the background — which is exactly the point.' },
         ],
       },
@@ -755,6 +759,7 @@ export const GUIDES = [
       {
         h2: 'When the lecture itself is bad',
         blocks: [
+          { k: 'figure', tool: 'ink', caption: 'Notes that link back to the lecture they came from.' },
           { k: 'p', t: 'Some lectures are genuinely weak — reading slides aloud, racing through material, assuming context you don’t have. Your notes can’t fix a bad lecture, but they can make it survivable.' },
           { k: 'ul', items: [
             'Capture the slide titles and any repeated phrases — those are the skeleton the professor thinks matters.',
@@ -909,6 +914,7 @@ export const GUIDES = [
       {
         h2: 'The bottom line',
         blocks: [
+          { k: 'figure', tool: 'flashcards', caption: 'Testing yourself beats re-reading — the tool makes it a habit.' },
           { k: 'p', t: 'Rereading is exposure; active recall is practice. One lets you look at the material; the other makes you produce it. The research is settled, the mechanism is understood, and the practical advice is simple.' },
           { k: 'quote', t: 'If you’re not struggling to remember something, you’re probably not studying it — you’re just looking at it.' },
         ],
@@ -1078,6 +1084,7 @@ export const GUIDES = [
       {
         h2: 'When the last exam ends',
         blocks: [
+          { k: 'figure', tool: 'gradestack', caption: 'Practice problems and marked work, ready for finals revision.' },
           { k: 'p', t: 'When it’s over, do two things: write down what worked and what didn’t (for next semester), and actually rest. Finals week is a sprint; recovery is part of the training. The students who do well consistently aren’t the ones who suffer most — they’re the ones who recover best.' },
         ],
       },
@@ -1236,6 +1243,7 @@ export const GUIDES = [
       {
         h2: 'The compound effect',
         blocks: [
+          { k: 'figure', tool: 'rhythm', caption: 'A week of study, shaped into rhythm rather than a pile of tasks.' },
           { k: 'p', t: 'A weekly study routine doesn’t produce results in a week — it produces results in a semester. The mechanism is simple though: every week you follow the routine, you’re depositing small amounts of learning that compound. Miss a week and the deposits pause. Follow it for twelve weeks and the accumulation is the difference between a student who studies and a student who *is* a student.' },
         ],
       },
@@ -1421,6 +1429,7 @@ export const GUIDES = [
       {
         h2: 'The craft in one sentence',
         blocks: [
+          { k: 'figure', tool: 'flashcards', caption: 'Cards built for recall, not recognition.' },
           { k: 'quote', t: 'Write cards that ask questions your future self needs answered, review them honestly and frequently, and prune without mercy. Flashcards aren’t magic — they’re a mirror that shows you exactly what you don’t know, every day, until you do.' },
         ],
       },
@@ -1593,6 +1602,7 @@ export const GUIDES = [
       {
         h2: 'The gist',
         blocks: [
+          { k: 'figure', tool: 'ink', caption: 'Your notes and materials live on your device, not a server.' },
           { k: 'p', t: 'Local-first software isn’t a luxury or a niche preference — it’s the difference between renting your own intellectual output and owning it. For students, whose notes and study materials are often their most valuable assets, this isn’t about ideology. It’s about not losing years of work because a platform changed its mind, went bankrupt, or decided your data was more valuable as training material than as yours.' },
           { k: 'p', t: 'Choose tools that treat your data as yours. The best ones already do.' },
         ],

@@ -25,6 +25,7 @@ fields support inline markup via `inline()`: `**bold**`, `*italic*`,
 | `versus` | `{a:{k,t}, b:{k,t}}` | two-column contrast with VS medallion |
 | `mistakes` | `{bad?, good?, items:[{bad,good}]}` | Instead/Better (labels overridable) error→fix rows |
 | `example` | `{label?, t}` | "Worked example" card (sage gradient, gold tag) |
+| `figure` | `{tool:'<id>'}` or `{src, alt?, caption?}` | framed screenshot plate mid-article (click for lightbox); `tool` pulls `/shots/<id>.webp` |
 
 ## Automatic transforms (renderGuidePage)
 

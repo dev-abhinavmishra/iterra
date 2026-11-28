@@ -921,6 +921,9 @@ body.reader .guide-article{max-width:46rem}
 .share a:hover,.share button:hover{border-color:var(--accent);background:rgba(255,255,255,.5)}
 .share button.copied{border-color:var(--sage);color:var(--accent2)}
 .prose h3{font-family:Newsreader,Georgia,serif;font-weight:550;font-size:1.22rem;letter-spacing:-.02em;margin:2rem 0 .6rem;color:var(--ink);scroll-margin-top:84px}
+.prose-fig{margin:2.4rem 0}
+.prose-fig .frame{box-shadow:0 1px 2px rgba(31,36,31,.05),0 24px 50px -30px rgba(31,36,31,.4)}
+.prose-fig figcaption{margin-top:.7rem;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
 .prose blockquote{margin:1.8rem 0;padding:.2rem 0 .2rem 1.4rem;border-left:3px solid var(--gold);font-family:Newsreader,Georgia,serif;font-size:1.28rem;font-style:italic;font-weight:450;line-height:1.5;color:var(--ink)}
 .prose .callout{border:none;background:none;border-radius:0;padding:1.4rem 0;margin:2.2rem auto;max-width:42rem;text-align:center;position:relative}
 .prose .callout::before{content:"“";position:absolute;top:-1.5rem;left:50%;transform:translateX(-50%);font-family:Newsreader,Georgia,serif;font-size:4.2rem;font-weight:400;color:var(--gold);line-height:1;opacity:.85}
@@ -1190,6 +1193,13 @@ function renderBlocks(blocks) {
         return `<div class="versus"><div class="vside a"><span class="vk mono">${esc(b.a?.k || 'Instead of')}</span><span class="vt">${inline(b.a?.t || '')}</span></div><span class="vmedal mono" aria-hidden="true">vs</span><div class="vside b"><span class="vk mono">${esc(b.b?.k || 'Try')}</span><span class="vt">${inline(b.b?.t || '')}</span></div></div>`;
       if (b.k === 'example')
         return `<div class="example"><span class="ex-tag mono">${esc(b.label || 'Worked example')}</span><div class="ex-body">${inline(b.t)}</div></div>`;
+      if (b.k === 'figure') {
+        const t = TOOLS.find((x) => x.id === b.tool);
+        const src = b.src || (t ? `/shots/${t.id}.webp` : '');
+        if (!src) return '';
+        const alt = b.alt || (t ? `${t.name} inside the Iterra study workspace` : 'The Iterra study workspace');
+        return `<figure class="prose-fig"><div class="frame"><img src="${esc(src)}" alt="${esc(alt)}" width="1440" height="900" loading="lazy" decoding="async" /></div>${b.caption ? `<figcaption>${inline(b.caption)}</figcaption>` : ''}</figure>`;
+      }
       if (b.k === 'mistakes')
         return `<ul class="mistakes">${b.items
           .map(
