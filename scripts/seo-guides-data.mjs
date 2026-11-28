@@ -5800,6 +5800,109 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-cpa',
+    title: 'How to study for the <em>CPA</em>',
+    seoTitle: 'How to Study for the CPA: Four Sections, One Strategy',
+    description:
+      'Beat the CPA with understanding, not memorization: learn the standards, practice the question types, explain concepts in your own words, and conquer all four sections.',
+    kicker: 'Study Methods',
+    datePublished: '2027-10-12',
+    dateModified: '2027-10-16',
+    readMinutes: 7,
+    keywords: ['how to study for the CPA', 'CPA exam prep', 'CPA study plan', 'CPA certification'],
+    tools: ['timer', 'proof'],
+    related: ['how-to-study-for-the-acc', 'how-to-study-for-the-bar-exam', 'how-to-study-economics'],
+    lede: 'The CPA exam is the hardest test in accounting — four sections, each a separate beast, each demanding deep understanding of GAAP, auditing, tax, and business concepts. But most students treat it like a marathon of memorization: they review the material, practice the questions, and hope the exam rewards their effort. The CPA rewards a different approach: understand the *why* behind each standard, and practice the question types until they\'re automatic.',
+    takeaways: [
+      'Take a practice test first — the questions you miss tell you which areas to review.',
+      'Understand the standards, not just the rules — explain concepts in your own words.',
+      'Practice the question types: multiple choice, TBS, written communication, research.',
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the CPA?',
+        a: 'Most students need 6-12 months of consistent prep. The CPA covers a massive amount of material across four sections. A structured study plan with daily practice questions and weekly review sessions works better than weekend cramming.',
+      },
+      {
+        q: 'What\'s the pass rate for the CPA?',
+        a: 'Pass rates vary by section and cohort but are generally around 50-60% per section. The exam is challenging because it tests practical application, not just recall. Students who practice with real exam-style questions and review their mistakes thoroughly have the best chance of passing.',
+      },
+      {
+        q: 'Can I take the CPA sections in any order?',
+        a: 'Yes — you can take the four sections in any order, spread over 18 months. Most students start with the section they feel most confident about to build momentum, then tackle the harder sections with more time.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the CPA before you study it',
+        blocks: [
+          { k: 'p', t: 'The CPA exam has four sections: Auditing and Attestation (AUD), Business Environment and Concepts (BEC), Financial Accounting and Reporting (FAR), and Regulation (REG). Each section is 4 hours, and you can take them in any order, spread over 18 months. The questions are practical: journal entries, financial statements, audit procedures, and tax calculations.' },
+          { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the CPA\'s pressure — 4 hours per section, hundreds of questions. Practice at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The CPA study loop',
+        blocks: [
+          { k: 'p', t: 'CPA prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the standard or concept — read the text or watch a lecture.',
+            'Work through example problems — understand *why* each step works.',
+            'Solve problems independently — start with easy, then harder.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why revenue is recognized when earned understands accounting; a student who can only journalize doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The four sections: what to focus on',
+        blocks: [
+          { k: 'p', t: 'Each CPA section tests different skills — focus on the high-yield topics:' },
+          { k: 'deflist', items: [
+            { t: 'AUD', d: 'Audit procedures, internal controls, evidence — know the concepts cold.' },
+            { t: 'BEC', d: 'Economics, finance, operations — know the frameworks and calculations.' },
+            { t: 'FAR', d: 'Financial statements, GAAP, consolidations — know the standards.' },
+            { t: 'REG', d: 'Tax, ethics, business law — know the rules and the exceptions.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The question types that matter',
+        blocks: [
+          { k: 'p', t: 'CPA questions fall into predictable types:' },
+          { k: 'deflist', items: [
+            { t: 'Multiple choice', d: 'The most common — know the answer choices and the distractors.' },
+            { t: 'Task-based simulations (TBS)', d: 'The hardest — practice the spreadsheet and document formats.' },
+            { t: 'Written communication', d: 'For BEC — practice the essay format.' },
+            { t: 'Research', d: 'For AUD and REG — know how to find the answer in the research database.' },
+          ]},
+          { k: 'tool', tool: 'proof', t: 'Proof helps organize CPA problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'The common CPA traps',
+        blocks: [
+          { k: 'p', t: 'CPA questions have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'GAAP vs. tax', d: 'Accounting rules differ from tax rules — know the difference.' },
+            { t: 'Timing', d: 'Revenue and expense recognition has specific rules — know them.' },
+            { t: 'Materiality', d: 'Small errors can be immaterial — know when it matters.' },
+            { t: 'Research', d: 'The answer is in the standards — know how to find it.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The CPA isn\'t about memorizing rules — it\'s about understanding why they exist.' },
+          { k: 'p', t: 'Understand the standards, practice the question types, explain the concepts, and check your work. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
