@@ -3,7 +3,7 @@
    so crawlers get the full content; CTAs deep-link into the SPA's hash
    routes. Styled to match the landing page's atlas look: deep-green sky,
    gold hairlines, Newsreader display type, IBM Plex Mono labels. */
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { GUIDES, GUIDE_BY_SLUG } from './seo-guides-data.mjs';
@@ -3139,5 +3139,10 @@ export function writeSeoPages(distDir) {
   writeFileSync(join(distDir, '404.html'), render404());
   writeFileSync(join(distDir, CSS_NAME), CSS);
   if (JS_SRC) writeFileSync(join(distDir, JS_NAME), JS_SRC);
+  for (const f of readdirSync(distDir)) {
+    if (/^iterra-pages\.[0-9a-f]+\.(css|js)$/.test(f) && f !== CSS_NAME && f !== JS_NAME) {
+      try { unlinkSync(join(distDir, f)); } catch { /* in use */ }
+    }
+  }
   console.log(`seo: wrote /tools index + ${TOOLS.length} tool pages + /guides index + ${GUIDES.length} guides + /compare + /alternatives indexes + ${COMPARE_PAGES.length} compare pages + sitemap.xml`);
 }
