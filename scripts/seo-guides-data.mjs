@@ -3424,6 +3424,14 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The great-power story versus the structural one',
+        blocks: [
+          { k: 'p', t: 'Every history exam eventually asks you to choose a level of explanation. The two candidates:' },
+          { k: 'versus', a: { k: 'Great-power narrative', t: 'History driven by exceptional individuals and decisive moments. Reads well, explains less — most "great" figures had structural tailwinds.' }, b: { k: 'Structural account', t: 'History driven by economies, technologies, and institutions. Less dramatic, more predictive — which is why exams reward it.' } },
+          { k: 'p', t: 'The strongest answers borrow from both: a structural cause, an individual who accelerated it, and a counterfactual that tests whether it mattered.' },
+        ],
+      },
+      {
         h2: 'The essential point',
         blocks: [
           { k: 'quote', t: 'History rewards understanding, not memorization.' },
@@ -3650,6 +3658,14 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'Reliability versus validity',
+        blocks: [
+          { k: 'p', t: 'Two psychometric words students mix up on every exam, and question writers know it. The distinction is simple once you have the right image:' },
+          { k: 'versus', a: { k: 'Reliability', t: 'Consistency — does the measure give the same result twice? A scale that wobbles is unreliable even if it is measuring the right thing.' }, b: { k: 'Validity', t: 'Accuracy — is it measuring what it claims? A bathroom scale that consistently reads five pounds heavy is reliable and invalid.' } },
+          { k: 'p', t: 'Exam questions love pairing them: "consistent but measures the wrong construct" is the classic trap, and now you have the vocabulary to name it.' },
+        ],
+      },
+      {
         h2: 'Your next move',
         blocks: [
           { k: 'quote', t: 'Psychology rewards understanding frameworks, not memorizing terms.' },
@@ -3758,6 +3774,14 @@ export const GUIDES = [
             'Say it in words — the tax works as revenue policy more than health policy, because consumption barely responds.',
           ]},
           { k: 'p', t: 'Economics questions test whether you can move from numbers to policy meaning — elasticity is not just a calculation, it is the answer to "who bears the burden and does the policy work?" Practice narrating what each result implies.' },
+        ],
+      },
+      {
+        h2: 'Positive versus normative: the split exams test',
+        blocks: [
+          { k: 'p', t: 'Economics exams quietly run on a distinction students blur constantly. Keeping it straight is worth marks on its own.' },
+          { k: 'versus', a: { k: 'Positive', t: 'What is — testable claims about how economies actually behave. The domain of most exam questions.' }, b: { k: 'Normative', t: 'What ought to be — value judgments about policy. Exams flag these because they are opinions, not analysis.' } },
+          { k: 'p', t: 'Nearly every "should the government intervene" question is really asking you to keep the two separate. Answer the positive question first — what would actually happen — before touching the normative one.' },
         ],
       },
       {
@@ -4305,6 +4329,18 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The shape of the test',
+        blocks: [
+          { k: 'p', t: 'The GRE is a scheduling problem before it is a vocabulary problem. These figures set the constraints your plan works inside:' },
+          { k: 'stats', items: [
+            { v: '~3h 45m', l: 'Total seat time including breaks' },
+            { v: '3', l: 'Scored measures: Verbal, Quant, and Analytical Writing' },
+            { v: '130–170', l: 'Score scale per section' },
+            { v: '1', l: 'Unscored experimental section, indistinguishable on test day' },
+          ]},
+        ],
+      },
+      {
         h2: 'What it comes down to',
         blocks: [
           { k: 'quote', t: 'Cramming fills your head with facts the exam never asks for.' },
@@ -4529,6 +4565,18 @@ export const GUIDES = [
             { t: 'Skipping Logic Games setup', d: 'Games are winnable through diagramming — students who skip the setup diagram burn time rediscovering it per question.' },
             { t: 'Treating Reading Comprehension like GRE reading', d: 'LSAT RC questions test structural function and inference discipline, not vocabulary or detail recall.' },
             { t: 'Practicing only easy sections', d: 'The score is made or lost on the last five questions of each section — if your practice never reaches them, your pace is untested.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The arithmetic of test day',
+        blocks: [
+          { k: 'p', t: 'The LSAT is longer than it looks and faster than it feels. The numbers your pacing plan has to respect:' },
+          { k: 'stats', items: [
+            { v: '~3h 30m', l: 'Seat time, including the unscored variable section' },
+            { v: '4', l: 'Scored sections: two Logical Reasoning, one Reading Comp, one Logic Games' },
+            { v: '~35', l: 'Multiple-choice questions per section' },
+            { v: '120–180', l: 'Score scale, in one-point increments' },
           ]},
         ],
       },
@@ -8196,6 +8244,14 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'Individual choices versus social structure',
+        blocks: [
+          { k: 'p', t: 'The founding argument of the discipline is about where explanations live. Every question on the exam is secretly asking you to pick a side:' },
+          { k: 'versus', a: { k: 'Methodological individualism', t: 'Explaining society through the choices of persons. Clear micro-foundations, blind to patterns no individual intends.' }, b: { k: 'Structural explanation', t: 'Explaining outcomes through positions and institutions. Captures emergent patterns, risks treating people as puppets.' } },
+          { k: 'p', t: 'Most sociological answers live in the tension between the two. Name which level you are arguing at before you write a sentence.' },
+        ],
+      },
+      {
         h2: 'The part to remember',
         blocks: [
           { k: 'quote', t: 'Sociology is the course where your daily life is the data — the skill is seeing the structure in the ordinary.' },
@@ -8309,6 +8365,14 @@ export const GUIDES = [
             { t: 'Forgetting the institutional context', d: 'Political outcomes are shaped by rules, norms, and history — analysis that ignores institutions misses the mechanism.' },
             { t: 'Waiting until exam week for theory', d: 'Weekly application compounds; cramming does not — think in semesters, not weeks.' },
           ]},
+        ],
+      },
+      {
+        h2: 'Voters versus institutions',
+        blocks: [
+          { k: 'p', t: 'Political science runs two explanatory engines, and exams test whether you know which one an answer is using.' },
+          { k: 'versus', a: { k: 'Behavioral approach', t: 'Politics explained by what individuals want and believe — polls, turnout, persuasion. The micro level.' }, b: { k: 'Institutional approach', t: 'Politics explained by rules, veto points, and structures. Why identical publics produce different policies.' } },
+          { k: 'p', t: 'The discipline keeps both because each explains what the other cannot. A "why did policy X pass" question is an institutional question wearing a behavioral costume.' },
         ],
       },
       {
