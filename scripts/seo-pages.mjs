@@ -2376,14 +2376,14 @@ export function renderToolsIndex() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
-<title>Iterra Study Tools — Planner, Flashcards, Notes, Timer & More</title>
+<title>Iterra Study Tools — Planner, Flashcards, Notes & Timer</title>
 <meta name="description" content="${esc(metaDesc('Nine study tools in one local-first workspace: time-blocking planner, spaced-repetition flashcards, linked notes, pomodoro timer, math workbench, attendance, grading, and study materials.'))}" />
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
 <meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
-<meta property="og:title" content="Iterra Study Tools — Planner, Flashcards, Notes, Timer & More" />
+<meta property="og:title" content="Iterra Study Tools — Planner, Flashcards, Notes & Timer" />
 <meta property="og:description" content="Nine study tools in one local-first workspace for students." />
 <meta property="og:image" content="${SITE}/og/tools.png" />
 <meta property="og:image:width" content="1200" />
