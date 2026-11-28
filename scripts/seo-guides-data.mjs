@@ -2816,7 +2816,7 @@ export const GUIDES = [
             'Drill those types with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where the learning happens. A practice test without review is just a measurement; a practice test with review is a study session.' },
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
         ],
       },
       {
@@ -2916,7 +2916,7 @@ export const GUIDES = [
             'Drill those types with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'The review is the step that teaches — without it, a practice test is just a measurement; with it, the test becomes the lesson.' },
         ],
       },
       {
@@ -2956,7 +2956,7 @@ export const GUIDES = [
         h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The ACT is beatable with a system.' },
+          { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The ACT is beatable with a system.' },
         ],
       },
     ],
@@ -3889,7 +3889,7 @@ export const GUIDES = [
             ['Quantitative Reasoning', '40', '70 min', '130-170'],
             ['Analytical Writing', '1', '30 min', '0-6'],
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 160 in Verbal but 145 in Quant should spend 80% of their time on Quant.' },
+          { k: 'p', t: 'Before a single study hour, take a full practice test under real timing. The score breakdown tells you where to focus — a student who scores 160 in Verbal but 145 in Quant should spend 80% of their time on Quant.' },
         ],
       },
       {
@@ -3903,7 +3903,7 @@ export const GUIDES = [
             'Drill those types with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'Skip the review and you measured yourself without improving. With review, every missed question becomes a study rep.' },
         ],
       },
       {
@@ -3937,7 +3937,7 @@ export const GUIDES = [
         h2: 'The bottom line',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The GRE is beatable with a system.' },
+          { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The GRE is beatable with a system.' },
         ],
       },
     ],
@@ -3988,7 +3988,7 @@ export const GUIDES = [
             { t: 'Month 5-6', d: 'Full-length practice tests — simulate the real exam conditions.' },
             { t: 'Final 2 weeks', d: 'Review and rest — light review, good sleep, and exam-day preparation.' },
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 125 in CARS but 115 in Bio should spend most of their time on Bio.' },
+          { k: 'p', t: 'Start with a full practice test — timed, honest, no notes. The score breakdown tells you where to focus — a student who scores 125 in CARS but 115 in Bio should spend most of their time on Bio.' },
         ],
       },
       {
@@ -4002,7 +4002,7 @@ export const GUIDES = [
             'Drill those types with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'This is where the studying actually happens: reviewing what the practice test exposed.' },
         ],
       },
       {
@@ -4032,7 +4032,7 @@ export const GUIDES = [
         h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The MCAT is beatable with a system.' },
+          { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The MCAT is beatable with a system.' },
         ],
       },
     ],
@@ -4083,7 +4083,7 @@ export const GUIDES = [
             ['Reading Comprehension', '26-28', '35 min', 'Dense passages, main idea, inference'],
             ['Writing Sample', '1', '35 min', 'Persuasive essay (unscored)'],
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 160 in Logical Reasoning but 145 in Logic Games should spend most of their time on Logic Games.' },
+          { k: 'p', t: 'Your first move is a full practice test, taken under real conditions. The score breakdown tells you where to focus — a student who scores 160 in Logical Reasoning but 145 in Logic Games should spend most of their time on Logic Games.' },
         ],
       },
       {
@@ -4097,7 +4097,7 @@ export const GUIDES = [
             'Drill those types with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'A practice test without review is just a measurement. The review is what turns it into a study session.' },
         ],
       },
       {
@@ -4131,7 +4131,7 @@ export const GUIDES = [
         h2: 'Where this leaves you',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The LSAT is beatable with a system.' },
+          { k: 'p', t: 'Consistency beats intensity — a little prep every day, every miss reviewed, the clock respected ruthlessly. The LSAT is beatable with a system.' },
         ],
       },
     ],
@@ -4367,7 +4367,7 @@ export const GUIDES = [
             ['Quantitative Reasoning', '31', '62 min', '0-60'],
             ['Verbal Reasoning', '36', '65 min', '0-60'],
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 700 in Quant but 600 in Verbal should spend most of their time on Verbal.' },
+          { k: 'p', t: 'Sit the full practice test first, before you open a single chapter. The score breakdown tells you where to focus — a student who scores 700 in Quant but 600 in Verbal should spend most of their time on Verbal.' },
         ],
       },
       {
@@ -4478,7 +4478,7 @@ export const GUIDES = [
             'Drill those subjects with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'The review is the step that teaches — without it, a practice test is just a measurement; with it, the test becomes the lesson.' },
         ],
       },
       {
@@ -4512,7 +4512,7 @@ export const GUIDES = [
         h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The bar exam is beatable with a system.' },
+          { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The bar exam is beatable with a system.' },
         ],
       },
     ],
@@ -4563,7 +4563,7 @@ export const GUIDES = [
             ['Reading Comprehension', '50', '60 min', 'Passage analysis, inference'],
             ['Quantitative Reasoning', '40', '45 min', 'Math, data analysis'],
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 20 in Bio but 15 in PAT should spend most of their time on PAT.' },
+          { k: 'p', t: 'Before a single study hour, take a full practice test under real timing. The score breakdown tells you where to focus — a student who scores 20 in Bio but 15 in PAT should spend most of their time on PAT.' },
         ],
       },
       {
@@ -4577,7 +4577,7 @@ export const GUIDES = [
             'Drill those sections with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'Skip the review and you measured yourself without improving. With review, every missed question becomes a study rep.' },
         ],
       },
       {
@@ -4618,7 +4618,7 @@ export const GUIDES = [
         h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The DAT is beatable with a system.' },
+          { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The DAT is beatable with a system.' },
         ],
       },
     ],
@@ -4671,7 +4671,7 @@ export const GUIDES = [
             ['Quantitative Reasoning', '40', '45 min', 'Algebra, geometry, data analysis'],
             ['Writing', '1', '30 min', 'Essay response to a prompt'],
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 400 in Bio but 350 in Quant should spend most of their time on Quant.' },
+          { k: 'p', t: 'Start with a full practice test — timed, honest, no notes. The score breakdown tells you where to focus — a student who scores 400 in Bio but 350 in Quant should spend most of their time on Quant.' },
         ],
       },
       {
@@ -4685,7 +4685,7 @@ export const GUIDES = [
             'Drill those sections with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'This is where the studying actually happens: reviewing what the practice test exposed.' },
         ],
       },
       {
@@ -4714,7 +4714,7 @@ export const GUIDES = [
         h2: 'The bottom line',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The PCAT is beatable with a system.' },
+          { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The PCAT is beatable with a system.' },
         ],
       },
     ],
@@ -4765,7 +4765,7 @@ export const GUIDES = [
             ['Reading Comprehension', '50', '60 min', 'Passage analysis, inference'],
             ['Quantitative Reasoning', '40', '45 min', 'Math, data analysis'],
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 350 in Bio but 300 in Quant should spend most of their time on Quant.' },
+          { k: 'p', t: 'Your first move is a full practice test, taken under real conditions. The score breakdown tells you where to focus — a student who scores 350 in Bio but 300 in Quant should spend most of their time on Quant.' },
         ],
       },
       {
@@ -4779,7 +4779,7 @@ export const GUIDES = [
             'Drill those sections with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'A practice test without review is just a measurement. The review is what turns it into a study session.' },
         ],
       },
       {
@@ -4809,7 +4809,7 @@ export const GUIDES = [
         h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The OAT is beatable with a system.' },
+          { k: 'p', t: 'Consistency beats intensity — a little prep every day, every miss reviewed, the clock respected ruthlessly. The OAT is beatable with a system.' },
         ],
       },
     ],
@@ -4858,7 +4858,7 @@ export const GUIDES = [
             ['Morning (General)', '120', '5.5 hours', 'Math, stats, economics, statics, dynamics, materials, ethics'],
             ['Afternoon (Discipline)', '60', '5.5 hours', 'Civil, mechanical, electrical, chemical, etc.'],
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 140 in the morning but struggles with afternoon discipline should spend most of their time on the discipline section.' },
+          { k: 'p', t: 'Sit the full practice test first, before you open a single chapter. The score breakdown tells you where to focus — a student who scores 140 in the morning but struggles with afternoon discipline should spend most of their time on the discipline section.' },
         ],
       },
       {
@@ -4967,7 +4967,7 @@ export const GUIDES = [
             'Drill those sections with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'The review is the step that teaches — without it, a practice test is just a measurement; with it, the test becomes the lesson.' },
         ],
       },
       {
@@ -4996,7 +4996,7 @@ export const GUIDES = [
         h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The TOEFL is beatable with a system.' },
+          { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The TOEFL is beatable with a system.' },
         ],
       },
     ],
@@ -5047,7 +5047,7 @@ export const GUIDES = [
             ['Writing', '2 tasks', '60 min', '0-9'],
             ['Speaking', '3 parts', '11-14 min', '0-9'],
           ]},
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 7 in Reading but 6 in Speaking should spend most of their time on Speaking.' },
+          { k: 'p', t: 'Before a single study hour, take a full practice test under real timing. The score breakdown tells you where to focus — a student who scores 7 in Reading but 6 in Speaking should spend most of their time on Speaking.' },
         ],
       },
       {
@@ -5061,7 +5061,7 @@ export const GUIDES = [
             'Drill those sections with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'Skip the review and you measured yourself without improving. With review, every missed question becomes a study rep.' },
         ],
       },
       {
@@ -5090,7 +5090,7 @@ export const GUIDES = [
         h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The IELTS is beatable with a system.' },
+          { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The IELTS is beatable with a system.' },
         ],
       },
     ],
@@ -5134,7 +5134,7 @@ export const GUIDES = [
         h2: 'Inside the exam',
         blocks: [
           { k: 'p', t: 'The NCLEX is a computerized adaptive test (CAT) — the questions get harder or easier based on your answers. It\'s not a fixed-length test; you answer until the computer is confident in your ability. The test covers all nursing content areas: management of care, safety, pharmacology, and more.' },
-          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who struggles with pharmacology should spend most of their time on medications.' },
+          { k: 'p', t: 'Start with a full practice test — timed, honest, no notes. The score breakdown tells you where to focus — a student who struggles with pharmacology should spend most of their time on medications.' },
           { k: 'tool', tool: 'timer', t: 'Timer replicates the NCLEX\'s adaptive pressure — practice sections at real speed until pacing becomes automatic.' },
         ],
       },
@@ -5149,7 +5149,7 @@ export const GUIDES = [
             'Drill those areas with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'This is where the studying actually happens: reviewing what the practice test exposed.' },
         ],
       },
       {
@@ -5200,7 +5200,7 @@ export const GUIDES = [
         h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The NCLEX is beatable with a system.' },
+          { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The NCLEX is beatable with a system.' },
         ],
       },
     ],
@@ -5264,7 +5264,7 @@ export const GUIDES = [
             'Drill those words with flashcards and context sentences.',
             'Take another practice section to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'A practice test without review is just a measurement. The review is what turns it into a study session.' },
         ],
       },
       {
@@ -5475,7 +5475,7 @@ export const GUIDES = [
             'Review your mistakes — understand *why* you got it wrong.',
             'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
           ]},
-          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why atoms bond understands chemistry; a student who can only balance equations doesn\'t.' },
+          { k: 'p', t: 'This is the step where real understanding happens — explaining it yourself. A student who can explain why atoms bond understands chemistry; a student who can only balance equations doesn\'t.' },
         ],
       },
       {
@@ -5581,7 +5581,7 @@ export const GUIDES = [
             'Review your mistakes — understand *why* you got it wrong.',
             'Explain the system in your own words — if you can\'t, you don\'t understand it.',
           ]},
-          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain how photosynthesis works understands biology; a student who can only recite the steps doesn\'t.' },
+          { k: 'p', t: 'Understanding shows up at the explain-it-yourself step. A student who can explain how photosynthesis works understands biology; a student who can only recite the steps doesn\'t.' },
         ],
       },
       {
@@ -5680,7 +5680,7 @@ export const GUIDES = [
             'Identify the question types you miss most.',
             'Drill those types with focused practice.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice section without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
         ],
       },
       {
@@ -5786,7 +5786,7 @@ export const GUIDES = [
             'Review your mistakes — understand *why* you got it wrong.',
             'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
           ]},
-          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why a p-value matters understands statistics; a student who can only plug into formulas doesn\'t.' },
+          { k: 'p', t: 'If you can\'t explain it plainly, you don\'t own it yet — that\'s what this step checks. A student who can explain why a p-value matters understands statistics; a student who can only plug into formulas doesn\'t.' },
         ],
       },
       {
@@ -6000,7 +6000,7 @@ export const GUIDES = [
             'Review your mistakes — understand *why* you got it wrong.',
             'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
           ]},
-          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why revenue is recognized when earned understands accounting; a student who can only journalize doesn\'t.' },
+          { k: 'p', t: 'This is the step where real understanding happens — explaining it yourself. A student who can explain why revenue is recognized when earned understands accounting; a student who can only journalize doesn\'t.' },
         ],
       },
       {
@@ -6208,7 +6208,7 @@ export const GUIDES = [
             'Drill those areas with focused practice.',
             'Take another timed test to measure progress.',
           ]},
-          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+          { k: 'p', t: 'The review is the step that teaches — without it, a practice test is just a measurement; with it, the test becomes the lesson.' },
         ],
       },
       {
@@ -6248,7 +6248,7 @@ export const GUIDES = [
         h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'The CLEP isn\'t about memorizing facts — it\'s about knowing the course.' },
-          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Consistency beats intensity — a little prep every day, every miss reviewed, the clock respected. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
         ],
       },
     ],
@@ -6418,7 +6418,7 @@ export const GUIDES = [
             'Review your mistakes — understand *why* you got it wrong.',
             'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
           ]},
-          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why a bond\'s price moves inversely to interest rates understands finance; a student who can only plug into formulas doesn\'t.' },
+          { k: 'p', t: 'Understanding shows up at the explain-it-yourself step. A student who can explain why a bond\'s price moves inversely to interest rates understands finance; a student who can only plug into formulas doesn\'t.' },
         ],
       },
       {
@@ -6527,7 +6527,7 @@ export const GUIDES = [
             'Review your mistakes — understand *why* you got it wrong.',
             'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
           ]},
-          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why a project manager escalates a risk understands project management; a student who can only recite the processes doesn\'t.' },
+          { k: 'p', t: 'If you can\'t explain it plainly, you don\'t own it yet — that\'s what this step checks. A student who can explain why a project manager escalates a risk understands project management; a student who can only recite the processes doesn\'t.' },
         ],
       },
       {
