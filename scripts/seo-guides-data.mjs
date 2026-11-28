@@ -171,11 +171,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that sink semester plans',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Planning in your head', d: 'A plan that lives in your head is a wish. Write it down — courses, deadlines, weekly blocks — or it will not survive the first busy week.' },
-            { t: 'Scheduling every hour', d: 'A plan with zero slack breaks the first time something runs long. Leave about 20% unscheduled — it is the buffer that keeps the plan alive.' },
-            { t: 'Ignoring the syllabus until week 4', d: 'The syllabus is the contract — read it in week 1 and the semester stops surprising you.' },
-            { t: 'Never reviewing the plan', d: 'A plan you never check is decoration. Ten minutes every Sunday to adjust is what separates plans from intentions.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Keeping the plan in your head', good: 'Write it down — a mental plan is a wish, not a plan' },
+            { bad: 'Scheduling every hour', good: 'Leave ~20% unscheduled — slack is where the overflow goes' },
+            { bad: 'Ignoring the syllabus until week 4', good: 'Extract it in week 1 — the syllabus is the contract' },
+            { bad: 'Never reviewing the plan', good: 'Ten minutes every Sunday — an unchecked plan is decoration' }
           ]},
         ],
       },
@@ -1114,11 +1114,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that waste finals week',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Starting finals prep the night before', d: 'Finals week rewards the semester\'s deposits, not panic deposits — a plan built in week 12 of 15 is already late.' },
-            { t: 'Studying everything equally', d: 'Finals are weighted differently — triage by exam difficulty and grade impact, not alphabetically.' },
-            { t: 'All-nighters as a strategy', d: 'Sleep is when memory consolidates — a rested brain recalls more than a caffeinated one. Protect the last night especially.' },
-            { t: 'Never doing a practice exam', d: 'Practice tests are the highest-yield hour of finals prep — they expose the format and the weak spots in one move.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Starting finals prep the night before', good: 'Build the plan weeks early — finals reward deposits, not panic' },
+            { bad: 'Studying every subject equally', good: 'Triage by difficulty and grade weight — not everything counts the same' },
+            { bad: 'Pulling all-nighters as strategy', good: 'Sleep consolidates memory — a rested brain recalls more' },
+            { bad: 'Skipping practice exams', good: 'Take them — practice tests expose format problems before finals do' }
           ]},
         ],
       },
@@ -1287,11 +1287,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that break weekly routines',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Building a perfect routine', d: 'A routine you cannot follow for three weeks is fiction. Start with four study days and let it grow.' },
-            { t: 'Scheduling around motivation', d: 'Motivation follows action, not the reverse — put the session on the calendar and treat it like a class you cannot skip.' },
-            { t: 'No buffer for real life', d: 'A routine with zero slack shatters on the first sick day. Build in a lighter Saturday and a plan-B week.' },
-            { t: 'Reviewing the routine monthly', d: 'Check it weekly — ten minutes to adjust beats a month of quietly drifting off-plan.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Designing the perfect routine', good: 'Start with four study days — a routine you can follow beats an ideal one' },
+            { bad: 'Scheduling around motivation', good: 'Put sessions on the calendar — motivation follows action' },
+            { bad: 'Zero slack for real life', good: 'Build a lighter day in — the first sick day shatters a brittle routine' },
+            { bad: 'Reviewing the routine monthly', good: 'Check it weekly — ten minutes of adjustment beats a month of drift' }
           ]},
         ],
       },
@@ -1629,11 +1629,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that sink local-first setups',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Assuming local means safe', d: 'Local-first removes the cloud risk and adds a device risk — an un-backed-up laptop is a single point of failure.' },
-            { t: 'Never testing the backup', d: 'A backup you have never restored is a hope, not a backup. Restore one file every month to prove it works.' },
-            { t: 'Choosing tools by features, not fit', d: 'The best tool is the one you open daily — evaluate workflow fit before feature lists.' },
-            { t: 'Syncing everything by default', d: 'Sync is a decision per dataset — syncing your grocery list and your thesis into one blob creates one giant attack surface.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Assuming local means safe', good: 'Back up the device — local-first moves the risk, it does not remove it' },
+            { bad: 'Never testing the backup', good: 'Restore one file monthly — an untested backup is a hope' },
+            { bad: 'Choosing tools by feature lists', good: 'Choose by workflow fit — the best tool is the one you open daily' },
+            { bad: 'Syncing every dataset by default', good: 'Decide per dataset — not everything belongs in the same sync boundary' }
           ]},
         ],
       },
@@ -2081,10 +2081,10 @@ export const GUIDES = [
         h2: 'Why essay exams punish the unprepared writer',
         blocks: [
           { k: 'p', t: 'Essay exams reward a repeatable structure more than inspiration. The students who finish every question are not faster writers — they have a template they can execute on demand: thesis, three points, evidence, conclusion. This guide builds that template and drills it until it is automatic.' },
-          { k: 'deflist', items: [
-            { t: 'Sequential writing vs. holistic grading', d: 'A great intro can’t compensate for two missing body paragraphs.' },
-            { t: 'No time for discovery', d: 'You can’t “find” your argument mid-sentence under a clock.' },
-            { t: 'Coverage beats polish', d: 'A plain essay that answers everything beats a beautiful one that answers one thing.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Writing sequentially instead of structurally', good: 'Plan the argument first — a great intro cannot cover missing body paragraphs' },
+            { bad: 'Trying to "find" the argument mid-sentence', good: 'Decide your claim before you write — discovery under a clock is a trap' },
+            { bad: 'Polishing one point at the expense of coverage', good: 'Answer everything plainly — coverage beats polish on essay exams' }
           ]},
         ],
       },
@@ -2145,11 +2145,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that cost exam points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Writing without an outline', d: 'Five minutes of outline prevents fifteen minutes of wandering — the essay that plans first finishes with time to spare.' },
-            { t: 'Perfecting the intro first', d: 'The intro is the hardest ten percent of the essay — write the body first and come back; momentum beats polish.' },
-            { t: 'Ignoring the clock entirely', d: 'An unfinished essay scores near zero regardless of quality — decide your cutoff times before you start.' },
-            { t: 'Using fancy words to sound smart', d: 'Clear simple sentences score higher than strained complex ones — the grader reads fifty essays; clarity wins.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Writing without an outline', good: 'Five minutes of outline prevents fifteen of wandering — plan the argument first' },
+            { bad: 'Perfecting the intro first', good: 'Write the body first — the intro is the hardest ten percent' },
+            { bad: 'Ignoring the clock entirely', good: 'Set cutoff times — an unfinished essay scores near zero regardless of quality' },
+            { bad: 'Using fancy words to sound smart', good: 'Write clearly — simple sentences score higher than strained ones' }
           ]},
         ],
       },
@@ -2510,11 +2510,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that make memory work fail',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Choosing techniques by novelty', d: 'The best memory technique is the one you will actually use weekly — a palace you abandon helps nothing.' },
-            { t: 'Cramming the technique itself', d: 'Memory skills compound like any skill — ten minutes daily beats an hour once a month.' },
-            { t: 'Memorizing without understanding', d: 'Rote recall decays; connected recall lasts. Attach every fact to something you already know.' },
-            { t: 'Never reviewing the journey', d: 'The memory palace decays without walks — revisit the loci monthly or the filing system rusts.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Choosing techniques by novelty', good: 'Pick what you will use weekly — an abandoned palace memorizes nothing' },
+            { bad: 'Cramming the technique itself', good: 'Ten minutes daily compounds — memory skills build like any skill' },
+            { bad: 'Memorizing without understanding', good: 'Attach facts to what you know — connected recall outlasts rote recall' },
+            { bad: 'Never revisiting the memory journey', good: 'Walk the loci monthly — an unreviewed palace decays' }
           ]},
         ],
       },
@@ -4450,11 +4450,11 @@ export const GUIDES = [
       {
         h2: 'What separates a pass from a fail',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Memorizing without understanding', d: 'The MCAT tests application — a memorized pathway fails the first question that twists it. Learn the *why* behind each system.' },
-            { t: 'Neglecting CARS', d: 'CARS is half the verbal battle — students who treat it as an afterthought plateau below their science scores.' },
-            { t: 'Practicing passages untimed', d: 'MCAT passages are dense and the clock is tight — untimed practice builds comprehension, not exam stamina.' },
-            { t: 'Ignoring psychology and sociology', d: 'These sections are high-yield and often under-studied — they reward conceptual frameworks over memorization.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing without understanding', good: 'Learn the mechanism — a memorized pathway fails the first twisted question' },
+            { bad: 'Neglecting CARS', good: 'Give it real practice time — it is half the verbal battle' },
+            { bad: 'Practicing passages untimed', good: 'Time every section — the MCAT clock is part of the test' },
+            { bad: 'Skipping psychology and sociology', good: 'Study them seriously — high-yield content most students under-prepare' }
           ]},
         ],
       },
@@ -4793,11 +4793,11 @@ export const GUIDES = [
         h2: 'Common music theory study mistakes',
         blocks: [
           { k: 'p', t: 'The most common music theory study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing rules without understanding the patterns', d: 'Rules are expressions of patterns — learn the pattern, not the rule.' },
-            { t: 'Skipping the ear training', d: 'Theory is aural — the ear is the best teacher.' },
-            { t: 'Not connecting to real music', d: 'The ear is the best flashcard — connect every concept to a song.' },
-            { t: 'Studying only before exams', d: 'Ear and eye skills fade without daily reps — consistency is the method.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing rules without the pattern', good: 'Learn the pattern — rules are just expressions of it' },
+            { bad: 'Skipping ear training', good: 'Train your ear — theory is an aural skill, not just visual' },
+            { bad: 'Never connecting to real music', good: 'Sing or play every concept — the ear is the best flashcard' },
+            { bad: 'Reviewing only before exams', good: 'Keep daily reps — ear and eye skills fade without them' }
           ]},
         ],
       },
@@ -5051,11 +5051,11 @@ export const GUIDES = [
       {
         h2: 'Where the marks actually leak',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Treating the MBE like a law-school exam', d: 'The MBE tests application of black-letter rules to new facts — outlines alone do not build the skill; practice questions do.' },
-            { t: 'Writing MEE answers without a framework', d: 'IRAC structure is what graders reward — an unstructured essay buries the analysis even when the law is right.' },
-            { t: 'Practicing only multiple choice', d: 'The performance tests are a different skill — document drafting under time. Neglect them and you leave points on the table.' },
-            { t: 'Studying subjects evenly', d: 'MBE subjects are weighted differently — audit your practice results and weight your study time to the tested distribution.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Treating the MBE like a law-school exam', good: 'Practice black-letter application — the MBE tests rules on new facts, not outlines' },
+            { bad: 'Writing MEE answers without a framework', good: 'Use IRAC structure — an unstructured essay buries the analysis' },
+            { bad: 'Practicing only multiple choice', good: 'Train the performance tests too — document drafting under time is a separate skill' },
+            { bad: 'Studying subjects evenly', good: 'Weight by MBE frequency — audit practice results and allocate accordingly' }
           ]},
         ],
       },
@@ -5858,11 +5858,11 @@ export const GUIDES = [
       {
         h2: 'What separates a pass from a fail',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Choosing answers from personal experience', d: 'NCLEX tests safe practice, not what you have seen — the "I did it this way at clinical" instinct fails prioritization questions.' },
-            { t: 'Skipping the prioritization questions', d: 'ABCs, Maslow and acute-vs-chronic are the backbone of the exam — drill them until they are automatic.' },
-            { t: 'Memorizing drug names without indications', d: 'Medication questions test classification, antidotes and patient teaching — name memorization alone answers almost nothing.' },
-            { t: 'Practicing only in study groups', d: 'Group study builds confidence, not accuracy — you need solo CAT-style practice to find your real weak spots.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Choosing answers from personal experience', good: 'Answer from safe practice — NCLEX tests protocol, not what you have seen' },
+            { bad: 'Skipping prioritization questions', good: 'Drill ABCs, Maslow, acute-vs-chronic — they are the exam\'s backbone' },
+            { bad: 'Memorizing drug names alone', good: 'Learn classification, antidotes, and teaching points — names without use are noise' },
+            { bad: 'Practicing only in groups', good: 'Do solo CAT-style practice — groups build confidence, not accuracy' }
           ]},
         ],
       },
@@ -6445,11 +6445,11 @@ export const GUIDES = [
       {
         h2: 'The traps exams punish most',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Reading for the answer instead of the argument', d: 'CARS passages are built to be argued with — mapping the author\'s reasoning beats hunting for keywords.' },
-            { t: 'Bringing outside knowledge', d: 'CARS tests reasoning on the page, not your pre-med knowledge — the best-prepared students lose points here for importing facts.' },
-            { t: 'Answering from memory of a similar passage', d: 'Every passage is self-contained — the correct answer is always in the text, never in your head.' },
-            { t: 'Skipping the first read', d: 'A fast first pass for structure — claims, evidence, shifts — makes the questions faster. Skipping it makes every question a re-read.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Reading for the answer instead of the argument', good: 'Map the author\'s reasoning — CARS passages are built to be argued with' },
+            { bad: 'Importing outside knowledge', good: 'Stay on the page — CARS tests reasoning in the text, not pre-med facts' },
+            { bad: 'Answering from a similar passage\'s memory', good: 'Every passage is self-contained — the answer is always in the text' },
+            { bad: 'Skipping the first read', good: 'Do a fast structural pass first — claims, evidence, shifts make questions fast' }
           ]},
         ],
       },
@@ -6936,11 +6936,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that sink research papers',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Starting with the thesis before the research', d: 'A thesis written before you have read the sources is a guess — let the literature tell you what the argument should be.' },
-            { t: 'Treating the outline as a cage', d: 'Outlines organize thinking, they do not replace it — if a section fights the structure, the structure is wrong.' },
-            { t: 'Quoting instead of synthesizing', d: 'String-of-quotes papers score lower than ones that argue — use sources as evidence for your claim, not as the claim.' },
-            { t: 'Procrastinating the revision pass', d: 'The gap between a draft and a paper is revision — a paper "finished" without a second read is a first draft with a title.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Writing the thesis before the research', good: 'Let the literature argue first — a pre-research thesis is a guess' },
+            { bad: 'Treating the outline as a cage', good: 'Let sections fight back — if the structure resists, the argument is wrong' },
+            { bad: 'Quoting instead of synthesizing', good: 'Use sources as evidence — string-of-quotes papers score lower' },
+            { bad: 'Skipping the revision pass', good: 'The draft-to-paper gap is revision — unfinished revision is unfinished work' }
           ]},
         ],
       },
@@ -7187,11 +7187,11 @@ export const GUIDES = [
         h2: 'The common anatomy traps',
         blocks: [
           { k: 'p', t: 'Anatomy questions have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'Terminology', d: 'Anatomy uses precise language — "superficial" and "deep" mean different things.' },
-            { t: 'Orientation', d: 'Anterior/posterior, medial/lateral, proximal/distal — know the directions.' },
-            { t: 'Left vs. right', d: 'Anatomy is directional — know which side you\'re looking at.' },
-            { t: 'Variations', d: 'Anatomy has variations — the "normal" is a range, not a point.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Using approximate terms for precise ones', good: 'Learn the exact language — "superficial" and "deep" are different structures' },
+            { bad: 'Ignoring directional terms', good: 'Drill anterior/posterior, medial/lateral, proximal/distal until automatic' },
+            { bad: 'Losing track of left vs. right', good: 'Name the side before you answer — anatomy is directional' },
+            { bad: 'Treating "normal" as a single shape', good: 'Expect variation — normal anatomy is a range, not a point' }
           ]},
         ],
       },
@@ -7563,12 +7563,12 @@ export const GUIDES = [
       {
         h2: 'Where the marks actually leak',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Pure passive review', d: 'Re-reading First Aid feels productive and teaches almost nothing. Questions are the learning; review is the measurement.' },
-            { t: 'Skipping UWorld rationales', d: 'Reading only the correct answer wastes the question. The wrong-answer rationales explain the exact confusion the exam exploits.' },
-            { t: 'Neglecting behavioral science', d: 'Psych, biostats and ethics are roughly a quarter of the exam and the most-skipped content. They are also the most memorizable.' },
-            { t: 'First-guessing experimental questions', d: 'Experimental items reward patience — read the whole passage before answering; the conclusion is usually at the end.' },
-            { t: 'One-and-done NBME interpretation', d: 'An NBME is a diagnostic, not a verdict — review every miss on it like a UWorld block or the assessment was wasted.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Re-reading First Aid passively', good: 'Do questions instead — review without retrieval teaches almost nothing' },
+            { bad: 'Reading only the correct answer', good: 'Study the wrong-answer rationales — they explain the exact traps' },
+            { bad: 'Neglecting behavioral science', good: 'Give psych, biostats, and ethics real time — they are ~a quarter of the exam' },
+            { bad: 'Answering experimental items too fast', good: 'Read the whole passage first — patience is what those items reward' },
+            { bad: 'Treating NBMEs as verdicts', good: 'Review every miss like a UWorld block — the diagnostic is only as good as the follow-up' }
           ]},
         ],
       },
@@ -7775,12 +7775,12 @@ export const GUIDES = [
       {
         h2: 'The mistakes that cost law students their grades',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Reading cases without synthesizing', d: 'Case reading teaches facts; outlines teach doctrine. If you are not building your own outline, you are reading for nothing.' },
-            { t: 'Practicing essays untimed', d: 'A three-hour exam is a different skill than a five-hour take-home — timed practice builds the pacing the exam demands.' },
-            { t: 'Skipping practice exams until finals', d: 'Practice exams are the course — waiting until December means discovering the format on exam day.' },
-            { t: 'Writing answers without a roadmap', d: 'IRAC structure is not optional — an essay that buries the issue scores lower than a messy one that spots it first.' },
-            { t: 'Memorizing rules without applying them', d: 'Law exams test application, not recall — a rule you cannot deploy to new facts is a rule you do not know.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Reading cases without building outlines', good: 'Outlines teach doctrine — case reading alone teaches facts' },
+            { bad: 'Practicing essays untimed', good: 'Time every practice essay — a three-hour exam is a different skill' },
+            { bad: 'Saving practice exams for finals', good: 'Take them throughout — they are the course, not the preview' },
+            { bad: 'Writing answers without a roadmap', good: 'Structure every answer — IRAC or the issue gets buried' },
+            { bad: 'Memorizing rules without applying them', good: 'Deploy rules to new facts — exams test application, not recall' }
           ]},
         ],
       },
@@ -7880,12 +7880,12 @@ export const GUIDES = [
       {
         h2: 'The mistakes that derail med students',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Trying to learn everything', d: 'The volume is designed to be impossible — triage by what exams test, not what lectures cover.' },
-            { t: 'Passive lecture transcription', d: 'Typing every slide produces notes you never read. Annotate for understanding or record and review.' },
-            { t: 'Skipping Anki until exam week', d: 'Spaced repetition needs time — starting in April means the schedule has no room to work.' },
-            { t: 'Studying in silos', d: 'Learning cardio physiology separate from cardio pathology separate from cardio pharmacology triples the work. Systems integration is the shortcut.' },
-            { t: 'Never doing questions early', d: 'UWorld questions are diagnostic and teaching — waiting until exam week means discovering your gaps on the real exam.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Trying to learn everything', good: 'Triage by what exams test — the volume is designed to be impossible' },
+            { bad: 'Transcribing lectures passively', good: 'Annotate for understanding — notes you never reread teach nothing' },
+            { bad: 'Starting Anki in exam week', good: 'Begin early — spaced repetition needs runway to compound' },
+            { bad: 'Studying subjects in silos', good: 'Connect the systems — cardio physio, patho, and pharm are one story' },
+            { bad: 'Waiting until exam week for questions', good: 'Do questions early — they are diagnostic and teaching at once' }
           ]},
         ],
       },
@@ -7999,12 +7999,12 @@ export const GUIDES = [
       {
         h2: 'The mistakes that cost business students points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Memorizing frameworks without applying them', d: 'A SWOT you cannot run on a new case is a definition, not a skill. Apply every framework to at least three cases.' },
-            { t: 'Treating cases as reading comprehension', d: 'Cases are argument exercises — the grade is in your recommendation and reasoning, not your summary.' },
-            { t: 'Skipping the quantitative tools', d: 'Break-even, ROI and ratio analysis are the backbone of finance and strategy courses — they are also the easiest points to lose.' },
-            { t: 'Studying courses in isolation', d: 'Marketing, finance and strategy are the same problem in different clothes — the connections are where the insight lives.' },
-            { t: 'Waiting until exam week for cases', d: 'Case skill compounds — a semester of weekly case practice beats a week of cramming.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing frameworks without applying them', good: 'Run every framework on a new case — a definition is not a skill' },
+            { bad: 'Treating cases as reading comprehension', good: 'Argue a recommendation — the grade lives in your reasoning' },
+            { bad: 'Skipping quantitative tools', good: 'Drill break-even, ROI, and ratios — they are the backbone of half the courses' },
+            { bad: 'Studying each course in isolation', good: 'Connect marketing, finance, and strategy — same problem, different clothes' },
+            { bad: 'Waiting until exam week for case practice', good: 'Practice weekly — case skill compounds like language' }
           ]},
         ],
       },
@@ -8119,12 +8119,12 @@ export const GUIDES = [
       {
         h2: 'The mistakes that cost communications students points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Summarizing instead of analyzing', d: 'A case answer that describes the ad is not analysis — the grade is in explaining how it persuades, not what it says.' },
-            { t: 'Treating theory as trivia', d: 'Frameworks are lenses, not facts — a theory you cannot apply to a new example is a theory you do not know.' },
-            { t: 'Only using textbook examples', d: 'The real world is full of better cases — analyze the ads you actually see; the skill transfers.' },
-            { t: 'Writing essays without a thesis', d: 'Communications essays argue a claim about how a message works — a summary with a title is not an argument.' },
-            { t: 'Waiting until exam week to analyze', d: 'Analysis skill compounds — a semester of weekly message analysis beats a week of cramming.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Summarizing instead of analyzing', good: 'Explain why the message works — description is not analysis' },
+            { bad: 'Treating theory as trivia', good: 'Apply every framework to a fresh example — an unapplied theory is unknown' },
+            { bad: 'Using only textbook examples', good: 'Analyze the ads you actually see — the real world is the better casebook' },
+            { bad: 'Writing essays without a thesis', good: 'Argue a claim about how a message works — a summary is not an essay' },
+            { bad: 'Waiting until exam week to analyze', good: 'Analyze weekly — the skill compounds across the semester' }
           ]},
         ],
       },
@@ -8234,12 +8234,12 @@ export const GUIDES = [
       {
         h2: 'The mistakes that cost sociology students points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Treating theory as trivia', d: 'A theory you cannot apply to a new example is a theory you do not know. Apply every framework to at least three social phenomena.' },
-            { t: 'Describing instead of analyzing', d: 'Sociology essays argue a claim about why something happens — a summary of a trend is not an analysis.' },
-            { t: 'Ignoring the evidence', d: 'Sociology is empirical — claims need data, studies, or examples. Theory without evidence is opinion.' },
-            { t: 'Forgetting the intersectional lens', d: 'Modern sociology emphasizes intersectionality — race, class, gender, sexuality intersect. Single-axis analysis is incomplete.' },
-            { t: 'Waiting until exam week for theory', d: 'Theory application compounds — a semester of weekly analysis beats a week of cramming.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Treating theory as trivia', good: 'Apply every theory to a new example — an unapplied theory is unknown' },
+            { bad: 'Describing instead of analyzing', good: 'Argue a claim about why something happens — summaries score low' },
+            { bad: 'Ignoring the evidence', good: 'Back every claim with data or examples — sociology is empirical' },
+            { bad: 'Dropping the intersectional lens', good: 'Race, class, gender, and sexuality intersect — analysis that ignores them is incomplete' },
+            { bad: 'Waiting until exam week for theory', good: 'Apply theory weekly — a semester of practice beats a week of cramming' }
           ]},
         ],
       },
@@ -8358,12 +8358,12 @@ export const GUIDES = [
       {
         h2: 'The mistakes that cost political science students points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Treating theory as trivia', d: 'An approach you cannot apply to a new example is an approach you do not know. Apply every framework to at least three political phenomena.' },
-            { t: 'Describing instead of analyzing', d: 'Political science essays argue a claim about why something happens — a summary of an event is not an analysis.' },
-            { t: 'Ignoring the evidence', d: 'Political science is empirical — claims need data, studies, or institutional analysis. Theory without evidence is opinion.' },
-            { t: 'Forgetting the institutional context', d: 'Political outcomes are shaped by rules, norms, and history — analysis that ignores institutions misses the mechanism.' },
-            { t: 'Waiting until exam week for theory', d: 'Weekly application compounds; cramming does not — think in semesters, not weeks.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Treating theory as trivia', good: 'Apply every approach to a new case — an unapplied framework is unknown' },
+            { bad: 'Describing instead of analyzing', good: 'Argue a claim about why something happens — description is not analysis' },
+            { bad: 'Ignoring the evidence', good: 'Support claims with data or institutional analysis — the discipline is empirical' },
+            { bad: 'Forgetting institutional context', good: 'Ask what rules and history shape the outcome — institutions are the missing variable' },
+            { bad: 'Waiting until exam week for theory', good: 'Apply approaches weekly — think in semesters, not weeks' }
           ]},
         ],
       },
@@ -8482,12 +8482,12 @@ export const GUIDES = [
       {
         h2: 'The mistakes that cost education students points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Treating theory as trivia', d: 'A framework you cannot apply to a real classroom moment is a framework you do not know. Apply every theory to at least three observations.' },
-            { t: 'Describing instead of analyzing', d: 'Education essays argue a claim about why something worked — a summary of a lesson is not an analysis.' },
-            { t: 'Ignoring developmental context', d: 'Learning depends on age and stage — analysis that ignores development misses the mechanism.' },
-            { t: 'Forgetting differentiation', d: 'Every lesson should reach every student — analysis that assumes a single learner is incomplete.' },
-            { t: 'Waiting until exam week for reflection', d: 'Reflection compounds — a semester of weekly analysis beats a week of cramming.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Treating theory as trivia', good: 'Apply every framework to a real classroom moment — an unapplied theory is unknown' },
+            { bad: 'Describing instead of analyzing', good: 'Argue a claim about why something worked — lesson summaries are not analysis' },
+            { bad: 'Ignoring developmental context', good: 'Match the analysis to age and stage — development is the mechanism' },
+            { bad: 'Forgetting differentiation', good: 'Ask how the lesson reaches every learner — a single-learner analysis is incomplete' },
+            { bad: 'Waiting until exam week for reflection', good: 'Reflect weekly — a semester of analysis beats a week of cramming' }
           ]},
         ],
       },
@@ -8770,28 +8770,13 @@ export const GUIDES = [
           h2: 'The mistakes that cost anthropology students points',
           blocks: [
             {
-              k: 'deflist',
+              k: 'mistakes',
               items: [
-                {
-                  t: 'Treating the four fields as separate subjects',
-                  d: 'The exam rewards synthesis — an answer connecting archaeology to cultural anthropology beats two separate answers.'
-                },
-                {
-                  t: 'Judging cultures by your own norms',
-                  d: 'Cultural relativism is the founding stance — "that practice is wrong" without engaging its internal logic fails the course\'s core test.'
-                },
-                {
-                  t: 'Summarizing instead of analyzing',
-                  d: 'Anthropology grades argument — "the Nuer practice ghost marriage" is a fact; "ghost marriage solves the problem of male heirs dying without sons" is analysis.'
-                },
-                {
-                  t: 'Ignoring the researcher',
-                  d: 'Reflexivity is not optional — an ethnographic claim that pretends the observer was invisible is methodologically naive.'
-                },
-                {
-                  t: 'Memorizing theorists without their claims',
-                  d: 'Exams ask "what does Geertz mean by thick description" not "who was Geertz" — learn the idea, attach the name.'
-                }
+                { bad: 'Treating the four fields as separate subjects', good: 'Synthesize across them — the exam rewards connected answers' },
+                { bad: 'Judging cultures by your own norms', good: 'Engage the practice\'s internal logic — relativism is the founding stance' },
+                { bad: 'Summarizing instead of analyzing', good: 'Argue what a practice means — facts are the setup, not the answer' },
+                { bad: 'Ignoring the researcher', good: 'Account for your presence — reflexivity is methodological, not optional' },
+                { bad: 'Memorizing theorists without their claims', good: 'Learn the argument, attach the name — exams ask what they claimed' }
               ]
             }
           ]
