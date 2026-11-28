@@ -192,7 +192,7 @@ const CARDS = [
   ...TOPIC_PAGES.map((t) => ({
     file: `topic-${t.slug}.png`,
     kicker: `Iterra Guides · ${t.kicker}`,
-    title: `${t.kicker} guides`,
+    title: /guide/i.test(t.kicker) ? t.kicker : `${t.kicker} guides`,
     dek: `${t.guides.length} articles on ${t.kicker.toLowerCase()} — planning, method, and practice.`,
     shot: '/shots/today.webp',
     alt: `${t.kicker} study guides — Iterra`,
