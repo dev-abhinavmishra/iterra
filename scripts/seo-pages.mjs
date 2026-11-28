@@ -1054,11 +1054,13 @@ body.reader .guide-article{max-width:46rem}
 .to-top.on{opacity:1;visibility:visible;transform:none}
 .to-top:hover{background:#fff;transform:translateY(-2px)}
 @media print{
-  .side,.topbar,.scrim,.read-progress,.ad-slot,.toc-rail,.pager,.series,.author-card,.cta,.byline .av,.to-top,.lightbox{display:none!important}
+  .side,.topbar,.scrim,.read-progress,.ad-slot,.toc-rail,.pager,.series,.author-card,.cta,.byline .av,.to-top,.lightbox,.foot,.crumbs,.hero .plate{display:none!important}
   .main{margin-left:0}.content,.foot{background:#fff}
   body::before,body::after{display:none}
   .hero{padding-top:0}
-  .prose-table,.table-wrap,.steps li,.def{break-inside:avoid}
+  .prose-table,.table-wrap,.steps li,.def,.keypoint,.example,.prose-fig{break-inside:avoid}
+  .h-anchor,.nav-more-btn{display:none!important}
+  a{color:inherit;text-decoration:none}
 }
 
 /* ── polish: selection, scrollbars, reveal-on-scroll ──── */
