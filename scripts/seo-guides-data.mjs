@@ -3056,11 +3056,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that cost the most points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Cramming formulas the night before', d: 'The SAT tests patterns, not recall — a formula you learned Thursday is gone by Saturday. Drill question types weekly instead.' },
-            { t: 'Skipping the easy questions', d: 'Burning three minutes on a hard question costs the three easy ones you could have banked. Two-pass strategy: answer what you know, flag the rest.' },
-            { t: 'Never taking a full practice test', d: 'Section practice hides pacing problems. A full timed test exposes them — take one every 2-3 weeks.' },
-            { t: 'Reviewing only wrong answers', d: 'Right answers you guessed on are future wrong answers. Review every question, especially the lucky hits.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Cramming formulas the night before', good: 'Drill question types weekly — the SAT tests patterns, not recall' },
+            { bad: 'Burning minutes on one hard question', good: 'Two-pass strategy: answer what you know, flag the rest' },
+            { bad: 'Practicing sections but never a full test', good: 'Full timed test every 2–3 weeks exposes pacing problems' },
+            { bad: 'Reviewing only the questions you missed', good: 'Review every question — lucky guesses are future wrong answers' }
           ]},
         ],
       },
@@ -3401,11 +3401,11 @@ export const GUIDES = [
         h2: 'Common history study mistakes',
         blocks: [
           { k: 'p', t: 'The most common history study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing dates without understanding significance', d: 'Dates are labels for events — learn the event, not the date.' },
-            { t: 'Treating events as isolated', d: 'History is connected — each event causes the next.' },
-            { t: 'Not practicing essays', d: 'Most history exams require them — practice the format.' },
-            { t: 'Studying only before exams', d: 'History builds cumulatively — gaps compound faster than in most subjects.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing dates without the event', good: 'Learn what happened and why it mattered — dates are labels' },
+            { bad: 'Studying events as isolated episodes', good: 'Connect each event to its causes and consequences' },
+            { bad: 'Skipping essay practice', good: 'Write timed essays weekly — most history exams are essays' },
+            { bad: 'Reviewing only before exams', good: 'History compounds — gaps grow faster than in most subjects' }
           ]},
         ],
       },
@@ -4560,11 +4560,11 @@ export const GUIDES = [
       {
         h2: 'The traps exams punish most',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Reading arguments passively', d: 'Every Logical Reasoning question is an argument — diagram the conclusion and evidence or you are guessing at structure.' },
-            { t: 'Skipping Logic Games setup', d: 'Games are winnable through diagramming — students who skip the setup diagram burn time rediscovering it per question.' },
-            { t: 'Treating Reading Comprehension like GRE reading', d: 'LSAT RC questions test structural function and inference discipline, not vocabulary or detail recall.' },
-            { t: 'Practicing only easy sections', d: 'The score is made or lost on the last five questions of each section — if your practice never reaches them, your pace is untested.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Reading arguments passively', good: 'Diagram the conclusion and evidence — every LR question is an argument' },
+            { bad: 'Skipping Logic Games setup', good: 'Draw the diagram first — rediscovering it per question burns the clock' },
+            { bad: 'Treating RC like GRE reading', good: 'Focus on structural function and inference discipline, not vocabulary' },
+            { bad: 'Practicing only easy questions', good: 'Train the last five per section — that is where the score is made' }
           ]},
         ],
       },
@@ -4915,11 +4915,11 @@ export const GUIDES = [
       {
         h2: 'Common ways students drop points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Practicing algebra the SAT way', d: 'GMAT quant emphasizes data sufficiency and logic over computation — pure arithmetic practice misses what the exam actually tests.' },
-            { t: 'Ignoring sentence correction rules', d: 'SC rewards parallelism and modifier discipline — "sounds right" answers are the trap the section is built on.' },
-            { t: 'Writing essays from scratch each time', d: 'The AWA rewards a memorized two-paragraph structure — build a template once, then practice filling it under time.' },
-            { t: 'Skipping data interpretation drills', d: 'IR is the section students skip — and it punishes skipping hardest, since partial credit rewards attempt strategy.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Practicing algebra the SAT way', good: 'Drill data sufficiency and logic — GMAT quant tests reasoning over computation' },
+            { bad: 'Choosing sentence corrections that "sound right"', good: 'Apply the rules — parallelism and modifier discipline are what the section grades' },
+            { bad: 'Writing essays from scratch each time', good: 'Build one two-paragraph template, then practice filling it under time' },
+            { bad: 'Skipping data interpretation drills', good: 'IR punishes skipping hardest — practice attempt strategy for partial credit' }
           ]},
         ],
       },
@@ -6200,11 +6200,11 @@ export const GUIDES = [
         h2: 'The common chemistry traps',
         blocks: [
           { k: 'p', t: 'Chemistry problems have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'Units', d: 'Units are part of the answer — a wrong unit is a wrong answer.' },
-            { t: 'Significant figures', d: 'Chemistry cares about precision — round at the end, not during.' },
-            { t: 'Mole ratios', d: 'The coefficients in a balanced equation are mole ratios, not molecule counts.' },
-            { t: 'States of matter', d: '(s), (l), (g), (aq) matter in thermochemistry.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Dropping units from the answer', good: 'Units are part of the answer — a wrong unit is a wrong answer' },
+            { bad: 'Rounding mid-calculation', good: 'Carry full precision, round at the end — chemistry grades significant figures' },
+            { bad: 'Reading coefficients as molecule counts', good: 'Coefficients are mole ratios — convert through moles, not molecules' },
+            { bad: 'Ignoring states of matter', good: '(s), (l), (g), (aq) matter in thermochemistry — track them in every equation' }
           ]},
         ],
       },
@@ -6321,11 +6321,11 @@ export const GUIDES = [
         h2: 'The common biology traps',
         blocks: [
           { k: 'p', t: 'Biology questions have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'Terminology', d: 'Biology uses precise language — "similar" and "homologous" mean different things.' },
-            { t: 'Scale', d: 'Cells, tissues, organs, systems — know which level you\'re working at.' },
-            { t: 'Cause vs. correlation', d: 'Biology questions test whether you understand *why*, not just *that*.' },
-            { t: 'Exceptions', d: 'Biology is full of exceptions — the "rule" has a "but usually..."' },
+                    { k: 'mistakes', items: [
+            { bad: 'Using "similar" when you mean homologous', good: 'Learn the precise term — biology grades vocabulary that carries mechanism' },
+            { bad: 'Answering at the wrong biological scale', good: 'Name the level first: cell, tissue, organ, system, population' },
+            { bad: 'Treating correlation as causation', good: 'Ask why — biology questions test mechanism, not just association' },
+            { bad: 'Treating exceptions as errors', good: 'Expect the "but usually" — note exceptions as you learn each rule' }
           ]},
         ],
       },
@@ -7665,12 +7665,12 @@ export const GUIDES = [
       {
         h2: 'The mistakes that stall CS students',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Copying code without typing it', d: 'Paste-and-run builds recognition, not skill. Type every example — the friction is the learning.' },
-            { t: 'Skipping the debugging', d: 'When code fails, the temptation is to find the fix online. Sit with it — debugging is the core CS skill.' },
-            { t: 'Only watching lectures', d: 'A lecture explains; it does not install. If you have not written the code yourself, you have not studied.' },
-            { t: 'Cramming problem sets', d: 'CS skills compound like language — an hour a day for a month beats a weekend of heroic effort.' },
-            { t: 'Never building anything', d: 'Problem sets teach fragments; a small project teaches the whole — even a terrible to-do app teaches more than a perfect worksheet.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Copying code without typing it', good: 'Type every example — the friction is the learning' },
+            { bad: 'Looking up the fix the moment code fails', good: 'Sit with the bug — debugging is the core CS skill' },
+            { bad: 'Only watching lectures', good: 'If you have not written it yourself, you have not studied' },
+            { bad: 'Cramming problem sets', good: 'An hour a day for a month beats a weekend of heroic effort' },
+            { bad: 'Never building anything', good: 'A small project teaches what fragments cannot — build something, anything' }
           ]},
         ],
       },
