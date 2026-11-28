@@ -7462,6 +7462,118 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-communications',
+    title: 'How to study <em>communications</em>',
+    seoTitle: 'How to Study Communications: Frameworks, Analysis, Cases',
+    description:
+      'Communications courses test analysis, not recall. Learn the frameworks — agenda-setting, framing, identification — apply them to real messages, and write your own take.',
+    kicker: 'Subject Guides',
+    datePublished: '2027-12-28',
+    dateModified: '2028-01-01',
+    readMinutes: 7,
+    keywords: ['how to study communications', 'communications study tips', 'media studies exam prep', 'rhetorical analysis'],
+    tools: ['ink', 'timer'],
+    related: ['how-to-study-business', 'how-to-study-psychology', 'how-to-write-a-research-paper'],
+    lede: 'Communications courses feel like they should be easy — discussion-heavy, essay-based, no formulas to memorize. They are not. The subject tests whether you can analyze how messages work: why an ad persuades, why a speech moved people, why a headline frames an issue. That skill is built by analyzing real messages, not by reading about them.',
+    takeaways: [
+      'Learn the framework, then analyze real messages — application is the learning.',
+      'Analysis is an argument about how a message works, not a summary of what it says.',
+      'Your daily scroll is the textbook — the skill is seeing the theory in the wild.',
+    ],
+    faq: [
+      {
+        q: 'How is studying communications different from other subjects?',
+        a: 'It is the most analysis-heavy subject on most transcripts. Exams are essays about how messages work — ads, speeches, articles, social posts. Reading about persuasion produces almost nothing; analyzing real messages produces the skill.',
+      },
+      {
+        q: 'What frameworks should I learn for communications?',
+        a: 'Start with five: agenda-setting (what media covers becomes what matters), framing (same story, different meaning), identification (persuasion through shared identity), diffusion of innovations (how ideas spread), and uses and gratifications (why audiences choose media).',
+      },
+      {
+        q: 'How do I study for communications exams?',
+        a: 'Practice analysis essays under time — define the message, apply the framework, support with evidence, commit to a claim. Compare your analysis to the case solution and write down where your reasoning diverged.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'How communications is actually learned',
+        blocks: [
+          { k: 'p', t: 'Communications courses feel like they should be easy — discussion-heavy, essay-based, no formulas to memorize. They are not. The subject tests whether you can analyze how messages work: why an ad persuades, why a speech moved people, why a headline frames an issue. That skill is built by analyzing real messages, not by reading about them.' },
+          { k: 'p', t: 'The study method that works: collect examples, analyze them with the course frameworks, and write your own. A student who has analyzed fifty ads understands persuasion better than one who has read fifty pages about it.' },
+          { k: 'tool', tool: 'ink', t: 'Ink holds the message analyses — the frameworks applied to real ads, speeches and articles you actually encountered.' },
+        ],
+      },
+      {
+        h2: 'The communications study loop',
+        blocks: [
+          { k: 'p', t: 'A week of communications study that actually works:' },
+          { k: 'steps', items: [
+            'Learn the framework — agenda-setting, framing, identification, diffusion of innovations.',
+            'Collect examples — ads, speeches, articles, social posts from daily life.',
+            'Analyze them — apply the framework: what is the message doing and how?',
+            'Compare analyses — discuss with classmates or write your own take.',
+            'Review the theory — the frameworks explain the patterns you found.',
+          ]},
+          { k: 'p', t: 'The collect step is where the subject comes alive. Communications is the course where your Instagram feed and your textbook are the same material — the skill is seeing the theory in the wild.' },
+        ],
+      },
+      {
+        h2: 'The frameworks that carry communications courses',
+        blocks: [
+          { k: 'p', t: 'A small set of frameworks does most of the work across communications courses — learn them once, apply them everywhere:' },
+          { k: 'deflist', items: [
+            { t: 'Agenda-setting', d: 'Media tells us what to think about, not what to think — the issues covered become the issues that matter.' },
+            { t: 'Framing', d: 'The same story framed differently produces different meanings — "tax relief" vs. "budget cuts" is the same policy.' },
+            { t: 'Identification', d: 'Burke\'s concept — persuasion through shared identity; "we" language builds consubstantiality.' },
+            { t: 'Diffusion of innovations', d: 'How new ideas spread — innovators, early adopters, early majority, late majority, laggards.' },
+            { t: 'Uses and gratifications', d: 'Why audiences choose media — information, identity, integration, social interaction, entertainment.' },
+          ]},
+          { k: 'quote', t: 'The frameworks are not the answer — they are the questions. A good analysis is a framework applied honestly to a real message.' },
+        ],
+      },
+      {
+        h2: 'The course types: different skills, different methods',
+        blocks: [
+          { k: 'p', t: 'Communications is not one subject — the study method shifts by course type:' },
+          { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
+            ['Theory courses', 'Framework application', 'Essay analysis of real messages'],
+            ['Media studies', 'Close reading of texts/images', 'Content analysis + semiotics'],
+            ['Public relations', 'Strategy + writing', 'Campaign analysis + messaging'],
+            ['Journalism', 'Reporting + AP style', 'Deadline writing + interviews'],
+            ['Digital/media', 'Platform + algorithm analysis', 'Metrics + virality case studies'],
+          ]},
+        ],
+      },
+      {
+        h2: 'Analysis: the skill communications courses actually test',
+        blocks: [
+          { k: 'p', t: 'Most communications exams are analysis essays — a text or case and an argument to make about how it works. The grading rewards structure: define the message, apply the framework, support with evidence, commit to a claim.' },
+          { k: 'p', t: 'The students who struggle are the ones who treat analysis as description — summarizing the ad instead of explaining how it persuades. An analysis answer is an argument about how a message works, not a summary of what it says.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost communications students points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Summarizing instead of analyzing', d: 'A case answer that describes the ad is not analysis — the grade is in explaining how it persuades, not what it says.' },
+            { t: 'Treating theory as trivia', d: 'Frameworks are lenses, not facts — a theory you cannot apply to a new example is a theory you do not know.' },
+            { t: 'Only using textbook examples', d: 'The real world is full of better cases — analyze the ads you actually see; the skill transfers.' },
+            { t: 'Writing essays without a thesis', d: 'Communications essays argue a claim about how a message works — a summary with a title is not an argument.' },
+            { t: 'Waiting until exam week to analyze', d: 'Analysis skill compounds — a semester of weekly message analysis beats a week of cramming.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'Communications is the course where your daily scroll is the textbook — the skill is seeing the theory in the wild.' },
+          { k: 'p', t: 'Learn the framework, collect real examples, analyze them, and write your own take. That loop is the whole method — and it works for every communications course you will ever take.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
