@@ -38,8 +38,10 @@ fields support inline markup via `inline()`: `**bold**`, `*italic*`,
 ## Conventions
 
 - Every guide needs: `slug`, `title` (may contain `<em>`), `description`,
-  `lede`, `kicker`, `datePublished`, `readMinutes`, `keywords`, `tools`
+  `lede`, `kicker`, `datePublished`, `keywords`, `tools`
   (place ids), `related` (guide slugs), `faq` (`{q,a}`), `sections`.
+  `readMinutes` is optional — displayed read times are computed from the
+  rendered article text (~200 wpm).
 - `kicker` groups guides on `/guides` and feeds `/topics/<kicker>` archives —
   a topic page is only published when a kicker has ≥3 guides.
 - Regenerate after data changes: `npm run seo` (writes `dist/`),
