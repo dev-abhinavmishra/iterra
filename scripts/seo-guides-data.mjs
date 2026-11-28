@@ -2831,7 +2831,7 @@ export const GUIDES = [
       {
         h2: 'Problems are the study method',
         blocks: [
-          { k: 'p', t: 'Math is the subject where the gap between "I understand it" and "I can do it" is widest. Reading the textbook feels like learning; the exam tests whether you can actually solve problems under pressure. The fix: study math like it’s a skill, not a subject — practice problems are the study method, and everything else supports them.' },
+          { k: 'p', t: 'Math exams are cumulative — each unit assumes the last, and the problems compound. Whether the format is multiple choice, free response, or proof-based, the skill being tested is the same: can you set up the problem correctly and execute the solution cleanly?' },
           { k: 'p', t: 'Math is learned by doing, not by reading. The textbook explains concepts; the problems teach you to apply them. If you only read the material, you’ll recognize the concepts but fail when the exam asks you to use them. The single highest-yield activity in math study is solving problems — lots of them, starting easy and working up.' },
         ],
       },
@@ -3163,7 +3163,7 @@ export const GUIDES = [
       {
         h2: 'Science is systems, not facts',
         blocks: [
-          { k: 'p', t: 'Science courses fail students in a specific way: they treat the material as facts to memorize instead of systems to understand. Biology isn\'t a list of terms; it\'s interconnected processes. Chemistry isn\'t equations; it\'s patterns of behavior. The students who do well learn the *structure* of the science, not just the content.' },
+          { k: 'p', t: 'Science exams test whether you can move from observation to explanation. Whether the question is a data interpretation, an experimental design, or a conceptual application, the grader wants the reasoning — not just the correct answer.' },
           { k: 'p', t: 'Every science course is built on a small number of core concepts that everything else connects to. In biology, it\'s the cell and evolution. In chemistry, it\'s atomic structure and bonding. In physics, it\'s forces and energy. Learn the core concepts deeply and the details organize themselves around them.' },
           { k: 'p', t: 'When you encounter a new topic, ask: how does this connect to the core? Where does this fit in the system? The connections are what make the material stick — isolated facts are forgotten, integrated systems are remembered.' },
         ],
@@ -3934,7 +3934,7 @@ export const GUIDES = [
       {
         h2: 'Nursing is systems, not facts',
         blocks: [
-          { k: 'p', t: 'Nursing school is the course load that breaks people — pharmacology, pathophysiology, med-surg, and a clinical that starts at 6am. The students who survive aren’t the ones who study the most; they’re the ones who study *smart*. Nursing rewards a specific approach: learn the systems, connect everything to the patient, and practice the application relentlessly.' },
+          { k: 'p', t: 'Nursing exams are clinical reasoning tests disguised as content tests. Whether the format is prioritization, dosage calculation, or care-plan essay, the skill being tested is the same: can you apply the pathophysiology to the patient in front of you?' },
           { k: 'p', t: 'Every nursing course is built on systems — cardiovascular, respiratory, renal, neuro. The medications, lab values, and assessments are all expressions of these systems. Learn the system and the details organize themselves; memorize the details and they\'re a blur.' },
           { k: 'p', t: 'When you encounter a new medication or condition, ask: which system does this affect? What\'s the normal function? What goes wrong? The system is the framework; everything else hangs on it.' },
         ],
@@ -7787,7 +7787,7 @@ export const GUIDES = [
       {
         h2: 'How business is actually learned',
         blocks: [
-          { k: 'p', t: 'Business courses feel easy and are not. The reading is accessible, the lectures are engaging, and the exams feel like common sense — right up until you try to apply a framework to a case you have never seen. Business is learned through application: frameworks you can deploy to new situations, not definitions you can recite.' },
+          { k: 'p', t: 'Business exams are case exams — a fact pattern and a decision to make. Whether the course is marketing, finance, or strategy, the grading rewards the same thing: a recommendation defended with the right framework, not a summary of the reading.' },
           { k: 'p', t: 'The study method that works: learn the framework, then attack cases. SWOT, Porter\'s five forces, the marketing mix, break-even analysis — these are not facts to memorize but lenses to apply. A student who can run a framework on an unfamiliar case outperforms one who memorized every definition.' },
           { k: 'tool', tool: 'ink', t: 'Ink holds the case notes — frameworks applied to real examples, the connections between courses that lectures never make.' },
         ],
@@ -7899,7 +7899,7 @@ export const GUIDES = [
       {
         h2: 'How communications is actually learned',
         blocks: [
-          { k: 'p', t: 'Communications courses feel like they should be easy — discussion-heavy, essay-based, no formulas to memorize. They are not. The subject tests whether you can analyze how messages work: why an ad persuades, why a speech moved people, why a headline frames an issue. That skill is built by analyzing real messages, not by reading about them.' },
+          { k: 'p', t: 'Communications exams are analysis essays — a text, a case, or a message and an argument to make about how it works. Whether the prompt is an ad, a speech, or a news story, the grader wants the framework applied honestly to a real example.' },
           { k: 'p', t: 'The study method that works: collect examples, analyze them with the course frameworks, and write your own. A student who has analyzed fifty ads understands persuasion better than one who has read fifty pages about it.' },
           { k: 'tool', tool: 'ink', t: 'Ink holds the message analyses — the frameworks applied to real ads, speeches and articles you actually encountered.' },
         ],

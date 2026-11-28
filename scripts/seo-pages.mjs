@@ -987,6 +987,11 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .m-tag.ok{color:var(--accent)}
 .m-w{color:var(--mute);font-size:.95rem;line-height:1.6}
 .m-r{font-size:.95rem;line-height:1.6;color:var(--ink)}
+.example{border:1px solid var(--line);border-left:3px solid var(--accent);background:linear-gradient(160deg,rgba(233,240,226,.55),var(--sheet));border-radius:0 12px 12px 0;padding:1.3rem 1.5rem;margin:2rem 0;position:relative}
+.example .ex-tag{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem}
+.example .ex-body{font-family:Newsreader,Georgia,serif;font-size:1.12rem;line-height:1.7;color:var(--ink)}
+.example .ex-body p{margin:0}
+@media(max-width:720px){.example{padding:1.1rem 1.2rem}.example .ex-body{font-size:1.05rem}}
 .mistake-sec .prose>ul:not(.mistakes):not(.checklist):not(.steps){border-left:2px solid #b3563f;padding-left:1.2rem}
 .mistake-sec .prose>ul:not(.mistakes):not(.checklist):not(.steps)>li::marker{color:#b3563f}
 @media(max-width:720px){.mistakes li{grid-template-columns:1.4rem 1fr}.m-r{grid-column:2;margin-top:.4rem;padding-top:.6rem;border-top:1px dashed var(--line)}}
@@ -1148,6 +1153,8 @@ function renderBlocks(blocks) {
           .join('')}</ol>`;
       if (b.k === 'versus')
         return `<div class="versus"><div class="vside a"><span class="vk mono">${esc(b.a?.k || 'Instead of')}</span><span class="vt">${inline(b.a?.t || '')}</span></div><span class="vmedal mono" aria-hidden="true">vs</span><div class="vside b"><span class="vk mono">${esc(b.b?.k || 'Try')}</span><span class="vt">${inline(b.b?.t || '')}</span></div></div>`;
+      if (b.k === 'example')
+        return `<div class="example"><span class="ex-tag mono">${esc(b.label || 'Worked example')}</span><div class="ex-body">${inline(b.t)}</div></div>`;
       if (b.k === 'mistakes')
         return `<ul class="mistakes">${b.items
           .map(
@@ -1544,15 +1551,18 @@ ${footer()}
 const MISTAKE_H2 = /\bmistakes?\b/i;
 const MISTAKE_EXCLUDE = /\b(?:sort|track|log|journal|analyz|review|categor)/i;
 function mistakeify(s) {
-  if (!s.h2 || !MISTAKE_H2.test(s.h2) || MISTAKE_EXCLUDE.test(s.h2)) return s.blocks;
+  const isMistake = s.h2 && MISTAKE_H2.test(s.h2) && !MISTAKE_EXCLUDE.test(s.h2);
   return s.blocks.map((b) => {
-    if (b.k !== 'deflist' || !b.items?.length) return b;
-    return {
-      k: 'mistakes',
-      bad: 'Mistake',
-      good: 'Fix',
-      items: b.items.map((d) => ({ bad: d.t, good: d.d })),
-    };
+    if (isMistake && b.k === 'deflist' && b.items?.length)
+      return {
+        k: 'mistakes',
+        bad: 'Mistake',
+        good: 'Fix',
+        items: b.items.map((d) => ({ bad: d.t, good: d.d })),
+      };
+    if (b.k === 'p' && /^here is the method applied/i.test(b.t || ''))
+      return { k: 'example', t: b.t };
+    return b;
   });
 }
 
