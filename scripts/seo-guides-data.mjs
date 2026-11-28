@@ -4663,6 +4663,14 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The PCAT is the test that decides pharmacy school — a 3.25-hour exam that tests biology, chemistry, physics, reading comprehension, and quantitative reasoning. But the PCAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The PCAT has five sections: Biology, Chemistry, Physics, Reading Comprehension, Quantitative Reasoning, and a Writing section. Each section is scored separately, and the test is 3.25 hours long. Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
+            ['Biology', '48', '30 min', 'Cell biology, genetics, physiology'],
+            ['Chemistry', '29', '30 min', 'General, organic, biochemistry'],
+            ['Physics', '28', '30 min', 'Mechanics, electricity, waves'],
+            ['Reading Comprehension', '36', '45 min', 'Passage analysis, inference'],
+            ['Quantitative Reasoning', '40', '45 min', 'Algebra, geometry, data analysis'],
+            ['Writing', '1', '30 min', 'Essay response to a prompt'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 400 in Bio but 350 in Quant should spend most of their time on Quant.' },
         ],
       },
@@ -4751,6 +4759,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The OAT is the test that decides optometry school — a 4-hour exam that tests natural sciences, reading comprehension, physics, and quantitative reasoning. But the OAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The OAT has four sections: Survey of Natural Sciences (Biology, General Chemistry, Organic Chemistry), Physics, Reading Comprehension, and Quantitative Reasoning. Each section is scored separately, and the test is 4 hours long. Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
+            ['Survey of Natural Sciences', '100', '90 min', 'Biology, chemistry, physics'],
+            ['Physics', '50', '50 min', 'Mechanics, electricity, optics'],
+            ['Reading Comprehension', '50', '60 min', 'Passage analysis, inference'],
+            ['Quantitative Reasoning', '40', '45 min', 'Math, data analysis'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 350 in Bio but 300 in Quant should spend most of their time on Quant.' },
         ],
       },
@@ -4840,6 +4854,10 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The FE exam is the first step toward PE licensure — a 6-hour test that covers every engineering discipline. But the FE rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.' },
           { k: 'p', t: 'The FE exam has two parts: a morning section (120 questions, 5.5 hours) covering general engineering topics, and an afternoon section (60 questions, 5.5 hours) covering your chosen discipline. Each part is scored separately. Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Part', 'Questions', 'Time', 'Content'], rows: [
+            ['Morning (General)', '120', '5.5 hours', 'Math, stats, economics, statics, dynamics, materials, ethics'],
+            ['Afternoon (Discipline)', '60', '5.5 hours', 'Civil, mechanical, electrical, chemical, etc.'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 140 in the morning but struggles with afternoon discipline should spend most of their time on the discipline section.' },
         ],
       },
@@ -4929,6 +4947,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The TOEFL is the test that decides whether you can study in English — a 3-hour exam that tests reading, listening, speaking, and writing. But the TOEFL rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The TOEFL has four sections: Reading, Listening, Speaking, and Writing. Each section is scored separately, and the test is 3 hours long (plus 10 minutes for the speaking section). Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Score Range'], rows: [
+            ['Reading', '30-40', '54-72 min', '0-30'],
+            ['Listening', '28-39', '41-57 min', '0-30'],
+            ['Speaking', '4 tasks', '17 min', '0-4 per task'],
+            ['Writing', '2 tasks', '50 min', '0-5 per task'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 25 in Reading but 20 in Speaking should spend most of their time on Speaking.' },
         ],
       },
@@ -5017,6 +5041,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The IELTS is the test that decides whether you can study or work in English — a 3-hour exam that tests listening, reading, writing, and speaking. But the IELTS rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The IELTS has four sections: Listening, Reading, Writing, and Speaking. Each section is scored separately, and the test is 3 hours long (plus 11-14 minutes for the speaking interview). Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Score Range'], rows: [
+            ['Listening', '40', '30 min', '0-9'],
+            ['Reading', '40', '60 min', '0-9'],
+            ['Writing', '2 tasks', '60 min', '0-9'],
+            ['Speaking', '3 parts', '11-14 min', '0-9'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 7 in Reading but 6 in Speaking should spend most of their time on Speaking.' },
         ],
       },
@@ -5840,6 +5870,12 @@ export const GUIDES = [
         h2: 'Know the ACC before you study it',
         blocks: [
           { k: 'p', t: 'The ACC is a professional certification exam — it covers financial accounting, managerial accounting, and auditing. The questions are practical: journal entries, financial statements, cost calculations, and audit procedures. It\'s not a trivia test; it\'s a skills test.' },
+          { k: 'table', head: ['Area', 'Topics', 'Question Types'], rows: [
+            ['Financial Accounting', 'GAAP, financial statements, revenue recognition', 'Journal entries, financial statement analysis'],
+            ['Managerial Accounting', 'Cost behavior, budgeting, variance analysis', 'Cost calculations, budget variances, performance metrics'],
+            ['Auditing', 'Internal controls, audit procedures, evidence', 'Audit opinions, control deficiencies, testing procedures'],
+            ['Tax', 'Income tax, deductions, credits', 'Tax calculations, filing requirements, planning strategies'],
+          ]},
           { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
           { k: 'tool', tool: 'proof', t: 'Proof helps organize accounting problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
         ],
@@ -5943,6 +5979,12 @@ export const GUIDES = [
         h2: 'Know the CPA before you study it',
         blocks: [
           { k: 'p', t: 'The CPA exam has four sections: Auditing and Attestation (AUD), Business Environment and Concepts (BEC), Financial Accounting and Reporting (FAR), and Regulation (REG). Each section is 4 hours, and you can take them in any order, spread over 18 months. The questions are practical: journal entries, financial statements, audit procedures, and tax calculations.' },
+          { k: 'table', head: ['Section', 'Topics', 'Question Types'], rows: [
+            ['AUD', 'Audit procedures, internal controls, evidence', 'Multiple choice, TBS, research'],
+            ['BEC', 'Economics, finance, operations, strategy', 'Multiple choice, TBS, written communication'],
+            ['FAR', 'Financial statements, GAAP, consolidations', 'Multiple choice, TBS'],
+            ['REG', 'Tax, ethics, business law', 'Multiple choice, TBS, research'],
+          ]},
           { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
           { k: 'tool', tool: 'timer', t: 'Timer replicates the CPA\'s pressure — 4 hours per section, hundreds of questions. Practice at real speed until pacing becomes automatic.' },
         ],
@@ -6145,6 +6187,12 @@ export const GUIDES = [
         h2: 'Know the CLEP before you study it',
         blocks: [
           { k: 'p', t: 'The CLEP has 34 exams covering college subjects — English, math, science, history, and more. Each exam is 90 minutes, mostly multiple choice, and scores on a 20-80 scale. A score of 50 is equivalent to a "C" grade — enough to earn credit at most colleges.' },
+          { k: 'table', head: ['Subject', 'Exam', 'Content Focus'], rows: [
+            ['English', 'Composition, Literature', 'Grammar, analysis, essay writing'],
+            ['Math', 'College Mathematics, Algebra', 'Algebra, geometry, statistics'],
+            ['Science', 'Biology, Chemistry, Physics', 'Core concepts, problem-solving'],
+            ['History', 'US History, World History', 'Events, analysis, cause-effect'],
+          ]},
           { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
           { k: 'tool', tool: 'timer', t: 'Timer replicates the CLEP\'s pressure — 90 minutes per exam, 1.5-2 minutes per question. Practice at real speed until pacing becomes automatic.' },
         ],
@@ -6350,6 +6398,11 @@ export const GUIDES = [
         h2: 'Know the CFA before you study it',
         blocks: [
           { k: 'p', t: 'The CFA has three levels — Level I, Level II, and Level III. Each level is a separate exam, taken in order, with Level I offered in February, May, August, and November. Each exam is 4.5 hours, covers 10 topic areas, and uses multiple choice and constructed response questions. A pass rate of ~40% means preparation matters.' },
+          { k: 'table', head: ['Level', 'Format', 'Focus'], rows: [
+            ['Level I', 'Multiple choice only', 'Foundational concepts — tools, ethics, quantitative methods'],
+            ['Level II', 'Vignettes + item sets', 'Application — case studies requiring analysis'],
+            ['Level III', 'Constructed response + essay', 'Portfolio management and wealth planning'],
+          ]},
           { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which topic areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
           { k: 'tool', tool: 'timer', t: 'Timer replicates the CFA\'s pressure — 4.5 hours per exam, hundreds of questions. Practice at real speed until pacing becomes automatic.' },
         ],
@@ -6454,6 +6507,11 @@ export const GUIDES = [
         h2: 'Know the PMP before you study it',
         blocks: [
           { k: 'p', t: 'The PMP exam is 180 questions, 4 hours, based on the PMBOK Guide and Agile practices. It covers three domains: People (42%), Process (50%), and Business Environment (8%). The questions are situational — you\'re given a scenario and asked what to do next.' },
+          { k: 'table', head: ['Domain', 'Weight', 'Focus'], rows: [
+            ['People', '42%', 'Leadership, team management, conflict resolution'],
+            ['Process', '50%', 'The 5 process groups and 10 knowledge areas'],
+            ['Business Environment', '8%', 'Strategic alignment, benefits realization'],
+          ]},
           { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
           { k: 'tool', tool: 'timer', t: 'Timer replicates the PMP\'s pressure — 4 hours for 180 questions, about 80 seconds per question. Practice at real speed until pacing becomes automatic.' },
         ],
