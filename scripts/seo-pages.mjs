@@ -2020,7 +2020,7 @@ const TOPIC_SECTIONS = {
   },
 };
 
-const TOPIC_PAGES = (() => {
+export const TOPIC_PAGES = (() => {
   const map = new Map();
   for (const g of GUIDES) {
     if (!map.has(g.kicker)) map.set(g.kicker, []);
@@ -2212,7 +2212,7 @@ export function renderTopicPage(topic) {
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="${esc(topic.kicker)} Study Guides — Iterra" />
 <meta property="og:description" content="${esc(topic.note || '')}" />
-<meta property="og:image" content="${SITE}/og/guides.png" />
+<meta property="og:image" content="${SITE}/og/topic-${topic.slug}.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />

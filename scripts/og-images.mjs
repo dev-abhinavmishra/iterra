@@ -11,7 +11,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TOOLS } from './seo-pages.mjs';
+import { TOOLS, TOPIC_PAGES } from './seo-pages.mjs';
 import { GUIDES } from './seo-guides-data.mjs';
 import { COMPARE_PAGES } from './seo-compare-data.mjs';
 
@@ -180,6 +180,14 @@ const CARDS = [
     dek: g.description.length > 150 ? g.description.slice(0, 147).replace(/\s\S*$/, '') + '…' : g.description,
     shot: `/shots/${(g.tools && g.tools[0]) || 'today'}.webp`,
     alt: `${stripEm(g.title)} — Iterra guide`,
+  })),
+  ...TOPIC_PAGES.map((t) => ({
+    file: `topic-${t.slug}.png`,
+    kicker: `Iterra Guides · ${t.kicker}`,
+    title: `${t.kicker} guides`,
+    dek: `${t.guides.length} articles on ${t.kicker.toLowerCase()} — planning, method, and practice.`,
+    shot: '/shots/today.webp',
+    alt: `${t.kicker} study guides — Iterra`,
   })),
 ];
 
