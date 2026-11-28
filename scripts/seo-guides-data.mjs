@@ -3439,6 +3439,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-philosophy',
+    title: 'How to <em>study philosophy</em>',
+    seoTitle: 'How to Study Philosophy: Arguments, Maps, Essays',
+    description:
+      'Study philosophy as argument, not doctrine: learn to identify claims, reasons, and objections; draw the argument maps; and practice the essay format.',
+    kicker: 'Study Methods',
+    datePublished: '2027-04-13',
+    dateModified: '2027-04-17',
+    readMinutes: 6,
+    keywords: ['how to study philosophy', 'philosophy study tips', 'philosophy exam', 'how to read philosophy'],
+    tools: ['ink', 'proof'],
+    related: ['how-to-study-literature', 'how-to-study-history', 'write-faster-on-exams'],
+    lede: 'Philosophy is the subject where students most often freeze — the material is abstract, the arguments are dense, and the "right answer" doesn\'t exist. But philosophy rewards a specific kind of preparation: understanding arguments, not memorizing positions. The students who do well learn to *think* like philosophers, not just recite what they said.',
+    takeaways: [
+      'Philosophy is argument, not doctrine — learn to identify claims, reasons, and objections.',
+      'Draw the argument map — see how the parts connect, not just the content.',
+      'Practice essays — most philosophy exams require argument, not just recall.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for a philosophy exam?',
+        a: 'Learn to identify the argument structure — claims, reasons, objections, replies. Draw argument maps to see how the parts connect. Use reconstruction-based flashcards and practice essays under timed conditions.',
+      },
+      {
+        q: 'How do I read philosophy?',
+        a: 'Slowly, with a pencil. Identify the thesis, the premises, the objections, and the replies. Draw the argument map as you read. Philosophy is logical structure — the map is the understanding.',
+      },
+      {
+        q: 'How do I write a philosophy essay?',
+        a: 'Structure: thesis, argument, objections, replies, conclusion. Practice under timed conditions. The goal is to construct and evaluate an argument, not just summarize a position.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Philosophy is argument, not doctrine',
+        blocks: [
+          { k: 'p', t: 'Philosophy is the subject where students most often freeze — the material is abstract, the arguments are dense, and the "right answer" doesn\'t exist. But philosophy rewards a specific kind of preparation: understanding arguments, not memorizing positions. The students who do well learn to *think* like philosophers, not just recite what they said.' },
+          { k: 'p', t: 'Every philosophy course is built on arguments — claims, reasons, objections, replies. The philosophers aren\'t teaching you *what to think*; they\'re teaching you *how to think*. Learn to identify the argument structure and the positions become obvious; memorize the positions and they\'re just names.' },
+          { k: 'p', t: 'When you encounter a new philosopher or text, ask: what is the claim? What are the reasons? What are the objections? The structure is what makes the argument memorable.' },
+        ],
+      },
+      {
+        h2: 'The philosophy study loop',
+        blocks: [
+          { k: 'p', t: 'A productive philosophy study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Read the text once for the overall argument — the thesis and its structure.',
+            'Go back and analyze — identify claims, reasons, objections.',
+            'Draw the argument map — see how the parts connect.',
+            'Explain it out loud — reconstruct the argument to an imaginary student.',
+            'Test yourself — apply the argument to a new case.',
+          ]},
+          { k: 'p', t: 'The draw-the-argument-map step is crucial for philosophy. Arguments are logical structures — premises leading to conclusions, objections leading to replies. A map forces you to see the *structure*, not just the content.' },
+          { k: 'tool', tool: 'ink', t: 'Ink is built for the argument-map step — sketch the structure, label the premises and conclusions, and see how the parts connect.' },
+        ],
+      },
+      {
+        h2: 'Active recall for philosophy',
+        blocks: [
+          { k: 'p', t: 'Philosophy flashcards work best when they test *reconstruction*, not just recall. Instead of "What is Descartes\'s cogito?" use "How would you reconstruct Descartes\'s argument for the existence of the self?" or "What is the objection to this position and how would the philosopher reply?"' },
+          { k: 'deflist', items: [
+            { t: 'For arguments', d: '"What are the premises and conclusion?"' },
+            { t: 'For objections', d: '"What is the strongest objection to this view?"' },
+            { t: 'For positions', d: '"How would this philosopher respond to X?"' },
+            { t: 'For concepts', d: '"What is the difference between X and Y?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The essay is the exam',
+        blocks: [
+          { k: 'p', t: 'Most philosophy exams are essay-based — the goal is to construct an argument, not just recall positions. Practice writing essays under timed conditions. The structure matters: thesis, argument, objections, replies, conclusion.' },
+          { k: 'p', t: 'The best philosophy students don\'t just know the arguments — they can *evaluate* them. Practice identifying weaknesses: "This argument fails because..." or "The objection assumes..."' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps structure the essay argument — thesis, premises, objections, replies — so the argument holds together under exam pressure.' },
+        ],
+      },
+      {
+        h2: 'Common philosophy study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common philosophy study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing positions without understanding arguments', d: 'Positions are conclusions — learn the reasoning, not just the result.' },
+            { t: 'Skipping the objections', d: 'The objections are where the action is — they test whether you understand the argument.' },
+            { t: 'Not practicing essays', d: 'Most philosophy exams require them — practice the format.' },
+            { t: 'Treating philosophy as abstract', d: 'It\'s deeply practical — every argument has real-world applications.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Philosophy rewards understanding arguments, not memorizing positions.' },
+          { k: 'p', t: 'Learn to identify claims, reasons, and objections; draw the argument maps; and practice the essay format. The students who treat philosophy as a way of thinking outperform the ones who treat it as a list of positions.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
