@@ -3274,7 +3274,7 @@ export const GUIDES = [
       {
         h2: 'History is a story, not a list',
         blocks: [
-          { k: 'p', t: 'History is the subject where students most often confuse memorization with understanding. Dates and names are the surface; the real material is *why* things happened, how events connect, and what changed as a result. The students who do well learn history as a story with patterns, not a list of facts to recite.' },
+          { k: 'p', t: 'History exams rarely ask "what happened" — they ask "why it mattered." Whether the format is an essay, a document analysis, or a multiple-choice question, the skill being tested is the same: can you explain significance, not just sequence?' },
           { k: 'p', t: 'The brain remembers stories better than lists. A timeline of dates is forgettable; a narrative of cause and effect is memorable. When you study history, look for the *through-line* — the theme that connects events, the pattern that repeats, the turning point that changed everything.' },
           { k: 'p', t: 'Ask: what was the world like before this event? What changed because of it? What came next? These questions turn isolated facts into a connected narrative.' },
         ],
@@ -3386,7 +3386,7 @@ export const GUIDES = [
       {
         h2: 'Close reading is the skill',
         blocks: [
-          { k: 'p', t: 'Literature is the subject where students most often freeze — the material is dense, the analysis is subjective, and the "right answer" isn\'t obvious. But literature rewards a specific kind of preparation: close reading, pattern recognition, and practice arguing with the text. The students who do well aren\'t the ones who read the most — they\'re the ones who read *closely*.' },
+          { k: 'p', t: 'The literature exam is an argument exam wearing a book cover. Whether the prompt asks you to analyze a passage or defend an interpretation, the grader is looking for close reading made visible — claims tied to specific moments in the text.' },
           { k: 'p', t: 'Literature exams test whether you can analyze a text, not whether you remember the plot. Close reading means slowing down — noticing word choice, imagery, structure, and pattern. The details that seem random are usually significant; the author put them there for a reason.' },
           { k: 'p', t: 'When you read, annotate. Mark the passages that confuse you, the images that recur, the shifts in tone. These annotations become your evidence when you write the essay.' },
         ],
@@ -3500,7 +3500,7 @@ export const GUIDES = [
       {
         h2: 'Psychology is frameworks, not terms',
         blocks: [
-          { k: 'p', t: 'Psychology is the subject where students most often drown in terms — hundreds of them, each with a definition that sounds similar to the last. But psychology isn\'t a vocabulary list; it\'s a set of interconnected theories about how people think and behave. The students who do well learn the *frameworks*, not just the terms.' },
+          { k: 'p', t: 'Psychology courses test two things at once: vocabulary and application. You need the terms — classical conditioning, cognitive dissonance, statistical significance — but the exam points live in the scenarios, where a concept gets applied to a situation you have never seen.' },
           { k: 'p', t: 'Every psychology course is built on a small number of core frameworks — behaviorism, cognitive theory, developmental stages, social influence. The hundreds of terms are examples of these frameworks. Learn the framework first and the terms organize themselves; memorize the terms first and they\'re a blur.' },
           { k: 'p', t: 'When you encounter a new term, ask: which framework does this belong to? How does it connect to what I already know? The connections are what make the material stick.' },
         ],
@@ -3612,7 +3612,7 @@ export const GUIDES = [
       {
         h2: 'Economics is logic, not graphs',
         blocks: [
-          { k: 'p', t: 'Economics is the subject where students most often get lost in models — supply and demand curves, game theory matrices, macroeconomic indicators. But economics isn\'t a list of models; it\'s a set of interconnected ideas about how people make choices under constraints. The students who do well learn the *logic* of the models, not just the graphs.' },
+          { k: 'p', t: 'Economics exams test whether you can think in constraints. Every model — supply and demand, game theory, macro indicators — is a machine for answering one question: given scarcity and incentives, what happens next? The grade goes to students who can run the machine, not just name its parts.' },
           { k: 'p', t: 'Every economics model is built on a simple premise: people respond to incentives. Supply and demand works because buyers and sellers adjust behavior based on price. Game theory works because players anticipate each other\'s moves. Learn the *incentive logic* and the models become obvious; memorize the graphs and they\'re just pictures.' },
           { k: 'p', t: 'When you encounter a new model, ask: what incentive is driving this behavior? What would happen if the incentive changed? The questions turn abstract models into intuitive logic.' },
         ],
@@ -3723,7 +3723,7 @@ export const GUIDES = [
       {
         h2: 'Philosophy is argument, not doctrine',
         blocks: [
-          { k: 'p', t: 'Philosophy is the subject where students most often freeze — the material is abstract, the arguments are dense, and the "right answer" doesn\'t exist. But philosophy rewards a specific kind of preparation: understanding arguments, not memorizing positions. The students who do well learn to *think* like philosophers, not just recite what they said.' },
+          { k: 'p', t: 'Philosophy exams test reconstruction, not recall. The prompt gives you an argument — sometimes a famous one, sometimes one invented for the exam — and asks you to explain it, evaluate it, or respond to it. Memorized positions score almost nothing; reconstructed arguments score everything.' },
           { k: 'p', t: 'Every philosophy course is built on arguments — claims, reasons, objections, replies. The philosophers aren\'t teaching you *what to think*; they\'re teaching you *how to think*. Learn to identify the argument structure and the positions become obvious; memorize the positions and they\'re just names.' },
           { k: 'p', t: 'When you encounter a new philosopher or text, ask: what is the claim? What are the reasons? What are the objections? The structure is what makes the argument memorable.' },
         ],
@@ -3836,7 +3836,7 @@ export const GUIDES = [
       {
         h2: 'Art history is a story, not a list',
         blocks: [
-          { k: 'p', t: 'Art history is the subject where students most often drown in images — hundreds of paintings, sculptures, and buildings, each with a date, artist, and style that blurs together. But art history isn\'t a list of images; it\'s a story about how people have seen and represented the world across time. The students who do well learn the *narrative*, not just the images.' },
+          { k: 'p', t: 'Art history exams test visual analysis married to historical context. The prompt shows you a work — or names one — and asks why it matters: formal analysis (composition, color, technique) plus the historical moment that made it possible.' },
           { k: 'p', t: 'Every art history course is built on a narrative — the shift from medieval to Renaissance, from realism to abstraction, from Europe to the world. The images are examples of this narrative; the story is what makes them memorable. Learn the narrative arc and the images organize themselves; memorize the images and they\'re just pictures.' },
           { k: 'p', t: 'When you encounter a new artwork, ask: where does this fit in the story? What came before? What came after? The context is what makes the image meaningful.' },
         ],
@@ -4046,7 +4046,7 @@ export const GUIDES = [
       {
         h2: 'Engineering is math applied to the physical world',
         blocks: [
-          { k: 'p', t: 'Engineering is the subject where students most often hit a wall — the material is mathematical, the concepts are abstract, and the applications aren\'t obvious. But engineering rewards a specific approach: understand the *why* behind the equations, connect the math to the physical world, and practice the problem-solving relentlessly.' },
+          { k: 'p', t: 'Engineering exams are applied physics with numbers attached. The concept lectures matter — but the points live in the problem sets, where a principle becomes a calculation, a diagram becomes a solution, and a formula becomes an answer.' },
           { k: 'p', t: 'Every engineering course is built on a physical principle expressed mathematically — Ohm\'s law, Newton\'s laws, thermodynamics. The equations aren\'t arbitrary; they\'re the math of how things work. Learn the physical principle and the equation becomes obvious; memorize the equation and it\'s just symbols.' },
           { k: 'p', t: 'When you encounter a new concept, ask: what physical phenomenon does this describe? What would happen if I changed a variable? The physical intuition is what makes the math stick.' },
         ],
@@ -4606,7 +4606,7 @@ export const GUIDES = [
       {
         h2: 'Music theory is patterns, not rules',
         blocks: [
-          { k: 'p', t: 'Music theory is the subject where students most often freeze — the material is abstract (scales, intervals, chord progressions) and the "right answer" requires both knowledge and intuition. But music theory rewards a specific approach: learn the patterns, connect to the music you already know, and practice the application relentlessly.' },
+          { k: 'p', t: 'Music theory exams test pattern recognition under notation. Whether the prompt gives you a melody to harmonize, a figured bass to realize, or a chord progression to label, the skill is the same: see the pattern, name the function, produce the result.' },
           { k: 'p', t: 'Every music theory course is built on patterns — scales, intervals, chord progressions, forms. The rules aren\'t arbitrary; they\'re the patterns that make music work. Learn the patterns and the rules become obvious; memorize the rules and they\'re just constraints.' },
           { k: 'p', t: 'When you encounter a new concept, ask: what pattern does this describe? How does it connect to the music I already know? The connection is what makes the theory stick.' },
         ],
