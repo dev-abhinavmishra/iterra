@@ -1818,6 +1818,117 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'open-book-exam-strategy',
+    title: 'Open-book exams: the strategy <em>nobody teaches you</em>',
+    seoTitle: 'Open-Book Exam Strategy: How to Actually Prepare',
+    description:
+      'Open-book exams test preparation, speed, and judgment — not memorization. How to annotate the book, practice navigation under time pressure, and avoid the traps that cost points.',
+    kicker: 'Exam Season',
+    datePublished: '2026-12-10',
+    dateModified: '2026-12-15',
+    readMinutes: 7,
+    keywords: ['open book exam', 'open book exam strategy', 'open book exam tips', 'open book exam preparation'],
+    tools: ['margin', 'ink', 'flashcards'],
+    related: ['how-to-study-for-finals-week', 'how-to-use-practice-tests', 'lecture-notes-that-actually-stick'],
+    lede: 'Open-book exams feel like a gift and behave like a trap. The book is allowed — which means the exam is secretly testing something else: whether you can *find* and *use* information under time pressure. Students who treat it as a search engine get destroyed; students who treat it as a retrieval exercise with a safety net do fine.',
+    takeaways: [
+      'The book removes memorization and exposes the real test: preparation, organization, and speed.',
+      'Ninety seconds to find an answer is the standard — if you can’t hit it, the book isn’t prepared.',
+      'Practice navigation with timed lookups; the exam rewards finding, not just knowing.'
+    ],
+    faq: [
+      {
+        q: 'Are open-book exams actually easier?',
+        a: 'Only if you prepared the book. An unannotated, unindexed textbook is a closed book with extra steps — you’ll spend the exam searching instead of answering. The format rewards organization, not access.',
+      },
+      {
+        q: 'Can I use my own notes in an open-book exam?',
+        a: 'Depends on the rules — some allow notes, some only the textbook, some allow laptops. Whatever is allowed, the winning move is the same: a small set of organized, indexed materials you can navigate blindfolded beats a pile of unsearchable files.',
+      },
+      {
+        q: 'How much should I memorize for an open-book exam?',
+        a: 'More than you think. Definitions, formulas, and framework names that live in working memory save minutes per question — and minutes are the scarce resource. Memorize the skeleton; look up the details.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'What the open-book exam actually tests',
+        blocks: [
+          { k: 'p', t: 'Open-book exams feel like a gift and behave like a trap. The book is allowed — which means the exam is secretly testing something else: whether you can *find* and *use* information under time pressure. Students who treat it as a search engine get destroyed; students who treat it as a retrieval exercise with a safety net do fine.' },
+          { k: 'deflist', items: [
+            { t: 'Preparation', d: 'Did you annotate and organize so the answer is findable in seconds?' },
+            { t: 'Speed', d: 'Can you locate and apply it in minutes, not research hours?' },
+            { t: 'Judgment', d: 'Of the five possible answers in the book, do you pick the one the professor wants?' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Preparing the book itself',
+        blocks: [
+          { k: 'p', t: 'Most of the work happens before exam day, and it’s unglamorous: make the book searchable. Tab every chapter, highlight the concepts the professor emphasized, write margin notes that answer “where is X?” at a glance.' },
+          { k: 'deflist', items: [
+            { t: 'Tabs & bookmarks', d: 'Every section the syllabus says is testable.' },
+            { t: 'Chapter index', d: 'One line per chapter — the concepts, not the topics.' },
+            { t: 'Margin code', d: 'Formulas, definitions, and case names flagged consistently.' },
+            { t: 'Digital books', d: 'Build a real index — Ctrl+F is not a study system.' },
+          ]},
+          { k: 'p', t: 'The test: give yourself a topic and ninety seconds. If you can’t find the relevant section and the key formula, the book isn’t prepared — it’s just allowed.' },
+        ],
+      },
+      {
+        h2: 'The practice that matters',
+        blocks: [
+          { k: 'p', t: 'Open-book practice is different from closed-book practice. You’re not drilling recall; you’re drilling *navigation*:' },
+          { k: 'steps', items: [
+            'Take past exams or write your own questions, then answer with the book open and a timer running.',
+            'Practice finding, not just answering — if a question takes more than three minutes to locate, your indexing failed.',
+            'Do a “no-highlight” run: answer using only your margin notes. If you can’t, your notes aren’t doing their job.',
+          ]},
+        ],
+      },
+      {
+        h2: 'Exam-day strategy',
+        blocks: [
+          { k: 'p', t: 'The exam itself rewards a specific order of operations:' },
+          { k: 'steps', items: [
+            'Skim every question first — open-book exams often hide the easy points in later questions.',
+            'Do the questions you can answer from memory first; they build momentum and bank points.',
+            'For lookup questions, set a hard limit — two minutes to find, five to answer, then move on.',
+            'Write down formulas and key terms in the margin *before* you need them — working memory is your scarcest resource.',
+            'Never copy a passage verbatim; synthesize. Professors grade thinking, not transcription.',
+          ]},
+        ],
+      },
+      {
+        h2: 'The mistakes that cost points',
+        blocks: [
+          { k: 'ul', items: [
+            'Treating the book as an answer key — copying text instead of applying it.',
+            'Spending ten minutes finding an answer to a two-point question.',
+            'Writing everything you can find instead of answering what was asked.',
+            'Assuming the professor will accept “the book says” as an argument.',
+          ]},
+        ],
+      },
+      {
+        h2: 'When open-book becomes open-notes',
+        blocks: [
+          { k: 'p', t: 'Some courses allow notes or even laptops. The strategy shifts but the principle holds: the exam is testing preparation and application, not access. A notebook full of organized, indexed summaries beats a laptop full of unsearchable files.' },
+          { k: 'p', t: 'Whatever the format, the winning move is the same — convert the material into a system you can navigate blindfolded, then practice navigating it under time pressure.' },
+          { k: 'tool', tool: 'margin', t: 'Margin keeps the course materials — the book, the slides, your annotated exports — filed and searchable by course.' },
+          { k: 'tool', tool: 'ink', t: 'Ink is where the margin notes and chapter indexes live — linked, course-tagged, and yours.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'An open-book exam is a closed-book exam with training wheels. Prepare the book like it’s the exam, because it is.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
