@@ -1459,7 +1459,7 @@ ${nextTool ? `<link rel="next" href="${SITE}/tools/${nextTool.id}" />` : ''}
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 ${jsonLd(ld)}
 </head>
 <body class="pt-tool">
@@ -1788,7 +1788,7 @@ ${(guide.keywords || []).slice(0, 3).map((k) => `<meta property="article:tag" co
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 ${jsonLd(ld)}
 </head>
 <body class="pt-guide">
@@ -2117,7 +2117,7 @@ export function renderGuidesIndex() {
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 ${jsonLd(ld)}
 </head>
 <body class="pt-guides">
@@ -2237,7 +2237,7 @@ export function renderTopicPage(topic) {
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 ${jsonLd(ld)}
 </head>
 <body class="pt-topic">
@@ -2326,7 +2326,7 @@ export function renderTopicsIndex() {
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 ${jsonLd(ld)}
 </head>
 <body class="pt-topics">
@@ -2396,7 +2396,7 @@ export function renderToolsIndex() {
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 ${jsonLd(ld)}
 </head>
 <body class="pt-tools">
@@ -2476,7 +2476,7 @@ ${published ? `<meta property="article:published_time" content="${published}" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>`;
+<link rel="stylesheet" href="/iterra-pages.css" />`;
 }
 
 function emH1(h1) {
@@ -2782,7 +2782,7 @@ export function renderCompareIndex() {
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 ${jsonLd(ld)}
 </head>
 <body class="pt-compare">
@@ -2871,7 +2871,7 @@ export function renderAlternativesIndex() {
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 ${jsonLd(ld)}
 </head>
 <body class="pt-alt">
@@ -3063,7 +3063,7 @@ export function render404() {
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
-<style>${CSS}</style>
+<link rel="stylesheet" href="/iterra-pages.css" />
 </head>
 <body class="pt-topics">
 ${header('')}
@@ -3126,5 +3126,6 @@ export function writeSeoPages(distDir) {
   writeFileSync(join(distDir, 'feed.xml'), renderFeed());
   writeFileSync(join(distDir, 'llms.txt'), renderLlmsTxt());
   writeFileSync(join(distDir, '404.html'), render404());
+  writeFileSync(join(distDir, 'iterra-pages.css'), CSS);
   console.log(`seo: wrote /tools index + ${TOOLS.length} tool pages + /guides index + ${GUIDES.length} guides + /compare + /alternatives indexes + ${COMPARE_PAGES.length} compare pages + sitemap.xml`);
 }

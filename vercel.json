@@ -40,7 +40,7 @@
       ]
     },
     {
-      "source": "/(sw.js|iterra-hub.js|iterra-pages.js)",
+      "source": "/(sw.js|iterra-hub.js|iterra-pages.js|iterra-pages.css)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" }
       ]
