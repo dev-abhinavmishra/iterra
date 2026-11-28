@@ -2925,11 +2925,11 @@ export const GUIDES = [
         h2: 'Common math study mistakes',
         blocks: [
           { k: 'p', t: 'The most common math study failures follow predictable patterns:' },
-          { k: 'deflist', items: [
-            { t: 'Reading without doing', d: 'Recognizing concepts but failing to apply them.' },
-            { t: 'Skipping the struggle', d: 'Looking up solutions before giving problems a real attempt.' },
-            { t: 'Only doing easy problems', d: 'The exam tests the hard ones — you need reps at the edge of your ability.' },
-            { t: 'Not reviewing mistakes', d: 'The problems you got wrong are the most valuable study material you have.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Reading math without doing math', good: 'Do every example — recognizing a concept is not the same as being able to use it' },
+            { bad: 'Looking up solutions before struggling', good: 'Sit with the problem — the struggle is where the learning happens' },
+            { bad: 'Only practicing easy problems', good: 'Train at the edge of your ability — the exam tests the hard ones' },
+            { bad: 'Skipping review of wrong answers', good: 'Rework every miss — your errors are the most valuable material you have' }
           ]},
         ],
       },
@@ -3289,11 +3289,11 @@ export const GUIDES = [
         h2: 'Common science study mistakes',
         blocks: [
           { k: 'p', t: 'The most common science study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing terms without understanding processes', d: 'Terms are labels for systems — learn the system, not the label.' },
-            { t: 'Skipping the diagrams', d: 'Science is visual and spatial — the diagram is the concept.' },
-            { t: 'Not connecting topics', d: 'Each unit builds on the last — isolated facts don\'t survive.' },
-            { t: 'Studying only before exams', d: 'Science requires consistent review — the material accumulates.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing terms without the process', good: 'Learn the system, not the label — terms are names for mechanisms' },
+            { bad: 'Skipping the diagrams', good: 'Draw them yourself — the diagram is the concept in science' },
+            { bad: 'Studying topics in isolation', good: 'Connect each unit to the last — isolated facts do not survive the exam' },
+            { bad: 'Reviewing only before exams', good: 'Science accumulates — a little review every week beats a cram' }
           ]},
         ],
       },
@@ -3523,11 +3523,11 @@ export const GUIDES = [
         h2: 'Common literature study mistakes',
         blocks: [
           { k: 'p', t: 'The most common literature study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Reading for plot only', d: 'Missing the patterns that drive analysis.' },
-            { t: 'Not annotating', d: 'The evidence you need is in the text.' },
-            { t: 'Not practicing essays', d: 'Most literature exams require them.' },
-            { t: 'Treating interpretation as subjective', d: 'The best readings are supported by evidence.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Reading for plot only', good: 'Track the patterns — plot is what happens; meaning is why it matters' },
+            { bad: 'Not annotating the text', good: 'Mark it up — the evidence you need is already in the text' },
+            { bad: 'Skipping essay practice', good: 'Write timed essays weekly — most literature exams are essays' },
+            { bad: 'Treating interpretation as subjective', good: 'Anchor every claim to evidence — the best readings are argued, not felt' }
           ]},
         ],
       },
@@ -3635,11 +3635,11 @@ export const GUIDES = [
         h2: 'Common psychology study mistakes',
         blocks: [
           { k: 'p', t: 'The most common psychology study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing terms without understanding frameworks', d: 'Terms are examples of theories — learn the theory, not the term.' },
-            { t: 'Treating theories as isolated', d: 'Psychology is interconnected — each theory builds on the last.' },
-            { t: 'Not connecting concepts to real-world examples', d: 'Application is what makes the theory stick.' },
-            { t: 'Studying only before exams', d: 'The terms blur together without spaced review — consistency beats intensity.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing terms without the framework', good: 'Learn the theory — terms are just examples of it' },
+            { bad: 'Treating theories as isolated', good: 'Connect them — each theory builds on or argues against the last' },
+            { bad: 'Never applying concepts to examples', good: 'Practice application — a real-world example is what makes a theory stick' },
+            { bad: 'Cramming the term lists', good: 'Space the review — terms blur together without it' }
           ]},
         ],
       },
@@ -3754,11 +3754,11 @@ export const GUIDES = [
         h2: 'Common economics study mistakes',
         blocks: [
           { k: 'p', t: 'The most common economics study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing graphs without understanding the incentive logic', d: 'Graphs are pictures of incentives — learn the logic, not the picture.' },
-            { t: 'Skipping the assumptions', d: 'Every model has limits — know when it applies.' },
-            { t: 'Not connecting concepts to real-world examples', d: 'Application is what makes the model stick.' },
-            { t: 'Studying only before exams', d: 'Models stack on each other — review weekly or the foundation cracks.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing graphs without the logic', good: 'Learn the incentive story — graphs are pictures of incentives' },
+            { bad: 'Skipping model assumptions', good: 'Know when each model applies — every model has limits' },
+            { bad: 'Never connecting models to examples', good: 'Apply each model to a real case — application is what makes it stick' },
+            { bad: 'Reviewing only before exams', good: 'Models stack — a missed week cracks the foundation' }
           ]},
         ],
       },
@@ -3875,11 +3875,11 @@ export const GUIDES = [
         h2: 'Common philosophy study mistakes',
         blocks: [
           { k: 'p', t: 'The most common philosophy study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing positions without understanding arguments', d: 'Positions are conclusions — learn the reasoning, not just the result.' },
-            { t: 'Skipping the objections', d: 'The objections are where the action is — they test whether you understand the argument.' },
-            { t: 'Not practicing essays', d: 'Most philosophy exams require them — practice the format.' },
-            { t: 'Treating philosophy as abstract', d: 'It\'s deeply practical — every argument has real-world applications.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing positions without the argument', good: 'Learn the reasoning — a position is a conclusion, not the argument for it' },
+            { bad: 'Skipping the objections', good: 'Study them closely — objections are where the real philosophical action is' },
+            { bad: 'Skipping essay practice', good: 'Write timed essays — most philosophy exams are argumentative essays' },
+            { bad: 'Treating philosophy as abstract', good: 'Push every argument toward a real case — that is where it earns its keep' }
           ]},
         ],
       },
@@ -3987,11 +3987,11 @@ export const GUIDES = [
         h2: 'Common art history study mistakes',
         blocks: [
           { k: 'p', t: 'The most common art history study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing images without understanding the narrative', d: 'Images are examples of movements — learn the story, not just the picture.' },
-            { t: 'Treating periods as isolated', d: 'Art history is continuous — each movement builds on the last.' },
-            { t: 'Not practicing image identification', d: 'Visual recognition is a skill — practice with the actual images.' },
-            { t: 'Studying only before exams', d: 'Images and dates blur without regular review — spacing is the fix.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing images without the narrative', good: 'Learn the movement\'s story — images are examples of it' },
+            { bad: 'Treating periods as isolated', good: 'Connect the movements — each builds on or reacts to the last' },
+            { bad: 'Never practicing image ID', good: 'Drill the slides — visual recognition is a trained skill' },
+            { bad: 'Reviewing only before exams', good: 'Space the images and dates — they blur without regular review' }
           ]},
         ],
       },
@@ -4085,11 +4085,11 @@ export const GUIDES = [
         h2: 'Common nursing study mistakes',
         blocks: [
           { k: 'p', t: 'The most common nursing study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing facts without understanding systems', d: 'Facts are expressions of systems — learn the system, not the fact.' },
-            { t: 'Skipping the application', d: 'Nursing is applied science — the application is the learning.' },
-            { t: 'Not practicing NCLEX questions until too late', d: 'The question format is the skill — practice it throughout.' },
-            { t: 'Studying only before exams', d: 'Pharm and patho build on each other — a missed week shows up on the exam.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing facts without the system', good: 'Learn the physiology — facts are expressions of systems' },
+            { bad: 'Skipping the clinical application', good: 'Practice applying — nursing is applied science, not trivia' },
+            { bad: 'Delaying NCLEX-style questions', good: 'Practice the format all semester — the question style is its own skill' },
+            { bad: 'Cramming before exams', good: 'Pharm and patho compound — a missed week shows up on the exam' }
           ]},
         ],
       },
