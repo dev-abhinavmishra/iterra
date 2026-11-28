@@ -672,6 +672,9 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:11.5px;le
 .pt-tool .content{counter-reset:ts}
 .pt-tool .block:not(#explore)>.sec{counter-increment:ts}
 .pt-tool .block:not(#explore)>.sec::before{content:counter(ts,decimal-leading-zero);display:inline-block;min-width:2.1rem;margin-right:.55rem;color:var(--gold);font-weight:500;letter-spacing:.08em;vertical-align:.12em}
+.pt-vs .compare-body{counter-reset:cs}
+.pt-vs .compare-body .block>.sec{counter-increment:cs}
+.pt-vs .compare-body .block>.sec::before{content:counter(cs,decimal-leading-zero);display:inline-block;min-width:2.1rem;margin-right:.55rem;color:var(--gold);font-weight:500;letter-spacing:.08em;vertical-align:.12em}
 .feats{list-style:none;padding:0;max-width:56rem}
 .feats li{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:baseline;padding:1rem 0;border-bottom:1px solid var(--line)}
 .feats li:first-child{border-top:1px solid var(--line)}
