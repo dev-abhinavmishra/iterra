@@ -1774,6 +1774,179 @@ const TOPIC_NOTES = {
   'Writing': 'Faster drafting, clearer arguments, less staring.',
 };
 
+/* A short prose section per topic page so each one reads as a destination,
+   not just a filtered list. Rendered between the hero stats and the list. */
+const TOPIC_SECTIONS = {
+  'The Long View': {
+    h2: 'Why semester-scale planning beats weekly heroics',
+    blocks: [
+      { k: 'p', t: 'Most study advice optimizes the week. The guides in this topic optimize the semester — because the failures that actually cost grades happen at the scale of months, not days.' },
+      { k: 'deflist', items: [
+        { t: 'Syllabus week', d: 'The only week where you can see the whole arc — deadlines, weightings, and the weeks that will break you if you ignore them.' },
+        { t: 'The middle', d: 'Where motivation goes to die. Systems that need willpower every Tuesday do not survive contact with midterms.' },
+        { t: 'Finals week', d: 'Where the semester collects its debt. Students who planned all along find it boring; everyone else finds it brutal.' },
+      ]},
+      { k: 'quote', t: 'A plan you make in week one and ignore is worth less than no plan — it just adds guilt to the pile.' },
+    ],
+  },
+  'Study Methods': {
+    h2: 'The techniques that survive replication',
+    blocks: [
+      { k: 'p', t: 'This topic collects the study methods with actual evidence behind them — not the ones that feel productive, the ones that measurably are.' },
+      { k: 'deflist', items: [
+        { t: 'Retrieval practice', d: 'Testing yourself beats re-reading every time. The struggle of recall is the mechanism, not a symptom.' },
+        { t: 'Spacing', d: 'Reviewing at expanding intervals beats cramming for the same total hours — the forgetting curve is the schedule.' },
+        { t: 'Interleaving', d: 'Mixing problem types feels worse and works better. Blocked practice feels fluent; it mostly measures short-term memory.' },
+      ]},
+      { k: 'p', t: 'The uncomfortable pattern across all of them: the methods that feel hardest during study are the ones that produce the strongest exam performance.' },
+    ],
+  },
+  'Exam Season': {
+    h2: 'Surviving the weeks that decide everything',
+    blocks: [
+      { k: 'p', t: 'Exam season concentrates every failure mode into fourteen days — bad sleep, panic cramming, skipped meals, and the 2 a.m. spiral. These guides are about getting through it intact.' },
+      { k: 'steps', items: [
+        'Triage honestly — rank topics by marks-available-per-hour, not by what you enjoy reviewing.',
+        'Protect sleep — the all-nighter trades tomorrow\'s recall for tonight\'s anxiety.',
+        'Simulate exam conditions — timed, closed-book, no notes, real pressure.',
+        'Review mistakes, not just answers — the error log is worth more than another pass.',
+      ]},
+      { k: 'quote', t: 'Nobody ever wishes they had crammed less sleep the night before a final. They wish they had slept.' },
+    ],
+  },
+  'Test Prep': {
+    h2: 'Strategy for the gates',
+    blocks: [
+      { k: 'p', t: 'Standardized tests are games with answer keys — and like all games, they reward players who learn the rules before they learn the material.' },
+      { k: 'deflist', items: [
+        { t: 'Format first', d: 'Sections, timing, question types, scoring. Knowing the shape of the test changes what "studying" even means.' },
+        { t: 'Diagnostic baseline', d: 'A timed practice test before any prep — the score gap tells you where the hours actually go.' },
+        { t: 'Pattern libraries', d: 'Most test questions are templates. Learn the templates and unfamiliar questions become familiar fast.' },
+      ]},
+      { k: 'p', t: 'The guides here go exam by exam — SAT through USMLE — because each test has its own logic, its own traps, and its own version of "high yield."' },
+    ],
+  },
+  'Subject Guides': {
+    h2: 'Each discipline has its own physics',
+    blocks: [
+      { k: 'p', t: 'Studying biology and studying history are not the same activity wearing different content. These guides match the method to the discipline.' },
+      { k: 'deflist', items: [
+        { t: 'Quantitative subjects', d: 'Math, physics, statistics, engineering — problems first, theory in service of solving them.' },
+        { t: 'Narrative subjects', d: 'History, literature, art history — timelines, arguments, and the discipline\'s own story.' },
+        { t: 'Framework subjects', d: 'Economics, psychology, business — models and lenses applied to cases, not facts to memorize.' },
+        { t: 'Memory-heavy subjects', d: 'Anatomy, medicine, law — volume managed through systems, cards, and retrieval schedules.' },
+      ]},
+      { k: 'p', t: 'Pick the guide for your course, steal the method, and adapt it — the best study system is the one you will actually run in week six.' },
+    ],
+  },
+  'Focus': {
+    h2: 'Attention is a resource, not a mood',
+    blocks: [
+      { k: 'p', t: 'You cannot willpower your way to deep focus — the research is clear that environment, timing, and task design do more work than discipline ever will.' },
+      { k: 'deflist', items: [
+        { t: 'Environment', d: 'The desk, the lighting, the notifications — friction is a feature. Make the bad option hard and the good option easy.' },
+        { t: 'Time-boxing', d: 'A defined start and end lowers the activation energy of starting. The timer holds the boundary so willpower does not have to.' },
+        { t: 'Task clarity', d: '"Study chemistry" is not a task. "Finish problem set 4, questions 1–10" is. Vague tasks invite negotiation; specific tasks invite execution.' },
+      ]},
+      { k: 'quote', t: 'Focus is not the absence of distraction. It is the presence of a task small enough to complete.' },
+    ],
+  },
+  'Routines': {
+    h2: 'What a study routine is actually for',
+    blocks: [
+      { k: 'p', t: 'A routine is not about productivity — it is about removing decisions. Every "should I study now?" you never have to answer is willpower you get back for the work itself.' },
+      { k: 'p', t: 'The guides here treat routines as infrastructure: weekly grids, morning blocks, review rituals, and the honest question of what to do when the routine breaks — because it will.' },
+      { k: 'deflist', items: [
+        { t: 'Minimum viable week', d: 'The smallest routine that still moves every course forward — build from there, not from an idealized 40-hour fantasy.' },
+        { t: 'Recovery rules', d: 'What happens after a missed day matters more than the streak. Routines survive because they bend, not because they never break.' },
+      ]},
+    ],
+  },
+  'Flashcards': {
+    h2: 'Cards are retrieval practice you can hold',
+    blocks: [
+      { k: 'p', t: 'Flashcards are the purest form of the most evidence-backed study technique: closed-book recall, graded honestly, scheduled by forgetting.' },
+      { k: 'deflist', items: [
+        { t: 'Good cards', d: 'Atomic — one fact per card. Precise — no "kinda." Honest — you can actually fail them.' },
+        { t: 'Bad cards', d: 'Paragraphs, multiple facts, or questions you can answer without knowing the material. A card you never miss teaches nothing.' },
+        { t: 'Scheduling', d: 'Spaced repetition expands the interval when you succeed and contracts it when you fail — the deck manages its own difficulty.' },
+      ]},
+      { k: 'p', t: 'The guides here cover deck design, card-writing craft, and pairing cardfiles with notes so the cards test what the notes actually teach.' },
+    ],
+  },
+  'Notes': {
+    h2: 'Notes are a retrieval system, not an archive',
+    blocks: [
+      { k: 'p', t: 'Most notes fail at the only job that matters: being useful during review. A beautiful notebook you never open again is a diary, not a study tool.' },
+      { k: 'deflist', items: [
+        { t: 'Findability', d: 'Notes you cannot find do not exist. Tags, links, and consistent structure beat elaborate formatting every time.' },
+        { t: 'Generative notes', d: 'Writing in your own words — paraphrase, examples, connections — builds memory. Copying slides verbatim builds a filing cabinet.' },
+        { t: 'The review loop', d: 'Notes feed flashcards, flashcards feed exams. A note that never becomes a question never becomes knowledge.' },
+      ]},
+      { k: 'quote', t: 'The best note-taking system is the one you will actually open during finals week. Everything else is decoration.' },
+    ],
+  },
+  'Planning': {
+    h2: 'Planning is a negotiation with reality',
+    blocks: [
+      { k: 'p', t: 'A study plan that ignores your actual life — job hours, sleep needs, the fact that you are a person — is a wish, not a plan. These guides plan for the student you are, not the one you should be.' },
+      { k: 'deflist', items: [
+        { t: 'Time blocking', d: 'Assigning subjects to specific hours turns "I should study" into "it is 2–4, chemistry." Decisions made once, honored daily.' },
+        { t: 'Buffer honestly', d: 'Plans fail at the edges — sick days, group projects, the assignment you forgot. A plan with no slack is a plan that shatters at the first surprise.' },
+        { t: 'Review the plan', d: 'Sunday planning that ignores what actually happened last week repeats last week\'s mistakes with better formatting.' },
+      ]},
+    ],
+  },
+  'Privacy & Ownership': {
+    h2: 'Your study data is yours',
+    blocks: [
+      { k: 'p', t: 'Notes, decks, and grades are years of intellectual work. Whether they live in a format you can export — or a platform that can hold them hostage — is a real decision.' },
+      { k: 'deflist', items: [
+        { t: 'Local-first', d: 'Files on your disk, sync optional. The app can disappear; your work should not.' },
+        { t: 'Export paths', d: 'Plain-text and open formats outlive proprietary ones. If the export is a PDF, you have an archive, not a backup.' },
+        { t: 'No lock-in', d: 'A tool that makes leaving painful is a tool that will eventually raise prices.' },
+      ]},
+      { k: 'quote', t: 'The best study software is the kind you forget is there — it just holds your work and gets out of the way.' },
+    ],
+  },
+  'Language Learning': {
+    h2: 'Languages are acquired, not assembled',
+    blocks: [
+      { k: 'p', t: 'You cannot study your way to fluency the way you study for a chemistry exam. Language is a skill — closer to learning an instrument than memorizing a textbook.' },
+      { k: 'deflist', items: [
+        { t: 'Comprehensible input', d: 'Material slightly above your level — not too easy, not drowning. The sweet spot where guessing becomes learning.' },
+        { t: 'Vocabulary in context', d: 'Words learned in sentences stick; words learned in lists evaporate. The card carries the example, not just the definition.' },
+        { t: 'Output practice', d: 'Speaking and writing force the gaps in your knowledge to show themselves — which is exactly where learning happens.' },
+      ]},
+      { k: 'p', t: 'The guides here treat language learning as a years-long practice with weekly structure — not a semester of flashcards.' },
+    ],
+  },
+  'Study Skills': {
+    h2: 'The meta-skills underneath everything',
+    blocks: [
+      { k: 'p', t: 'Before the subject guides and the exam strategies, there are the cross-cutting skills: speed, recovery, collaboration, and knowing when to stop.' },
+      { k: 'deflist', items: [
+        { t: 'Speed', d: 'Writing faster, reading faster, solving faster — skills that compound across every course you will ever take.' },
+        { t: 'Recovery', d: 'Burnout is not a character flaw; it is a system failure. The fix is structural, not motivational.' },
+        { t: 'Groups', d: 'Study groups fail by default — they work when roles, preparation, and accountability are designed in.' },
+      ]},
+      { k: 'p', t: 'These are the guides for the problems that do not fit neatly into one subject — the ones every student hits eventually.' },
+    ],
+  },
+  'Writing': {
+    h2: 'Writing is thinking you can see',
+    blocks: [
+      { k: 'p', t: 'Most writing guides teach grammar. The useful ones teach throughput — how to get ideas out of your head and onto the page before the deadline does it for you.' },
+      { k: 'deflist', items: [
+        { t: 'Drafting speed', d: 'The first draft is for volume, not quality. Editing is a separate skill with its own session.' },
+        { t: 'Argument structure', d: 'Claim, evidence, analysis, link — the skeleton that turns notes into an essay.' },
+        { t: 'Research process', d: 'The question drives the sources, not the other way around. Searching before thinking produces citation-shaped padding.' },
+      ]},
+      { k: 'quote', t: 'A bad first draft is a solved problem. A blank page is not.' },
+    ],
+  },
+};
+
 const TOPIC_PAGES = (() => {
   const map = new Map();
   for (const g of GUIDES) {
@@ -1976,6 +2149,10 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, 
 </div>
 </div></section>
 <div class="wrap">
+${TOPIC_SECTIONS[topic.kicker] ? `<section class="block">
+<h2 class="sec mono">${esc(TOPIC_SECTIONS[topic.kicker].h2)}</h2>
+<div class="prose">${renderBlocks(TOPIC_SECTIONS[topic.kicker].blocks)}</div>
+</section>` : ''}
 <section class="block" style="border-bottom:none">
 <ul class="rows">
 ${rows}
