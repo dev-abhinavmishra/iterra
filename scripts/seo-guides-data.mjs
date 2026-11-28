@@ -203,7 +203,7 @@ export const GUIDES = [
         h2: 'The forgetting curve, and the loophole in it',
         blocks: [
           { k: 'p', t: 'In 1885, Hermann Ebbinghaus measured his own memory and found something uncomfortable: we forget most of what we learn within days. The curve drops steeply at first and then flattens — which means material you review *right as you’re about to lose it* sticks far better than material you review while it’s still fresh.' },
-          { k: 'p', t: 'Spaced repetition is that curve, exploited on purpose. Instead of reviewing everything on a fixed schedule, you review each item at widening intervals — minutes, then days, then weeks, then months — always landing near the edge of forgetting. Each successful recall at that edge strengthens the memory more than ten reviews while it’s still easy.' },
+          { k: 'p', t: 'Spaced repetition is that curve, exploited on purpose. Instead of reviewing everything on a fixed schedule, you review each item at widening intervals — minutes, then days, then weeks, then months — always landing near ==the edge of forgetting==. Each successful recall at that edge strengthens the memory more than ten reviews while it’s still easy.' },
           { k: 'stats', items: [
             { v: '≈ 24 hrs', l: 'The window where most of a lecture starts fading' },
             { v: 'Widening', l: 'Review intervals stretch as recall strengthens' },
@@ -1032,7 +1032,7 @@ export const GUIDES = [
         h2: 'The night before and exam day',
         blocks: [
           { k: 'p', t: 'The night before: light review only — flashcards, formula sheets, high-level outlines. No new material; it won’t stick and will just raise anxiety. Pack your bag, lay out clothes, set two alarms. Sleep 7–8 hours.' },
-          { k: 'p', t: 'Exam day: eat something, arrive early, do a 5-minute brain dump of everything you know about the course (it primes recall), then trust your preparation. During the exam: read all questions first, do the ones you know cold to build momentum, flag and return to the hard ones. Never leave a question blank — partial credit exists.' },
+          { k: 'p', t: 'Exam day: eat something, arrive early, do a 5-minute brain dump of everything you know about the course (it primes recall), then trust your preparation. During the exam: read all questions first, do the ones you know cold to build momentum, flag and return to the hard ones. ==Never leave a question blank== — partial credit exists.' },
           { k: 'tool', tool: 'flashcards', t: 'Flashcards handle the high-frequency review — what’s due today, what’s due tomorrow, what you can’t afford to forget.' },
           { k: 'tool', tool: 'timer', t: 'Timer keeps your study blocks honest — focused intervals with real breaks, so finals week doesn’t become a blur of anxiety.' },
           { k: 'tool', tool: 'boxed', t: 'Boxed turns the triage matrix into a daily plan — brain-dump everything, pick what matters, time-box the day.' },
@@ -4190,6 +4190,104 @@ export const GUIDES = [
         blocks: [
           { k: 'quote', t: 'Improving your GPA isn\'t about working harder — it\'s about working smarter on the courses that matter most.' },
           { k: 'p', t: 'Audit your grades, triage the workload, build a study schedule, and get help early. The students who raise their GPA fastest aren\'t the ones who study everything — they\'re the ones who execute consistently on the right things.' },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: 'how-to-study-music-theory',
+    title: 'How to <em>study music theory</em>',
+    seoTitle: 'How to Study Music Theory: Patterns, Ear Training, Application',
+    description:
+      'Study music theory as patterns, not rules: learn the patterns, connect to real music, practice ear training, and apply concepts to songs you know.',
+    kicker: 'Study Methods',
+    datePublished: '2027-06-15',
+    dateModified: '2027-06-19',
+    readMinutes: 6,
+    keywords: ['how to study music theory', 'music theory study tips', 'music theory exam', 'ear training'],
+    tools: ['flashcards', 'ink'],
+    related: ['how-to-study-art-history', 'how-to-study-literature', 'active-recall-vs-rereading'],
+    lede: 'Music theory is the subject where students most often freeze — the material is abstract (scales, intervals, chord progressions) and the "right answer" requires both knowledge and intuition. But music theory rewards a specific approach: learn the patterns, connect to the music you already know, and practice the application relentlessly.',
+    takeaways: [
+      'Music theory is patterns, not rules — learn the patterns and the rules become obvious.',
+      'Connect to real music — the ear is the best teacher.',
+      'Practice ear training — theory is aural.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for a music theory exam?',
+        a: 'Learn the patterns behind the rules, connect every concept to real music, and practice ear training. Use identification-based flashcards — "what song uses this interval" not just "what is this interval."',
+      },
+      {
+        q: 'Is ear training necessary for music theory?',
+        a: 'Yes — theory is aural. The concepts are sounds, not just symbols. Ear training is the bridge between theory and music: identifying intervals, hearing chord progressions, recognizing cadences. Even 10 minutes a day builds the skill.',
+      },
+      {
+        q: 'How do I understand music theory concepts?',
+        a: 'Ask: what pattern does this describe? How does it connect to the music I already know? Find examples in songs you know — the ear is the best flashcard.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Music theory is patterns, not rules',
+        blocks: [
+          { k: 'p', t: 'Music theory is the subject where students most often freeze — the material is abstract (scales, intervals, chord progressions) and the "right answer" requires both knowledge and intuition. But music theory rewards a specific approach: learn the patterns, connect to the music you already know, and practice the application relentlessly.' },
+          { k: 'p', t: 'Every music theory course is built on patterns — scales, intervals, chord progressions, forms. The rules aren\'t arbitrary; they\'re the patterns that make music work. Learn the patterns and the rules become obvious; memorize the rules and they\'re just constraints.' },
+          { k: 'p', t: 'When you encounter a new concept, ask: what pattern does this describe? How does it connect to the music I already know? The connection is what makes the theory stick.' },
+        ],
+      },
+      {
+        h2: 'The music theory study loop',
+        blocks: [
+          { k: 'p', t: 'A productive music theory study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Review the concept — the pattern and its function.',
+            'Connect to real music — find examples in songs you know.',
+            'Practice the application — harmonize, analyze, compose.',
+            'Test yourself — identify intervals, analyze progressions.',
+            'Connect to performance — how does this apply to playing?',
+          ]},
+          { k: 'p', t: 'The connect-to-real-music step is crucial for music theory. A scale means nothing until you hear it; a chord progression means nothing until you recognize it in a song. The ear is the best teacher.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the pattern-recognition skill — identify intervals, analyze progressions, and connect theory to music you know.' },
+        ],
+      },
+      {
+        h2: 'Active recall for music theory',
+        blocks: [
+          { k: 'p', t: 'Music theory flashcards work best when they test *identification* and *application*, not just definitions. Instead of "What is a perfect fifth?" use "What song uses a perfect fifth and how does it function?" or "How would you harmonize this melody?"' },
+          { k: 'deflist', items: [
+            { t: 'For intervals', d: '"What song uses this interval and how does it function?"' },
+            { t: 'For chords', d: '"What scale degree is this chord and what\'s its function?"' },
+            { t: 'For progressions', d: '"What\'s the Roman numeral analysis of this progression?"' },
+            { t: 'For forms', d: '"What form is this piece and how does it develop?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The ear-training connection',
+        blocks: [
+          { k: 'p', t: 'Music theory is aural — the concepts are sounds, not just symbols. Ear training is the bridge between theory and music: identifying intervals by ear, hearing chord progressions, recognizing cadences. The ear is the best flashcard.' },
+          { k: 'p', t: 'If your course has ear-training components, practice them daily — even 10 minutes a day builds the skill. The students who do well in theory are the ones who can hear what they\'re analyzing.' },
+        ],
+      },
+      {
+        h2: 'Common music theory study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common music theory study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing rules without understanding the patterns', d: 'Rules are expressions of patterns — learn the pattern, not the rule.' },
+            { t: 'Skipping the ear training', d: 'Theory is aural — the ear is the best teacher.' },
+            { t: 'Not connecting to real music', d: 'The ear is the best flashcard — connect every concept to a song.' },
+            { t: 'Studying only before exams', d: 'Music theory requires consistent practice — the material accumulates.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Music theory rewards understanding patterns, not memorizing rules.' },
+          { k: 'p', t: 'Learn the patterns, connect to the music you know, practice ear training, and apply the concepts to real music. The students who treat theory as a way of hearing music outperform the ones who treat it as a list of rules.' },
         ],
       },
     ],
