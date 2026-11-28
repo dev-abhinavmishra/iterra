@@ -2425,11 +2425,13 @@ ${footer()}
 
 const COMPARE_SHOT = '/shots/today.webp';
 
-function compareHead({ title, description, url, image, published, modified, keywords }) {
+function compareHead({ title, description, url, image, published, modified, keywords, prevUrl, nextUrl }) {
   return `<title>${esc(title)}</title>
 <meta name="description" content="${esc(metaDesc(description))}" />
 ${keywords?.length ? `<meta name="keywords" content="${esc(keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
+${prevUrl ? `<link rel="prev" href="${prevUrl}" />` : ''}
+${nextUrl ? `<link rel="next" href="${nextUrl}" />` : ''}
 <meta property="og:type" content="article" />
 ${published ? `<meta property="article:published_time" content="${published}" />\n<meta property="article:modified_time" content="${modified || published}" />` : ''}
 <meta property="og:site_name" content="Iterra" />
@@ -2523,6 +2525,10 @@ export function renderComparePage(page) {
   const slug = page.slug;
   const url = `${SITE}/${base}/${slug}`;
   const rivalLabel = page.rival === 'roundup' ? 'the field' : page.rival === 'generic planners' ? 'typical free planners' : page.rival;
+  const sibs = COMPARE_PAGES.filter((p) => p.section === page.section);
+  const si = sibs.findIndex((p) => p.slug === slug);
+  const prevCmp = si > 0 ? sibs[si - 1] : null;
+  const nextCmp = si >= 0 && si < sibs.length - 1 ? sibs[si + 1] : null;
 
   const isVs = page.kind === 'vs';
   const tableRows = page.table.rows
@@ -2636,6 +2642,8 @@ ${compareHead({
     image: `${SITE}/og/${page.section}-${slug}.png`,
     published: page.datePublished,
     modified: page.dateModified,
+    prevUrl: prevCmp ? `${SITE}/${base}/${prevCmp.slug}` : null,
+    nextUrl: nextCmp ? `${SITE}/${base}/${nextCmp.slug}` : null,
     keywords:
       page.section === 'compare' && page.rival && !['roundup', 'generic planners'].includes(page.rival)
         ? [`iterra vs ${page.rival.split(' (')[0]}`, `${page.rival.split(' (')[0]} alternative`, 'study app comparison', 'student productivity apps']
@@ -2687,6 +2695,12 @@ ${faqHtml}
 <section class="block" style="border-bottom:none;padding-top:0">
 ${adSlotHtml()}
 </section>
+${prevCmp || nextCmp
+    ? `<nav class="pager" aria-label="More ${base === 'compare' ? 'comparisons' : 'alternatives'}">
+${prevCmp ? `<a href="/${base}/${prevCmp.slug}"><span class="dir">← Previous <kbd class="pk">[</kbd></span><span class="t">${esc(String(prevCmp.h1).replace(/<\/?em>/g, ''))}</span></a>` : '<span></span>'}
+${nextCmp ? `<a class="next" href="/${base}/${nextCmp.slug}"><span class="dir">Next → <kbd class="pk">]</kbd></span><span class="t">${esc(String(nextCmp.h1).replace(/<\/?em>/g, ''))}</span></a>` : ''}
+</nav>`
+    : ''}
 </div>
 ${readProgressScript('.compare-body')}
 ${footer()}
