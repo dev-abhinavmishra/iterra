@@ -721,6 +721,10 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .series .chips a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.4rem .85rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
 .series .chips a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
 .series .chips a.on{background:var(--accent);border-color:var(--accent);color:#f4f1e6}
+.ctoc{display:flex;flex-wrap:wrap;gap:.45rem;margin:0 0 1.6rem}
+.ctoc a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.42rem .9rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
+.ctoc a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
+.compare-body .block[id]{scroll-margin-top:24px}
 .pager{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:3rem;padding-top:1.8rem;border-top:1px solid var(--line)}
 .pager .dir{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);display:block}
 .pager .pk{font-family:'IBM Plex Mono',monospace;font-size:9px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--faint);background:rgba(255,255,255,.5);margin-left:.3rem}
@@ -1925,7 +1929,7 @@ ${page.rivalWins.map((w) => `<li>${esc(w)}</li>`).join('\n')}
 </div>`;
 
   const faqHtml = page.faqs?.length
-    ? `<section class="block">
+    ? `<section class="block" id="faq">
 <h2 class="sec mono">Questions students ask</h2>
 <div class="faq-list">
 ${page.faqs
@@ -1972,6 +1976,20 @@ ${factHtml}
     cVariant === 1
       ? `<section class="hero hero-split"><div class="wrap"><div class="hero-grid"><div class="hero-copy">${cCopy}</div><figure class="hero-fig">${cFig}</figure></div></div></section>`
       : `<section class="hero${cVariant === 2 ? ' hero-center' : ''}"><div class="wrap">${cCopy}</div></section>`;
+  /* jump-chip wayfinding for the now-longer decision pages */
+  const cChips = [
+    ['at-a-glance', 'At a glance'],
+    ['honest-split', 'The honest split'],
+    ...(page.sections || []).map((s, i) => [`section-${i + 1}`, s.h2]),
+    ['verdict', 'The verdict'],
+    ...(page.faqs?.length ? [['faq', 'Questions']] : []),
+  ];
+  const cTocHtml =
+    cChips.length >= 4
+      ? `<nav class="ctoc" aria-label="On this page">${cChips
+          .map(([id, label]) => `<a href="#${id}">${esc(String(label).replace(/<[^>]+>/g, ''))}</a>`)
+          .join('')}</nav>`
+      : '';
   const cCoverHtml = cVariant === 1 ? '' : `<figure class="plate">${cFig}</figure>`;
 
   return `<!doctype html>
@@ -1988,8 +2006,9 @@ ${header(`/${base}/${slug}`)}
 ${cHeroHtml}
 <div class="wrap compare-body">
 ${cCoverHtml}
+${cTocHtml}
 <aside class="tldr"><span class="tk mono">In short</span><p>${esc(tldrOf(page.verdict))}</p></aside>
-<section class="block">
+<section class="block" id="at-a-glance">
 <h2 class="sec mono">At a glance</h2>
 <div style="overflow-x:auto">
 <table class="compare-table">
@@ -2000,16 +2019,16 @@ ${tableRows}
 </table>
 </div>
 </section>
-<section class="block">
+<section class="block" id="honest-split">
 <h2 class="sec mono">The honest split</h2>
 ${winsHtml}
 </section>
 ${(page.sections || [])
   .map(
-    (s) => `<section class="block"><h2 class="sec mono">${esc(s.h2)}</h2><div class="prose">${renderBlocks(s.blocks)}</div></section>`,
+    (s, i) => `<section class="block" id="section-${i + 1}"><h2 class="sec mono">${esc(s.h2)}</h2><div class="prose">${renderBlocks(s.blocks)}</div></section>`,
   )
   .join('\n')}
-<section class="block">
+<section class="block" id="verdict">
 <div class="verdict"><div>
 <span class="mono">The verdict</span>
 <p>${page.verdict.replace(/<em>/g, '<strong>').replace(/<\/em>/g, '</strong>')}</p>
