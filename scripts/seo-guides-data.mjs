@@ -5499,6 +5499,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-mcat-cars',
+    title: 'How to study for the <em>MCAT CARS</em>',
+    seoTitle: 'How to Study for MCAT CARS: Reading, Not Memorizing',
+    description:
+      'Beat MCAT CARS with argument analysis: read actively, identify the main idea and evidence, practice at real speed, and review every question — it\'s about how well you read, not what you know.',
+    kicker: 'Study Methods',
+    datePublished: '2027-09-21',
+    dateModified: '2027-09-25',
+    readMinutes: 7,
+    keywords: ['MCAT CARS', 'how to study for CARS', 'MCAT reading comprehension', 'CARS strategy'],
+    tools: ['timer', 'ink'],
+    related: ['how-to-study-for-the-mcat', 'how-to-study-literature', 'how-to-use-practice-tests'],
+    lede: 'The MCAT CARS section is the test within the test — a reading-comprehension exam that rewards argument analysis, not memorization. But most students treat it like a vocabulary test or a speed-reading drill. CARS rewards a different approach: understand the *argument structure* — the claims, the evidence, the assumptions — and practice extracting the main idea from dense academic prose.',
+    takeaways: [
+      'Take a practice section first — the questions you miss tell you which skills to drill.',
+      'Read actively, not passively — identify the main argument, the evidence, the assumptions.',
+      'Practice at real speed — 10 minutes per passage, 90 minutes total.',
+    ],
+    faq: [
+      {
+        q: 'How long should I study for MCAT CARS?',
+        a: 'Plan for 6-8 weeks of consistent practice. CARS is a skill that improves with repetition — 2-3 practice sections per week for 6 weeks builds the reading stamina and pattern recognition you need. Start with a diagnostic to gauge your baseline.',
+      },
+      {
+        q: 'Is CARS harder than the other MCAT sections?',
+        a: 'CARS is different — it tests reading comprehension and argument analysis, not scientific knowledge. Many students find it harder because it requires a different skill set than the science sections. The key is practicing the specific skills CARS tests: main idea, inference, author\'s tone, and structure.',
+      },
+      {
+        q: 'Can I improve my CARS score quickly?',
+        a: 'CARS improves with practice, but not instantly. The skills — active reading, argument analysis, timing — take weeks to develop. Focus on consistent practice rather than cramming; 2-3 sections per week for 6 weeks beats 10 sections in one weekend.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know CARS before you study it',
+        blocks: [
+          { k: 'p', t: 'CARS is 90 minutes, 53 questions, 9 passages — humanities and social sciences topics written at a college level. The questions test whether you can identify the main idea, the supporting evidence, the author\'s assumptions, and the logical structure. It\'s not about what you know; it\'s about how well you read.' },
+          { k: 'p', t: 'Take a practice section first. The questions you miss tell you exactly which skills to drill — main idea, inference, author\'s tone, or structural analysis. You don\'t need to practice everything; you need to shore up the weak spots.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates CARS\'s pressure — 10 minutes per passage, 90 minutes total. Practice at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The CARS study loop',
+        blocks: [
+          { k: 'p', t: 'CARS prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Read a passage slowly — identify the main argument.',
+            'Answer the questions without looking back — test your comprehension.',
+            'Review every question — right and wrong — with the passage.',
+            'Identify the question types you miss most.',
+            'Drill those types with focused practice.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice section without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'The question types: what to look for',
+        blocks: [
+          { k: 'p', t: 'CARS questions fall into predictable types:' },
+          { k: 'deflist', items: [
+            { t: 'Main idea', d: 'What is the passage primarily about?' },
+            { t: 'Inference', d: 'What can you conclude from the passage?' },
+            { t: 'Author\'s tone', d: 'What is the author\'s attitude toward the subject?' },
+            { t: 'Structure', d: 'How is the passage organized?' },
+            { t: 'Evidence', d: 'Which detail supports the main argument?' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The passage-reading method',
+        blocks: [
+          { k: 'p', t: 'CARS passages are dense — the strategy is to read actively, not passively. The method:' },
+          { k: 'steps', items: [
+            'Read the first paragraph carefully — it usually contains the thesis.',
+            'Skim the middle — look for supporting evidence and examples.',
+            'Read the last paragraph carefully — it usually contains the conclusion.',
+            'Annotate as you go — mark the main argument, the evidence, and the assumptions.',
+          ]},
+          { k: 'tool', tool: 'ink', t: 'Ink lets you annotate passages by hand — mark the thesis, the evidence, and the assumptions as you read.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'CARS is 90 minutes for 9 passages — about 10 minutes per passage. The strategy: spend 3-4 minutes reading, 6-7 minutes answering questions. Don\'t spend more than 12 minutes on any single passage.' },
+          { k: 'p', t: 'For difficult passages, don\'t panic — move on and come back if you have time. The CAT doesn\'t penalize guessing, so answer every question.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'CARS isn\'t about what you know — it\'s about how well you read.' },
+          { k: 'p', t: 'Read actively, answer strategically, review every question, and manage your time ruthlessly. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
