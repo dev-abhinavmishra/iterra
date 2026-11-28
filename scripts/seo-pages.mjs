@@ -3012,6 +3012,63 @@ ${body}
 `;
 }
 
+export function render404() {
+  const popular = GUIDES.slice(0, 4)
+    .map((g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${esc(g.kicker || 'Guide')}</span><span class="t">${esc(g.title)}</span></a></li>`)
+    .join('\n');
+  const hubs = [
+    ['Tools', '/tools', 'Nine places for planning, notes, flashcards, grading, and focus.'],
+    ['Guides', '/guides', `${GUIDES.length} study guides — methods, subjects, and exam season.`],
+    ['Comparisons', '/compare', 'Iterra vs. the tools students already use.'],
+    ['Alternatives', '/alternatives', 'Roundups for every budget and workflow.'],
+  ]
+    .map(([label, href, desc]) => `<li><a href="${href}"><span class="k mono">Section</span><span class="t">${label}</span><span class="d">${esc(desc)}</span></a></li>`)
+    .join('\n');
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#f7f5ec" />
+<title>Page not found — Iterra</title>
+<meta name="description" content="This page took a wrong turn. Head back to Iterra's tools, guides, and comparisons." />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+${FONTS}
+<style>${CSS}</style>
+</head>
+<body class="pt-topics">
+${header('')}
+<section class="hero"><div class="wrap">
+<div class="kicker mono">404 — wrong turn</div>
+<h1>This page <em>doesn&rsquo;t exist.</em></h1>
+<p class="lede">The link may be old, mistyped, or the page moved. Everything else on Iterra is one click away.</p>
+<div class="cta">
+<a class="primary" href="/">Back to the workspace</a>
+<a class="ghost" href="/guides">Browse guides</a>
+</div>
+</div></section>
+<div class="wrap">
+<section class="block" style="border-bottom:none">
+<h2 class="sec mono">Where to next</h2>
+<ul class="rows">
+${hubs}
+</ul>
+<h2 class="sec mono" style="margin-top:2.5rem">Popular guides</h2>
+<ul class="rows">
+${popular}
+</ul>
+</section>
+</div>
+${footer()}
+</body>
+</html>
+`;
+}
+
 export function writeSeoPages(distDir) {
   mkdirSync(join(distDir, 'tools'), { recursive: true });
   mkdirSync(join(distDir, 'guides'), { recursive: true });
@@ -3043,5 +3100,6 @@ export function writeSeoPages(distDir) {
   writeFileSync(join(distDir, 'sitemap.xml'), renderSitemap());
   writeFileSync(join(distDir, 'feed.xml'), renderFeed());
   writeFileSync(join(distDir, 'llms.txt'), renderLlmsTxt());
+  writeFileSync(join(distDir, '404.html'), render404());
   console.log(`seo: wrote /tools index + ${TOOLS.length} tool pages + /guides index + ${GUIDES.length} guides + /compare + /alternatives indexes + ${COMPARE_PAGES.length} compare pages + sitemap.xml`);
 }
