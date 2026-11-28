@@ -155,6 +155,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that sink semester plans',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Planning in your head', d: 'A plan that lives in your head is a wish. Write it down — courses, deadlines, weekly blocks — or it will not survive the first busy week.' },
+            { t: 'Scheduling every hour', d: 'A plan with zero slack breaks the first time something runs long. Leave about 20% unscheduled — it is the buffer that keeps the plan alive.' },
+            { t: 'Ignoring the syllabus until week 4', d: 'The syllabus is the contract — read it in week 1 and the semester stops surprising you.' },
+            { t: 'Never reviewing the plan', d: 'A plan you never check is decoration. Ten minutes every Sunday to adjust is what separates plans from intentions.' },
+          ]},
+        ],
+      },
+      {
         h2: 'Midterms and the plan’s second test',
         blocks: [
           { k: 'p', t: 'Your semester plan gets its real exam around week seven — midterm season. This is when the extraction work pays off: every course’s midterm date is already on your calendar, and the review blocks before it were placed weeks ago, backwards from the date.' },
@@ -919,6 +930,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that keep students rereading',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Confusing familiarity with knowledge', d: 'A page that feels familiar feels learned — the feeling is recognition, not recall. Close it and write what you remember.' },
+            { t: 'Testing only what you already know', d: 'Recall practice on known material feels good and teaches nothing. Aim at the edges of what you half-know.' },
+            { t: 'Quizzing once and moving on', d: 'One successful recall is luck; recall that survives a week is learning. Space the attempts.' },
+            { t: 'Passive "recall" like highlighting', d: 'If your recall method involves marking text, it is rereading in disguise — retrieval means producing the answer from memory.' },
+          ]},
+        ],
+      },
+      {
         h2: 'A weekly recall habit',
         blocks: [
           { k: 'p', t: 'Active recall works best as a *weekly* practice, not just an exam-week panic. Here’s a simple version that takes about an hour:' },
@@ -1075,6 +1097,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that waste finals week',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Starting finals prep the night before', d: 'Finals week rewards the semester\'s deposits, not panic deposits — a plan built in week 12 of 15 is already late.' },
+            { t: 'Studying everything equally', d: 'Finals are weighted differently — triage by exam difficulty and grade impact, not alphabetically.' },
+            { t: 'All-nighters as a strategy', d: 'Sleep is when memory consolidates — a rested brain recalls more than a caffeinated one. Protect the last night especially.' },
+            { t: 'Never doing a practice exam', d: 'Practice tests are the highest-yield hour of finals prep — they expose the format and the weak spots in one move.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The morning of the exam',
         blocks: [
           { k: 'p', t: 'Exam mornings have their own rhythm, and it’s mostly about not sabotaging yourself:' },
@@ -1219,6 +1252,17 @@ export const GUIDES = [
             'Guard the days that feel “free”: online semesters have no visual structure, so the calendar has to do the work. If Tuesday has no classes, that’s a deep-work day — block it before the week starts.',
           ]},
           { k: 'p', t: 'The routine doesn’t care where you are; it cares that the cue fires. Build the cue deliberately and the rest follows.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that break weekly routines',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Building a perfect routine', d: 'A routine you cannot follow for three weeks is fiction. Start with four study days and let it grow.' },
+            { t: 'Scheduling around motivation', d: 'Motivation follows action, not the reverse — put the session on the calendar and treat it like a class you cannot skip.' },
+            { t: 'No buffer for real life', d: 'A routine with zero slack shatters on the first sick day. Build in a lighter Saturday and a plan-B week.' },
+            { t: 'Reviewing the routine monthly', d: 'Check it weekly — ten minutes to adjust beats a month of quietly drifting off-plan.' },
+          ]},
         ],
       },
       {
@@ -1550,6 +1594,17 @@ export const GUIDES = [
             'Lock-in: can I leave with my work intact in under an hour, or does leaving mean rebuilding from scratch?',
           ]},
           { k: 'p', t: 'Tools that pass all four are rare. Most fail on export or offline — the two things students discover too late. Ask before you invest a semester of notes.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that sink local-first setups',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Assuming local means safe', d: 'Local-first removes the cloud risk and adds a device risk — an un-backed-up laptop is a single point of failure.' },
+            { t: 'Never testing the backup', d: 'A backup you have never restored is a hope, not a backup. Restore one file every month to prove it works.' },
+            { t: 'Choosing tools by features, not fit', d: 'The best tool is the one you open daily — evaluate workflow fit before feature lists.' },
+            { t: 'Syncing everything by default', d: 'Sync is a decision per dataset — syncing your grocery list and your thesis into one blob creates one giant attack surface.' },
+          ]},
         ],
       },
       {
@@ -2030,6 +2085,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that cost exam points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Writing without an outline', d: 'Five minutes of outline prevents fifteen minutes of wandering — the essay that plans first finishes with time to spare.' },
+            { t: 'Perfecting the intro first', d: 'The intro is the hardest ten percent of the essay — write the body first and come back; momentum beats polish.' },
+            { t: 'Ignoring the clock entirely', d: 'An unfinished essay scores near zero regardless of quality — decide your cutoff times before you start.' },
+            { t: 'Using fancy words to sound smart', d: 'Clear simple sentences score higher than strained complex ones — the grader reads fifty essays; clarity wins.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'Writing faster on exams is a structure problem, not a talent problem.' },
@@ -2362,6 +2428,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that make memory work fail',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Choosing techniques by novelty', d: 'The best memory technique is the one you will actually use weekly — a palace you abandon helps nothing.' },
+            { t: 'Cramming the technique itself', d: 'Memory skills compound like any skill — ten minutes daily beats an hour once a month.' },
+            { t: 'Memorizing without understanding', d: 'Rote recall decays; connected recall lasts. Attach every fact to something you already know.' },
+            { t: 'Never reviewing the journey', d: 'The memory palace decays without walks — revisit the loci monthly or the filing system rusts.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The bottom line',
         blocks: [
           { k: 'quote', t: 'The goal isn’t to remember everything; it’s to give every fact a hook it can hang on.' },
@@ -2464,6 +2541,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that lose easy points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Changing answers on a hunch', d: 'First instincts are right more often than second guesses — change only when you find concrete evidence.' },
+            { t: 'Reading the question last', d: 'Reading the stem first tells you what the passage must prove — reading it last turns comprehension into guesswork.' },
+            { t: 'Eliminating one option at a time', d: 'Cross out aggressively — eliminating four wrong options is faster than finding one right one.' },
+            { t: 'Treating all questions equally', d: 'Flag and move on hard questions — a point is a point, and unfinished easy questions are lost points.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'The content matters, but the process matters more — and the process can be practiced.' },
@@ -2558,6 +2646,17 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Cramming works for recognition — you’ll remember enough to pass, maybe enough to do well. What it doesn’t do is build durable understanding. If this course matters beyond the final, you’ll need to relearn the material properly later.' },
           { k: 'quote', t: 'The best use of a one-night session is as a damage-control measure, not a strategy.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that waste your one night',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Trying to learn everything', d: 'One night covers the top twenty percent that yields eighty percent of points — triage ruthlessly and accept the rest.' },
+            { t: 'Starting at midnight', d: 'A 7pm start beats a midnight panic — your brain needs sleep more than it needs another hour of review.' },
+            { t: 'Passive rereading all night', d: 'Active recall — self-quizzing, practice problems — beats highlighting at 2am. Test yourself, do not just look.' },
+            { t: 'Skipping sleep to study more', d: 'The exam tests a rested brain — four hours of sleep plus focused study beats eight hours of fog.' },
+          ]},
         ],
       },
       {
