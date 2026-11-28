@@ -20,7 +20,7 @@ export const TOOLS = [
     description:
       'Boxed is a daily planner that captures every task in a brain dump, helps you pick what matters, and time-boxes the work into your day — inside Iterra’s all-in-one study workspace.',
     h1: 'A day, <em>boxed</em> and planned',
-    lede: 'Dump everything on your mind, choose the few things that matter, and give each one a box of time. Boxed turns a scattered to-do list into a day you can actually execute.',
+    lede: 'Dump everything on your mind, pick the few things that actually matter, and give each one a box of time. Boxed turns a scattered to-do list into a day you can execute.',
     features: [
       'Brain-dump capture — get it all out of your head first, prioritize second',
       'Time-boxed blocks that live inside your course schedule',
@@ -45,6 +45,7 @@ export const TOOLS = [
       { t: 'Close the loop', d: 'At day’s end, unfinished boxes roll forward honestly instead of vanishing into guilt.' }
     ],
     keywords: ['time blocking app', 'daily planner', 'brain dump app', 'to-do list'],
+    updated: '2026-10-30',
   },
   {
     id: 'syllabus',
@@ -55,7 +56,7 @@ export const TOOLS = [
     description:
       'Syllabus is a course planner and study schedule organizer: terms, courses, weekly blocks, and commitments in a registrar’s folio — part of Iterra’s study workspace.',
     h1: 'Every course, every week, <em>one folio</em>',
-    lede: 'Set up your term once — courses, meeting times, commitments — and Syllabus lays out the week. Schedule study blocks, track what’s overdue, and let the terrain file minutes back into your focus timer.',
+    lede: 'Set up your term once — courses, meeting times, commitments — and Syllabus lays out the week for you. Schedule study blocks, keep track of what’s overdue, and let finished focus sessions file their minutes back into the plan.',
     features: [
       'Course and term setup with weekly schedule blocks',
       'Commitments and assignments tracked against real dates',
@@ -80,6 +81,7 @@ export const TOOLS = [
       { t: 'Launch from the block', d: 'When a block arrives, start its bound focus session so planning and timing stay linked.' }
     ],
     keywords: ['study planner', 'class schedule organizer', 'assignment tracker', 'course planner'],
+    updated: '2026-11-05',
   },
   {
     id: 'rhythm',
@@ -90,7 +92,7 @@ export const TOOLS = [
     description:
       'Rhythm is a weekly routine and attendance tracker: log habits, study cadence, and class attendance in a register that shows your consistency at a glance.',
     h1: 'Keep your study <em>rhythm</em> visible',
-    lede: 'Consistency beats intensity. Rhythm lays your week out like a step sequencer — routines, attendance, and study cadence — so showing up every day is the easiest thing on the page.',
+    lede: 'Showing up beats intensity. Rhythm lays your week out like a step sequencer — routines, attendance, and study cadence — so keeping a streak is the easiest thing on the page.',
     features: [
       'Weekly sequencer view of routines and habits',
       'Attendance logs for classes and study sessions',
@@ -115,6 +117,7 @@ export const TOOLS = [
       { t: 'Adjust the cue', d: 'When a habit slips, change the trigger or the time — the register shows where the week leaks.' }
     ],
     keywords: ['habit tracker', 'routine tracker', 'study consistency', 'attendance tracker'],
+    updated: '2026-11-12',
   },
   {
     id: 'flashcards',
@@ -125,7 +128,7 @@ export const TOOLS = [
     description:
       'Flashcards is a spaced-repetition study app with decks, active recall, quizzes, and writing drills — a local-first alternative to paper card boxes, inside Iterra.',
     h1: 'Recall, <em>on schedule</em>',
-    lede: 'Decks, spaced review, multiple-choice quizzes, and written recall drills — the cardfile keeps what you’ve learned one review at a time, and tells the Today rail exactly what’s due.',
+    lede: 'Decks, spaced review, multiple-choice quizzes, and written recall drills. The cardfile keeps what you’ve learned one review at a time, and tells the Today rail exactly what’s due.',
     features: [
       'Decks with spaced-repetition scheduling',
       'Quizzes and writing drills for active recall',
@@ -150,6 +153,7 @@ export const TOOLS = [
       { t: 'Prune and grow slowly', d: 'Add new cards only as fast as reviews stay current; archive mastered decks at term’s end.' }
     ],
     keywords: ['flashcards', 'spaced repetition', 'active recall', 'Anki alternative'],
+    updated: '2026-11-19',
   },
   {
     id: 'ink',
@@ -160,7 +164,7 @@ export const TOOLS = [
     description:
       'Ink is a long-form note-taking app with wiki-links, folders, daily pages, and focus writing — local-first notes that connect to your courses inside Iterra.',
     h1: 'Notes that <em>connect</em> like ideas do',
-    lede: 'A writing desk for lecture notes, essays, and thinking-out-loud. Wiki-links weave notes into a personal knowledge graph, and the whole thing stays in your browser.',
+    lede: 'A writing desk for lecture notes, essays, and thinking-out-loud. Wiki-links connect your notes into something like a personal knowledge graph, and the whole thing stays in your browser.',
     features: [
       'Long-form writing with wiki-style links between notes',
       'Folders and daily pages for lectures and journals',
@@ -185,6 +189,7 @@ export const TOOLS = [
       { t: 'Let courses cite it', d: 'Tag notes to courses so they surface inside dossiers alongside cards and materials.' }
     ],
     keywords: ['note taking app', 'linked notes', 'Zettelkasten', 'lecture notes app'],
+    updated: '2026-10-22',
   },
   {
     id: 'margin',
@@ -220,6 +225,7 @@ export const TOOLS = [
       { t: 'Export what matters', d: 'Keep the shelf local-first; export anything you’d be sad to lose.' }
     ],
     keywords: ['study material organizer', 'lecture notes storage', 'course files', 'PDF organizer for students'],
+    updated: '2026-11-02',
   },
   {
     id: 'gradestack',
@@ -230,7 +236,7 @@ export const TOOLS = [
     description:
       'GradeStack builds assessments, scans bubble-sheet answer sheets, grades them, and tracks score trends — a mark book for teachers and self-quizzers inside Iterra.',
     h1: 'From answer sheet <em>to insight</em>',
-    lede: 'Build the assessment, print the sheet, scan it back, and get scores plus trends. GradeStack turns a stack of paper into a mark book that remembers every attempt.',
+    lede: 'Build the assessment, print the sheet, scan it back, get scores and trends. GradeStack turns a stack of paper into a mark book that remembers every attempt.',
     features: [
       'Assessment builder with printable bubble sheets',
       'Sheet scanning and automatic grading',
@@ -255,6 +261,7 @@ export const TOOLS = [
       { t: 'Read the trends', d: 'Score analytics show which concepts the class missed — feed that back into review.' }
     ],
     keywords: ['bubble sheet grading', 'quiz maker', 'scantron alternative', 'classroom grading tool'],
+    updated: '2026-11-15',
   },
   {
     id: 'timer',
@@ -265,7 +272,7 @@ export const TOOLS = [
     description:
       'Timer is a focus timer with pomodoro sessions, interval routes, a stopwatch, and a session ledger — study minutes file themselves back into your planner.',
     h1: 'Time, measured in <em>sessions</em>',
-    lede: 'Split-flap instruments for deep work: countdowns, interval routes, a stopwatch, and a ledger of every session. Start a session from your plan and the minutes file themselves back.',
+    lede: 'Split-flap instruments for deep work: countdowns, interval routes, a stopwatch, and a ledger of every session. Start a session from your plan and the minutes file themselves back into it.',
     features: [
       'Pomodoro-style focus sessions and interval routes',
       'Stopwatch and session ledger for honest time tracking',
@@ -290,6 +297,7 @@ export const TOOLS = [
       { t: 'Let minutes file back', d: 'Completed sessions return to the planner and Today rail, so the week shows honest focus time.' }
     ],
     keywords: ['pomodoro timer', 'focus timer', 'study timer', 'time tracking for students'],
+    updated: '2026-10-19',
   },
   {
     id: 'proof',
@@ -300,7 +308,7 @@ export const TOOLS = [
     description:
       'Proof is a math workbench for step-by-step problem solving: problem sets, derivations, and an error log that brings missed concepts back for review.',
     h1: 'Work the problem, <em>keep the proof</em>',
-    lede: 'Math doesn’t get easier by rereading answers — it gets easier by doing the steps. Proof gives you problem sets, space for derivations, and an error log that resurfaces what you missed.',
+    lede: 'Math doesn’t get easier by rereading answers — it gets easier by doing the steps. Proof gives you problem sets, room for derivations, and an error log that brings back whatever you missed.',
     features: [
       'Problem sets with step-by-step working space',
       'Error log that resurfaces missed concepts for review',
@@ -325,6 +333,7 @@ export const TOOLS = [
       { t: 'Feed the queue', d: 'Weak areas resurface in Today and review queues instead of disappearing into a gradebook.' }
     ],
     keywords: ['math problem solver', 'step by step math', 'error log study', 'math workbench'],
+    updated: '2026-11-23',
   },
 ];
 
@@ -344,27 +353,27 @@ const TOOL_NEIGHBORS = {
    turn a feature list into a page worth reading. */
 const TOOL_TOURS = {
   boxed: [
-    'Most planners fail the same way: they ask you to decide what matters before you’ve emptied your head. Boxed inverts that. The brain dump comes first — every errand, worry, and half-formed intention lands in one place, where it stops looping in your skull. Only then do you choose.',
-    'The time-boxing step is where the day becomes real. “Study biology” is a wish; “bio reading, 2–4pm” is a commitment your future self can keep or break honestly. Unfinished boxes roll forward instead of evaporating, so tomorrow’s dump starts from the truth rather than a cleaned-up fiction.',
+    'Most planners fail the same way: they ask you to decide what matters before you’ve emptied your head. Boxed flips the order. The brain dump comes first — every errand, worry, and half-formed intention lands in one place, where it stops looping in your skull. Only then do you choose.',
+    'Time-boxing is where the day gets real. “Study biology” is a wish; “bio reading, 2–4pm” is a commitment your future self can actually keep or break. Unfinished boxes roll forward instead of evaporating, so tomorrow’s dump starts from what really happened.',
   ],
   syllabus: [
-    'The Folio is where a semester stops being a rumor. You enter courses once — meeting times, rooms, instructor notes — and the schedule becomes the skeleton every other tool hangs off. Planned study blocks land on real days; attendance and deadlines inherit the same course context.',
-    'What makes it different from a generic calendar is that it knows what a course *is* in Iterra. A block tagged to Organic Chemistry can surface its readings, its flashcard deck’s due count, and its notes without you filing anything twice. The schedule is the index.',
+    'The Folio is where a semester stops being a rumor. You enter courses once — meeting times, rooms, instructor notes — and the schedule becomes the skeleton every other tool hangs off. Planned study blocks land on real days, and attendance and deadlines pick up the same course context for free.',
+    'What separates it from a generic calendar is that it knows what a course *is* inside Iterra. A block tagged to Organic Chemistry can surface its readings, its flashcard deck’s due count, and its notes without you filing anything twice. The schedule ends up being the index.',
   ],
   rhythm: [
-    'Routines are the least glamorous and most honest tool here. Rhythm doesn’t motivate you — it keeps a faithful record of what you actually did, which is the only data a habit needs. Weekly routines, attendance logs, and streaks live in one place so “am I showing up?” has a real answer.',
-    'Students consistently overestimate willpower and underestimate friction. Rhythm is built for the second problem: logging takes seconds, streaks make skipping visible, and the weekly review turns vague guilt into a pattern you can adjust.',
+    'Routines are the least glamorous tool here and probably the most useful. Rhythm doesn’t try to motivate you — it keeps a faithful record of what you actually did, which is the only data a habit needs. Weekly routines, attendance logs, and streaks live in one place so “am I showing up?” has a real answer.',
+    'Students consistently overestimate willpower and underestimate friction. Rhythm is built for the second problem: logging takes seconds, streaks make skipping visible, and the weekly review turns vague guilt into a pattern you can actually adjust.',
   ],
   flashcards: [
-    'Flashcards in Iterra are built around the boring truth that rereading feels productive and isn’t. Every deck supports active recall — you answer before you flip — and spaced review schedules cards based on how well you actually knew them, not on a fixed timer.',
+    'Flashcards in Iterra are built around an uncomfortable truth: rereading feels productive and isn’t. Every deck supports active recall — you answer before you flip — and spaced review schedules cards based on how well you actually knew them, not on a fixed timer.',
     'The writing drills matter more than they sound. Typing an answer is a harder, more honest test than recognizing one, and it’s the mode that transfers to exams. Decks attach to courses, so a card made during lecture week resurfaces during review week without any filing on your part.',
   ],
   ink: [
     'Ink treats notes as a thinking surface, not a storage unit. Wiki-links let a concept in one lecture connect to a concept in another; daily pages give you a low-friction place to think out loud; folders keep courses from dissolving into one long scroll.',
-    'The focus-writing mode is the quiet killer feature. Distraction-free prose with your links and references one keystroke away means the note stays connected to the rest of your thinking without competing with it for attention.',
+    'The focus-writing mode is the quiet killer feature. Distraction-free prose with your links and references one keystroke away means the note stays connected to the rest of your thinking without competing for attention.',
   ],
   margin: [
-    'Margin is the shelf behind the desk. Recordings, PDFs, handouts, and imported class files live here, filed by course, ready to surface wherever you’re working — a recording’s timestamp can point at the moment a concept was explained.',
+    'Margin is the shelf behind the desk. Recordings, PDFs, handouts, and imported class files live here, filed by course, ready to surface wherever you’re working — a recording’s timestamp can point at the exact moment a concept got explained.',
     'It exists because study materials have a habit of scattering across downloads folders and chat apps. Keeping them course-tagged means “what was that example the professor gave?” is a search, not an archaeology project.',
   ],
   gradestack: [
@@ -373,10 +382,10 @@ const TOOL_TOURS = {
   ],
   timer: [
     'The Instruments are deliberately analog in spirit: a countdown, an interval route, a stopwatch, and a session ledger. No streaks, no guilt mechanics — just honest timekeeping for work that needs a boundary.',
-    'Focus sessions pair naturally with time-boxed planning. Park a 50-minute block from Boxed here, and the timer holds the boundary while the plan holds the intention. The session log at the end of the week is the most truthful productivity metric you’ll find.',
+    'Focus sessions pair naturally with time-boxed planning. Park a 50-minute block from Boxed here and the timer holds the boundary while the plan holds the intention. The session log at the end of the week is the most truthful productivity metric you’ll find.',
   ],
   proof: [
-    'Proof is a workbench, not an answer machine. It walks math problems step by step — derivations, substitutions, checks — so you can follow the reasoning rather than just copy the result. Every problem you miss gets filed in an error log for review.',
+    'Proof is a workbench, not an answer machine. It walks math problems step by step — derivations, substitutions, checks — so you can follow the reasoning instead of just copying the result. Every problem you miss gets filed in an error log for review.',
     'It connects to GradeStack for the assessment side of the same course: the workbench builds the problem sets, the mark book reads the results, and the error log makes sure today’s mistake becomes next week’s recall.',
   ],
 };
@@ -399,13 +408,30 @@ body{font-family:Archivo,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-s
 .mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace}
 .wrap{max-width:64rem;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
 
-/* ── docs chrome: sidebar is the navbar ───────────────── */
-.docs{display:flex;min-height:100vh}
-.side{position:fixed;top:0;bottom:0;left:0;width:266px;padding:18px 14px 14px;overflow-y:auto;z-index:50;display:flex;flex-direction:column;scrollbar-width:thin;
-  background:linear-gradient(180deg,#f5f3ea,var(--side) 30%);border-right:1px solid var(--line);box-shadow:1px 0 28px -18px rgba(31,36,31,.35)}
+/* ── docs chrome: floating liquid-glass sidebar ────────── */
+.docs{display:flex;min-height:100vh;position:relative}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(60% 50% at 8% 0%,#dce8d2 0%,transparent 60%),
+    radial-gradient(50% 40% at 0% 90%,#e9dfc4 0%,transparent 65%),
+    radial-gradient(80% 60% at 100% 100%,#d4e2d0 0%,transparent 60%),
+    linear-gradient(180deg,#f7f5ec,var(--bg) 40%)}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+  background:url('/atlas/contours.webp') center/cover;
+  -webkit-mask-image:linear-gradient(100deg,transparent 30%,#000 75%,#000 100%);
+  mask-image:linear-gradient(100deg,transparent 30%,#000 75%,#000 100%);
+  animation:ambient-drift 40s ease-in-out infinite alternate}
+@keyframes ambient-drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(-1.5%,1%,0) scale(1.03)}}
+.side{position:fixed;top:12px;bottom:12px;left:12px;width:258px;padding:18px 14px 14px;overflow-y:auto;z-index:50;display:flex;flex-direction:column;scrollbar-width:thin;border-radius:20px;
+  background:linear-gradient(165deg,rgba(255,253,246,.66),rgba(240,244,230,.5) 55%,rgba(226,233,214,.55));
+  -webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);
+  border:1px solid rgba(255,255,255,.55);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(255,255,255,.25),0 24px 60px -24px rgba(31,36,31,.35),0 2px 8px rgba(31,36,31,.06)}
+.side::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.05;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
 .side::-webkit-scrollbar{width:9px}
-.side::-webkit-scrollbar-thumb{background:#cfc9b4;border-radius:99px;border:3px solid var(--side)}
-.side::-webkit-scrollbar-thumb:hover{background:#b3ab90}
+.side::-webkit-scrollbar-thumb{background:rgba(120,130,105,.35);border-radius:99px;border:3px solid transparent;background-clip:content-box}
+.side::-webkit-scrollbar-thumb:hover{background:rgba(90,105,80,.45);background-clip:content-box}
 .side::-webkit-scrollbar-track{background:transparent}
 .brand{display:flex;align-items:center;gap:10px;font:600 20px/1 Archivo,sans-serif;letter-spacing:-.02em;color:var(--ink);text-decoration:none;padding:2px 8px}
 .brand .emblem{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
@@ -413,40 +439,41 @@ body{font-family:Archivo,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-s
 .emblem{display:grid;grid-template:repeat(2,7px)/repeat(2,7px);gap:2px;transform:rotate(45deg)}
 .emblem i{background:#7fae7a;box-shadow:inset 1px 1px #d4eac1}
 .emblem i:nth-child(2){background:#d9c897}.emblem i:nth-child(3){background:#4d8a68}
-.searchbox{position:relative;display:flex;align-items:center;gap:8px;margin:14px 4px 2px;padding:8px 12px;border:1px solid var(--line2);border-radius:10px;background:var(--sheet);color:var(--faint);font-size:12.5px;text-decoration:none;transition:border-color .18s,box-shadow .18s,transform .18s,color .18s}
-.searchbox:hover{border-color:var(--accent);color:var(--mute);box-shadow:0 6px 16px -10px rgba(43,84,64,.4);transform:translateY(-1px)}
+.searchbox{position:relative;display:flex;align-items:center;gap:8px;margin:14px 4px 2px;padding:8px 12px;border:1px solid rgba(255,255,255,.6);border-radius:11px;background:rgba(255,255,255,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--faint);font-size:12.5px;text-decoration:none;transition:border-color .18s,box-shadow .18s,transform .18s,color .18s}
+.searchbox:hover{border-color:rgba(43,84,64,.4);color:var(--mute);box-shadow:0 8px 20px -10px rgba(43,84,64,.35),inset 0 1px 0 rgba(255,255,255,.8);transform:translateY(-1px)}
 .searchbox:active{transform:translateY(0)}
-.searchbox kbd{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 5px;background:var(--bg);color:var(--faint)}
+.searchbox kbd{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 5px;background:rgba(255,255,255,.6);color:var(--faint)}
 .navg{margin-top:12px}
 .navg .gh{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:12px 10px 6px}
-.navg .gh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.navg .gh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,115,90,.3),transparent)}
 .side nav{display:grid;gap:1px}
-.side nav a{position:relative;display:flex;align-items:center;gap:8px;padding:5.5px 10px;border-radius:7px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35;transition:background .15s,color .15s,padding-left .15s;min-width:0}
-.side nav a::before{content:"";position:absolute;left:2px;top:22%;bottom:22%;width:2.5px;border-radius:99px;background:var(--gold);transform:scaleY(0);transition:transform .22s cubic-bezier(.2,.7,.2,1)}
-.side nav a:hover{background:#00000007;padding-left:13px}
+.side nav a{position:relative;display:flex;align-items:center;gap:8px;padding:5.5px 10px;border-radius:9px;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35;transition:background .15s,color .15s,padding-left .15s,box-shadow .15s;min-width:0}
+.side nav a::before{content:"";position:absolute;left:2px;top:22%;bottom:22%;width:2.5px;border-radius:99px;background:linear-gradient(180deg,var(--gold),#7fae7a);transform:scaleY(0);transition:transform .22s cubic-bezier(.2,.7,.2,1)}
+.side nav a:hover{background:rgba(255,255,255,.55);padding-left:13px;box-shadow:0 2px 10px -4px rgba(31,36,31,.15)}
 .side nav a:hover::before{transform:scaleY(.55)}
-.side nav a.on{background:var(--accentsoft);color:var(--accent);font-weight:600}
+.side nav a.on{background:rgba(43,84,64,.13);color:var(--accent);font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 10px -6px rgba(43,84,64,.3)}
 .side nav a.on::before{transform:scaleY(1)}
 .side nav a .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.side nav a .ext{margin-left:auto;flex:none;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);border:1px solid var(--line2);border-radius:5px;padding:1px 4px;line-height:1.5}
-.side .end{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);display:grid;gap:3px;padding-left:10px}
+.side nav a .ext{margin-left:auto;flex:none;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);border:1px solid rgba(120,130,105,.35);border-radius:5px;padding:1px 4px;line-height:1.5;background:rgba(255,255,255,.4)}
+.side .end{margin-top:auto;padding-top:14px;border-top:1px solid rgba(120,115,90,.25);display:grid;gap:3px;padding-left:10px}
 .side .end a{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--faint);text-decoration:none;text-transform:uppercase;transition:color .15s}
 .side .end a:hover{color:var(--accent)}
 .scrim{display:none}
-.main{flex:1;min-width:0;margin-left:266px;display:flex;flex-direction:column}
+.main{flex:1;min-width:0;margin-left:282px;display:flex;flex-direction:column}
 .topbar{display:none}
-.content{flex:1;min-width:0}
+.content{flex:1;min-width:0;background:var(--bg)}
+.foot{background:var(--bg)}
 @media(max-width:960px){
-  .side{transform:translateX(-105%);transition:transform .22s ease;box-shadow:none}
-  body.nav-open .side{transform:none;box-shadow:0 0 70px #0005}
-  .scrim{display:block;position:fixed;inset:0;background:#141f1acc;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:45}
+  .side{top:10px;bottom:10px;left:10px;width:auto;right:10px;max-width:320px;transform:translateX(calc(-100% - 30px));transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
+  body.nav-open .side{transform:none}
+  .scrim{display:block;position:fixed;inset:0;background:rgba(20,31,26,.4);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;z-index:45}
   body.nav-open .scrim{opacity:1;visibility:visible}
   .main{margin-left:0}
-  .topbar{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:30}
-  .nav-toggle{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);background:var(--sheet);border-radius:8px;padding:6px 11px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:pointer}
+  .topbar{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);background:rgba(250,249,245,.8);-webkit-backdrop-filter:blur(16px) saturate(1.4);backdrop-filter:blur(16px) saturate(1.4);position:sticky;top:0;z-index:30}
+  .nav-toggle{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line2);background:rgba(255,255,255,.6);border-radius:9px;padding:6px 11px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);cursor:pointer;transition:border-color .15s,color .15s}
   .nav-toggle:hover{border-color:var(--accent);color:var(--accent)}
   .topbar .tb-brand{font:600 16px/1 Archivo;letter-spacing:-.02em;color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:8px}
-  .topbar .tb-open{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--accent);text-decoration:none;border:1px solid var(--accent);border-radius:999px;padding:5px 12px}
+  .topbar .tb-open{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--accent);text-decoration:none;border:1px solid var(--accent);border-radius:999px;padding:5px 12px;background:rgba(255,255,255,.5)}
 }
 
 /* ── page head — light docs-style header ──────────────── */
@@ -670,6 +697,41 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .ad-slot .ad-msg{font-size:.95rem;color:var(--mute);font-style:italic;line-height:1.55}
 .ad-slot .ad-msg a{color:var(--accent)}
 
+/* ── blog-post chrome: byline, hero variants, author card ── */
+.byline{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem 1rem;margin-top:1.5rem;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.byline .av{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:9.5px;font-weight:600;letter-spacing:.08em;color:#eef4dc;background:linear-gradient(135deg,#3a7059,#1d4634);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 0 0 3px var(--sheet),0 0 0 4px var(--line2)}
+.byline .who{color:var(--ink);font-weight:600}
+.byline .dot{color:var(--line2)}
+.byline a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--gold2)}
+.byline a:hover{border-color:var(--accent)}
+.hero-split .hero-grid{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:clamp(26px,4vw,60px);align-items:center}
+.hero-fig{margin:0;position:relative}
+.hero-fig .frame{border-radius:16px;box-shadow:0 34px 70px -34px rgba(24,62,44,.45),0 6px 18px -8px rgba(31,36,31,.25)}
+.hero-fig img{aspect-ratio:16/10;object-fit:cover;object-position:top center}
+@media(max-width:900px){.hero-split .hero-grid{grid-template-columns:1fr;gap:1.8rem}}
+.hero-center{text-align:center}
+.hero-center .hero-copy{max-width:46rem;margin:0 auto}
+.hero-center .crumbs,.hero-center .byline{justify-content:center}
+.hero-center .lede{margin-left:auto;margin-right:auto}
+.hero-center .kicker{justify-content:center}
+.hero-center .kicker::after{content:"";width:26px;height:1px;background:linear-gradient(270deg,var(--gold),transparent);flex:none}
+.hero-center .kicker::before{display:none}
+.author-card{margin-top:2.8rem;padding:1.25rem 1.4rem;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,var(--sheet),#f3efe2);display:flex;gap:1.1rem;align-items:flex-start}
+.author-card .av{width:44px;height:44px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;letter-spacing:.08em;color:#eef4dc;background:linear-gradient(135deg,#3a7059,#1d4634);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 0 0 3px var(--sheet),0 0 0 4px var(--line2)}
+.author-card .t{font-family:Newsreader,Georgia,serif;font-size:1.18rem;font-weight:500;letter-spacing:-.01em;color:var(--ink)}
+.author-card .d{font-size:.92rem;color:var(--mute);line-height:1.6;margin-top:.3rem;max-width:58ch}
+.author-card .mono{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:.3rem}
+.prose h3{font-family:Newsreader,Georgia,serif;font-weight:550;font-size:1.22rem;letter-spacing:-.02em;margin:2rem 0 .6rem;color:var(--ink);scroll-margin-top:84px}
+.prose blockquote{margin:1.8rem 0;padding:.2rem 0 .2rem 1.4rem;border-left:3px solid var(--gold);font-family:Newsreader,Georgia,serif;font-size:1.28rem;font-style:italic;font-weight:450;line-height:1.5;color:var(--ink)}
+.prose .callout{border:none;background:none;border-radius:0;padding:1.4rem 0;margin:2.2rem auto;max-width:42rem;text-align:center;position:relative}
+.prose .callout::before{content:"“";position:absolute;top:-1.5rem;left:50%;transform:translateX(-50%);font-family:Newsreader,Georgia,serif;font-size:4.2rem;font-weight:400;color:var(--gold);line-height:1;opacity:.85}
+.prose .callout p{font-family:Newsreader,Georgia,serif;font-size:1.42rem;font-style:italic;font-weight:450;line-height:1.45;color:var(--ink);margin:0}
+.fact{transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s,border-color .22s}
+.fact:hover{transform:translateY(-2px);border-color:rgba(43,84,64,.45);box-shadow:0 12px 24px -14px rgba(43,84,64,.5)}
+.compare-table td,.compare-table th{transition:background .15s}
+.compare-table .col{background:#f5eedd!important}
+.compare-table thead th.col{background:#eee2c6!important}
+
 /* ── polish: selection, scrollbars, reveal-on-scroll ──── */
 ::selection{background:#d9c89766}
 .toc-rail::-webkit-scrollbar{width:5px}
@@ -722,6 +784,9 @@ function esc(s) {
 function jsonLd(obj) {
   return `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
 }
+
+const dateFmt = (d) =>
+  new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
 /* Minimal inline markup for guide prose: **bold**, *italic*, [text](/path).
    Content is authored in seo-guides-data.mjs — no user input reaches this. */
@@ -779,15 +844,15 @@ ${navLink('/#/today', 'Today', '<span class="ext">app</span>')}
 ${navLink('/#/courses', 'Courses', '<span class="ext">app</span>')}
 ${navLink('/#/library', 'Library', '<span class="ext">app</span>')}
 </div>
-<div class="navg"><div class="gh">Places · the tools</div>
+<div class="navg"><div class="gh">Places · ${TOOLS.length} tools</div>
 ${navLink('/tools', 'All tools')}
 ${placeLinks}
 </div>
-<div class="navg"><div class="gh">Learn · guides</div>
+<div class="navg"><div class="gh">Learn · ${GUIDES.length} guides</div>
 ${navLink('/guides', 'All guides')}
 ${guideLinks}
 </div>
-<div class="navg"><div class="gh">Compare</div>
+<div class="navg"><div class="gh">Compare · ${COMPARE_PAGES.length}</div>
 ${navLink('/compare', 'All comparisons')}
 ${navLink('/alternatives', 'Alternatives hub')}
 ${compareLinks}
@@ -841,6 +906,19 @@ if(side){
   if(on&&side.scrollHeight>side.clientHeight+4){side.scrollTop=Math.max(0,on.offsetTop-side.clientHeight/2);}
 }
 var links=document.querySelectorAll('.side nav a');for(var i=0;i<links.length;i++)links[i].addEventListener('click',function(){set(false)});
+[].slice.call(document.querySelectorAll('.compare-table')).forEach(function(tbl){
+  tbl.addEventListener('mousemove',function(e){
+    var c=e.target.closest?e.target.closest('td,th'):null;
+    if(!c)return;
+    var cells=c.parentNode.children,idx=-1;for(var j=0;j<cells.length;j++)if(cells[j]===c){idx=j;break}
+    if(idx<0)return;
+    var rows=tbl.querySelectorAll('tr');
+    for(var k=0;k<rows.length;k++){var cell=rows[k].children[idx];if(cell)cell.classList.add('col')}
+  });
+  tbl.addEventListener('mouseleave',function(){
+    var cs=tbl.querySelectorAll('.col');for(var j=0;j<cs.length;j++)cs[j].classList.remove('col');
+  });
+});
 var rv=document.querySelectorAll('.content .block,.content .plate,.content .article-cover,.content .related,.content .pager,.content .tldr,.content .takeaways,.content .article-end');
 if(rv.length&&'IntersectionObserver' in window&&matchMedia('(prefers-reduced-motion: no-preference)').matches){
   [].slice.call(rv).forEach(function(el){el.classList.add('rv')});
@@ -901,6 +979,7 @@ ${neighbors
         name: tool.title,
         description: tool.description,
         url,
+        dateModified: tool.updated,
         isPartOf: { '@type': 'WebSite', name: 'Iterra', url: `${SITE}/` },
         breadcrumb: {
           '@type': 'BreadcrumbList',
@@ -967,6 +1046,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools', href: '/tools' }, { 
 <h1>${h1html}</h1>
 <p class="lede">${esc(tool.lede)}</p>
 ${factHtml}
+<div class="meta-row"><span>Updated ${dateFmt(tool.updated)}</span><span><a href="/tools">All tools</a></span></div>
 </div></section>
 <div class="wrap">
 <figure class="plate">
@@ -991,8 +1071,8 @@ ${relatedToolsHtml}
 <section class="block">
 <div class="connect"><div>
 <span class="mono">One workspace, not another tab</span>
-<h3>The terrain does the remembering.</h3>
-<p>${esc(tool.name)} shares a live picture of your courses with every other tool in Iterra — your planner knows when reviews are due, your notes surface in course dossiers, and everything works offline in your browser. No account required; your data never leaves your machine unless you choose sync.</p>
+<h3>Everything shares the same courses.</h3>
+<p>${esc(tool.name)} shares a live picture of your courses with every other tool in Iterra — your planner knows when reviews are due, your notes surface in course dossiers, and everything works offline in your browser. No account required; your data stays on your machine unless you choose sync.</p>
 <div class="cta">
 <a class="primary" href="/#/p/${tool.id}">Open ${esc(tool.name)} in Iterra →</a>
 <a class="ghost" href="/tools">All ${TOOLS.length} tools</a>
@@ -1081,11 +1161,25 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
         .join('')}</ul></aside>`
     : '';
   const articleEndHtml = `<div class="article-end"><div><span class="mono">Put it to work</span><p>The method only matters if it survives the week — Iterra keeps the plan, review, notes, and timer in one place.</p></div><div class="cta"><a class="primary" href="/#/today">Open the workspace →</a><a class="ghost" href="/tools">Browse the tools</a></div></div>`;
+  const authorCardHtml = `<div class="author-card"><span class="av" aria-hidden="true">IT</span><div><span class="mono">About the author</span><div class="t">The Iterra terrain team</div><p class="d">Iterra is a free, local-first study workspace — planner, notes, flashcards, timer, and grader sharing one picture of your courses. These guides are written from what actually survives a semester, not what sounds good in a headline.</p></div></div>`;
+  /* three article hero treatments, rotated by guide index */
+  const variant = ((gi % 3) + 3) % 3; /* 0 cover below · 1 split hero · 2 centered */
+  const heroCopy = `${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.title.replace(/<\/?em>/g, '') }])}
+<div class="kicker mono">Iterra Guides · ${esc(guide.kicker)}</div>
+<h1>${h1html}</h1>
+<p class="lede">${inline(guide.lede)}</p>
+<div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><span>${dateFmt(guide.datePublished)}</span><span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
+  const heroFig = `<div class="frame"><img src="/shots/${coverTool.id}.webp" alt="${esc(coverTool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>`;
+  const heroHtml =
+    variant === 1
+      ? `<section class="hero hero-split"><div class="wrap"><div class="hero-grid"><div class="hero-copy">${heroCopy}</div><figure class="hero-fig">${heroFig}</figure></div></div></section>`
+      : `<section class="hero${variant === 2 ? ' hero-center' : ''}"><div class="wrap">${heroCopy}</div></section>`;
+  const coverHtml = variant === 1 ? '' : `<figure class="plate article-cover">${heroFig}</figure>`;
   const toolsHtml = toolsUsed.length
     ? `<section class="block">
 <div class="connect"><div>
 <span class="mono">Put it to work</span>
-<h3>The terrain does the remembering.</h3>
+<h3>Everything shares the same courses.</h3>
 <p>Every guide above ends in practice. These tools are where the method lives — local-first, course-aware, no account required.</p>
 <div class="cta">
 ${toolsUsed.map((t) => `<a class="ghost" href="${t.path}">${esc(t.name)} →</a>`).join('\n')}
@@ -1106,8 +1200,6 @@ ${guide.faq
 </div>
 </div></section>`
     : '';
-  const dateFmt = (d) =>
-    new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const ld = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -1179,18 +1271,9 @@ ${jsonLd(ld)}
 </head>
 <body>
 ${header('/guides')}
-<section class="hero"><div class="wrap">
-${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.title.replace(/<\/?em>/g, '') }])}
-<div class="kicker mono">Iterra Guides · ${esc(guide.kicker)}</div>
-<h1>${h1html}</h1>
-<p class="lede">${inline(guide.lede)}</p>
-<div class="meta-row"><span>${dateFmt(guide.datePublished)}</span><span>${guide.readMinutes} min read</span><span>By the Iterra terrain team</span><span><a href="/guides">All guides</a></span></div>
-</div></section>
+${heroHtml}
 <div class="wrap">
-<figure class="plate article-cover">
-<div class="frame"><img src="/shots/${coverTool.id}.webp" alt="${esc(coverTool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
-
-</figure>
+${coverHtml}
 <div class="guide-layout">
 <article class="guide-article">
 ${tocHtml}
@@ -1198,6 +1281,7 @@ ${takeawaysHtml}
 ${sectionsHtml}
 ${faqHtml}
 ${articleEndHtml}
+${authorCardHtml}
 </article>
 ${tocRail}
 </div>
@@ -1235,7 +1319,7 @@ export function renderGuidesIndex() {
     ],
   };
   const cards = GUIDES.map(
-    (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${esc(g.kicker)} · ${g.readMinutes} min</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+    (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${esc(g.kicker)} · ${dateFmt(g.datePublished)} · ${g.readMinutes} min</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
   ).join('\n');
   return `<!doctype html>
 <html lang="en">
@@ -1301,7 +1385,7 @@ export function renderToolsIndex() {
     ],
   };
   const cards = TOOLS.map(
-    (t) => `<li><a href="${t.path}"><span class="k mono">${esc(t.kicker)}</span><span class="t">${esc(t.name)}</span><span class="d">${esc(t.lede.split('.')[0])}.</span></a></li>`,
+    (t) => `<li><a href="${t.path}"><span class="k mono">${esc(t.kicker)} · updated ${dateFmt(t.updated)}</span><span class="t">${esc(t.name)}</span><span class="d">${esc(t.lede.split('.')[0])}.</span></a></li>`,
   ).join('\n');
   return `<!doctype html>
 <html lang="en">
@@ -1355,11 +1439,12 @@ ${footer()}
 
 const COMPARE_SHOT = '/shots/today.webp';
 
-function compareHead({ title, description, url, image }) {
+function compareHead({ title, description, url, image, published, modified }) {
   return `<title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}" />
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="article" />
+${published ? `<meta property="article:published_time" content="${published}" />\n<meta property="article:modified_time" content="${modified || published}" />` : ''}
 <meta property="og:site_name" content="Iterra" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="${esc(title)}" />
@@ -1388,6 +1473,8 @@ function compareLd(page, url, extra = []) {
       name: page.title,
       description: page.description,
       url,
+      datePublished: page.datePublished,
+      dateModified: page.dateModified || page.datePublished,
       isPartOf: { '@type': 'WebSite', name: 'Iterra', url: `${SITE}/` },
       breadcrumb: {
         '@type': 'BreadcrumbList',
@@ -1493,7 +1580,7 @@ ${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-${compareHead({ title: page.title, description: page.description, url, image: `${SITE}/og/${page.section}.png` })}
+${compareHead({ title: page.title, description: page.description, url, image: `${SITE}/og/${page.section}.png`, published: page.datePublished, modified: page.dateModified })}
 ${jsonLd(ld)}
 </head>
 <body>
@@ -1504,6 +1591,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: base === 'compare' ? 'Compare
 <h1>${emH1(page.h1)}</h1>
 <p class="lede">${esc(page.lede)}</p>
 ${factHtml}
+<div class="meta-row"><span>${dateFmt(page.datePublished)}</span>${page.dateModified && page.dateModified !== page.datePublished ? `<span>Updated ${dateFmt(page.dateModified)}</span>` : ''}<span><a href="/${base}">All ${base === 'compare' ? 'comparisons' : 'alternatives'}</a></span></div>
 </div></section>
 <div class="wrap compare-body">
 <figure class="plate">
@@ -1552,7 +1640,7 @@ ${footer()}
 function indexCards(pages, base) {
   return pages
     .map(
-      (p) => `<li><a href="/${base}/${p.slug}"><span class="k mono">${esc(p.kicker)}</span><span class="t">${esc(p.h1.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(p.description)}</span></a></li>`,
+      (p) => `<li><a href="/${base}/${p.slug}"><span class="k mono">${esc(p.kicker)} · ${p.datePublished ? dateFmt(p.datePublished) : ''}</span><span class="t">${esc(p.h1.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(p.description)}</span></a></li>`,
     )
     .join('\n');
 }
@@ -1690,17 +1778,18 @@ export function renderSitemap(lastmod = new Date().toISOString().slice(0, 10)) {
     { loc: `${SITE}/alternatives`, priority: '0.8', freq: 'weekly' },
     ...COMPARE_PAGES.map((p) => ({
       loc: `${SITE}/${p.section}/${p.slug}`,
+      lastmod: p.dateModified || p.datePublished || lastmod,
       priority: '0.7',
       freq: 'monthly',
     })),
-    ...TOOLS.map((t) => ({ loc: `${SITE}${t.path}`, priority: '0.7', freq: 'monthly' })),
-    ...GUIDES.map((g) => ({ loc: `${SITE}/guides/${g.slug}`, priority: '0.7', freq: 'monthly' })),
+    ...TOOLS.map((t) => ({ loc: `${SITE}${t.path}`, lastmod: t.updated || lastmod, priority: '0.7', freq: 'monthly' })),
+    ...GUIDES.map((g) => ({ loc: `${SITE}/guides/${g.slug}`, lastmod: g.dateModified || g.datePublished || lastmod, priority: '0.7', freq: 'monthly' })),
   ];
   const body = urls
     .map(
       (u) => `  <url>
     <loc>${u.loc}</loc>
-    <lastmod>${lastmod}</lastmod>
+    <lastmod>${u.lastmod || lastmod}</lastmod>
     <changefreq>${u.freq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`,
