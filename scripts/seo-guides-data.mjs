@@ -1562,7 +1562,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The short version',
+        h2: 'The gist',
         blocks: [
           { k: 'p', t: 'Local-first software isn’t a luxury or a niche preference — it’s the difference between renting your own intellectual output and owning it. For students, whose notes and study materials are often their most valuable assets, this isn’t about ideology. It’s about not losing years of work because a platform changed its mind, went bankrupt, or decided your data was more valuable as training material than as yours.' },
           { k: 'p', t: 'Choose tools that treat your data as yours. The best ones already do.' },
@@ -2468,7 +2468,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The straight answer',
         blocks: [
           { k: 'quote', t: 'The goal isn’t to remember everything; it’s to give every fact a hook it can hang on.' },
           { k: 'p', t: 'Pick one technique per type of material: chunking for structure, the palace for sequences, elaboration for concepts. Memory works with associations and images — give every fact something to stick to.' },
@@ -2581,7 +2581,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The short version',
+        h2: 'The condensed version',
         blocks: [
           { k: 'quote', t: 'The content matters, but the process matters more — and the process can be practiced.' },
           { k: 'p', t: 'Read the question first, formulate your answer, eliminate aggressively, and save the hard ones for a second pass. MC tests are beatable with a system.' },
@@ -2689,7 +2689,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Where this leaves you',
+        h2: 'What this means for you',
         blocks: [
           { k: 'p', t: 'One-night study is triage, not coverage: pick the highest-yield material, study it actively, practice problems, and protect your sleep. It’s not the ideal way to learn — but it’s the best way to survive a bad situation.' },
         ],
@@ -2785,7 +2785,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The takeaway',
+        h2: 'The lesson',
         blocks: [
           { k: 'quote', t: 'The students who can focus deeply aren’t lucky; they’re prepared.' },
           { k: 'p', t: 'Remove the distractions, time-box the work, and build a ritual. Focus is a skill — and like any skill, it responds to practice.' },
@@ -2891,7 +2891,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'What to do Monday morning',
+        h2: 'Start here',
         blocks: [
           { k: 'quote', t: 'Math rewards practice, not preparation.' },
           { k: 'p', t: 'The students who do well aren’t the ones who read the most — they’re the ones who solve the most problems, understand the why behind the how, and review their mistakes until the patterns are automatic.' },
@@ -3000,7 +3000,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The verdict',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The SAT is beatable with a system.' },
@@ -3099,14 +3099,14 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'How to spend the clock',
         blocks: [
           { k: 'p', t: 'ACT timing is tight — about 49 seconds per English question, 60 per Math, 52 per Reading, and 53 per Science. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
           { k: 'p', t: 'Never leave a question blank — there\'s no penalty for guessing. If you\'re running out of time, guess on everything remaining.' },
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'Where students lose the most points',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Ignoring the Science section', d: 'ACT Science tests data-reading speed, not science knowledge — students who skip it leave easy points behind.' },
@@ -3117,7 +3117,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'If you remember one thing',
+        h2: 'The one thing',
         blocks: [
           { k: 'quote', t: 'The exam does not test what you studied. It tests what you can do under pressure.' },
           { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The ACT is beatable with a system.' },
@@ -3340,7 +3340,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The essential point',
         blocks: [
           { k: 'quote', t: 'History rewards understanding, not memorization.' },
           { k: 'p', t: 'Learn the narrative, connect the events, draw the timeline, and practice arguing with the material. The students who treat history as a story with patterns outperform the ones who treat it as a list of dates.' },
@@ -3454,7 +3454,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The short version',
+        h2: 'The essence',
         blocks: [
           { k: 'quote', t: 'Literature rewards close reading, pattern recognition, and argument.' },
           { k: 'p', t: 'Read slowly, annotate everything, identify the themes, and practice the essay format. The students who treat literature as a puzzle to solve outperform the ones who treat it as a story to remember.' },
@@ -3566,7 +3566,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Where this leaves you',
+        h2: 'Your next move',
         blocks: [
           { k: 'quote', t: 'Psychology rewards understanding frameworks, not memorizing terms.' },
           { k: 'p', t: 'Learn the core theories, connect the terms to them, use application-based recall, and practice the essay format. The students who treat psychology as a set of interconnected ideas outperform the ones who treat it as a vocabulary list.' },
@@ -3677,7 +3677,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The takeaway',
+        h2: 'What to keep',
         blocks: [
           { k: 'quote', t: 'Economics rewards understanding incentives, not memorizing graphs.' },
           { k: 'p', t: 'Learn the logic behind the models, draw the graphs, use application-based recall, and connect to real-world events. The students who treat economics as a way of thinking outperform the ones who treat it as a list of models.' },
@@ -3790,7 +3790,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'What to do Monday morning',
+        h2: 'Your first step',
         blocks: [
           { k: 'quote', t: 'Philosophy rewards understanding arguments, not memorizing positions.' },
           { k: 'p', t: 'Learn to identify claims, reasons, and objections; draw the argument maps; and practice the essay format. The students who treat philosophy as a way of thinking outperform the ones who treat it as a list of positions.' },
@@ -3888,7 +3888,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The part to remember',
         blocks: [
           { k: 'quote', t: 'Art history rewards understanding the narrative, not memorizing images.' },
           { k: 'p', t: 'Learn the story of how art has changed, organize images by period and movement, use visual study methods, and practice identification. The students who treat art history as a story outperform the ones who treat it as a list of pictures.' },
@@ -4000,7 +4000,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'If you remember one thing',
+        h2: 'Remember this',
         blocks: [
           { k: 'quote', t: 'Nursing rewards understanding systems, not memorizing facts.' },
           { k: 'p', t: 'Learn the body systems, connect everything to the patient, use application-based recall, and practice NCLEX questions relentlessly. The students who treat nursing as applied science outperform the ones who treat it as a content course.' },
@@ -4202,7 +4202,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'Pacing the exam',
         blocks: [
           { k: 'p', t: 'GRE timing is tight — about 90 seconds per Verbal question, 95 per Quant, and 30 minutes for the essay. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
           { k: 'p', t: 'For Verbal, read the question first, then the passage — you know what you\'re looking for. For Quant, write down the formula before you start solving — it prevents careless errors.' },
@@ -4210,7 +4210,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'The errors that cost marks',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Practicing vocabulary in lists, not passages', d: 'The GRE tests words in context — isolated word lists build recognition, not the judgment the exam measures.' },
@@ -4221,7 +4221,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'What it comes down to',
         blocks: [
           { k: 'quote', t: 'Cramming fills your head with facts the exam never asks for.' },
           { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The GRE is beatable with a system.' },
@@ -4308,7 +4308,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'The clock is part of the test',
         blocks: [
           { k: 'p', t: 'MCAT timing is tight — about 95 seconds per science question, 90 per CARS. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
           { k: 'p', t: 'For science, read the questions first, then the passage — you know what you\'re looking for. For CARS, the same approach works — the questions tell you what to look for.' },
@@ -4316,7 +4316,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'What separates a pass from a fail',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Memorizing without understanding', d: 'The MCAT tests application — a memorized pathway fails the first question that twists it. Learn the *why* behind each system.' },
@@ -4327,7 +4327,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The short version',
+        h2: 'The summary',
         blocks: [
           { k: 'quote', t: 'The students who win are the ones who reviewed yesterday\'s mistakes today.' },
           { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The MCAT is beatable with a system.' },
@@ -4426,7 +4426,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'The traps exams punish most',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Reading arguments passively', d: 'Every Logical Reasoning question is an argument — diagram the conclusion and evidence or you are guessing at structure.' },
@@ -4437,7 +4437,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Where this leaves you',
+        h2: 'Where you stand',
         blocks: [
           { k: 'quote', t: 'Every practice test is a rehearsal — the exam is just opening night.' },
           { k: 'p', t: 'Consistency beats intensity — a little prep every day, every miss reviewed, the clock respected ruthlessly. The LSAT is beatable with a system.' },
@@ -4560,7 +4560,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The takeaway',
+        h2: 'The point',
         blocks: [
           { k: 'quote', t: 'Improving your GPA isn\'t about working harder — it\'s about working smarter on the courses that matter most.' },
           { k: 'p', t: 'Audit your grades, triage the workload, build a study schedule, and get help early. The students who raise their GPA fastest aren\'t the ones who study everything — they\'re the ones who execute consistently on the right things.' },
@@ -4672,7 +4672,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'What to do Monday morning',
+        h2: 'The first move',
         blocks: [
           { k: 'quote', t: 'Music theory rewards understanding patterns, not memorizing rules.' },
           { k: 'p', t: 'Learn the patterns, connect to the music you know, practice ear training, and apply the concepts to real music. The students who treat theory as a way of hearing music outperform the ones who treat it as a list of rules.' },
@@ -4769,7 +4769,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'Common ways students drop points',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Practicing algebra the SAT way', d: 'GMAT quant emphasizes data sufficiency and logic over computation — pure arithmetic practice misses what the exam actually tests.' },
@@ -4794,7 +4794,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'What actually matters',
         blocks: [
           { k: 'quote', t: 'Speed comes from certainty. Certainty comes from reps.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The GMAT is beatable with a system.' },
@@ -4893,7 +4893,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'Where the marks actually leak',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Treating the MBE like a law-school exam', d: 'The MBE tests application of black-letter rules to new facts — outlines alone do not build the skill; practice questions do.' },
@@ -4904,7 +4904,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'If you remember one thing',
+        h2: 'The single most important thing',
         blocks: [
           { k: 'quote', t: 'A wrong answer reviewed is worth ten right answers ignored.' },
           { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The bar exam is beatable with a system.' },
@@ -5010,7 +5010,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'The mistakes that show up on the grade',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Skipping the PAT until late', d: 'The PAT is a spatial-reasoning test unlike anything else on the exam — it needs its own practice type, not more bio review.' },
@@ -5117,7 +5117,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'How students lose the most points',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Underestimating the writing section', d: 'The essay is scored separately but still counts — an unpracticed timed essay caps your composite score.' },
@@ -5142,7 +5142,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The crux',
         blocks: [
           { k: 'quote', t: 'You are not preparing for the exam. You are preparing for the version of yourself that sits it.' },
           { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The PCAT is beatable with a system.' },
@@ -5229,7 +5229,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'Time management under pressure',
         blocks: [
           { k: 'p', t: 'OAT timing is tight — about 60 seconds per science question, 50 per physics, 50 per reading, and 65 per quant. The strategy: answer the easy questions first, flag the hard ones, and come back.' },
           { k: 'p', t: 'For science, read the questions first, then the passage — you know what you\'re looking for. For reading, the same approach works.' },
@@ -5237,7 +5237,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'The errors worth avoiding',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Assuming OAT equals DAT with different content', d: 'The OAT has its own physics-heavy science section and different timing — DAT materials only half-transfer.' },
@@ -5248,7 +5248,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The short version',
+        h2: 'The core idea',
         blocks: [
           { k: 'quote', t: 'Patterns beat content. The exam asks the same shapes in new clothes.' },
           { k: 'p', t: 'Consistency beats intensity — a little prep every day, every miss reviewed, the clock respected ruthlessly. The OAT is beatable with a system.' },
@@ -5333,7 +5333,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'Seconds per question',
         blocks: [
           { k: 'p', t: 'FE timing is tight — about 2.75 minutes per question in the morning, 5.5 minutes per question in the afternoon. The strategy: answer the easy questions first, flag the hard ones, and come back.' },
           { k: 'p', t: 'For both sections, write down the formula before you start solving — it prevents careless errors. And check your units on every problem — unit errors are the most common mistake.' },
@@ -5341,7 +5341,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'Where prep actually fails',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Studying breadth instead of depth', d: 'The FE tests a wide syllabus but rewards depth on the fundamentals — scattered review misses the core concepts that dominate.' },
@@ -5352,7 +5352,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Where this leaves you',
+        h2: 'The practical upshot',
         blocks: [
           { k: 'quote', t: 'The best study plan is the one you actually finish.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The FE exam is beatable with a system.' },
@@ -5446,7 +5446,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'Where students lose the most points',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Practicing speaking alone', d: 'TOEFL speaking is recorded and rated on delivery — solo practice without recording leaves your weakest skill unmeasured.' },
@@ -5471,7 +5471,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The takeaway',
+        h2: 'The reminder',
         blocks: [
           { k: 'quote', t: 'Mistakes are the syllabus the exam never published.' },
           { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The TOEFL is beatable with a system.' },
@@ -5565,7 +5565,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'The errors that cost marks',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Practicing only one English variety', d: 'IELTS accepts all standard varieties — but consistency matters; mixing registers within an answer reads as unstable.' },
@@ -5590,7 +5590,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'What to do Monday morning',
+        h2: 'Where to begin',
         blocks: [
           { k: 'quote', t: 'The difference between a good score and a great one is usually review.' },
           { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The IELTS is beatable with a system.' },
@@ -5693,14 +5693,14 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'The pacing plan',
         blocks: [
           { k: 'p', t: 'NCLEX timing varies — the CAT adapts to your performance. The strategy: answer every question, don\'t change answers unless you have a reason, and don\'t leave questions blank. The CAT doesn\'t penalize guessing.' },
           { k: 'p', t: 'For prioritization questions, use the ABCs — airway, breathing, circulation — and Maslow\'s hierarchy. For delegation questions, remember the RN\'s scope. For safety questions, the answer is almost always "ensure safety first."' },
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'What separates a pass from a fail',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Choosing answers from personal experience', d: 'NCLEX tests safe practice, not what you have seen — the "I did it this way at clinical" instinct fails prioritization questions.' },
@@ -5711,7 +5711,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The synthesis',
         blocks: [
           { k: 'quote', t: 'Practice does not make perfect. Practiced review makes prepared.' },
           { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The NCLEX is beatable with a system.' },
@@ -5825,7 +5825,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'If you remember one thing',
+        h2: 'If nothing else',
         blocks: [
           { k: 'quote', t: 'Vocabulary isn\'t about memorizing words — it\'s about recognizing them in context.' },
           { k: 'p', t: 'Learn words in context, focus on the words that matter, practice daily, and review every question. The GRE vocabulary is beatable with a system.' },
@@ -6067,7 +6067,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The real takeaway',
         blocks: [
           { k: 'quote', t: 'Chemistry isn\'t about memorizing formulas — it\'s about understanding why reactions happen.' },
           { k: 'p', t: 'Understand the core ideas, practice the problem types, explain the concepts, and check your units. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
@@ -6188,7 +6188,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The short version',
+        h2: 'What matters most',
         blocks: [
           { k: 'quote', t: 'Biology isn\'t about memorizing facts — it\'s about understanding systems.' },
           { k: 'p', t: 'Understand the systems, memorize the details that attach, explain the concepts, and practice the problem types. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
@@ -6280,14 +6280,14 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'Beat the clock',
         blocks: [
           { k: 'p', t: 'CARS is 90 minutes for 9 passages — about 10 minutes per passage. The strategy: spend 3-4 minutes reading, 6-7 minutes answering questions. Don\'t spend more than 12 minutes on any single passage.' },
           { k: 'p', t: 'For difficult passages, don\'t panic — move on and come back if you have time. The CAT doesn\'t penalize guessing, so answer every question.' },
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'The traps exams punish most',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Reading for the answer instead of the argument', d: 'CARS passages are built to be argued with — mapping the author\'s reasoning beats hunting for keywords.' },
@@ -6312,7 +6312,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Where this leaves you',
+        h2: 'What to do with this',
         blocks: [
           { k: 'quote', t: 'CARS isn\'t about what you know — it\'s about how well you read.' },
           { k: 'p', t: 'Read actively, answer strategically, review every question, and manage your time ruthlessly. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -6433,7 +6433,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The takeaway',
+        h2: 'What stays with you',
         blocks: [
           { k: 'quote', t: 'Statistics isn\'t about calculating numbers — it\'s about understanding what they mean.' },
           { k: 'p', t: 'Understand the core ideas, practice the problem types, explain the concepts, and check your assumptions. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
@@ -6556,7 +6556,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'What to do Monday morning',
+        h2: 'Day one',
         blocks: [
           { k: 'quote', t: 'The ACC isn\'t about memorizing rules — it\'s about understanding why they exist.' },
           { k: 'p', t: 'Understand the standards, practice the problem types, explain the concepts, and check your work. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -6679,7 +6679,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The close',
         blocks: [
           { k: 'quote', t: 'The CPA isn\'t about memorizing rules — it\'s about understanding why they exist.' },
           { k: 'p', t: 'Understand the standards, practice the question types, explain the concepts, and check your work. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -6803,7 +6803,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'If you remember one thing',
+        h2: 'The key point',
         blocks: [
           { k: 'quote', t: 'The research paper isn\'t about finding information — it\'s about building an argument.' },
           { k: 'p', t: 'Start with a question, build an argument, organize the structure, and revise relentlessly. The grade isn\'t a measure of intelligence — it\'s a measure of process.' },
@@ -6901,14 +6901,14 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'Time is the real test',
         blocks: [
           { k: 'p', t: 'CLEP timing is generous — 90 minutes for most exams, roughly 1.5-2 minutes per question. The strategy: answer every question, don\'t change answers unless you have a reason, and don\'t leave questions blank. The CLEP doesn\'t penalize guessing.' },
           { k: 'p', t: 'For difficult questions, don\'t panic — flag them and come back if you have time. The exam is designed to be completed in the time limit; if you\'re running out of time, you\'re spending too long on individual questions.' },
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'Common ways students drop points',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Assuming college credit equals easy credit', d: 'CLEP scores map to a C — the exam is calibrated so that "just passing" is genuinely passing-level work.' },
@@ -7054,7 +7054,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The point that matters',
         blocks: [
           { k: 'quote', t: 'Anatomy isn\'t about memorizing structures — it\'s about understanding systems.' },
           { k: 'p', t: 'Understand the systems, draw the structures, memorize the details that attach, and explain the concepts. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
@@ -7177,7 +7177,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The short version',
+        h2: 'The distillation',
         blocks: [
           { k: 'quote', t: 'The CFA isn\'t about memorizing formulas — it\'s about understanding why they work.' },
           { k: 'p', t: 'Understand the concepts, practice the question types, explain the ideas, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -7299,7 +7299,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Where this leaves you',
+        h2: 'What this means for you',
         blocks: [
           { k: 'quote', t: 'The PMP isn\'t about memorizing processes — it\'s about understanding why they exist.' },
           { k: 'p', t: 'Understand the processes, practice the question types, explain the concepts, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -7397,7 +7397,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The timing strategy',
+        h2: 'Managing the minutes',
         blocks: [
           { k: 'p', t: 'Step 1 gives you about 82 seconds per question — tight for eight straight hours. The strategy: first pass flags long and experimental items, second pass handles them, and no question ever gets five minutes.' },
           { k: 'p', t: 'Experimental-passage questions are the time sinks. They look intimidating but reward the same skill as regular questions: identify what the data shows, then pick the mechanism. Practice them specifically — they are a trainable format, not a talent.' },
@@ -7405,7 +7405,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The mistakes that cost the most points',
+        h2: 'Where the marks actually leak',
         blocks: [
           { k: 'deflist', items: [
             { t: 'Pure passive review', d: 'Re-reading First Aid feels productive and teaches almost nothing. Questions are the learning; review is the measurement.' },
@@ -7417,7 +7417,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'In plain terms',
         blocks: [
           { k: 'quote', t: 'The USMLE does not test how much you know — it tests whether you can think like a physician under time pressure.' },
           { k: 'p', t: 'Content first, questions always, rationales always, NBME regularly. The students who pass comfortably treated Step 1 as a skill to train, not a test to survive — and the same loop carries through Steps 2 and 3.' },
@@ -7526,7 +7526,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The final word',
         blocks: [
           { k: 'quote', t: 'You do not learn CS by understanding code. You learn it by writing code badly until it is not bad anymore.' },
           { k: 'p', t: 'Code every example, break things on purpose, solve problems under time, review your bugs like they are the syllabus — because they are. And build the thing. The degree is the receipt; the ability to ship is the point.' },
@@ -7636,7 +7636,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'Where it lands',
         blocks: [
           { k: 'quote', t: 'Law school exams do not test whether you know the law. They test whether you can think like a lawyer under pressure.' },
           { k: 'p', t: 'Learn the doctrine, build your own outline, practice exams like they count — because they do. The students who treat practice exams as optional are the ones who learn the format on the real one.' },
@@ -7702,7 +7702,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The course types: different skills, different methods',
+        h2: 'Course types and how to study each',
         blocks: [
           { k: 'p', t: 'Med school is not one subject — the study method shifts by course type:' },
           { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
@@ -7741,7 +7741,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The takeaway that counts',
         blocks: [
           { k: 'quote', t: 'Med school does not test how much you know — it tests whether you can think like a physician with incomplete information.' },
           { k: 'p', t: 'Systems-based study, daily Anki, question practice alongside content, weekly consolidation. The students who survive are the ones who stopped trying to learn everything — and started learning the right things deeply.' },
@@ -7821,7 +7821,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The course types: different skills, different methods',
+        h2: 'Different courses, different methods',
         blocks: [
           { k: 'p', t: 'Business is not one subject — the study method shifts by course type:' },
           { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
@@ -7853,7 +7853,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'What to hold onto',
         blocks: [
           { k: 'quote', t: 'Business school does not test whether you know the frameworks — it tests whether you can think with them.' },
           { k: 'p', t: 'Learn the framework, apply it to a case, compare your answer to the solution, and write down where you diverged. That loop is the whole method — and it works for every business course you will ever take.' },
@@ -7933,7 +7933,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The course types: different skills, different methods',
+        h2: 'Match the method to the course',
         blocks: [
           { k: 'p', t: 'Communications is not one subject — the study method shifts by course type:' },
           { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
@@ -7965,7 +7965,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The verdict',
         blocks: [
           { k: 'quote', t: 'Communications is the course where your daily scroll is the textbook — the skill is seeing the theory in the wild.' },
           { k: 'p', t: 'Learn the framework, collect real examples, analyze them, and write your own take. That loop is the whole method — and it works for every communications course you will ever take.' },
@@ -8043,7 +8043,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The course types: different skills, different methods',
+        h2: 'What each course type demands',
         blocks: [
           { k: 'p', t: 'Sociology is not one subject — the study method shifts by course type:' },
           { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
@@ -8080,7 +8080,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The part to remember',
         blocks: [
           { k: 'quote', t: 'Sociology is the course where your daily life is the data — the skill is seeing the structure in the ordinary.' },
           { k: 'p', t: 'Learn the theory, find real examples, apply the framework, and argue your take. That loop is the whole method — and it holds for every sociology course you will take.' },
@@ -8159,7 +8159,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The course types: different skills, different methods',
+        h2: 'Course types and how to study each',
         blocks: [
           { k: 'p', t: 'Political science is not one subject — the study method shifts by course type:' },
           { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
@@ -8196,7 +8196,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'What actually matters',
         blocks: [
           { k: 'quote', t: 'Political science is the course where your daily news is the data — the skill is seeing the politics in the ordinary.' },
           { k: 'p', t: 'Learn the approach, find real cases, apply the framework, and argue your take. That loop is the whole method — and it holds for every political science course you will take.' },
@@ -8275,7 +8275,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The course types: different skills, different methods',
+        h2: 'Different courses, different methods',
         blocks: [
           { k: 'p', t: 'Education is not one subject — the study method shifts by course type:' },
           { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
@@ -8312,7 +8312,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The honest summary',
+        h2: 'The synthesis',
         blocks: [
           { k: 'quote', t: 'Education is the course where your field experience is the data — the skill is seeing the pedagogy in the ordinary.' },
           { k: 'p', t: 'Learn the framework, observe real classrooms, apply the theory, and reflect on what happened. That loop is the whole method — and it holds for every education course you will take.' },
