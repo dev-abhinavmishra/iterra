@@ -5317,6 +5317,13 @@ export const GUIDES = [
         h2: 'Know physics before you study it',
         blocks: [
           { k: 'p', t: 'Physics is built on a few core principles — Newton\'s laws, conservation of energy, conservation of momentum, and electromagnetism. Everything else is application. If you understand the principles, the problems solve themselves; if you don\'t, you\'re just memorizing patterns.' },
+          { k: 'table', head: ['Topic', 'Key Concepts', 'Problem Types'], rows: [
+            ['Mechanics', 'Newton\'s laws, kinematics, energy', 'Projectile motion, collisions, orbits'],
+            ['Thermodynamics', 'Heat, work, entropy, laws of thermodynamics', 'Heat engines, phase changes, gas laws'],
+            ['Electromagnetism', 'Electric fields, magnetic fields, circuits', 'Circuit analysis, field calculations, induction'],
+            ['Optics', 'Reflection, refraction, lenses, diffraction', 'Mirror/lens problems, wave optics, interference'],
+            ['Modern Physics', 'Quantum mechanics, relativity, nuclear physics', 'Photoelectric effect, time dilation, decay'],
+          ]},
           { k: 'p', t: 'Take a practice test or diagnostic first. The problems you can\'t solve tell you exactly which concepts to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
           { k: 'tool', tool: 'proof', t: 'Proof helps organize physics problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
         ],
@@ -5416,6 +5423,13 @@ export const GUIDES = [
         h2: 'Know chemistry before you study it',
         blocks: [
           { k: 'p', t: 'Chemistry is built on a few core ideas — atomic structure, bonding, stoichiometry, and equilibrium. Everything else is application. If you understand the core ideas, the problems solve themselves; if you don\'t, you\'re just memorizing patterns.' },
+          { k: 'table', head: ['Topic', 'Key Concepts', 'Problem Types'], rows: [
+            ['Atomic Structure', 'Protons, neutrons, electrons, isotopes', 'Electron configuration, atomic mass, isotopes'],
+            ['Bonding', 'Ionic, covalent, metallic bonds', 'Lewis structures, bond polarity, molecular geometry'],
+            ['Stoichiometry', 'Moles, molar mass, mole ratios', 'Balancing equations, limiting reagents, percent yield'],
+            ['Equilibrium', 'Equilibrium constant, Le Chatelier\'s principle', 'Equilibrium calculations, ICE tables, Ksp'],
+            ['Acids & Bases', 'pH, pOH, titrations, buffers', 'pH calculations, titration curves, buffer problems'],
+          ]},
           { k: 'p', t: 'Take a practice test or diagnostic first. The problems you can\'t solve tell you exactly which concepts to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
           { k: 'tool', tool: 'proof', t: 'Proof helps organize chemistry problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
         ],
@@ -5515,6 +5529,13 @@ export const GUIDES = [
         h2: 'Know biology before you study it',
         blocks: [
           { k: 'p', t: 'Biology is built on a few core systems — cells, genetics, evolution, physiology, and ecology. Everything else is application. If you understand the systems, the details make sense; if you don\'t, you\'re just memorizing disconnected facts.' },
+          { k: 'table', head: ['System', 'Key Concepts', 'Details to Memorize'], rows: [
+            ['Cells', 'Structure, organelles, membrane transport', 'Cell types, organelle functions, processes'],
+            ['Genetics', 'DNA, genes, inheritance, mutation', 'Punnett squares, codominance, epistasis'],
+            ['Evolution', 'Natural selection, speciation, adaptation', 'Mechanisms, evidence, phylogenetics'],
+            ['Physiology', 'Organ systems, homeostasis, feedback', 'Organ functions, hormone pathways, diseases'],
+            ['Ecology', 'Populations, communities, ecosystems', 'Trophic levels, succession, biodiversity'],
+          ]},
           { k: 'p', t: 'Take a practice test or diagnostic first. The questions you miss tell you exactly which systems to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
           { k: 'tool', tool: 'margin', t: 'Margin is built for biology — draw systems diagrams, annotate processes, and explain concepts in the margins of your notes.' },
         ],
@@ -5713,6 +5734,13 @@ export const GUIDES = [
         h2: 'Know statistics before you study it',
         blocks: [
           { k: 'p', t: 'Statistics is built on a few core ideas — descriptive statistics, probability, hypothesis testing, and regression. Everything else is application. If you understand the core ideas, the problems solve themselves; if you don\'t, you\'re just memorizing formulas.' },
+          { k: 'table', head: ['Topic', 'Key Concepts', 'Problem Types'], rows: [
+            ['Descriptive Statistics', 'Mean, median, mode, standard deviation', 'Calculating measures, interpreting distributions'],
+            ['Probability', 'Independent/dependent events, Bayes\' theorem', 'Probability calculations, expected value, conditional probability'],
+            ['Hypothesis Testing', 'Null/alternative hypotheses, p-values', 't-tests, chi-square, ANOVA, choosing the right test'],
+            ['Regression', 'Correlation, causation, regression lines', 'Interpreting coefficients, predictions, residuals'],
+            ['Confidence Intervals', 'Margin of error, confidence levels', 'Calculating intervals, interpreting results'],
+          ]},
           { k: 'p', t: 'Take a practice test or diagnostic first. The problems you can\'t solve tell you exactly which concepts to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
           { k: 'tool', tool: 'proof', t: 'Proof helps organize statistics problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
         ],
@@ -6216,6 +6244,13 @@ export const GUIDES = [
         h2: 'Know anatomy before you study it',
         blocks: [
           { k: 'p', t: 'Anatomy is organized into systems — skeletal, muscular, nervous, cardiovascular, respiratory, digestive, urinary, reproductive, and integumentary. Each system has structures, functions, and relationships. If you understand the systems, the details make sense; if you don\'t, you\'re just memorizing disconnected facts.' },
+          { k: 'table', head: ['System', 'Key Structures', 'Functions'], rows: [
+            ['Skeletal', 'Bones, joints, cartilage', 'Support, protection, movement, blood cell production'],
+            ['Muscular', 'Skeletal, smooth, cardiac muscle', 'Movement, posture, heat production'],
+            ['Nervous', 'Brain, spinal cord, nerves', 'Signal transmission, coordination, sensation'],
+            ['Cardiovascular', 'Heart, arteries, veins, capillaries', 'Blood circulation, oxygen/nutrient delivery'],
+            ['Respiratory', 'Lungs, trachea, bronchi, alveoli', 'Gas exchange, oxygen intake, CO2 removal'],
+          ]},
           { k: 'p', t: 'Take a practice test or diagnostic first. The questions you miss tell you exactly which systems to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
           { k: 'tool', tool: 'margin', t: 'Margin is built for anatomy — draw structures, annotate functions, and explain systems in the margins of your notes.' },
         ],
