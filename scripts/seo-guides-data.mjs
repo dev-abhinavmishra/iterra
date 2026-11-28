@@ -912,6 +912,7 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Rereading isn’t useless — it’s just weak for retention. It’s fine for first exposure, for getting the shape of a chapter, for material you’ll never be tested on. Where it fails is the exam room: familiarity is not recall, and the gap between “I recognize this” and “I can produce this” is where grades are lost.' },
           { k: 'p', t: 'The practical split: read once to understand the terrain, then switch to recall for everything that counts. Understanding tells you where to aim; recall is what lands the hit.' },
+          { k: 'versus', a: { k: 'Rereading', t: 'Exposure — good for first contact and getting the shape of a chapter. Weak for retention; familiarity is not recall.' }, b: { k: 'Active recall', t: 'Practice — close the source and produce the answer. Harder in the moment, and the only one that survives the exam room.' } },
 
         ],
       },
@@ -932,11 +933,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that keep students rereading',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Confusing familiarity with knowledge', d: 'A page that feels familiar feels learned — the feeling is recognition, not recall. Close it and write what you remember.' },
-            { t: 'Testing only what you already know', d: 'Recall practice on known material feels good and teaches nothing. Aim at the edges of what you half-know.' },
-            { t: 'Quizzing once and moving on', d: 'One successful recall is luck; recall that survives a week is learning. Space the attempts.' },
-            { t: 'Passive "recall" like highlighting', d: 'If your recall method involves marking text, it is rereading in disguise — retrieval means producing the answer from memory.' },
+          { k: 'mistakes', items: [
+            { bad: 'Confusing familiarity with knowledge — a page that feels familiar feels learned.', good: 'Close it and write what you remember. Recognition is not recall.' },
+            { bad: 'Testing only what you already know — recall on known material feels good and teaches nothing.', good: 'Aim at the edges of what you half-know; that’s where the learning is.' },
+            { bad: 'Quizzing once and moving on — one successful recall is luck, not learning.', good: 'Space the attempts; recall that survives a week is what actually sticks.' },
+            { bad: 'Passive "recall" like highlighting — marking text is rereading in disguise.', good: 'Retrieval means producing the answer from memory, source closed.' },
           ]},
         ],
       },
@@ -3366,6 +3367,20 @@ export const GUIDES = [
             { t: 'Not practicing essays', d: 'Most literature exams require them.' },
             { t: 'Treating interpretation as subjective', d: 'The best readings are supported by evidence.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked close reading',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to four lines of Frost\'s "The Road Not Taken" — the poem everyone quotes and few analyze:' },
+          { k: 'steps', items: [
+            'Read literally first — a traveler chooses between two roads and reflects on the choice years later.',
+            'Mark the pattern — the poem claims the roads were "really about the same," yet the speaker insists the choice "made all the difference." That contradiction is the poem.',
+            'Ask what it means — is this nostalgia, self-deception, or the human need to narrate chance as choice?',
+            'Argue one reading — the poem is about how we retroactively construct meaning: the difference was made by the telling, not the traveling.',
+            'Check against the text — every claim cites a line; no claim rests on "it feels like."',
+          ]},
+          { k: 'p', t: 'This is what an essay answer looks like in miniature — observation, pattern, argument, evidence. The poem is only twenty lines; the method is the same one that handles a hundred-page novel.' },
         ],
       },
       {
@@ -6299,6 +6314,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked problem, start to finish',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "A company budgets sales of $1,200,000 and incurs $800,000 of variable costs. Actual sales are $1,000,000 and actual variable costs are $760,000. What happened?" The numbers are simple — the interpretation is the exam.' },
+          { k: 'steps', items: [
+            'Split price from volume — sales are $200k under budget; was it fewer units or lower prices? The question says variable costs moved too, so check efficiency.',
+            'Compute the flex — at actual volume, budgeted variable cost is $800k × (1,000/1,200) = $667k; actual was $760k.',
+            'Name the variances — sales volume variance is unfavorable; variable cost spending variance is also unfavorable ($93k over flexed budget).',
+            'Say what it means — the business sold less AND spent more per unit of output. Two problems, not one.',
+            'Recommend the follow-up — the spending variance needs a cause (prices? waste?), not just a bigger budget next year.',
+          ]},
+          { k: 'p', t: 'ACC questions test whether you can turn a variance into a story. A number without a cause is arithmetic; a variance with a cause is management information — and that distinction is what the exam is grading.' },
+        ],
+      },
+      {
         h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'The ACC isn\'t about memorizing rules — it\'s about understanding why they exist.' },
@@ -6405,6 +6434,20 @@ export const GUIDES = [
             { t: 'Materiality', d: 'Small errors can be immaterial — know when it matters.' },
             { t: 'Research', d: 'The answer is in the standards — know how to find it.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked multiple-choice question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic CPA-style question: "During audit planning, the engagement team learns that a new CFO joined the client last month and prior-year revenue was restated. What is the auditor\'s first concern?" Four options, all plausible — the method sorts them.' },
+          { k: 'steps', items: [
+            'Identify the section — this is AUD: audit planning and evidence, not tax or FAR.',
+            'Spot the risk signal — new CFO plus restated revenue points at management integrity and possible fraud risk.',
+            'Eliminate the traps — "review going-concern" and "confirm cash" are real procedures but miss the signal; they answer a different question.',
+            'Choose the root-cause answer — assess fraud risk and the competence/integrity of management before designing procedures.',
+            'Check the standard — this maps to the risk assessment requirements, not a specific test.',
+          ]},
+          { k: 'p', t: 'CPA questions are built so each distractor is a real audit procedure applied to the wrong question. The skill is reading what the scenario is actually signaling — new leadership plus restatement is an integrity question, and integrity questions come before procedure questions.' },
         ],
       },
       {
@@ -6860,6 +6903,20 @@ export const GUIDES = [
             { t: 'Calculations', d: 'The math is often simple but the concepts are complex — know *why*.' },
             { t: 'Reading', d: 'The passages are dense — practice extracting the key information.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked ethics item',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic CFA ethics question: "You cover a company whose earnings will miss consensus. A close friend asks whether to sell her shares before the announcement. What do you do?" Four options, all reasonable-sounding — the Standards tell you which.' },
+          { k: 'steps', items: [
+            'Identify the issue — material nonpublic information plus a personal relationship: confidentiality and personal trading rules collide.',
+            'Check the Standards — MNPI must not be disclosed to anyone outside the covered relationship; "a friend" is outside it.',
+            'Eliminate the traps — "tell her to consult her advisor" still leaks the information; "say nothing" ignores the pre-clearance duty.',
+            'Choose the compliant move — decline to discuss, remind her of the quiet period, and if you trade, pre-clear through compliance.',
+            'Verify the reasoning — the Standards rank duties: client interests and market integrity come before helpfulness.',
+          ]},
+          { k: 'p', t: 'CFA ethics questions are won by procedure, not principle — the exam wants the Standards\' specific answer, and the distractors are the plausible-but-noncompliant moves a reasonable person would actually make.' },
         ],
       },
       {
