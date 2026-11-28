@@ -34,6 +34,12 @@
       ]
     },
     {
+      "source": "/(llms.txt|feed.xml|sitemap.xml|robots.txt|humans.txt)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400" }
+      ]
+    },
+    {
       "source": "/(sw.js|iterra-hub.js|iterra-pages.js)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" }
