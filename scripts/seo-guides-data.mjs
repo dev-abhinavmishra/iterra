@@ -2623,11 +2623,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that lose easy points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Changing answers on a hunch', d: 'First instincts are right more often than second guesses — change only when you find concrete evidence.' },
-            { t: 'Reading the question last', d: 'Reading the stem first tells you what the passage must prove — reading it last turns comprehension into guesswork.' },
-            { t: 'Eliminating one option at a time', d: 'Cross out aggressively — eliminating four wrong options is faster than finding one right one.' },
-            { t: 'Treating all questions equally', d: 'Flag and move on hard questions — a point is a point, and unfinished easy questions are lost points.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Changing answers on a hunch', good: 'Change only with evidence — first instincts are right more often than second guesses' },
+            { bad: 'Reading the question last', good: 'Read the stem first — it tells you what the passage must prove' },
+            { bad: 'Eliminating one option at a time', good: 'Cross out aggressively — four eliminations beat one confirmation' },
+            { bad: 'Treating every question equally', good: 'Flag and move on — unfinished easy questions are lost points' }
           ]},
         ],
       },
@@ -2745,11 +2745,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that waste your one night',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Trying to learn everything', d: 'One night covers the top twenty percent that yields eighty percent of points — triage ruthlessly and accept the rest.' },
-            { t: 'Starting at midnight', d: 'A 7pm start beats a midnight panic — your brain needs sleep more than it needs another hour of review.' },
-            { t: 'Passive rereading all night', d: 'Active recall — self-quizzing, practice problems — beats highlighting at 2am. Test yourself, do not just look.' },
-            { t: 'Skipping sleep to study more', d: 'The exam tests a rested brain — four hours of sleep plus focused study beats eight hours of fog.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Trying to learn everything', good: 'Triage ruthlessly — the top twenty percent of topics yields most of the points' },
+            { bad: 'Starting at midnight', good: 'Start at 7pm — a rested brain beats a panicked one at 2am' },
+            { bad: 'Rereading passively all night', good: 'Self-quiz instead — active recall beats highlighting every time' },
+            { bad: 'Skipping sleep to study more', good: 'Sleep is part of the strategy — four hours of sleep plus focus beats eight hours of fog' }
           ]},
         ],
       },
@@ -4320,11 +4320,11 @@ export const GUIDES = [
       {
         h2: 'The errors that cost marks',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Practicing vocabulary in lists, not passages', d: 'The GRE tests words in context — isolated word lists build recognition, not the judgment the exam measures.' },
-            { t: 'Treating Quant like the SAT', d: 'GRE math is more reasoning-heavy and calculator-optional; practicing only arithmetic-style problems leaves the hard questions untouched.' },
-            { t: 'Writing essays without timing', d: 'The Analytical Writing section is 30 minutes flat — an unpracticed essay runs out of road mid-argument.' },
-            { t: 'Skipping the research-style questions', d: 'Research questions reward evaluating sources, not topic knowledge — drill the reasoning, not the subject.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Studying vocabulary as isolated lists', good: 'Learn words in passages — the GRE tests judgment in context, not definitions' },
+            { bad: 'Treating Quant like the SAT', good: 'Practice reasoning-heavy quant — GRE math is less arithmetic, more logic' },
+            { bad: 'Writing essays untimed', good: 'Time every practice essay — the AWA gives you 30 minutes flat' },
+            { bad: 'Skipping research-style questions', good: 'Drill source evaluation — those questions reward reasoning, not topic knowledge' }
           ]},
         ],
       },
@@ -5168,11 +5168,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that show up on the grade',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Skipping the PAT until late', d: 'The PAT is a spatial-reasoning test unlike anything else on the exam — it needs its own practice type, not more bio review.' },
-            { t: 'Reading passages for comprehension, not speed', d: 'The DAT rewards pattern recognition under time — slow careful reading is a liability on this exam.' },
-            { t: 'Memorizing biology as lists', d: 'The DAT tests applied biology — know the pathways and processes, not isolated facts.' },
-            { t: 'Practicing only in the morning', d: 'The real DAT runs four-plus hours — stamina is trained, not assumed. Build long practice sessions early.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Leaving the PAT until the end', good: 'Start PAT early — it is a spatial-reasoning test unlike anything else on the exam' },
+            { bad: 'Reading every passage slowly', good: 'Skim for the pattern — the DAT rewards recognition under time, not careful reading' },
+            { bad: 'Memorizing biology as lists', good: 'Learn pathways and processes — the DAT tests applied biology, not isolated facts' },
+            { bad: 'Practicing only in short sessions', good: 'Build long practice blocks — the real exam runs four-plus hours and stamina is trained' }
           ]},
         ],
       },
@@ -5395,11 +5395,11 @@ export const GUIDES = [
       {
         h2: 'The errors worth avoiding',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Assuming OAT equals DAT with different content', d: 'The OAT has its own physics-heavy science section and different timing — DAT materials only half-transfer.' },
-            { t: 'Neglecting the physics section', d: 'Physics is uniquely heavy on the OAT compared to other entrance exams — it rewards problem-solving reps, not review.' },
-            { t: 'Practicing reading without timing', d: 'The OAT reading section is long and dense — pace is a trainable skill that untimed practice never builds.' },
-            { t: 'Skipping the quantitative review', d: 'The quant section covers algebra through statistics — a diagnostic shows which strand is actually weak.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Assuming OAT prep equals DAT prep', good: 'Use OAT-specific materials — the physics-heavy science section and timing differ' },
+            { bad: 'Neglecting the physics section', good: 'Give physics its own practice block — it is uniquely heavy on this exam' },
+            { bad: 'Practicing reading untimed', good: 'Time every reading section — pace is a trainable skill the dense passages demand' },
+            { bad: 'Skipping the quantitative diagnostic', good: 'Take a quant diagnostic first — it shows which strand is actually weak' }
           ]},
         ],
       },
@@ -5499,11 +5499,11 @@ export const GUIDES = [
       {
         h2: 'Where prep actually fails',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Studying breadth instead of depth', d: 'The FE tests a wide syllabus but rewards depth on the fundamentals — scattered review misses the core concepts that dominate.' },
-            { t: 'Ignoring the morning general section', d: 'Every discipline shares the same morning exam — a weak general score caps your total regardless of afternoon performance.' },
-            { t: 'Practicing without an FE-style calculator', d: 'The exam restricts calculator models — practicing on the wrong one builds habits the room will not allow.' },
-            { t: 'Taking it before you are ready to pass', d: 'A failed attempt means a waiting period — a diagnostic practice exam tells you honestly whether to book yet.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Studying breadth instead of depth', good: 'Go deep on fundamentals — the FE rewards mastery of core topics over coverage' },
+            { bad: 'Ignoring the shared morning section', good: 'Prep the general section seriously — a weak morning score caps your total' },
+            { bad: 'Practicing on the wrong calculator', good: 'Use an FE-approved model — the exam restricts calculator choice on purpose' },
+            { bad: 'Testing before a diagnostic says pass', good: 'Take a practice exam first — a failed attempt means a waiting period' }
           ]},
         ],
       },
@@ -5723,11 +5723,11 @@ export const GUIDES = [
       {
         h2: 'The errors that cost marks',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Practicing only one English variety', d: 'IELTS accepts all standard varieties — but consistency matters; mixing registers within an answer reads as unstable.' },
-            { t: 'Writing essays without an opinion', d: 'Task 2 rewards a clear position defended with examples — a balanced non-answer scores lower than a committed one.' },
-            { t: 'Ignoring the speaking rubric', d: 'Speaking is scored on fluency, vocabulary, grammar and pronunciation — practicing alone without recording misses half the criteria.' },
-            { t: 'Reading for comprehension, not speed', d: 'IELTS reading is 60 minutes for 40 questions — you cannot afford full comprehension; learn to skim for what the questions ask.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Practicing only one English variety', good: 'Pick one consistent register — IELTS accepts all standard varieties but punishes mixing' },
+            { bad: 'Writing Task 2 essays with no position', good: 'Commit to an opinion defended with examples — a balanced non-answer scores lower' },
+            { bad: 'Practicing speaking without the rubric', good: 'Record yourself against the four criteria — fluency, vocabulary, grammar, pronunciation' },
+            { bad: 'Reading for full comprehension', good: 'Skim for answers — 60 minutes for 40 questions does not allow slow reading' }
           ]},
         ],
       },
@@ -5972,11 +5972,11 @@ export const GUIDES = [
       {
         h2: 'The mistakes that stall vocabulary growth',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Studying word lists in alphabetical order', d: 'Alphabetical lists feel productive and test nothing — shuffle them or the order becomes the memory.' },
-            { t: 'Memorizing definitions, not usage', d: 'The GRE tests words in context — a word you can define but not deploy in a sentence is half-learned.' },
-            { t: 'Doing all your vocab at once', d: 'Ten words a day retained beats a hundred crammed and forgotten — consistency is the mechanism, not volume.' },
-            { t: 'Ignoring the words you "know"', d: 'GRE traps sit in level-2 and 3 words you half-know — audit your misses, not just your unknowns.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Studying lists in alphabetical order', good: 'Shuffle them — order becomes the crutch and recognition is fake' },
+            { bad: 'Memorizing definitions without usage', good: 'Deploy each word in a sentence — the GRE tests context, not recall' },
+            { bad: 'Doing all your vocab at once', good: 'Ten words a day retained beats a hundred crammed — consistency is the mechanism' },
+            { bad: 'Ignoring words you half-know', good: 'Audit your misses — GRE traps live in level-2 and 3 words you think you know' }
           ]},
         ],
       },
