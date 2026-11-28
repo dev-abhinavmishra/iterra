@@ -1207,6 +1207,7 @@ ${placeLinks}
 </div>
 <div class="navg"><div class="gh">Learn · ${GUIDES.length} guides</div>
 ${navLink('/guides', 'All guides')}
+${TOPIC_PAGES.map((t) => navLink(`/topics/${t.slug}`, `${esc(t.kicker)} · ${t.guides.length}`)).join('\n')}
 ${guideLinks}
 </div>
 <div class="navg"><div class="gh">Compare · ${COMPARE_PAGES.length}</div>
