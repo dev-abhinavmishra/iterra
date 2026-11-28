@@ -4564,6 +4564,94 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-pcat',
+    title: 'How to study for the <em>PCAT</em>',
+    seoTitle: 'How to Study for the PCAT: Strategy, Content, Writing',
+    description:
+      'Beat the PCAT with a system: know the format, practice the science content, drill reading and quant, and write essays under timed conditions.',
+    kicker: 'Study Methods',
+    datePublished: '2027-07-13',
+    dateModified: '2027-07-17',
+    readMinutes: 7,
+    keywords: ['how to study for the PCAT', 'PCAT prep', 'pharmacy admission test', 'PCAT practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-for-the-dat', 'how-to-study-for-the-mcat', 'how-to-use-practice-tests'],
+    lede: 'The PCAT is the test that decides pharmacy school — a 3.25-hour exam that tests biology, chemistry, physics, reading comprehension, and quantitative reasoning. But the PCAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Science content, reading, quant, and writing — each needs a different strategy.',
+      'Practice, review, repeat — the review is where learning happens.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the PCAT?',
+        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+      },
+      {
+        q: 'How do I prepare for the PCAT writing section?',
+        a: 'Practice writing essays under timed conditions (30 minutes). The essay is scored on organization, development, and language use — not on the "correct" answer. Structure: introduction, body paragraphs, conclusion.',
+      },
+      {
+        q: 'Is the PCAT harder than the DAT?',
+        a: 'They test similar skills but with different formats. The PCAT has a writing section; the DAT has the unique PAT section. The study strategy is similar — practice tests, pattern recognition, and timing.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The PCAT is the test that decides pharmacy school — a 3.25-hour exam that tests biology, chemistry, physics, reading comprehension, and quantitative reasoning. But the PCAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The PCAT has five sections: Biology, Chemistry, Physics, Reading Comprehension, Quantitative Reasoning, and a Writing section. Each section is scored separately, and the test is 3.25 hours long. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 400 in Bio but 350 in Quant should spend most of their time on Quant.' },
+        ],
+      },
+      {
+        h2: 'The PCAT study loop',
+        blocks: [
+          { k: 'p', t: 'PCAT prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the sections you miss most.',
+            'Drill those sections with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'The science sections: content plus strategy',
+        blocks: [
+          { k: 'p', t: 'The Biology, Chemistry, and Physics sections test content knowledge — you need to know the material, not just the patterns. Focus on the high-yield topics: cell biology, biochemistry, anatomy, organic chemistry, and physics formulas.' },
+          { k: 'p', t: 'Practice problems are the study method — the exam rewards speed and accuracy. Work through problems until the patterns are automatic.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the high-yield science content — the vocabulary and formulas that every question assumes you know.' },
+        ],
+      },
+      {
+        h2: 'Reading and Quant: the familiar game',
+        blocks: [
+          { k: 'p', t: 'Reading Comprehension and Quantitative Reasoning are similar to other standardized tests — reading passages with questions, and math problems. The strategy is the same: read the questions first, then the passage or problem with those questions in mind.' },
+          { k: 'p', t: 'For Quant, the math is mostly high-school level — algebra, geometry, and data analysis. Practice problems are the study method.' },
+        ],
+      },
+      {
+        h2: 'The writing section: the essay game',
+        blocks: [
+          { k: 'p', t: 'The Writing section gives you a prompt and 30 minutes to write an essay. The essay is scored on organization, development, and language use — not on the "correct" answer.' },
+          { k: 'p', t: 'Practice writing essays under timed conditions. The structure matters: introduction, body paragraphs, conclusion. The best essays are clear, organized, and well-supported.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The PCAT is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
