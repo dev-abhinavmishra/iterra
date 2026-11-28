@@ -4197,11 +4197,11 @@ export const GUIDES = [
         h2: 'Common engineering study mistakes',
         blocks: [
           { k: 'p', t: 'The most common engineering study failures:' },
-          { k: 'deflist', items: [
-            { t: 'Memorizing formulas without understanding the physics', d: 'Formulas are math of physical principles — learn the principle, not the formula.' },
-            { t: 'Skipping problems', d: 'Engineering is learned by solving — problems are the study method.' },
-            { t: 'Not checking units', d: 'Unit errors are the most common mistake — always verify.' },
-            { t: 'Studying only before exams', d: 'Problem skills decay without reps — the material compounds.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Memorizing formulas without the physics', good: 'Learn the principle — formulas are just the math of physical laws' },
+            { bad: 'Reading problems without solving them', good: 'Do problems — engineering is learned by solving, not reading' },
+            { bad: 'Skipping unit checks', good: 'Verify units every time — unit errors are the most common exam mistake' },
+            { bad: 'Reviewing only before exams', good: 'Problem skills decay — consistent reps keep them alive' }
           ]},
         ],
       },
@@ -6079,11 +6079,11 @@ export const GUIDES = [
         h2: 'The common physics traps',
         blocks: [
           { k: 'p', t: 'Physics problems have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'Units', d: 'Always check units — a wrong unit means a wrong answer.' },
-            { t: 'Sign errors', d: 'Negative vs. positive matters in physics.' },
-            { t: 'Assumptions', d: 'Many problems assume frictionless surfaces or ideal conditions.' },
-            { t: 'Vector vs. scalar', d: 'Force and velocity are vectors; speed and energy are scalars.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Dropping units mid-solution', good: 'Check units at every step — a wrong unit means a wrong answer' },
+            { bad: 'Losing track of signs', good: 'Mark direction explicitly — positive vs. negative decides the answer' },
+            { bad: 'Ignoring stated assumptions', good: 'Read for idealizations — frictionless and ideal conditions are doing work in the problem' },
+            { bad: 'Treating vectors as scalars', good: 'Track direction — force and velocity are vectors; speed and energy are not' }
           ]},
         ],
       },
@@ -6566,11 +6566,11 @@ export const GUIDES = [
         h2: 'The common statistics traps',
         blocks: [
           { k: 'p', t: 'Statistics questions have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'P-values', d: 'A small p-value doesn\'t mean the effect is large — it means it\'s unlikely by chance.' },
-            { t: 'Correlation vs. causation', d: 'Correlation doesn\'t imply causation — know the difference.' },
-            { t: 'Sample size', d: 'Larger samples give more reliable results — small samples are noisy.' },
-            { t: 'Significance vs. importance', d: 'Statistical significance doesn\'t mean practical importance.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Reading a small p-value as a big effect', good: 'p measures surprise, not size — a tiny effect can be significant' },
+            { bad: 'Assuming correlation means causation', good: 'Name the claim you can actually make — correlation alone never proves cause' },
+            { bad: 'Trusting small samples', good: 'Check the sample size — small samples are noisy and unstable' },
+            { bad: 'Confusing significance with importance', good: 'Ask whether the effect size matters — statistical significance is not practical importance' }
           ]},
         ],
       },
@@ -6689,11 +6689,11 @@ export const GUIDES = [
         h2: 'The common ACC traps',
         blocks: [
           { k: 'p', t: 'Accounting problems have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'GAAP vs. tax', d: 'Accounting rules differ from tax rules — know the difference.' },
-            { t: 'Timing', d: 'Revenue and expense recognition has specific rules — know them.' },
-            { t: 'Materiality', d: 'Small errors can be immaterial — know when it matters.' },
-            { t: 'Journal entries', d: 'Debits and credits must balance — check your work.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Applying tax rules to book questions', good: 'Check which framework the question invokes — GAAP and tax diverge' },
+            { bad: 'Ignoring recognition timing', good: 'Learn the timing rules — revenue and expense recognition are rule-bound' },
+            { bad: 'Treating every error as material', good: 'Apply the materiality threshold — small errors can be immaterial' },
+            { bad: 'Submitting unbalanced entries', good: 'Debits equal credits — check the entry before moving on' }
           ]},
         ],
       },
@@ -6812,11 +6812,11 @@ export const GUIDES = [
         h2: 'The common CPA traps',
         blocks: [
           { k: 'p', t: 'CPA questions have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'GAAP vs. tax', d: 'Book and tax frameworks diverge — check which one the question invokes.' },
-            { t: 'Timing', d: 'Recognition timing is rule-bound — the exam tests the rules.' },
-            { t: 'Materiality', d: 'Materiality thresholds decide what counts — know where the line sits.' },
-            { t: 'Research', d: 'The answer is in the standards — know how to find it.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Conflating book and tax treatment', good: 'Identify the framework first — the standards diverge precisely where questions probe' },
+            { bad: 'Missing recognition-timing rules', good: 'The exam tests the rules — know when revenue and expense hit the books' },
+            { bad: 'Ignoring materiality thresholds', good: 'Know where the line sits — materiality decides what the answer requires' },
+            { bad: 'Answering without checking the standard', good: 'The answer lives in the literature — research beats guessing every time' }
           ]},
         ],
       },
@@ -7066,11 +7066,11 @@ export const GUIDES = [
       {
         h2: 'Common ways students drop points',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Assuming college credit equals easy credit', d: 'CLEP scores map to a C — the exam is calibrated so that "just passing" is genuinely passing-level work.' },
-            { t: 'Studying the whole course catalog', d: 'Each CLEP covers one course — target the exam\'s official outline, not the entire subject.' },
-            { t: 'Practicing without the timer', d: '90 minutes for roughly 90 questions is tight — untimed practice builds knowledge but not the pacing the exam demands.' },
-            { t: 'Ignoring your college\'s credit policy', d: 'Not every school accepts every CLEP — a passing score at one college can be worthless at another. Check before you book.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Assuming college credit means easy credit', good: 'CLEP scores map to a C — "just passing" is genuinely passing, so aim higher' },
+            { bad: 'Studying the whole subject catalog', good: 'Target the exam\'s official outline — each CLEP covers one course, not a field' },
+            { bad: 'Practicing without the timer', good: '90 minutes for ~90 questions is tight — timed practice builds exam pace' },
+            { bad: 'Ignoring your college\'s credit policy', good: 'Check acceptance before you test — a passing score can be worthless at some schools' }
           ]},
         ],
       },
@@ -7310,11 +7310,11 @@ export const GUIDES = [
         h2: 'The common CFA traps',
         blocks: [
           { k: 'p', t: 'CFA questions have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'Ethics', d: 'The Standards of Professional Conduct are strict — know them cold.' },
-            { t: 'Timing', d: '4.5 hours for hundreds of questions — practice pacing.' },
-            { t: 'Calculations', d: 'The math is often simple but the concepts are complex — know *why*.' },
-            { t: 'Reading', d: 'The passages are dense — practice extracting the key information.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Skipping the ethics material', good: 'The Standards are strict and heavily tested — learn them cold' },
+            { bad: 'Practicing untimed', good: '4.5 hours for hundreds of questions — pacing is a trainable skill' },
+            { bad: 'Memorizing formulas without the why', good: 'Know why each calculation works — the math is simple, the concepts are not' },
+            { bad: 'Reading passages linearly', good: 'Extract the key information first — the readings are dense on purpose' }
           ]},
         ],
       },
@@ -7432,11 +7432,11 @@ export const GUIDES = [
         h2: 'The common PMP traps',
         blocks: [
           { k: 'p', t: 'PMP questions have predictable pitfalls:' },
-          { k: 'deflist', items: [
-            { t: 'The "best" answer', d: 'The exam wants the *best* answer, not just *a* correct answer.' },
-            { t: 'Process groups', d: 'Know the order: Initiating, Planning, Executing, Monitoring & Controlling, Closing.' },
-            { t: 'Knowledge areas', d: 'Know the 10 areas and how they interrelate.' },
-            { t: 'Agile vs. predictive', d: 'Know when to use which approach.' },
+                    { k: 'mistakes', items: [
+            { bad: 'Picking "a correct" answer over "the best"', good: 'The exam rewards the best answer — choose the most complete, most situationally correct option' },
+            { bad: 'Mixing up process group order', good: 'Memorize the sequence: Initiating, Planning, Executing, Monitoring & Controlling, Closing' },
+            { bad: 'Treating knowledge areas as separate', good: 'Learn how the 10 areas interrelate — questions cross them constantly' },
+            { bad: 'Applying one approach everywhere', good: 'Match approach to context — agile vs. predictive is a judgment call the exam tests' }
           ]},
         ],
       },
