@@ -463,10 +463,13 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .emblem{display:grid;grid-template:repeat(2,7px)/repeat(2,7px);gap:2px;transform:rotate(45deg)}
 .emblem i{background:#7fae7a;box-shadow:inset 1px 1px #d4eac1}
 .emblem i:nth-child(2){background:#d9c897}.emblem i:nth-child(3){background:#4d8a68}
-.searchbox{position:relative;display:flex;align-items:center;gap:8px;margin:14px 4px 2px;padding:8px 12px;border:1px solid rgba(255,255,255,.6);border-radius:11px;background:rgba(255,255,255,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--faint);font-size:12.5px;text-decoration:none;transition:border-color .18s,box-shadow .18s,transform .18s,color .18s}
-.searchbox:hover{border-color:rgba(43,84,64,.4);color:var(--mute);box-shadow:0 8px 20px -10px rgba(43,84,64,.35),inset 0 1px 0 rgba(255,255,255,.8);transform:translateY(-1px)}
-.searchbox:active{transform:translateY(0)}
-.searchbox kbd{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 5px;background:rgba(255,255,255,.6);color:var(--faint)}
+.searchbox{position:relative;display:flex;align-items:center;gap:8px;margin:14px 4px 2px;padding:8px 12px;border:1px solid rgba(255,255,255,.6);border-radius:11px;background:rgba(255,255,255,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:var(--faint);font-size:12.5px;cursor:text;transition:border-color .18s,box-shadow .18s,transform .18s}
+.searchbox:focus-within{border-color:rgba(43,84,64,.5);box-shadow:0 8px 20px -10px rgba(43,84,64,.35),inset 0 1px 0 rgba(255,255,255,.8)}
+.searchbox .sq{font-size:15px;line-height:1;color:var(--faint);flex:none}
+.searchbox input{flex:1;min-width:0;border:none;outline:none;background:transparent;font:inherit;color:var(--ink);padding:0}
+.searchbox input::placeholder{color:var(--faint)}
+.searchbox input::-webkit-search-cancel-button{display:none}
+.searchbox kbd{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:5px;padding:1px 5px;background:rgba(255,255,255,.6);color:var(--faint);flex:none}
 .navg{margin-top:12px}
 .navg .gh{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:12px 10px 6px}
 .navg .gh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(120,115,90,.3),transparent)}
@@ -942,7 +945,7 @@ function header(activePath) {
 <a class="skip" href="#content">Skip to content</a>
 <aside class="side">
 <a class="brand" href="/"><span class="emblem" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Iterra</a>
-<a class="searchbox" href="/#/today">Search the workspace<kbd>⌘K</kbd></a>
+<label class="searchbox"><span class="sq" aria-hidden="true">⌕</span><input id="navfilter" type="search" placeholder="Filter pages…" aria-label="Filter pages" autocomplete="off" /><kbd>⌘K</kbd></label>
 <nav aria-label="Iterra documentation">
 <div class="navg"><div class="gh">Workspace</div>
 ${navLink('/', 'Overview')}
@@ -1012,6 +1015,23 @@ if(side){
   if(on&&side.scrollHeight>side.clientHeight+4){side.scrollTop=Math.max(0,on.offsetTop-side.clientHeight/2);}
 }
 var links=document.querySelectorAll('.side nav a');for(var i=0;i<links.length;i++)links[i].addEventListener('click',function(){set(false)});
+var nf=document.getElementById('navfilter');
+if(nf){
+  var navAs=[].slice.call(document.querySelectorAll('.side nav a'));
+  var navGs=[].slice.call(document.querySelectorAll('.side .navg'));
+  function applyFilter(){
+    var q=nf.value.trim().toLowerCase();
+    navAs.forEach(function(a){a.style.display=!q||a.textContent.toLowerCase().indexOf(q)>-1?'':'none'});
+    navGs.forEach(function(g){
+      var any=navAs.some(function(a){return a.closest('.navg')===g&&a.style.display!=='none'});
+      g.style.display=any?'':'none';
+    });
+  }
+  nf.addEventListener('input',applyFilter);
+  document.addEventListener('keydown',function(e){
+    if((e.key==='/'&&!/input|textarea/i.test(document.activeElement.tagName))||((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k')){e.preventDefault();nf.focus();nf.select();}
+  });
+}
 [].slice.call(document.querySelectorAll('.compare-table')).forEach(function(tbl){
   tbl.addEventListener('mousemove',function(e){
     var c=e.target.closest?e.target.closest('td,th'):null;
