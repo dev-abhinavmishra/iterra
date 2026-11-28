@@ -663,13 +663,17 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .prose .callout{border-left:3px solid var(--gold);background:var(--sheet);padding:1rem 1.35rem;margin:1.7rem 0;border-radius:0 10px 10px 0}
 .prose .callout p{margin:0;font-size:1.02rem;color:var(--mute);font-style:italic;line-height:1.65}
 .prose .gsec{margin-top:2.6rem}
-.tool-inline{position:relative;display:block;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--sheet);padding:1.1rem 2.8rem 1.1rem 1.35rem;margin:1.5rem 0;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s}
-.tool-inline::after{content:"→";position:absolute;right:1.3rem;top:1.15rem;color:var(--gold);font-family:'IBM Plex Mono',monospace;transition:transform .15s}
-.tool-inline:hover{border-color:var(--gold2);background:#fff}
-.tool-inline:hover::after{transform:translateX(3px)}
+.tool-inline{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--sheet);padding:.9rem 1.1rem;margin:1.5rem 0;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s,box-shadow .15s}
+.tool-inline:hover{border-color:var(--gold2);background:#fff;box-shadow:0 14px 34px -18px rgba(43,84,64,.35)}
+.ti-thumb{width:120px;height:75px;object-fit:cover;object-position:top;border-radius:8px;border:1px solid var(--line);display:block;flex:none;transition:transform .3s cubic-bezier(.2,.7,.2,1)}
+.tool-inline:hover .ti-thumb{transform:scale(1.04)}
+.ti-body{min-width:0}
+.ti-go{color:var(--gold);font-family:'IBM Plex Mono',monospace;font-size:15px;transition:transform .15s,color .15s;align-self:flex-start;margin-top:.4rem}
+.tool-inline:hover .ti-go{transform:translateX(3px);color:var(--accent)}
 .tool-inline .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);display:block}
 .tool-inline .t{font-family:Newsreader,Georgia,serif;font-size:1.28rem;font-weight:500;letter-spacing:-.01em;display:block;margin-top:.25rem}
 .tool-inline .d{font-size:.92rem;color:var(--mute);display:block;margin-top:.4rem;line-height:1.5}
+@media(max-width:560px){.tool-inline{grid-template-columns:auto 1fr}.ti-go{display:none}.ti-thumb{width:84px;height:53px}}
 .meta-row{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin-top:1.5rem;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
 .meta-row a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--gold2)}
 .meta-row a:hover{border-color:var(--accent)}
@@ -967,7 +971,7 @@ function renderBlocks(blocks) {
       if (b.k === 'tool') {
         const t = TOOLS.find((x) => x.id === b.tool);
         if (!t) return '';
-        return `<a class="tool-inline" href="${t.path}"><span class="k mono">${esc(t.kicker)} · the ${esc(t.name)} place</span><span class="t">${esc(t.name)}</span><span class="d">${esc(t.lede.split('.')[0])}.</span></a>`;
+        return `<a class="tool-inline" href="${t.path}"><img class="ti-thumb" src="/shots/${t.id}.webp" alt="" width="120" height="75" loading="lazy" decoding="async" /><span class="ti-body"><span class="k mono">${esc(t.kicker)} · the ${esc(t.name)} place</span><span class="t">${esc(t.name)}</span><span class="d">${esc(t.lede.split('.')[0])}.</span></span><span class="ti-go" aria-hidden="true">→</span></a>`;
       }
       if (b.k === 'checklist')
         return `<ul class="checklist" data-cl="${esc(b.id || '')}">${b.items
