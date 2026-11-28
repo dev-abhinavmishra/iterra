@@ -761,6 +761,11 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .author-card .t{font-family:Newsreader,Georgia,serif;font-size:1.18rem;font-weight:500;letter-spacing:-.01em;color:var(--ink)}
 .author-card .d{font-size:.92rem;color:var(--mute);line-height:1.6;margin-top:.3rem;max-width:58ch}
 .author-card .mono{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:.3rem}
+.share{display:flex;align-items:center;gap:.9rem;margin-top:1rem;flex-wrap:wrap}
+.share .mono{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.share a,.share button{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);text-decoration:none;background:none;border:1px solid var(--line2);border-radius:999px;padding:.32rem .85rem;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.share a:hover,.share button:hover{border-color:var(--accent);background:rgba(255,255,255,.5)}
+.share button.copied{border-color:var(--sage);color:var(--accent2)}
 .prose h3{font-family:Newsreader,Georgia,serif;font-weight:550;font-size:1.22rem;letter-spacing:-.02em;margin:2rem 0 .6rem;color:var(--ink);scroll-margin-top:84px}
 .prose blockquote{margin:1.8rem 0;padding:.2rem 0 .2rem 1.4rem;border-left:3px solid var(--gold);font-family:Newsreader,Georgia,serif;font-size:1.28rem;font-style:italic;font-weight:450;line-height:1.5;color:var(--ink)}
 .prose .callout{border:none;background:none;border-radius:0;padding:1.4rem 0;margin:2.2rem auto;max-width:42rem;text-align:center;position:relative}
@@ -1056,6 +1061,13 @@ if(nf){
 var tt=document.createElement('button');tt.className='to-top';tt.type='button';tt.setAttribute('aria-label','Back to top');tt.textContent='↑';document.body.appendChild(tt);
 addEventListener('scroll',function(){tt.classList.toggle('on',scrollY>640)},{passive:true});
 tt.addEventListener('click',function(){scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})});
+[].slice.call(document.querySelectorAll('[data-copy]')).forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var done=function(){btn.textContent='Copied ✓';btn.classList.add('copied');setTimeout(function(){btn.textContent='Copy link';btn.classList.remove('copied')},1600)};
+    if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(btn.getAttribute('data-copy')).then(done,done);
+    else done();
+  });
+});
 var fimgs=[].slice.call(document.querySelectorAll('.frame img'));
 if(fimgs.length){
   var lb=document.createElement('div');lb.className='lightbox';lb.setAttribute('role','dialog');lb.setAttribute('aria-label','Image preview');
@@ -1335,7 +1347,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
         .join('')}</ul></aside>`
     : '';
   const articleEndHtml = `<div class="article-end"><div><span class="mono">Put it to work</span><p>The method only matters if it survives the week — Iterra keeps the plan, review, notes, and timer in one place.</p></div><div class="cta"><a class="primary" href="/#/today">Open the workspace →</a><a class="ghost" href="/tools">Browse the tools</a></div></div>`;
-  const authorCardHtml = `<div class="author-card"><span class="av" aria-hidden="true">IT</span><div><span class="mono">About the author</span><div class="t">The Iterra terrain team</div><p class="d">Iterra is a free, local-first study workspace — planner, notes, flashcards, timer, and grader sharing one picture of your courses. These guides are written from what actually survives a semester, not what sounds good in a headline.</p></div></div>`;
+  const authorCardHtml = `<div class="author-card"><span class="av" aria-hidden="true">IT</span><div><span class="mono">About the author</span><div class="t">The Iterra terrain team</div><p class="d">Iterra is a free, local-first study workspace — planner, notes, flashcards, timer, and grader sharing one picture of your courses. These guides are written from what actually survives a semester, not what sounds good in a headline.</p><div class="share"><span class="mono">Share</span><a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(guide.title.replace(/<\/?em>/g, ''))}" target="_blank" rel="noopener noreferrer">X</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}" target="_blank" rel="noopener noreferrer">LinkedIn</a><button type="button" data-copy="${url}">Copy link</button></div></div></div>`;
   /* three article hero treatments, rotated by guide index */
   const variant = ((gi % 3) + 3) % 3; /* 0 cover below · 1 split hero · 2 centered */
   const heroCopy = `${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.title.replace(/<\/?em>/g, '') }])}
