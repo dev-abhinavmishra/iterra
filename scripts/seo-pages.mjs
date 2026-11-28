@@ -2762,6 +2762,11 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Compare' }])}
 <div class="kicker mono">Head-to-head</div>
 <h1>Compare <em>honestly.</em></h1>
 <p class="lede">Every comparison below admits where the other tool wins — because a comparison you can’t trust is just an ad. These are written by the people who make Iterra, and they say so.</p>
+<div class="stats hero-stats">
+<div class="stat"><span class="v">${COMPARE_PAGES.filter((p) => p.section === 'compare').length}</span><span class="l">Head-to-head</span></div>
+<div class="stat"><span class="v">${COMPARE_PAGES.filter((p) => p.section === 'alternatives').length}</span><span class="l">Alternatives</span></div>
+<div class="stat"><span class="v">0</span><span class="l">Sponsored picks</span></div>
+</div>
 </div></section>
 <div class="wrap">
 <figure class="plate">
@@ -2840,6 +2845,11 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Alternatives' }])}
 <div class="kicker mono">Way out</div>
 <h1>Outgrew the <em>app?</em></h1>
 <p class="lede">Every study app here was built to do one thing well. When one thing isn't enough anymore, these are the honest exits — including ours, and when it isn't the right one.</p>
+<div class="stats hero-stats">
+<div class="stat"><span class="v">${pages.length}</span><span class="l">Honest comparisons</span></div>
+<div class="stat"><span class="v">5</span><span class="l">Selection criteria</span></div>
+<div class="stat"><span class="v">${TOOLS.length}</span><span class="l">Places in Iterra</span></div>
+</div>
 </div></section>
 <div class="wrap">
 <figure class="plate">
