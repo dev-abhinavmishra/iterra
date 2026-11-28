@@ -1440,6 +1440,9 @@ ${nextTool ? `<link rel="next" href="${SITE}/tools/${nextTool.id}" />` : ''}
 <meta name="twitter:description" content="${esc(tool.description)}" />
 <meta name="twitter:image" content="${SITE}/og/tool-${tool.id}.png" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
@@ -1740,6 +1743,9 @@ ${nextGuide ? `<link rel="next" href="${SITE}/guides/${nextGuide.slug}" />` : ''
 <meta name="twitter:image" content="${SITE}/og/guide-${guide.slug}.png" />
 <link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
@@ -2063,6 +2069,9 @@ export function renderGuidesIndex() {
 <meta name="twitter:title" content="Iterra Study Guides — How to Learn Better" />
 <meta name="twitter:description" content="Research-backed guides to studying better." />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
@@ -2171,6 +2180,9 @@ export function renderTopicPage(topic) {
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
@@ -2254,6 +2266,9 @@ export function renderTopicsIndex() {
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
@@ -2318,6 +2333,9 @@ export function renderToolsIndex() {
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
@@ -2391,6 +2409,9 @@ ${published ? `<meta property="article:published_time" content="${published}" />
 <meta name="twitter:description" content="${esc(description)}" />
 <meta name="twitter:image" content="${image || `${SITE}/og/compare.png`}" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>`;
 }
@@ -2677,6 +2698,9 @@ export function renderCompareIndex() {
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
@@ -2760,6 +2784,9 @@ export function renderAlternativesIndex() {
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
 ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
