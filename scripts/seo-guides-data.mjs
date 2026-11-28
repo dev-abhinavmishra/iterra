@@ -1978,6 +1978,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked open-book session',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to exam week: "The final is open-book — I have the textbook." Most students read the chapter again. The students who win treat the book like a database.' },
+          { k: 'steps', items: [
+            'Build the index — one page listing every formula, definition, and decision rule with page numbers. This is your real textbook.',
+            'Annotate the edges — mark the sections exams actually draw from; the index points, the book delivers.',
+            'Practice retrieval — close the book, solve a problem, then check only the index. If the index fails you, the book will too.',
+            'Simulate the exam — timed, book allowed, index only. If you cannot work under those conditions, the open book is decoration.',
+            'Pack light — the index, a pen, and confidence. A book you must search is a book you do not know.',
+          ]},
+          { k: 'p', t: 'The open-book advantage is not access to information — it is speed. The student with a two-page index answers in a minute what the student with a 900-page textbook spends ten minutes finding. Prepare the index like it is the exam, because it is.' },
+        ],
+      },
+      {
         h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'An open-book exam is a closed-book exam with training wheels. Prepare the book like it’s the exam, because it is.' },
@@ -2200,6 +2214,20 @@ export const GUIDES = [
           { k: 'p', t: 'The prep-work problem disappears if the materials live somewhere everyone can reach. A shared deck of questions, a common error log, a rotating “teacher of the week” — the group runs on artifacts, not memory.' },
           { k: 'tool', tool: 'flashcards', t: 'Decks can be shared by link — the group’s quiz questions live in one place instead of five group chats.' },
           { k: 'tool', tool: 'margin', t: 'The readings and recordings the group discusses stay filed by course, so “what did the professor say about X” is a search, not a scavenger hunt.' },
+        ],
+      },
+      {
+        h2: 'A worked session plan',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to the session everyone gets wrong: "Let\'s just review for the exam Thursday." A 90-minute study group that actually works has a shape — and it is not discussion.' },
+          { k: 'steps', items: [
+            'Pre-assign the material — each member owns one topic and teaches it for 10 minutes; nobody "reviews" together.',
+            'Start with a quiz — 10 minutes of closed-book recall on last week\'s material; the gaps become today\'s agenda.',
+            'Run the teaching blocks — each person explains their topic; listeners write questions, not summaries.',
+            'Drill the weak spots — the quiz gaps get worked problems or flashcard rounds, not more talking.',
+            'End with a commitment — each member leaves with one specific thing to review before next session.',
+          ]},
+          { k: 'p', t: 'The failure mode is the unstructured session — everyone talks, nobody learns, the strong students carry the weak ones. The fix is roles and retrieval: teach, quiz, drill, commit. Discussion is what happens between the work, not instead of it.' },
         ],
       },
       {
@@ -2846,6 +2874,20 @@ export const GUIDES = [
           { k: 'p', t: 'Math exams are cumulative — the night before matters less than the weeks before. But if you’re cramming, focus on the highest-yield material: the formulas and problem types that appear most often. Do a few practice problems to warm up the patterns, then sleep.' },
           { k: 'p', t: 'During the exam, show your work — even if you get the wrong answer, partial credit and the process of writing it out can reveal where you went wrong. And check your work if you have time; arithmetic errors are the most common cause of lost points.' },
           { k: 'tool', tool: 'proof', t: 'Proof helps you organize the steps of a solution — the same discipline that turns a messy attempt into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'A worked problem, start to finish',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "A ladder leans against a wall at 60° from the ground. If the ladder is 5 m long, how high up the wall does it reach?" Trigonometry is the tool — the setup is the skill.' },
+          { k: 'steps', items: [
+            'Draw the triangle — wall vertical, ground horizontal, ladder as hypotenuse at 60°.',
+            'Name what is asked — height is opposite the 60° angle; the ladder length is the hypotenuse.',
+            'Pick the ratio — sin(60°) = opposite/hypotenuse = height/5.',
+            'Solve — height = 5 × sin(60°) ≈ 5 × 0.866 ≈ 4.33 m.',
+            'Sanity-check — the height must be less than the ladder length; 4.33 < 5, and sin 60° < 1, so it is plausible.',
+          ]},
+          { k: 'p', t: 'Most math problems are this same sequence — draw the situation, name the unknown, pick the relationship, solve, check. Students who struggle are not bad at math; they skip the draw-and-name steps and try to compute before they understand.' },
         ],
       },
       {
@@ -3731,6 +3773,20 @@ export const GUIDES = [
             { t: 'Not practicing essays', d: 'Most philosophy exams require them — practice the format.' },
             { t: 'Treating philosophy as abstract', d: 'It\'s deeply practical — every argument has real-world applications.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked argument reconstruction',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to the most famous argument in philosophy: Descartes\' "I think, therefore I am." The claim is three words; the argument underneath is a masterpiece of doubt.' },
+          { k: 'steps', items: [
+            'State the conclusion — I exist as a thinking thing.',
+            'Reconstruct the premises — I can doubt everything except that I am doubting; doubting requires a thinker.',
+            'Map the logic — even an evil deceiver cannot make me think I think when I do not; thinking proves a thinker.',
+            'Find the assumption — the argument works because "I think" is self-verifying: the attempt to doubt it confirms it.',
+            'Evaluate the objection — does this prove an immaterial soul, or only that a thinking thing exists? The text supports the weaker claim.',
+          ]},
+          { k: 'p', t: 'This is what philosophy exams test — not whether you can repeat "I think therefore I am" but whether you can rebuild the argument and probe its weakest joint. Practice reconstructing, not reciting.' },
         ],
       },
       {
@@ -5804,6 +5860,7 @@ export const GUIDES = [
           { k: 'p', t: 'Physics has two halves: conceptual questions ("why does this happen?") and calculation problems ("how fast does it go?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
           { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
           { k: 'tool', tool: 'margin', t: 'Margin is built for physics — sketch diagrams, annotate equations, and explain concepts in the margins of your notes.' },
+          { k: 'versus', a: { k: 'Concepts', t: 'The why — understanding that carries you through questions you have never seen.' }, b: { k: 'Calculations', t: 'The reps — problems that build the fluency to execute under time pressure.' } },
         ],
       },
       {
@@ -5924,6 +5981,7 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Chemistry has two halves: conceptual questions ("why does this reaction happen?") and calculation problems ("how much product forms?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
           { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
+          { k: 'versus', a: { k: 'Concepts', t: 'The why — mechanisms and trends that explain what the numbers mean.' }, b: { k: 'Calculations', t: 'The reps — stoichiometry and equilibrium drills that build speed.' } },
         ],
       },
       {
@@ -6044,6 +6102,7 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Biology requires both memorization and understanding — but the balance matters. Too much memorization and you can\'t apply the knowledge; too much understanding and you can\'t recall the details.' },
           { k: 'p', t: 'The balance: understand the systems first, then memorize the details that attach to them. A student who understands how the immune system works can memorize the cell types; a student who tries to memorize cell types without understanding the system forgets them by exam day.' },
+          { k: 'versus', a: { k: 'Understanding', t: 'The systems — how it works, which is what lets details stick.' }, b: { k: 'Memorization', t: 'The details — the cell types and steps that attach to what you understand.' } },
         ],
       },
       {
@@ -6288,6 +6347,7 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Statistics has two halves: conceptual questions ("what does this result mean?") and calculation problems ("what is the p-value?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
           { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
+          { k: 'versus', a: { k: 'Concepts', t: 'The why — knowing what a p-value actually claims before you compute one.' }, b: { k: 'Calculations', t: 'The reps — worked problems that make the formulas automatic.' } },
         ],
       },
       {
@@ -6880,6 +6940,7 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Anatomy requires both memorization and understanding — but the balance matters. Too much memorization and you can\'t apply the knowledge; too much understanding and you can\'t recall the structures.' },
           { k: 'p', t: 'The balance: understand the systems first, then memorize the structures that attach to them. A student who understands how the heart works can memorize the chambers; a student who tries to memorize chambers without understanding the system forgets them by exam day.' },
+          { k: 'versus', a: { k: 'Understanding', t: 'The systems — how the heart actually pumps, which makes the chambers memorable.' }, b: { k: 'Memorization', t: 'The structures — the names and locations that attach to the system.' } },
         ],
       },
       {
@@ -7358,6 +7419,7 @@ export const GUIDES = [
             { t: 'Understand deeply', d: 'Why each pattern works — the invariant, the trade-off — because exams test the why, not just the what.' },
             { t: 'Look up freely', d: 'Syntax details, library functions, API signatures — real engineers look these up; the exam tests problem-solving, not autocomplete memory.' },
           ]},
+          { k: 'versus', a: { k: 'Memorize', t: 'Complexity intuition, core data structures, and the ideas exams actually test.' }, b: { k: 'Look up', t: 'Syntax, library APIs, and anything your editor can remind you of mid-problem.' } },
         ],
       },
       {
