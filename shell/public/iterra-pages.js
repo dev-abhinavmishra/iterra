@@ -92,8 +92,8 @@ if(document.querySelector('.guide-article'))(function(){
   apply();
   btn.addEventListener('click',function(){on=!on;try{localStorage.setItem(KEY,on?'1':'0')}catch(e){}apply()});
 })();
-var onChip=document.querySelector('.series .chips a.on');
-if(onChip&&onChip.scrollIntoView)onChip.scrollIntoView({inline:'center',block:'nearest'});
+var onChip=document.querySelector('.series .chips a.on'),chipRow=onChip&&onChip.closest('.chips');
+if(chipRow){var cr=chipRow.getBoundingClientRect(),br=onChip.getBoundingClientRect();chipRow.scrollBy({left:br.left-cr.left-(cr.width-br.width)/2,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
 if(document.querySelector('.guide-article,.compare-table'))(function(){
   var KEY='itr-read:'+location.pathname.replace(/\/+$/,''),rpEl=document.querySelector('.read-progress'),art=document.querySelector(rpEl?rpEl.getAttribute('data-pg'):'.guide-article,.content>.wrap')||document.querySelector('.guide-article,.content>.wrap')||document.body;
   function frac(){var r=art.getBoundingClientRect(),total=r.height-innerHeight;return total>0?Math.min(1,Math.max(0,-r.top/total)):0}
