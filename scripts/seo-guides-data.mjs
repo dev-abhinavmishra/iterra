@@ -7027,6 +7027,114 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-computer-science',
+    title: 'How to study <em>computer science</em>',
+    seoTitle: 'How to Study Computer Science: The Code-First Method',
+    description:
+      'Learn computer science the way it is actually learned: code every example yourself, break things on purpose, solve problem sets under time, and build one project end-to-end.',
+    kicker: 'Subject Guides',
+    datePublished: '2027-11-30',
+    dateModified: '2027-12-04',
+    readMinutes: 7,
+    keywords: ['how to study computer science', 'CS study tips', 'computer science exam prep', 'learn programming'],
+    tools: ['timer', 'ink'],
+    related: ['how-to-study-engineering', 'how-to-study-math', 'how-to-study-for-finals-week'],
+    lede: 'Computer science is the subject where watching feels like learning and is not. You can follow every lecture, understand every slide, and still fail the exam — because the skill lives in your hands, not your eyes. The students who do well in CS share one habit: they write code, badly, constantly, until it is not bad anymore.',
+    takeaways: [
+      'Code every example yourself — typing is where the learning happens.',
+      'Break code on purpose — debugging your own mistakes is the core skill.',
+      'The problem sets are the course — lectures are commentary.',
+    ],
+    faq: [
+      {
+        q: 'How is studying computer science different from other subjects?',
+        a: 'It is the most practice-dense subject on a typical transcript. Reading and highlighting produce almost nothing; every hour should involve writing or debugging code. The bottleneck is reps, not review.',
+      },
+      {
+        q: 'How do I study for CS exams specifically?',
+        a: 'Rebuild the course as timed problem sets: past exams and assignment variants under the clock. Exams test pattern recognition under pressure — practice that exact skill, not just content review.',
+      },
+      {
+        q: 'Do I need to memorize syntax for CS courses?',
+        a: 'No — syntax is what autocomplete and documentation are for. What must live in your head is the problem-solving patterns: recursion shapes, loop invariants, when to reach for which data structure.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'How CS is actually learned',
+        blocks: [
+          { k: 'p', t: 'Computer science is learned through your fingers, not your eyes. Watching a lecture explains what code does; writing it — badly, then less badly — is how the skill forms. Every CS course secretly has two syllabi: the topics, and the problem sets. The problem sets are the course.' },
+          { k: 'p', t: 'That means the study method is non-negotiable in one respect: you must write code. Reading about recursion for three hours produces a student who recognizes recursion; ten minutes of writing a broken recursive function produces one who can debug it.' },
+          { k: 'tool', tool: 'timer', t: 'Timer structures the code-along blocks — timed reps on past exam problems expose whether you actually know the pattern or just recognize it.' },
+        ],
+      },
+      {
+        h2: 'The CS study loop',
+        blocks: [
+          { k: 'p', t: 'A week of CS study that actually works:' },
+          { k: 'steps', items: [
+            'Learn one concept — variables, pointers, recursion, whichever is current.',
+            'Code it yourself — type every example, do not copy-paste.',
+            'Break it deliberately — change inputs, remove a base case, watch what fails.',
+            'Solve problems — past exams and assignment variants, timed.',
+            'Review your bugs — each debugging session is a lesson in how code fails.',
+          ]},
+          { k: 'p', t: 'The break-it step is the one students skip and the one that matters most. A program you have only seen work is a program you do not understand — you have watched someone else\'s understanding.' },
+        ],
+      },
+      {
+        h2: 'The course types: different skills, different methods',
+        blocks: [
+          { k: 'p', t: 'CS is not one subject. The study method shifts by course type:' },
+          { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
+            ['Programming courses', 'Pattern recognition + implementation', 'Problem-set reps, timed'],
+            ['Theory courses', 'Proof writing and derivations', 'Hand-written proofs until automatic'],
+            ['Systems courses', 'How things actually work', 'Build small versions yourself'],
+            ['Math-heavy courses', 'Formal reasoning + code', 'Problem sets with code as verification'],
+          ]},
+        ],
+      },
+      {
+        h2: 'What to actually memorize vs. look up',
+        blocks: [
+          { k: 'p', t: 'CS has a useful split: some things must live in your head, others should live in your editor. Memorizing the wrong things wastes the semester.' },
+          { k: 'deflist', items: [
+            { t: 'Memorize', d: 'Core patterns — recursion shapes, loop invariants, common data-structure operations — and the complexity of the basics.' },
+            { t: 'Understand deeply', d: 'Why each pattern works — the invariant, the trade-off — because exams test the why, not just the what.' },
+            { t: 'Look up freely', d: 'Syntax details, library functions, API signatures — real engineers look these up; the exam tests problem-solving, not autocomplete memory.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The mistakes that stall CS students',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Copying code without typing it', d: 'Paste-and-run builds recognition, not skill. Type every example — the friction is the learning.' },
+            { t: 'Skipping the debugging', d: 'When code fails, the temptation is to find the fix online. Sit with it — debugging is the core CS skill.' },
+            { t: 'Only watching lectures', d: 'A lecture explains; it does not install. If you have not written the code yourself, you have not studied.' },
+            { t: 'Cramming problem sets', d: 'CS skills compound like language — an hour a day for a month beats a weekend of heroic effort.' },
+            { t: 'Never building anything', d: 'Problem sets teach fragments; a small project teaches the whole — even a terrible to-do app teaches more than a perfect worksheet.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The project effect',
+        blocks: [
+          { k: 'p', t: 'Every CS student should build one thing end-to-end — a CLI tool, a tiny web app, a game, anything with a beginning and an end. Projects teach what courses cannot: how to debug at 1am, how to read documentation, how to finish.' },
+          { k: 'p', t: 'The project does not need to be good. It needs to be yours — every line written by you, every bug met and survived.' },
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'You do not learn CS by understanding code. You learn it by writing code badly until it is not bad anymore.' },
+          { k: 'p', t: 'Code every example, break things on purpose, solve problems under time, review your bugs like they are the syllabus — because they are. And build the thing. The degree is the receipt; the ability to ship is the point.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
