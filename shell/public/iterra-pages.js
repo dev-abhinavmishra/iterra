@@ -156,3 +156,4 @@ if(rv.length&&'IntersectionObserver' in window&&matchMedia('(prefers-reduced-mot
 addEventListener('beforeprint',function(){
   [].slice.call(document.querySelectorAll('details:not([open])')).forEach(function(d){d.setAttribute('open','')});
 });
+(function(){var openHashFaq=function(){var d=document.querySelector('details.faq'+location.hash);if(d)d.open=true};addEventListener('hashchange',openHashFaq);if(location.hash.indexOf('#faq-')===0)openHashFaq()})();

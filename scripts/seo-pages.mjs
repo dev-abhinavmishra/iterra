@@ -1679,7 +1679,7 @@ ${toolsUsed.map((t) => `<a class="ghost" href="${t.path}">${esc(t.name)} →</a>
 <div class="faq-list">
 ${guide.faq
   .map(
-    (f) => `<details class="faq"><summary>${esc(f.q)}</summary><div class="a">${inline(f.a)}</div></details>`,
+    (f, fi) => `<details class="faq" id="faq-${fi + 1}"><summary>${esc(f.q)}</summary><div class="a">${inline(f.a)}</div></details>`,
   )
   .join('\n')}
 </div>
