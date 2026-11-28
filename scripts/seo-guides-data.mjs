@@ -6101,6 +6101,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-anatomy',
+    title: 'How to study <em>anatomy</em>',
+    seoTitle: 'How to Study Anatomy: Systems, Not Just Structures',
+    description:
+      'Beat anatomy by understanding the systems — skeletal, muscular, nervous, cardiovascular — then drawing the structures and memorizing the details that attach. Visualization beats memorization.',
+    kicker: 'Study Methods',
+    datePublished: '2027-11-02',
+    dateModified: '2027-11-06',
+    readMinutes: 7,
+    keywords: ['how to study anatomy', 'anatomy study tips', 'anatomy systems', 'anatomy memorization'],
+    tools: ['margin', 'flashcards'],
+    related: ['how-to-study-for-nursing-school', 'how-to-study-biology', 'how-to-study-science'],
+    lede: 'Anatomy is the subject where memorization and visualization collide. Students who try to memorize every structure drown in Latin names; students who try to understand every system without memorizing the basics get lost in the details. Anatomy rewards a different approach: understand the *systems* — how the body is organized, how structures relate to each other — and let the details attach themselves to the framework.',
+    takeaways: [
+      'Take a diagnostic first — the questions you miss tell you which systems to review.',
+      'Understand the systems, then memorize the structures that attach — not the other way around.',
+      'Draw the structures — visualization beats memorization for anatomy.',
+    ],
+    faq: [
+      {
+        q: 'Is anatomy harder than physiology?',
+        a: 'Anatomy and physiology are different — anatomy is about structure, physiology is about function. Anatomy requires memorizing structures and their locations; physiology requires understanding how those structures work together. Both are hard, but in different ways.',
+      },
+      {
+        q: 'How do I memorize anatomy terms?',
+        a: 'Anatomy terms are precise — learn them in context, not isolation. Draw the structures, label them, and explain what they do. Flashcards help for recall, but understanding the system is what makes the terms stick. The Feynman technique works: teach the system to someone else, and the gaps show up immediately.',
+      },
+      {
+        q: 'How much should I memorize vs. understand in anatomy?',
+        a: 'Understand the systems first, then memorize the structures that attach to them. A student who understands how the heart works can memorize the chambers; a student who tries to memorize chambers without understanding the system forgets them by exam day.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know anatomy before you study it',
+        blocks: [
+          { k: 'p', t: 'Anatomy is organized into systems — skeletal, muscular, nervous, cardiovascular, respiratory, digestive, urinary, reproductive, and integumentary. Each system has structures, functions, and relationships. If you understand the systems, the details make sense; if you don\'t, you\'re just memorizing disconnected facts.' },
+          { k: 'p', t: 'Take a practice test or diagnostic first. The questions you miss tell you exactly which systems to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
+          { k: 'tool', tool: 'margin', t: 'Margin is built for anatomy — draw structures, annotate functions, and explain systems in the margins of your notes.' },
+        ],
+      },
+      {
+        h2: 'The anatomy study loop',
+        blocks: [
+          { k: 'p', t: 'Anatomy prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the system — read the textbook or watch a lecture.',
+            'Draw the structures — visualize the anatomy, don\'t just read about it.',
+            'Label and identify — practice naming structures and their functions.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the system in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The draw-the-structures step is where understanding happens. A student who can sketch the heart understands anatomy; a student who can only recite "the heart has four chambers" doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The systems that matter',
+        blocks: [
+          { k: 'p', t: 'Anatomy is organized into systems — understand the system, and the details attach themselves:' },
+          { k: 'deflist', items: [
+            { t: 'Skeletal', d: 'Bones, joints, articulations — know the major bones and their functions.' },
+            { t: 'Muscular', d: 'Muscle groups, actions, innervations — know the major muscles.' },
+            { t: 'Nervous', d: 'Brain, spinal cord, nerves — know the major structures and pathways.' },
+            { t: 'Cardiovascular', d: 'Heart, vessels, blood — know the circulation and the heart\'s chambers.' },
+            { t: 'Respiratory', d: 'Lungs, airways, gas exchange — know the anatomy and the mechanics.' },
+          ]},
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the terminology and structures that anatomy questions assume you know — the bone names, the muscle actions, the nerve pathways.' },
+        ],
+      },
+      {
+        h2: 'The memorization-vs-understanding balance',
+        blocks: [
+          { k: 'p', t: 'Anatomy requires both memorization and understanding — but the balance matters. Too much memorization and you can\'t apply the knowledge; too much understanding and you can\'t recall the structures.' },
+          { k: 'p', t: 'The balance: understand the systems first, then memorize the structures that attach to them. A student who understands how the heart works can memorize the chambers; a student who tries to memorize chambers without understanding the system forgets them by exam day.' },
+        ],
+      },
+      {
+        h2: 'The common anatomy traps',
+        blocks: [
+          { k: 'p', t: 'Anatomy questions have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'Terminology', d: 'Anatomy uses precise language — "superficial" and "deep" mean different things.' },
+            { t: 'Orientation', d: 'Anterior/posterior, medial/lateral, proximal/distal — know the directions.' },
+            { t: 'Left vs. right', d: 'Anatomy is directional — know which side you\'re looking at.' },
+            { t: 'Variations', d: 'Anatomy has variations — the "normal" is a range, not a point.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Anatomy isn\'t about memorizing structures — it\'s about understanding systems.' },
+          { k: 'p', t: 'Understand the systems, draw the structures, memorize the details that attach, and explain the concepts. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
