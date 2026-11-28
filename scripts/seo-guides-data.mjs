@@ -4780,6 +4780,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked data-sufficiency question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "Is x > y? (1) x² > y². (2) x > 0." The trick is that this is not a solving problem — it is a sufficiency problem.' },
+          { k: 'steps', items: [
+            'Read statement 1 alone — x² > y² means |x| > |y|, which does not tell you x > y (try x = −3, y = 2). Insufficient.',
+            'Read statement 2 alone — x > 0 says nothing about y. Insufficient.',
+            'Combine — knowing x is positive still leaves y free; x = 5, y = 10 works and x = 10, y = 5 works. Insufficient together.',
+            'Choose E — the answer is "not sufficient," and that is a legitimate, common correct answer.',
+            'Generalize — DS questions test whether you can find the counterexample, not whether you can solve. Practice generating cases that break each statement.',
+          ]},
+          { k: 'p', t: 'Data Sufficiency is the section students skip — and the section that most punishes algebra habits. The skill is counterexample generation: for every statement, ask "can I make this true and the answer still ambiguous?" If yes, it is insufficient.' },
+        ],
+      },
+      {
         h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'Speed comes from certainty. Certainty comes from reps.' },
@@ -5111,6 +5125,20 @@ export const GUIDES = [
             { t: 'Ignoring verbal reasoning', d: 'The verbal section is half the battle for many students — it rewards passage-map skills, not vocabulary drills.' },
             { t: 'Taking the exam cold-turkey', d: 'PCAT scores are percentile-based — a diagnostic practice test tells you whether you need months or weeks.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked biology question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic PCAT biology question: "A patient has high blood calcium and low PTH. Which gland is most likely malfunctioning?" The content is simple — the reasoning is the test.' },
+          { k: 'steps', items: [
+            'Recall the axis — calcium is regulated by PTH from the parathyroid glands; low PTH with high calcium is backwards.',
+            'Check the feedback — normally high calcium suppresses PTH; here calcium is high AND PTH is low, so the parathyroids are not responding.',
+            'Consider the alternative — the thyroid is a distractor; it makes T3/T4, not PTH.',
+            'Name the malfunction — parathyroid suppression, not hyperparathyroidism (which would raise PTH).',
+            'Verify the direction — the question tests whether you can trace a feedback loop, not just memorize gland names.',
+          ]},
+          { k: 'p', t: 'PCAT science questions reward mechanism over memorization — the gland names are easy; the feedback relationships are what the exam tests. Practice tracing axes end-to-end: stimulus, gland, hormone, target, feedback.' },
         ],
       },
       {
@@ -6761,6 +6789,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked thesis development',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to the starting point everyone has: "I want to write about social media and mental health." That is a topic, not a paper — the method turns it into an argument.' },
+          { k: 'steps', items: [
+            'Narrow to a question — "Does passive social media use predict anxiety in adolescents, or only correlate with it?"',
+            'Find the tension — the literature disagrees: some studies claim causation, others find confounds like sleep and loneliness.',
+            'Take a position — argue that the correlation is largely explained by displaced sleep and reduced face-to-face time.',
+            'State the thesis — "While social media use correlates with adolescent anxiety, the relationship is mediated by sleep disruption rather than screen time itself."',
+            'Test it — every section of the paper must serve that claim; anything else is a different paper.',
+          ]},
+          { k: 'p', t: 'The research paper is an argument wearing footnotes — the thesis is the spine, and every source either supports it, complicates it, or is cut. Students who struggle are usually researching without a claim; students who argue first research faster and write clearer.' },
+        ],
+      },
+      {
         h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'The research paper isn\'t about finding information — it\'s about building an argument.' },
@@ -6874,6 +6916,20 @@ export const GUIDES = [
             { t: 'Practicing without the timer', d: '90 minutes for roughly 90 questions is tight — untimed practice builds knowledge but not the pacing the exam demands.' },
             { t: 'Ignoring your college\'s credit policy', d: 'Not every school accepts every CLEP — a passing score at one college can be worthless at another. Check before you book.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked CLEP question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic American Government CLEP question: "Which constitutional clause gives Congress the power to regulate interstate commerce?" It looks like trivia — it is actually a structure question.' },
+          { k: 'steps', items: [
+            'Recognize the question type — this is "identify the clause," not "define the concept"; it tests the document\'s architecture.',
+            'Recall the clause — the Commerce Clause, Article I, Section 8.',
+            'Eliminate the traps — Necessary and Proper is the elastic clause (related but different); Tenth Amendment reserves powers to states.',
+            'Verify the article — Article I is Congress; the question asks which clause, and Commerce Clause is the precise answer.',
+            'Generalize — CLEP questions test whether you know the course\'s structure, not just its facts. Practice mapping clauses, articles, and doctrines to their locations.',
+          ]},
+          { k: 'p', t: 'CLEP exams reward course-level knowledge — the answers are in the textbook\'s structure, not its trivia. Students who memorize facts miss the questions that ask "which article" or "which clause"; students who learn the document\'s architecture answer them instantly.' },
         ],
       },
       {
