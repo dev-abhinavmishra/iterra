@@ -840,7 +840,8 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .tour p{font-size:1.04rem;line-height:1.75;color:#333a34;margin-bottom:1rem}
 .series{margin-top:2.6rem;padding-top:1.4rem;border-top:1px solid var(--line)}
 .series>.mono{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:.7rem}
-.series .chips{display:flex;flex-wrap:wrap;gap:.45rem}
+.series .chips{display:flex;flex-wrap:nowrap;gap:.45rem;overflow-x:auto;scrollbar-width:thin;padding:.2rem .2rem .7rem;margin:0 -.2rem;scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(90deg,#000 92%,transparent);mask-image:linear-gradient(90deg,#000 92%,transparent)}
+.series .chips a{flex:none;scroll-snap-align:start}
 .series .chips a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.4rem .85rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
 .series .chips a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
 .series .chips a.on{background:var(--accent);border-color:var(--accent);color:#f4f1e6}
@@ -1332,6 +1333,8 @@ tt.addEventListener('click',function(){scrollTo({top:0,behavior:matchMedia('(pre
     btn.textContent=open?'Show all '+ul.querySelectorAll('li').length+' guides':'Show fewer';
   });
 });
+var onChip=document.querySelector('.series .chips a.on');
+if(onChip&&onChip.scrollIntoView)onChip.scrollIntoView({inline:'center',block:'nearest'});
 if(document.querySelector('.guide-article,.compare-table'))(function(){
   var KEY='itr-read:'+location.pathname,art=document.querySelector('.guide-article,.content>.wrap')||document.body;
   function frac(){var r=art.getBoundingClientRect(),total=r.height-innerHeight;return total>0?Math.min(1,Math.max(0,-r.top/total)):0}
