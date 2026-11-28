@@ -5006,6 +5006,104 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-nclex',
+    title: 'How to study for the <em>NCLEX</em>',
+    seoTitle: 'How to Study for the NCLEX: Prep Strategy & Timing',
+    description:
+      'Beat the NCLEX with a system: know the CAT format, practice the prioritization and safety patterns, review every question, and focus your prep on the high-yield content areas.',
+    kicker: 'Study Methods',
+    datePublished: '2027-08-17',
+    dateModified: '2027-08-21',
+    readMinutes: 7,
+    keywords: ['how to study for the NCLEX', 'NCLEX prep', 'NCLEX practice questions', 'NCLEX study plan'],
+    tools: ['flashcards', 'timer'],
+    related: ['how-to-study-for-nursing-school', 'how-to-ace-multiple-choice-tests', 'how-to-use-practice-tests'],
+    lede: 'The NCLEX is the final boss of nursing school — a computerized adaptive test that decides whether you\'re safe to practice. But the NCLEX rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Prioritization, delegation, and safety questions dominate — practice those patterns.',
+      'Pharmacology and med-surg are the high-yield content areas.',
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the NCLEX?',
+        a: 'Most students need 4-8 weeks of focused prep after graduation. A consistent daily schedule of practice questions and review works better than weekend cramming. Start with a full practice test to gauge your baseline, then build a plan around your weak areas.',
+      },
+      {
+        q: 'Is the NCLEX harder than nursing school exams?',
+        a: 'The NCLEX is different — it tests clinical judgment and prioritization, not just recall. The questions are more application-focused, so practicing with NCLEX-style questions matters more than reviewing notes.',
+      },
+      {
+        q: 'How many questions are on the NCLEX?',
+        a: 'The NCLEX is computerized adaptive — you answer questions until the computer is confident in your ability. The minimum is 75 questions; the maximum is 145. You won\'t know the total until the test ends.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The NCLEX is a computerized adaptive test (CAT) — the questions get harder or easier based on your answers. It\'s not a fixed-length test; you answer until the computer is confident in your ability. The test covers all nursing content areas: management of care, safety, pharmacology, and more.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who struggles with pharmacology should spend most of their time on medications.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the NCLEX\'s adaptive pressure — practice sections at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The NCLEX study loop',
+        blocks: [
+          { k: 'p', t: 'NCLEX prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong — with rationales.',
+            'Identify the content areas you miss most.',
+            'Drill those areas with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'The question types: prioritization, delegation, safety',
+        blocks: [
+          { k: 'p', t: 'The NCLEX tests whether you can *think* like a nurse — prioritization, delegation, and safety questions dominate. The strategies:' },
+          { k: 'deflist', items: [
+            { t: 'Prioritization', d: 'Use Maslow\'s hierarchy — airway, breathing, circulation first.' },
+            { t: 'Delegation', d: 'The RN retains assessment, teaching, and evaluation; delegates stable tasks.' },
+            { t: 'Safety', d: 'Fall precautions, medication safety, infection control — always the priority.' },
+            { t: 'Pharmacology', d: 'Know the drug class, the priority assessment, and the adverse effects.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The content areas: what to focus on',
+        blocks: [
+          { k: 'p', t: 'The NCLEX covers all nursing content — but some areas are higher-yield than others. Focus on:' },
+          { k: 'deflist', items: [
+            { t: 'Pharmacology', d: 'The most-tested area — know the drug classes and priority assessments.' },
+            { t: 'Med-surg', d: 'The largest content area — know the common conditions and interventions.' },
+            { t: 'Maternal-newborn', d: 'High-yield — know the normal vs. abnormal findings.' },
+            { t: 'Mental health', d: 'Therapeutic communication and crisis intervention.' },
+          ]},
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the high-yield nursing content — the drug classes, lab values, and priority assessments that every question assumes you know.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'NCLEX timing varies — the CAT adapts to your performance. The strategy: answer every question, don\'t change answers unless you have a reason, and don\'t leave questions blank. The CAT doesn\'t penalize guessing.' },
+          { k: 'p', t: 'For prioritization questions, use the ABCs — airway, breathing, circulation — and Maslow\'s hierarchy. For delegation questions, remember the RN\'s scope. For safety questions, the answer is almost always "ensure safety first."' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The NCLEX is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
