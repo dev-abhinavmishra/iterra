@@ -5400,6 +5400,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-biology',
+    title: 'How to study <em>biology</em>',
+    seoTitle: 'How to Study Biology: Systems, Not Just Facts',
+    description:
+      'Beat biology by understanding the systems — cells, genetics, evolution, physiology, ecology — then memorizing the details that attach. Systems first, facts second.',
+    kicker: 'Study Methods',
+    datePublished: '2027-09-14',
+    dateModified: '2027-09-18',
+    readMinutes: 7,
+    keywords: ['how to study biology', 'biology study tips', 'biology systems', 'biology memorization'],
+    tools: ['margin', 'flashcards'],
+    related: ['how-to-study-science', 'how-to-study-chemistry', 'how-to-study-for-nursing-school'],
+    lede: 'Biology is the subject where memorization and understanding collide. Students who try to memorize every detail drown in facts; students who try to understand everything without memorizing the basics get lost in the weeds. Biology rewards a different approach: understand the *systems* — how cells work, how organisms function, how ecosystems connect — and let the details attach themselves to the framework.',
+    takeaways: [
+      'Take a diagnostic first — the questions you miss tell you which systems to review.',
+      'Understand the systems, then memorize the details that attach — not the other way around.',
+      'Balance memorization and understanding — you need both, but systems come first.',
+    ],
+    faq: [
+      {
+        q: 'Is biology harder than chemistry?',
+        a: 'Biology and chemistry are different — biology is more conceptual and systems-based, chemistry is more mathematical and calculation-heavy. Biology requires understanding how organisms work; chemistry requires understanding how reactions happen. Both are hard, but in different ways.',
+      },
+      {
+        q: 'How do I know if I understand biology?',
+        a: 'If you can explain a system in your own words — how photosynthesis works, how the immune system fights infection — you understand it. If you can only recite facts, you don\'t. The Feynman technique works: teach the concept to someone else, and the gaps show up immediately.',
+      },
+      {
+        q: 'How much should I memorize vs. understand in biology?',
+        a: 'Understand the systems first, then memorize the details that attach to them. A student who understands how the immune system works can memorize the cell types; a student who tries to memorize cell types without understanding the system forgets them by exam day.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know biology before you study it',
+        blocks: [
+          { k: 'p', t: 'Biology is built on a few core systems — cells, genetics, evolution, physiology, and ecology. Everything else is application. If you understand the systems, the details make sense; if you don\'t, you\'re just memorizing disconnected facts.' },
+          { k: 'p', t: 'Take a practice test or diagnostic first. The questions you miss tell you exactly which systems to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
+          { k: 'tool', tool: 'margin', t: 'Margin is built for biology — draw systems diagrams, annotate processes, and explain concepts in the margins of your notes.' },
+        ],
+      },
+      {
+        h2: 'The biology study loop',
+        blocks: [
+          { k: 'p', t: 'Biology prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the system — read the textbook or watch a lecture.',
+            'Work through example problems — understand *why* each step works.',
+            'Solve problems independently — start with easy, then harder.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the system in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain how photosynthesis works understands biology; a student who can only recite the steps doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The systems that matter',
+        blocks: [
+          { k: 'p', t: 'Biology is organized into systems — understand the system, and the details attach themselves:' },
+          { k: 'deflist', items: [
+            { t: 'Cells', d: 'The basic unit of life — understand structure and function.' },
+            { t: 'Genetics', d: 'DNA, genes, inheritance — know how traits pass down.' },
+            { t: 'Evolution', d: 'Natural selection, speciation, adaptation — know the mechanisms.' },
+            { t: 'Physiology', d: 'How organisms function — know the systems (circulatory, respiratory, etc.).' },
+            { t: 'Ecology', d: 'How organisms interact — know the relationships and flows.' },
+          ]},
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the terminology and processes that biology questions assume you know — the cell types, the organ systems, the genetic terms.' },
+        ],
+      },
+      {
+        h2: 'The memorization-vs-understanding balance',
+        blocks: [
+          { k: 'p', t: 'Biology requires both memorization and understanding — but the balance matters. Too much memorization and you can\'t apply the knowledge; too much understanding and you can\'t recall the details.' },
+          { k: 'p', t: 'The balance: understand the systems first, then memorize the details that attach to them. A student who understands how the immune system works can memorize the cell types; a student who tries to memorize cell types without understanding the system forgets them by exam day.' },
+        ],
+      },
+      {
+        h2: 'The common biology traps',
+        blocks: [
+          { k: 'p', t: 'Biology questions have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'Terminology', d: 'Biology uses precise language — "similar" and "homologous" mean different things.' },
+            { t: 'Scale', d: 'Cells, tissues, organs, systems — know which level you\'re working at.' },
+            { t: 'Cause vs. correlation', d: 'Biology questions test whether you understand *why*, not just *that*.' },
+            { t: 'Exceptions', d: 'Biology is full of exceptions — the "rule" has a "but usually..."' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Biology isn\'t about memorizing facts — it\'s about understanding systems.' },
+          { k: 'p', t: 'Understand the systems, memorize the details that attach, explain the concepts, and practice the problem types. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
