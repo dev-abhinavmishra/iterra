@@ -2665,6 +2665,98 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-math',
+    title: 'How to <em>study math</em>',
+    seoTitle: 'How to Study Math: Problems Are the Method, Not Reading',
+    description:
+      'Study math like a skill, not a subject: problems are the method, the study loop builds fluency, and understanding the why beats memorizing formulas.',
+    kicker: 'Study Methods',
+    datePublished: '2027-02-09',
+    dateModified: '2027-02-13',
+    readMinutes: 6,
+    keywords: ['how to study math', 'math study tips', 'math exam prep', 'how to learn math'],
+    tools: ['proof', 'flashcards'],
+    related: ['how-to-use-practice-tests', 'active-recall-vs-rereading', 'how-to-study-for-finals-week'],
+    lede: 'Math is the subject where the gap between "I understand it" and "I can do it" is widest. Reading the textbook feels like learning; the exam tests whether you can actually solve problems under pressure. The fix: study math like it’s a skill, not a subject — practice problems are the study method, and everything else supports them.',
+    takeaways: [
+      'Problems are the study method — reading the textbook alone doesn’t build the skill.',
+      'The math study loop: review, struggle, check, do a similar problem, space it.',
+      'Understand the why — formulas without meaning fail when the problem doesn’t come with a label.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for a math test?',
+        a: 'Start with practice problems — they’re the highest-yield activity. Work through them using the study loop: review the concept, struggle productively, check the solution, do a similar problem, and review mistakes. Reading alone doesn’t build the skill the exam tests.',
+      },
+      {
+        q: 'Is it better to study math by reading or doing problems?',
+        a: 'Doing problems, by a wide margin. Reading explains concepts but doesn’t build application skill. The exam tests whether you can solve problems, not whether you recognize the concepts — so problems are the study method.',
+      },
+      {
+        q: 'How do I stop making careless mistakes in math?',
+        a: 'Slow down on the steps you rush — arithmetic errors are the most common cause of lost points. Show your work, check each step before moving on, and if you have time at the end, verify your answers. Practice problems under timed conditions also help.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Problems are the study method',
+        blocks: [
+          { k: 'p', t: 'Math is the subject where the gap between "I understand it" and "I can do it" is widest. Reading the textbook feels like learning; the exam tests whether you can actually solve problems under pressure. The fix: study math like it’s a skill, not a subject — practice problems are the study method, and everything else supports them.' },
+          { k: 'p', t: 'Math is learned by doing, not by reading. The textbook explains concepts; the problems teach you to apply them. If you only read the material, you’ll recognize the concepts but fail when the exam asks you to use them. The single highest-yield activity in math study is solving problems — lots of them, starting easy and working up.' },
+        ],
+      },
+      {
+        h2: 'The math study loop',
+        blocks: [
+          { k: 'p', t: 'A productive math study session follows a predictable loop:' },
+          { k: 'steps', items: [
+            'Review the concept — read the explanation, watch a worked example.',
+            'Try a problem yourself — struggle productively for 5-10 minutes.',
+            'Check the solution — understand every step, not just the answer.',
+            'Do a similar problem — confirm you can do it independently.',
+            'Space it — come back to the concept in a few days.',
+          ]},
+          { k: 'p', t: 'The struggle in step three is where learning happens. If you look up the solution too quickly, you skip the productive confusion that makes the method stick.' },
+        ],
+      },
+      {
+        h2: 'Understand the why, not just the how',
+        blocks: [
+          { k: 'p', t: 'Math builds on itself — every concept is used in the next one. Memorizing formulas without understanding what they mean works until the exam asks you to apply them in a new context. The "why" is what lets you recognize which tool to use when the problem doesn’t come with a label.' },
+          { k: 'p', t: 'When you learn a new concept, ask: what problem does this solve? Why does this formula work? What happens if I change a variable? These questions turn procedures into understanding.' },
+        ],
+      },
+      {
+        h2: 'Common math study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common math study failures follow predictable patterns:' },
+          { k: 'deflist', items: [
+            { t: 'Reading without doing', d: 'Recognizing concepts but failing to apply them.' },
+            { t: 'Skipping the struggle', d: 'Looking up solutions before giving problems a real attempt.' },
+            { t: 'Only doing easy problems', d: 'The exam tests the hard ones — you need reps at the edge of your ability.' },
+            { t: 'Not reviewing mistakes', d: 'The problems you got wrong are the most valuable study material you have.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The night-before protocol',
+        blocks: [
+          { k: 'p', t: 'Math exams are cumulative — the night before matters less than the weeks before. But if you’re cramming, focus on the highest-yield material: the formulas and problem types that appear most often. Do a few practice problems to warm up the patterns, then sleep.' },
+          { k: 'p', t: 'During the exam, show your work — even if you get the wrong answer, partial credit and the process of writing it out can reveal where you went wrong. And check your work if you have time; arithmetic errors are the most common cause of lost points.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps you organize the steps of a solution — the same discipline that turns a messy attempt into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Math rewards practice, not preparation.' },
+          { k: 'p', t: 'The students who do well aren’t the ones who read the most — they’re the ones who solve the most problems, understand the why behind the how, and review their mistakes until the patterns are automatic.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
