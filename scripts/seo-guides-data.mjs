@@ -2949,6 +2949,103 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-science',
+    title: 'How to <em>study science</em>',
+    seoTitle: 'How to Study Science: Systems, Diagrams, Active Recall',
+    description:
+      'Study science like a system, not a list: learn the core concepts, draw the diagrams, explain it out loud, and use active recall for processes and relationships.',
+    kicker: 'Study Methods',
+    datePublished: '2027-03-02',
+    dateModified: '2027-03-06',
+    readMinutes: 6,
+    keywords: ['how to study science', 'science study tips', 'biology study', 'chemistry study'],
+    tools: ['ink', 'flashcards'],
+    related: ['how-to-study-math', 'active-recall-vs-rereading', 'lecture-notes-that-actually-stick'],
+    lede: 'Science courses fail students in a specific way: they treat the material as facts to memorize instead of systems to understand. Biology isn\'t a list of terms; it\'s interconnected processes. Chemistry isn\'t equations; it\'s patterns of behavior. The students who do well learn the *structure* of the science, not just the content.',
+    takeaways: [
+      'Science is systems, not facts — learn the core concepts and the details organize themselves.',
+      'Draw the diagram — science is visual and spatial, and the diagram is the concept.',
+      'Use process-based flashcards — "what are the steps" not "what is the term."'
+    ],
+    faq: [
+      {
+        q: 'How do I study for a science exam?',
+        a: 'Learn the core concepts first, then connect everything to the system. Draw diagrams for processes, use active recall for relationships, and explain the material out loud. Science exams test understanding of systems, not memorization of facts.',
+      },
+      {
+        q: 'Are flashcards effective for science?',
+        a: 'Yes, but differently than for vocabulary. Use process-based cards — "what are the steps of X" rather than "what is X." The goal is to recall the system, not just the term. Diagrams and concept maps are often more effective than traditional flashcards for science.',
+      },
+      {
+        q: 'How do I study for a lab course?',
+        a: 'Treat the lab as part of the study method — the experiment you did is the best flashcard you\'ll have. Connect every concept to something you observed. If you don\'t have a lab, use simulations or videos to make the abstract concrete.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Science is systems, not facts',
+        blocks: [
+          { k: 'p', t: 'Science courses fail students in a specific way: they treat the material as facts to memorize instead of systems to understand. Biology isn\'t a list of terms; it\'s interconnected processes. Chemistry isn\'t equations; it\'s patterns of behavior. The students who do well learn the *structure* of the science, not just the content.' },
+          { k: 'p', t: 'Every science course is built on a small number of core concepts that everything else connects to. In biology, it\'s the cell and evolution. In chemistry, it\'s atomic structure and bonding. In physics, it\'s forces and energy. Learn the core concepts deeply and the details organize themselves around them.' },
+          { k: 'p', t: 'When you encounter a new topic, ask: how does this connect to the core? Where does this fit in the system? The connections are what make the material stick — isolated facts are forgotten, integrated systems are remembered.' },
+        ],
+      },
+      {
+        h2: 'The science study loop',
+        blocks: [
+          { k: 'p', t: 'A productive science study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Read the material once to get the big picture.',
+            'Go back and learn the details — terms, processes, equations.',
+            'Draw the system — diagrams, flowcharts, concept maps.',
+            'Explain it out loud — teach the material to an imaginary student.',
+            'Test yourself — practice problems or recall questions.',
+          ]},
+          { k: 'p', t: 'The diagram step is crucial for science. Most science concepts are spatial or process-based — photosynthesis, the cell cycle, orbital mechanics. A diagram forces you to understand the *relationships*, not just the labels.' },
+          { k: 'tool', tool: 'ink', t: 'Ink is built for the diagram step — sketch the system, label the parts, and the relationships become visible.' },
+        ],
+      },
+      {
+        h2: 'Active recall for science',
+        blocks: [
+          { k: 'p', t: 'Science flashcards work differently than vocabulary flashcards. Instead of "term = definition," use "process = explanation" or "diagram = labels." The goal is to recall the *system*, not just the term.' },
+          { k: 'deflist', items: [
+            { t: 'Biology', d: '"What are the steps of cellular respiration?" not "What is cellular respiration?"' },
+            { t: 'Chemistry', d: '"What happens when you mix X and Y?" not "What is the formula for X?"' },
+            { t: 'Physics', d: '"Why does the ball arc like that?" not "What is projectile motion?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The lab connection',
+        blocks: [
+          { k: 'p', t: 'Lab courses are where science concepts become real. If you have a lab, treat it as part of the study method — the experiment you did is the best flashcard you\'ll ever have. Connect every concept to something you observed or did.' },
+          { k: 'p', t: 'If you don\'t have a lab, use simulations, videos, or virtual labs. The goal is the same: make the abstract concrete. A process you\'ve seen is easier to recall than a process you\'ve only read about.' },
+        ],
+      },
+      {
+        h2: 'Common science study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common science study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing terms without understanding processes', d: 'Terms are labels for systems — learn the system, not the label.' },
+            { t: 'Skipping the diagrams', d: 'Science is visual and spatial — the diagram is the concept.' },
+            { t: 'Not connecting topics', d: 'Each unit builds on the last — isolated facts don\'t survive.' },
+            { t: 'Studying only before exams', d: 'Science requires consistent review — the material accumulates.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Science rewards understanding, not memorization.' },
+          { k: 'p', t: 'Learn the core concepts, connect everything to the system, draw the diagrams, and explain it out loud. The students who treat science as a set of interconnected ideas outperform the ones who treat it as a list of facts.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
