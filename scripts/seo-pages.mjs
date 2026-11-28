@@ -555,8 +555,14 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:11.5px;le
 .compare-table tbody tr.us td{background:#f4f8f2}
 .compare-table tbody tr.us td.us{background:#e2edde}
 @media(prefers-reduced-motion:no-preference){.compare-table tbody tr{transition:background .15s}.compare-table tbody tr:not(.us):hover td{background:#faf6ea}}
+.matchup{display:flex;align-items:center;gap:.7rem;margin-top:1.4rem;flex-wrap:wrap}
+.matchup .chip{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding:.5rem 1.05rem;border:1px solid var(--line2);border-radius:999px;background:var(--sheet);color:var(--ink);transition:transform .2s,box-shadow .2s,border-color .2s}
+.matchup .chip:hover{transform:translateY(-2px);box-shadow:0 10px 20px -12px rgba(31,36,31,.4);border-color:rgba(43,84,64,.4)}
+.matchup .chip.us{background:linear-gradient(135deg,#2b5440,#1d4634);border-color:#1d4634;color:#eef4dc}
+.matchup .vs{color:var(--faint);font-size:11px;letter-spacing:.14em}
 .wins-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.75rem}
-.win-card{border-top:1px solid var(--line2);padding-top:1.3rem;background:none}
+.win-card{border-top:1px solid var(--line2);padding-top:1.3rem;background:none;transition:transform .2s}
+.win-card:hover{transform:translateY(-3px)}
 .win-card.us{border-top:2px solid var(--accent)}
 .win-card.them{border-top:1px solid var(--line2)}
 .win-card h3{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.9rem}
@@ -615,6 +621,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .prose a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--gold2)}
 .prose a:hover{color:var(--accent2)}
 .prose strong{font-weight:600}
+.prose code{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:#efece0;border:1px solid var(--line);border-radius:6px;padding:.08em .42em;color:var(--accent2);white-space:nowrap}
 .prose .callout{border-left:3px solid var(--gold);background:var(--sheet);padding:1rem 1.35rem;margin:1.7rem 0;border-radius:0 10px 10px 0}
 .prose .callout p{margin:0;font-size:1.02rem;color:var(--mute);font-style:italic;line-height:1.65}
 .prose .gsec{margin-top:2.6rem}
@@ -833,6 +840,7 @@ const dateFmt = (d) =>
 function inline(s) {
   let out = esc(s);
   out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+  out = out.replace(/`([^`\n]+)`/g, '<code>$1</code>');
   out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   out = out.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
   return out;
@@ -1140,6 +1148,9 @@ ${tool.faqs.map((f) => `<details class="faq"><summary>${esc(f.q)}</summary><div 
 </section>` : ''}
 ${relatedToolsHtml}
 ${toolPagerHtml}
+<section class="block" style="border-bottom:none;padding-top:0">
+${adSlotHtml()}
+</section>
 <section class="block">
 <div class="connect"><div>
 <span class="mono">One workspace, not another tab</span>
@@ -1152,6 +1163,7 @@ ${toolPagerHtml}
 </div></div>
 </section>
 </div>
+${readProgressScript('.content>.wrap')}
 ${footer()}
 </body>
 </html>
@@ -1624,6 +1636,13 @@ export function renderComparePage(page) {
     .join('')}</tr></thead>`;
 
   const factHtml = `<div class="fact-strip"><span class="fact">Free</span><span class="fact">No account</span><span class="fact">Local-first</span><span class="fact">Honest trade-offs</span></div>`;
+  const rivalChip =
+    page.section === 'compare' && page.rival && page.rival !== 'roundup' && page.rival !== 'generic planners'
+      ? page.rival
+      : null;
+  const matchupHtml = rivalChip
+    ? `<div class="matchup"><span class="chip us">Iterra</span><span class="vs mono">vs</span><span class="chip">${esc(rivalChip)}</span></div>`
+    : '';
   const winsHtml = `
 <div class="wins-grid">
 <div class="win-card us"><h3>Where Iterra wins</h3><ul>
@@ -1679,6 +1698,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: base === 'compare' ? 'Compare
 <div class="kicker mono">${esc(page.kicker)} · Iterra terrain</div>
 <h1>${emH1(page.h1)}</h1>
 <p class="lede">${esc(page.lede)}</p>
+${matchupHtml}
 ${factHtml}
 <div class="meta-row"><span>${dateFmt(page.datePublished)}</span>${page.dateModified && page.dateModified !== page.datePublished ? `<span>Updated ${dateFmt(page.dateModified)}</span>` : ''}<span><a href="/${base}">All ${base === 'compare' ? 'comparisons' : 'alternatives'}</a></span></div>
 </div></section>
