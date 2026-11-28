@@ -998,6 +998,12 @@ body.reader .guide-article{max-width:46rem}
 .m-tag.ok{color:var(--accent)}
 .m-w{color:var(--mute);font-size:.95rem;line-height:1.6}
 .m-r{font-size:.95rem;line-height:1.6;color:var(--ink)}
+.keypoint{margin:2.4rem auto;max-width:40rem;text-align:center;padding:1.6rem 0;position:relative}
+.keypoint::before,.keypoint::after{content:"";position:absolute;left:50%;width:3.2rem;height:1px;background:var(--gold);transform:translateX(-50%)}
+.keypoint::before{top:0}.keypoint::after{bottom:0}
+.keypoint .kp-tag{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:.7rem}
+.keypoint p{font-family:Newsreader,Georgia,serif;font-size:clamp(1.3rem,2.4vw,1.6rem);font-weight:500;line-height:1.45;letter-spacing:-.015em;color:var(--ink);margin:0}
+@media(max-width:720px){.keypoint{padding:1.2rem 0}}
 .example{border:1px solid var(--line);border-left:3px solid var(--accent);background:linear-gradient(160deg,rgba(233,240,226,.55),var(--sheet));border-radius:0 12px 12px 0;padding:1.3rem 1.5rem;margin:2rem 0;position:relative}
 .example .ex-tag{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.7rem}
 .example .ex-body{font-family:Newsreader,Georgia,serif;font-size:1.12rem;line-height:1.7;color:var(--ink)}
@@ -1129,6 +1135,8 @@ function renderBlocks(blocks) {
   return blocks
     .map((b) => {
       if (b.k === 'h3') return `<h3>${inline(b.t)}</h3>`;
+      if (b.k === 'keypoint')
+        return `<div class="keypoint">${b.label ? `<span class="kp-tag mono">${esc(b.label)}</span>` : ''}<p>${inline(b.t)}</p></div>`;
       if (b.k === 'p') return `<p>${inline(b.t)}</p>`;
       if (b.k === 'ul')
         return `<ul>${b.items.map((i) => `<li>${inline(i)}</li>`).join('')}</ul>`;

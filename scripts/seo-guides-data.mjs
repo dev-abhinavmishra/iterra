@@ -713,7 +713,7 @@ export const GUIDES = [
       {
         h2: 'During class: the 70/30 rule',
         blocks: [
-          { k: 'p', t: 'Aim to spend about 70% of your attention on *processing* and 30% on *writing*. That means listening to understand first, then capturing the understanding — not transcribing the delivery.' },
+          { k: 'keypoint', label: 'The split', t: 'Spend about 70% of your attention on *processing* and 30% on *writing* — listen to understand first, then capture the understanding, not the delivery.' },
           { k: 'p', t: 'Tactics that make this work:' },
           { k: 'ul', items: [
             'Skim the reading or slides *before* class. If you know what the lecture is about, you can recognize what matters when it’s said.',
@@ -6070,7 +6070,7 @@ export const GUIDES = [
         h2: 'The concept-vs-calculation balance',
         blocks: [
           { k: 'p', t: 'Physics has two halves: conceptual questions ("why does this happen?") and calculation problems ("how fast does it go?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
-          { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
+          { k: 'keypoint', label: 'The balance', t: 'Spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
           { k: 'tool', tool: 'margin', t: 'Margin is built for physics — sketch diagrams, annotate equations, and explain concepts in the margins of your notes.' },
           { k: 'versus', a: { k: 'Concepts', t: 'The why — understanding that carries you through questions you have never seen.' }, b: { k: 'Calculations', t: 'The reps — problems that build the fluency to execute under time pressure.' } },
         ],
@@ -6313,7 +6313,7 @@ export const GUIDES = [
         h2: 'The memorization-vs-understanding balance',
         blocks: [
           { k: 'p', t: 'Biology requires both memorization and understanding — but the balance matters. Too much memorization and you can\'t apply the knowledge; too much understanding and you can\'t recall the details.' },
-          { k: 'p', t: 'The balance: understand the systems first, then memorize the details that attach to them. A student who understands how the immune system works can memorize the cell types; a student who tries to memorize cell types without understanding the system forgets them by exam day.' },
+          { k: 'keypoint', label: 'The balance', t: 'Understand the systems first, then memorize the details that attach to them. A student who understands how the immune system works can memorize the cell types; a student who tries to memorize cell types without understanding the system forgets them by exam day.' },
           { k: 'versus', a: { k: 'Understanding', t: 'The systems — how it works, which is what lets details stick.' }, b: { k: 'Memorization', t: 'The details — the cell types and steps that attach to what you understand.' } },
         ],
       },
@@ -7179,7 +7179,7 @@ export const GUIDES = [
         h2: 'The memorization-vs-understanding balance',
         blocks: [
           { k: 'p', t: 'Anatomy requires both memorization and understanding — but the balance matters. Too much memorization and you can\'t apply the knowledge; too much understanding and you can\'t recall the structures.' },
-          { k: 'p', t: 'The balance: understand the systems first, then memorize the structures that attach to them. A student who understands how the heart works can memorize the chambers; a student who tries to memorize chambers without understanding the system forgets them by exam day.' },
+          { k: 'keypoint', label: 'The balance', t: 'Understand the systems first, then memorize the structures that attach to them. A student who understands how the heart works can memorize the chambers; a student who tries to memorize chambers without understanding the system forgets them by exam day.' },
           { k: 'versus', a: { k: 'Understanding', t: 'The systems — how the heart actually pumps, which makes the chambers memorable.' }, b: { k: 'Memorization', t: 'The structures — the names and locations that attach to the system.' } },
         ],
       },
