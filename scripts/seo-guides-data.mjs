@@ -4014,6 +4014,99 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-lsat',
+    title: 'How to study for the <em>LSAT</em>',
+    seoTitle: 'How to Study for the LSAT: Strategy, Patterns, Timing',
+    description:
+      'Beat the LSAT with a system: know the format, practice the question patterns, review every answer, and manage your timing — the LSAT rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-06-01',
+    dateModified: '2027-06-05',
+    readMinutes: 7,
+    keywords: ['how to study for the LSAT', 'LSAT prep', 'LSAT strategy', 'LSAT practice test'],
+    tools: ['timer', 'ink'],
+    related: ['how-to-study-for-the-gre', 'how-to-study-for-the-mcat', 'how-to-use-practice-tests'],
+    lede: 'The LSAT is the test that decides law school — a 3.5-hour exam that tests logical reasoning, not legal knowledge. But the LSAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Practice, review, repeat — the review is where learning happens.',
+      'Logic Games are the most learnable section — diagramming is the skill.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the LSAT?',
+        a: 'Most students need 3-4 months of consistent prep. A focused 12-16 week plan with 10-15 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+      },
+      {
+        q: 'Is the LSAT harder than the GRE?',
+        a: 'They test different skills. The LSAT is more focused on logical reasoning and argument analysis; the GRE tests vocabulary and general reasoning. The LSAT\'s Logic Games section is unique — it\'s a learnable skill that improves dramatically with practice.',
+      },
+      {
+        q: 'How do I improve my LSAT score?',
+        a: 'Practice, review, repeat. Take timed practice tests, review every question, drill your weak question types, and take another test to measure progress. The LSAT rewards consistent practice more than last-minute cramming.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The LSAT is the test that decides law school — a 3.5-hour exam that tests logical reasoning, not legal knowledge. But the LSAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The LSAT has four sections: Logical Reasoning, Analytical Reasoning (Logic Games), Reading Comprehension, and an unscored Writing Sample. Each section is 35 minutes, with about 100-101 questions total. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 160 in Logical Reasoning but 145 in Logic Games should spend most of their time on Logic Games.' },
+        ],
+      },
+      {
+        h2: 'The LSAT study loop',
+        blocks: [
+          { k: 'p', t: 'LSAT prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the question types you miss most.',
+            'Drill those types with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'Logical Reasoning: the argument-analysis game',
+        blocks: [
+          { k: 'p', t: 'Logical Reasoning is the largest section — 24-26 questions testing whether you can analyze arguments. The questions are formulaic: identify the conclusion, find the assumption, evaluate the evidence.' },
+          { k: 'deflist', items: [
+            { t: 'Conclusion', d: 'Identify what the argument is trying to prove.' },
+            { t: 'Assumption', d: 'Find the unstated premise the argument relies on.' },
+            { t: 'Strengthen/weaken', d: 'Find the answer that makes the argument stronger or weaker.' },
+            { t: 'Inference', d: 'Find what must be true based on the argument.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Logic Games: the diagramming game',
+        blocks: [
+          { k: 'p', t: 'Analytical Reasoning (Logic Games) is the section that intimidates most students — but it\'s the most learnable. The games are logic puzzles: arrange entities according to rules. The strategy is diagramming — draw the constraints, make deductions, and answer the questions.' },
+          { k: 'p', t: 'The key is practice — Logic Games improve dramatically with reps. The more games you do, the faster you recognize the patterns.' },
+          { k: 'tool', tool: 'ink', t: 'Ink is built for the diagramming step — draw the constraints, map the deductions, and see the solution emerge.' },
+        ],
+      },
+      {
+        h2: 'Reading Comprehension: the passage-first strategy',
+        blocks: [
+          { k: 'p', t: 'Reading Comprehension gives you dense passages and questions about them. The strategy: read the questions first, then the passage with those questions in mind. You\'re looking for specific answers, not reading for pleasure.' },
+          { k: 'p', t: 'The passages are academic — law, science, humanities. The questions test whether you can identify the main idea, make inferences, and evaluate arguments.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The LSAT is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
