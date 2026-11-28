@@ -1661,7 +1661,7 @@ export const GUIDES = [
       {
         h2: 'Why practice tests beat rereading',
         blocks: [
-          { k: 'p', t: 'Every study guide says “take practice tests.” Almost none explain the part that actually matters: a practice test is not a study session, it’s a diagnostic. The studying happens afterward, in the review — and most students skip it entirely.' },
+          { k: 'p', t: 'A practice test is only as good as its review. The test itself shows you what you missed; the review session — where you trace every wrong answer back to its concept — is where the actual learning happens. This guide covers both halves: how to take the test honestly, and how to squeeze every mark out of the aftermath.' },
           { k: 'p', t: 'Rereading a chapter produces familiarity. A practice test produces evidence — a list of specific things you can and cannot do. That difference is why testing is one of the two techniques learning science rates as “very effective,” alongside spaced practice.' },
           { k: 'deflist', items: [
             { t: 'Practice test', d: 'Forces retrieval under mild pressure — the same act that builds durable recall. Reveals gaps while they’re still cheap to fix. Calibrates what “prepared” feels like.' },
@@ -1795,7 +1795,7 @@ export const GUIDES = [
       {
         h2: 'What burnout actually is',
         blocks: [
-          { k: 'p', t: 'Burnout doesn’t announce itself. It accumulates — a skipped break here, a night of bad sleep there, a week of “I’ll rest after this exam” — until studying stops feeling like work and starts feeling like weather you can’t control. The students who avoid it aren’t tougher. They built systems that make rest structural instead of aspirational.' },
+          { k: 'p', t: 'Burnout is not a motivation problem — it is a recovery problem. The students who last four years treat rest like infrastructure: scheduled, defended, and non-negotiable. This guide covers the systems that make sustainability the default, not the exception.' },
           { k: 'deflist', items: [
             { t: 'Exhaustion', d: 'Fatigue that sleep doesn’t fix — the body’s account is overdrawn.' },
             { t: 'Cynicism', d: '“What’s the point” becoming your default thought about the work.' },
@@ -1912,7 +1912,7 @@ export const GUIDES = [
       {
         h2: 'What the open-book exam actually tests',
         blocks: [
-          { k: 'p', t: 'Open-book exams feel like a gift and behave like a trap. The book is allowed — which means the exam is secretly testing something else: whether you can *find* and *use* information under time pressure. Students who treat it as a search engine get destroyed; students who treat it as a retrieval exercise with a safety net do fine.' },
+          { k: 'p', t: 'An open-book exam is a retrieval exam with a safety net — the book is allowed, but finding an answer still takes time you may not have. The winning move is preparing the book itself: a two-page index of formulas, definitions, and decision rules beats a 900-page textbook every time.' },
           { k: 'deflist', items: [
             { t: 'Preparation', d: 'Did you annotate and organize so the answer is findable in seconds?' },
             { t: 'Speed', d: 'Can you locate and apply it in minutes, not research hours?' },
@@ -2037,7 +2037,7 @@ export const GUIDES = [
       {
         h2: 'Why essay exams punish the unprepared writer',
         blocks: [
-          { k: 'p', t: 'The essay exam is the one place where knowing the material isn’t enough — you also have to produce it, in prose, under a clock. Students who know the content cold still lose points because they run out of time mid-thesis or spend twenty minutes perfecting an introduction. Writing faster on exams isn’t about typing speed. It’s about having a structure you can execute on demand.' },
+          { k: 'p', t: 'Essay exams reward a repeatable structure more than inspiration. The students who finish every question are not faster writers — they have a template they can execute on demand: thesis, three points, evidence, conclusion. This guide builds that template and drills it until it is automatic.' },
           { k: 'deflist', items: [
             { t: 'Sequential writing vs. holistic grading', d: 'A great intro can’t compensate for two missing body paragraphs.' },
             { t: 'No time for discovery', d: 'You can’t “find” your argument mid-sentence under a clock.' },
@@ -2157,7 +2157,7 @@ export const GUIDES = [
       {
         h2: 'When a study group actually helps',
         blocks: [
-          { k: 'p', t: 'Study groups have a 50/50 reputation: either the best hour of your week or a two-hour social event with snacks. The difference isn’t the group — it’s whether someone designed it. A study group with a structure produces more learning per hour than solo study; a group without one produces nothing but guilt about the snacks.' },
+          { k: 'p', t: 'A study group fails by default — unstructured sessions produce socializing, not learning. The groups that work have roles, retrieval practice, and accountability built in. This guide covers the design decisions that separate a study group from a hangout.' },
           { k: 'deflist', items: [
             { t: 'Explaining', d: 'Teaching a concept exposes whether you actually know it — the Feynman test with an audience.' },
             { t: 'Quizzing', d: 'A partner can test you in ways you can’t test yourself — retrieval with stakes.' },
@@ -2276,7 +2276,7 @@ export const GUIDES = [
       {
         h2: 'Why most language students plateau',
         blocks: [
-          { k: 'p', t: 'Language learning has a dirty secret: most students quit in week three, not because the language is hard but because they’re using the wrong method. They collect vocabulary lists they never review, watch shows with subtitles they don’t understand, and call it immersion. Actual progress comes from a boring loop: learn a little, recall it often, use it before you feel ready.' },
+          { k: 'p', t: 'Language learning rewards a boring loop over an exciting plan: learn a little, recall it often, use it before you feel ready. This guide covers the method — comprehensible input, spaced vocabulary, and output practice — that actually produces fluency over months, not weeks.' },
           { k: 'deflist', items: [
             { t: 'Recognition vs. production', d: '“I know that word” means you’ve seen it, not that you can use it — the same gap that makes rereading feel productive.' },
             { t: 'Input without output', d: 'Builds a spectator, not a speaker.' },
@@ -2400,7 +2400,7 @@ export const GUIDES = [
       {
         h2: 'Why some things stick and others don’t',
         blocks: [
-          { k: 'p', t: 'Memory isn’t a vault you fill — it’s a muscle you train, and like any muscle it responds to specific exercises. The techniques that work share one principle: make the material *meaningful* and *attached* to something you already know. Rereading a list is the weakest form of practice; linking a fact to a ridiculous image is one of the strongest.' },
+          { k: 'p', t: 'Memory techniques work because they exploit how the brain encodes information — meaning, imagery, and association beat repetition every time. This guide covers the techniques that have actual evidence behind them: chunking, the memory palace, mnemonics, and elaboration.' },
           { k: 'deflist', items: [
             { t: 'Association', d: 'Memory encodes what it can connect — a random string is unmemorable; a phone number is easy.' },
             { t: 'Absurdity wins', d: 'Bizarre, emotional images stick better than neutral ones.' },
@@ -2514,7 +2514,7 @@ export const GUIDES = [
       {
         h2: 'The test is not a knowledge test — it’s a process test',
         blocks: [
-          { k: 'p', t: 'Multiple-choice tests feel like they should be easy — pick the right answer, done. But anyone who has stared at four nearly identical options knows the format has its own traps. The good news: MC tests reward a repeatable strategy more than raw intelligence, and most of that strategy can be practiced before exam day.' },
+          { k: 'p', t: 'Multiple-choice questions are engineered to have plausible wrong answers — the distractors are designed to catch students who half-know the material. The strategy that beats them is systematic: read the question first, predict the answer, then match. This guide covers the tactics that turn guesswork into pattern-matching.' },
           { k: 'p', t: 'Professors write MC questions to test whether you *understand* material, not whether you memorized it. The wrong answers aren’t random — they’re the misconceptions students actually hold.' },
           { k: 'deflist', items: [
             { t: 'Distractors are designed', d: 'Wrong answers attract specific mistakes — they’re misconceptions, not filler.' },
@@ -2627,7 +2627,7 @@ export const GUIDES = [
       {
         h2: 'Triage: what to study and what to skip',
         blocks: [
-          { k: 'p', t: 'One-night study sessions are a bad plan — but they happen, and sometimes they’re unavoidable. The question isn’t whether you should have started earlier; it’s how to squeeze the most learning out of the hours you have left. The answer: triage ruthlessly, study actively, and protect your sleep.' },
+          { k: 'p', t: 'A one-night cram session is triage, not studying — you cannot learn a semester in six hours, but you can maximize the marks the morning exam actually tests. This guide covers the ruthless prioritization, active recall, and sleep protection that make the night count.' },
           { k: 'p', t: 'With one night, you can’t learn everything — so don’t try. Spend the first 30 minutes sorting the material into three piles: the stuff that’s heavily weighted on the test, the stuff you already mostly know, and the stuff that probably won’t appear.' },
           { k: 'table', head: ['Priority', 'What goes in the pile', 'When you study it'], rows: [
             ['High', 'Heavily weighted topics and things you don’t know at all.', 'First and hardest — this is where the night goes.'],
@@ -2734,7 +2734,7 @@ export const GUIDES = [
       {
         h2: 'Why focus fails',
         blocks: [
-          { k: 'p', t: 'Focus is the multiplier for every other study technique — flashcards, spaced repetition, and active recall all assume you can actually sit with the material. But focus isn’t a character trait; it’s a skill with specific conditions. The students who can study deeply aren’t the ones with the most willpower — they’re the ones who built environments that make distraction harder.' },
+          { k: 'p', t: 'Focus is built, not willed — the environment, the task definition, and the time boundary do more work than discipline ever will. This guide covers the conditions that make deep work possible: friction reduction, time-boxing, and the phone-in-another-room rule.' },
           { k: 'p', t: 'Attention is a finite resource. Every notification, tab switch, and "quick check" costs you not just the seconds it takes but the minutes it takes to re-enter the material. The brain wasn’t built for sustained focus on abstract content — it evolved to scan for threats and rewards. Studying asks it to do something unnatural, which means the environment has to do the work.' },
         ],
       },
@@ -2937,7 +2937,7 @@ export const GUIDES = [
       {
         h2: 'Know the test before you study for it',
         blocks: [
-          { k: 'p', t: 'The SAT is a test of patterns more than knowledge — the questions are designed to be solved with strategy, not just content. Students who treat it like a school exam (study the material, hope for the best) underperform students who treat it like a puzzle (learn the patterns, practice the timing). The difference is preparation method, not intelligence.' },
+          { k: 'p', t: 'The SAT has two scored sections and a predictable rhythm: Reading and Writing flows passage-by-passage, Math splits into calculator and no-calculator. Each section tests pattern recognition under time — the student who knows the question types before test day spends their seconds answering, not decoding.' },
           { k: 'p', t: 'The SAT has a specific structure: Reading and Writing (two modules), Math (two modules), and an optional Essay. Each section is adaptive — the second module is harder if you do well on the first. Knowing the format, timing, and question types before you start studying prevents wasted effort on material that won\'t appear.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
             ['Reading & Writing', '54', '64 min', 'Vocabulary, comprehension, analysis'],
@@ -3046,7 +3046,7 @@ export const GUIDES = [
       {
         h2: 'Learn the format before you study for it',
         blocks: [
-          { k: 'p', t: 'The ACT is faster and broader than the SAT — more questions, less time per question, and a science section the SAT doesn\'t have. But the prep strategy is the same: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The ACT moves faster than the SAT — 215 questions in 2 hours 55 minutes, plus a Science section that is really a data-interpretation test in disguise. Every section rewards the same skill: read the question type, apply the pattern, move before the clock does.' },
           { k: 'p', t: 'The ACT has four sections: English, Math, Reading, and Science — plus an optional Writing essay. Each section is 35-60 minutes, with 215 questions total. The Science section doesn\'t test science knowledge; it tests whether you can read data tables and graphs quickly. Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
             ['English', '75', '45 min', 'Grammar, punctuation, rhetoric'],
@@ -4158,7 +4158,7 @@ export const GUIDES = [
       {
         h2: 'What the exam actually tests',
         blocks: [
-          { k: 'p', t: 'The GRE is the gatekeeper for graduate school — a test that feels like the SAT but for adults, with vocabulary that sounds like a different language and math that\'s mostly algebra and data analysis. But the GRE rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question.' },
+          { k: 'p', t: 'The GRE has three sections and one secret weapon: the exam adapts. Your performance on the first verbal and math sections determines the difficulty of the second — which means every question counts double, and early misses poison the rest of the test.' },
           { k: 'p', t: 'The GRE has three sections: Verbal Reasoning, Quantitative Reasoning, and Analytical Writing. Each section is scored separately, and the Verbal and Quant sections are adaptive — the second section is harder if you do well on the first. Knowing the format prevents wasted effort on material that won\'t appear.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Score Range'], rows: [
             ['Verbal Reasoning', '40', '60 min', '130-170'],
@@ -4267,7 +4267,7 @@ export const GUIDES = [
       {
         h2: 'Inside the exam',
         blocks: [
-          { k: 'p', t: 'The MCAT is the longest standardized test you\'ll ever take — 7.5 hours, four sections, and content that spans every science course you\'ve ever taken. But the MCAT rewards the same approach as any big test: know the format, practice the patterns, and review every question. The students who do well treat it as a system, not a cram.' },
+          { k: 'p', t: 'The MCAT is a 7.5-hour endurance test with four sections: Chemical and Physical Foundations, Biological and Biochemical Foundations, Psych/Soc, and CARS. The content spans two years of prerequisites — but the exam rewards pattern recognition and pacing more than raw recall.' },
           { k: 'p', t: 'The MCAT has four sections: Chemical and Physical Foundations, Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations, and Critical Analysis and Reasoning Skills (CARS). Each section is scored separately, and the test is 7.5 hours long. Knowing the format prevents wasted effort.' },
           { k: 'timeline', items: [
             { t: 'Month 1-2', d: 'Content review — go through your notes, textbooks, and review books for each section.' },
@@ -4373,7 +4373,7 @@ export const GUIDES = [
       {
         h2: 'The exam, decoded',
         blocks: [
-          { k: 'p', t: 'The LSAT is the test that decides law school — a 3.5-hour exam that tests logical reasoning, not legal knowledge. But the LSAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The LSAT has four sections: Logical Reasoning, Logic Games, Reading Comprehension, and an unscored Writing Sample. The Logic Games section is the differentiator — a logic puzzle that rewards diagramming systems, not legal knowledge. Every section tests whether you can find the argument\'s structure under time.' },
           { k: 'p', t: 'The LSAT has four sections: Logical Reasoning, Analytical Reasoning (Logic Games), Reading Comprehension, and an unscored Writing Sample. Each section is 35 minutes, with about 100-101 questions total. Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
             ['Logical Reasoning', '24-26', '35 min', 'Argument analysis, assumptions, inferences'],
@@ -4483,7 +4483,7 @@ export const GUIDES = [
       {
         h2: 'GPA is a portfolio, not a grade',
         blocks: [
-          { k: 'p', t: 'Your GPA is a lagging indicator — it reflects the study habits you built months ago, not the ones you\'re building now. Improving it isn\'t about working harder; it\'s about working *smarter* on the courses that matter most. The students who raise their GPA fastest aren\'t the ones who study everything — they\'re the ones who triage ruthlessly and execute consistently.' },
+          { k: 'p', t: 'GPA improvement is a portfolio problem — not every course counts equally, and not every point is worth the same effort. The students who raise their GPA fastest triage ruthlessly: protect the high-weight courses, recover the winnable ones, and stop over-investing in the lost causes.' },
           { k: 'p', t: 'Every course is a different weight in your GPA — a 4-credit course matters more than a 1-credit seminar, and a course in your major matters more for grad school than an elective. Think of your GPA as a portfolio: you don\'t need every asset to perform, you need the high-weight ones to.' },
           { k: 'table', head: ['Course', 'Credits', 'Current grade', 'GPA impact', 'Verdict'], rows: [
             ['Organic Chemistry', '4', 'C+', 'High — major requirement', 'Recover — biggest lever'],
@@ -4718,7 +4718,7 @@ export const GUIDES = [
       {
         h2: 'Know the test before you study for it',
         blocks: [
-          { k: 'p', t: 'The GMAT is the test that decides business school — a 3-hour exam that tests quantitative reasoning, verbal skills, and integrated reasoning. But the GMAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The GMAT has four sections: Analytical Writing, Integrated Reasoning, Quantitative, and Verbal. The Quantitative section includes Data Sufficiency — a question type unique to the GMAT that tests whether you can determine if a problem is solvable, not just solve it. Every section rewards speed through pattern recognition.' },
           { k: 'p', t: 'The GMAT has four sections: Analytical Writing Assessment, Integrated Reasoning, Quantitative Reasoning, and Verbal Reasoning. Each section is scored separately, and the Quant and Verbal sections are adaptive — the second section is harder if you do well on the first. Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Score Range'], rows: [
             ['Analytical Writing', '1', '30 min', '0-6'],
@@ -4840,7 +4840,7 @@ export const GUIDES = [
       {
         h2: 'Learn the format before you study for it',
         blocks: [
-          { k: 'p', t: 'The bar exam is the final boss of law school — a two-day test that covers every subject you studied, plus performance tests that require writing under pressure. But the bar rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.' },
+          { k: 'p', t: 'The bar exam spans two days: Multistate Bar Exam (MBE) multiple-choice on seven subjects, Multistate Essay Exam (MEE) six 30-minute essays, and Multistate Performance Test (MPT) two 90-minute tasks. Each section tests a different skill — recall, argument, and practice under pressure.' },
           { k: 'p', t: 'The bar exam has multiple sections: Multistate Bar Examination (MBE), Multistate Essay Examination (MEE), Multistate Performance Test (MPT), and state-specific components. The MBE is 200 multiple-choice questions; the MEE is 6 essays; the MPT is 2 performance tasks. Knowing the format prevents wasted effort.' },
           { k: 'timeline', items: [
             { t: 'Weeks 1-3', d: 'Content review — go through your notes, outlines, and practice questions for each subject.' },
@@ -4950,7 +4950,7 @@ export const GUIDES = [
       {
         h2: 'What the exam actually tests',
         blocks: [
-          { k: 'p', t: 'The DAT is the test that decides dental school — a 4.5-hour exam that tests biology, chemistry, physics, reading comprehension, and perceptual ability. But the DAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The DAT has four sections: Natural Sciences (biology, general chemistry, organic chemistry), Perceptual Ability (PAT — spatial reasoning), Reading Comprehension, and Quantitative Reasoning. The PAT is the differentiator — a section no other test has, testing spatial visualization under time.' },
           { k: 'p', t: 'The DAT has four sections: Survey of Natural Sciences (Biology, General Chemistry, Organic Chemistry), Perceptual Ability (PAT), Reading Comprehension, and Quantitative Reasoning. Each section is scored separately, and the test is 4.5 hours long. Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
             ['Survey of Natural Sciences', '100', '90 min', 'Biology, chemistry, physics'],
@@ -5067,7 +5067,7 @@ export const GUIDES = [
       {
         h2: 'Inside the exam',
         blocks: [
-          { k: 'p', t: 'The PCAT is the test that decides pharmacy school — a 3.25-hour exam that tests biology, chemistry, physics, reading comprehension, and quantitative reasoning. But the PCAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The PCAT has five sections: Biology, Chemistry, Organic Chemistry, Reading Comprehension, and Quantitative Reasoning. The science sections are passage-based — they test whether you can apply concepts to scenarios, not just recall definitions. The verbal reasoning section rewards passage-map skills under time.' },
           { k: 'p', t: 'The PCAT has five sections: Biology, Chemistry, Physics, Reading Comprehension, Quantitative Reasoning, and a Writing section. Each section is scored separately, and the test is 3.25 hours long. Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
             ['Biology', '48', '30 min', 'Cell biology, genetics, physiology'],
@@ -5188,7 +5188,7 @@ export const GUIDES = [
       {
         h2: 'The exam, decoded',
         blocks: [
-          { k: 'p', t: 'The OAT is the test that decides optometry school — a 4-hour exam that tests natural sciences, reading comprehension, physics, and quantitative reasoning. But the OAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The OAT has four sections: Survey of Natural Sciences (biology, general chemistry, organic chemistry), Reading Comprehension, Physics, and Quantitative Reasoning. The natural sciences section is the heavyweight — it tests whether you can apply chemistry and biology to novel scenarios, not just recall facts.' },
           { k: 'p', t: 'The OAT has four sections: Survey of Natural Sciences (Biology, General Chemistry, Organic Chemistry), Physics, Reading Comprehension, and Quantitative Reasoning. Each section is scored separately, and the test is 4 hours long. Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
             ['Survey of Natural Sciences', '100', '90 min', 'Biology, chemistry, physics'],
@@ -5294,7 +5294,7 @@ export const GUIDES = [
       {
         h2: 'Know the test before you study for it',
         blocks: [
-          { k: 'p', t: 'The FE exam is the first step toward PE licensure — a 6-hour test that covers every engineering discipline. But the FE rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.' },
+          { k: 'p', t: 'The FE exam is a 6-hour test split into morning (general engineering: math, statics, dynamics, mechanics of materials, fluid mechanics, electrical, thermodynamics) and afternoon (discipline-specific: civil, mechanical, electrical, chemical, etc.). The breadth is the challenge — you cannot cram everything, so prioritization is the strategy.' },
           { k: 'p', t: 'The FE exam has two parts: a morning section (120 questions, 5.5 hours) covering general engineering topics, and an afternoon section (60 questions, 5.5 hours) covering your chosen discipline. Each part is scored separately. Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Part', 'Questions', 'Time', 'Content'], rows: [
             ['Morning (General)', '120', '5.5 hours', 'Math, stats, economics, statics, dynamics, materials, ethics'],
@@ -5398,7 +5398,7 @@ export const GUIDES = [
       {
         h2: 'Learn the format before you study for it',
         blocks: [
-          { k: 'p', t: 'The TOEFL is the test that decides whether you can study in English — a 3-hour exam that tests reading, listening, speaking, and writing. But the TOEFL rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The TOEFL has four sections: Reading, Listening, Speaking, and Writing. The Speaking section is the differentiator — integrated tasks require you to synthesize a reading and a lecture, then respond in 45 seconds. Every section rewards structured response under time, not just language knowledge.' },
           { k: 'p', t: 'The TOEFL has four sections: Reading, Listening, Speaking, and Writing. Each section is scored separately, and the test is 3 hours long (plus 10 minutes for the speaking section). Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Score Range'], rows: [
             ['Reading', '30-40', '54-72 min', '0-30'],
@@ -5517,7 +5517,7 @@ export const GUIDES = [
       {
         h2: 'What the exam actually tests',
         blocks: [
-          { k: 'p', t: 'The IELTS is the test that decides whether you can study or work in English — a 3-hour exam that tests listening, reading, writing, and speaking. But the IELTS rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The IELTS has four sections: Listening, Reading, Writing (Task 1 report/letter + Task 2 essay), and Speaking (face-to-face interview). The Writing section is the differentiator — Task 2 is worth double Task 1 and rewards structure under time. Every section tests whether you can produce or comprehend academic English under pressure.' },
           { k: 'p', t: 'The IELTS has four sections: Listening, Reading, Writing, and Speaking. Each section is scored separately, and the test is 3 hours long (plus 11-14 minutes for the speaking interview). Knowing the format prevents wasted effort.' },
           { k: 'table', head: ['Section', 'Questions', 'Time', 'Score Range'], rows: [
             ['Listening', '40', '30 min', '0-9'],
