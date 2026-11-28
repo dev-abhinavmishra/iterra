@@ -804,7 +804,9 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .prose-table tbody tr:last-child td{border-bottom:none}
 .prose-table tbody tr{transition:background .15s}
 .prose-table tbody tr:hover td{background:#faf6ea}
-.prose-table td:first-child{font-weight:600;color:var(--ink)}
+.prose-table td:first-child{font-weight:600;color:var(--ink);position:sticky;left:0;background:var(--sheet);box-shadow:1px 0 0 var(--line)}
+.prose-table thead th:first-child{background:#f4f1e6;z-index:2}
+@media(max-width:640px){.prose-table td:first-child{background:#fffdf6}.prose-table thead th:first-child{background:#f4f1e6}}
 .checklist{list-style:none;padding:0;margin:1.8rem 0;border:1px solid var(--line);border-radius:14px;background:var(--sheet);overflow:hidden}
 .checklist li{border-bottom:1px solid var(--line)}
 .checklist li:last-child{border-bottom:none}
