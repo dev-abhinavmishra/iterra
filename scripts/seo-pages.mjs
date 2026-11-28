@@ -1293,6 +1293,7 @@ ${neighbors
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(tool.title)}</title>
 <meta name="description" content="${esc(tool.description)}" />
+${tool.keywords?.length ? `<meta name="keywords" content="${esc(tool.keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
@@ -1562,6 +1563,7 @@ ${guide.faq
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(guide.seoTitle)}</title>
 <meta name="description" content="${esc(guide.description)}" />
+${guide.keywords?.length ? `<meta name="keywords" content="${esc(guide.keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="Iterra" />
@@ -1573,6 +1575,8 @@ ${guide.faq
 <meta property="og:image:height" content="630" />
 <meta property="article:published_time" content="${guide.datePublished}" />
 <meta property="article:modified_time" content="${guide.dateModified || guide.datePublished}" />
+<meta property="article:section" content="${esc(guide.kicker)}" />
+<meta property="article:tag" content="${esc(guide.kicker)}" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(guide.seoTitle)}" />
 <meta name="twitter:description" content="${esc(guide.description)}" />
