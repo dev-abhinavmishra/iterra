@@ -2354,7 +2354,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Putting it together',
+        h2: 'The loop, kept',
         blocks: [
           { k: 'quote', t: 'Language learning isn’t a talent or a phase — it’s a loop you run daily.' },
           { k: 'p', t: 'Input you can almost understand, vocabulary you review honestly, and output you produce before you feel ready. The students who stick with the loop for six months are the ones who wake up in a different language.' },
@@ -2877,7 +2877,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'A worked problem, start to finish',
+        h2: 'One trig problem, completely',
         blocks: [
           { k: 'p', t: 'Here is the method applied to a classic: "A ladder leans against a wall at 60° from the ground. If the ladder is 5 m long, how high up the wall does it reach?" Trigonometry is the tool — the setup is the skill.' },
           { k: 'steps', items: [
@@ -3228,7 +3228,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Putting it together',
+        h2: 'How the pieces connect',
         blocks: [
           { k: 'quote', t: 'Science rewards understanding, not memorization.' },
           { k: 'p', t: 'Learn the core concepts, connect everything to the system, draw the diagrams, and explain it out loud. The students who treat science as a set of interconnected ideas outperform the ones who treat it as a list of facts.' },
@@ -4112,7 +4112,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Putting it together',
+        h2: 'The system that works',
         blocks: [
           { k: 'quote', t: 'Engineering rewards understanding the physics behind the math, not memorizing formulas.' },
           { k: 'p', t: 'Learn the physical principles, work through problems relentlessly, connect to the real world, and check your units. The students who treat engineering as applied physics outperform the ones who treat it as a math course.' },
@@ -5021,7 +5021,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Putting it together',
+        h2: 'The complete plan',
         blocks: [
           { k: 'quote', t: 'The clock is part of the test. Train with it, not against it.' },
           { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The DAT is beatable with a system.' },
@@ -5932,7 +5932,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'A worked problem, start to finish',
+        h2: 'A worked kinematics problem',
         blocks: [
           { k: 'p', t: 'Here is the method applied to a classic: "A ball is thrown upward at 20 m/s. How high does it go?" Most students freeze because there is no obvious formula — the method removes the freeze.' },
           { k: 'steps', items: [
@@ -5946,7 +5946,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Putting it together',
+        h2: 'Putting the pieces together',
         blocks: [
           { k: 'quote', t: 'Physics isn\'t about memorizing formulas — it\'s about understanding why they work.' },
           { k: 'p', t: 'Understand the principles, practice the problems, explain the concepts, and check your units. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
@@ -6053,7 +6053,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'A worked problem, start to finish',
+        h2: 'From grams to moles',
         blocks: [
           { k: 'p', t: 'Here is the method applied to a classic stoichiometry problem: "How many grams of water form when 4.0 g of H₂ reacts with excess O₂?" The problem looks intimidating — the method makes it mechanical.' },
           { k: 'steps', items: [
@@ -6542,7 +6542,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'A worked problem, start to finish',
+        h2: 'A worked variance problem',
         blocks: [
           { k: 'p', t: 'Here is the method applied to a classic: "A company budgets sales of $1,200,000 and incurs $800,000 of variable costs. Actual sales are $1,000,000 and actual variable costs are $760,000. What happened?" The numbers are simple — the interpretation is the exam.' },
           { k: 'steps', items: [
@@ -6933,7 +6933,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'Putting it together',
+        h2: 'What consistency buys you',
         blocks: [
           { k: 'quote', t: 'The CLEP isn\'t about memorizing facts — it\'s about knowing the course.' },
           { k: 'p', t: 'Consistency beats intensity — a little prep every day, every miss reviewed, the clock respected. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
