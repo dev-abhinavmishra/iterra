@@ -4635,7 +4635,7 @@ export const GUIDES = [
     related: ['how-to-study-for-the-lsat', 'how-to-study-for-the-mcat', 'how-to-use-practice-tests'],
     lede: 'The bar exam is the final boss of law school — a two-day test that covers every subject you studied, plus performance tests that require writing under pressure. But the bar rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.',
     takeaways: [
-      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Sit a timed practice test first — the section scores show exactly where the hours go.',
       'MBE is multiple choice, MEE is essays, MPT is performance tasks — each needs a different strategy.',
       'Practice, review, repeat — the review is where learning happens.'
     ],
@@ -4745,7 +4745,7 @@ export const GUIDES = [
     related: ['how-to-study-for-the-mcat', 'how-to-study-science', 'how-to-use-practice-tests'],
     lede: 'The DAT is the test that decides dental school — a 4.5-hour exam that tests biology, chemistry, physics, reading comprehension, and perceptual ability. But the DAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
     takeaways: [
-      'Start with a practice test — the score report shows where to aim.',
+      'Open with a diagnostic test — its section breakdown is your study map.',
       'PAT is unique to the DAT — practice it daily.',
       'Practice, review, repeat — the loop is the method.'
     ],
@@ -4862,7 +4862,7 @@ export const GUIDES = [
     related: ['how-to-study-for-the-dat', 'how-to-study-for-the-mcat', 'how-to-use-practice-tests'],
     lede: 'The PCAT is the test that decides pharmacy school — a 3.25-hour exam that tests biology, chemistry, physics, reading comprehension, and quantitative reasoning. But the PCAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
     takeaways: [
-      'Take a practice test before anything else — your weak spots announce themselves.',
+      'Diagnose before you study — a practice test shows your weak spots immediately.',
       'Science content, reading, quant, and writing — each needs a different strategy.',
       'Drill, review, repeat — boring and effective.'
     ],
@@ -5179,7 +5179,7 @@ export const GUIDES = [
     related: ['how-to-learn-a-language', 'how-to-study-for-the-sat', 'how-to-use-practice-tests'],
     lede: 'The TOEFL is the test that decides whether you can study in English — a 3-hour exam that tests reading, listening, speaking, and writing. But the TOEFL rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
     takeaways: [
-      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Your first move is a diagnostic — the score report tells you which sections deserve the time.',
       'Four sections: reading, listening, speaking, writing — each needs a different strategy.',
       'Reps, review, reps — that is the whole method.'
     ],
@@ -5284,7 +5284,7 @@ export const GUIDES = [
     related: ['how-to-study-for-the-toefl', 'how-to-learn-a-language', 'how-to-use-practice-tests'],
     lede: 'The IELTS is the test that decides whether you can study or work in English — a 3-hour exam that tests listening, reading, writing, and speaking. But the IELTS rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
     takeaways: [
-      'Start with a practice test — the score report shows where to aim.',
+      'Begin with one timed practice test — the results tell you where to aim.',
       'Four sections: listening, reading, writing, speaking — each needs a different strategy.',
       'Practice, review, repeat — the review is where learning happens.'
     ],
@@ -5389,7 +5389,7 @@ export const GUIDES = [
     related: ['how-to-study-for-nursing-school', 'how-to-ace-multiple-choice-tests', 'how-to-use-practice-tests'],
     lede: 'The NCLEX is the final boss of nursing school — a computerized adaptive test that decides whether you\'re safe to practice. But the NCLEX rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.',
     takeaways: [
-      'Take a practice test before anything else — your weak spots announce themselves.',
+      'Your first session should be a practice test — the misses map your study plan.',
       'Prioritization, delegation, and safety questions dominate — practice those patterns.',
       'Pharmacology and med-surg are the high-yield content areas.',
     ],
@@ -5730,9 +5730,9 @@ export const GUIDES = [
     related: ['how-to-study-science', 'how-to-study-math', 'how-to-study-engineering'],
     lede: 'Chemistry is the subject where "I get it" and "I can solve it" are different things. Students who understand the concepts still struggle with the problems — balancing equations, calculating molarity, predicting products. Chemistry rewards a different approach: understand the *why* behind each reaction, and practice the problem types until they\'re automatic.',
     takeaways: [
-      'Take a diagnostic first — the problems you can\'t solve tell you which concepts to review.',
+      'Start with a diagnostic — the problems you miss name the concepts to review.',
       'Understand the core ideas, not just the formulas — explain concepts in your own words.',
-      'Balance problems and concepts — 60% practice, 40% understanding.',
+      'Split your time roughly 60/40 — most reps, some concept work.',
     ],
     faq: [
       {
@@ -5760,7 +5760,7 @@ export const GUIDES = [
             ['Equilibrium', 'Equilibrium constant, Le Chatelier\'s principle', 'Equilibrium calculations, ICE tables, Ksp'],
             ['Acids & Bases', 'pH, pOH, titrations, buffers', 'pH calculations, titration curves, buffer problems'],
           ]},
-          { k: 'p', t: 'Take a practice test or diagnostic first. The problems you can\'t solve tell you exactly which concepts to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
+          { k: 'p', t: 'Take a practice test or diagnostic first. The problems you miss name the exact concepts to review — you are not relearning the course, you are shoring up foundations.' },
           { k: 'tool', tool: 'proof', t: 'Proof helps organize chemistry problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
         ],
       },
@@ -6052,9 +6052,9 @@ export const GUIDES = [
     related: ['how-to-study-math', 'how-to-study-economics', 'how-to-study-science'],
     lede: 'Statistics is the subject where "I can calculate" and "I understand" are different things. Students who memorize formulas can plug in numbers but can\'t interpret the results; students who understand the concepts can interpret but struggle with the calculations. Statistics rewards a different approach: understand *why* each test works, and practice the problem types until they\'re automatic.',
     takeaways: [
-      'Take a diagnostic first — the problems you can\'t solve tell you which concepts to review.',
+      'Run a diagnostic first — every miss points at the foundation to shore up.',
       'Understand the core ideas, not just the formulas — explain concepts in your own words.',
-      'Balance problems and concepts — 60% practice, 40% understanding.',
+      'Weight practice heavier than theory — about three-fifths doing, two-fifths understanding.',
     ],
     faq: [
       {
@@ -6082,7 +6082,7 @@ export const GUIDES = [
             ['Regression', 'Correlation, causation, regression lines', 'Interpreting coefficients, predictions, residuals'],
             ['Confidence Intervals', 'Margin of error, confidence levels', 'Calculating intervals, interpreting results'],
           ]},
-          { k: 'p', t: 'Take a practice test or diagnostic first. The problems you can\'t solve tell you exactly which concepts to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
+          { k: 'p', t: 'Take a practice test or diagnostic first. Every miss in the diagnostic points at a foundation to shore up — the goal is targeted repair, not a full relearn.' },
           { k: 'tool', tool: 'proof', t: 'Proof helps organize statistics problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
         ],
       },
@@ -6632,7 +6632,7 @@ export const GUIDES = [
             ['Cardiovascular', 'Heart, arteries, veins, capillaries', 'Blood circulation, oxygen/nutrient delivery'],
             ['Respiratory', 'Lungs, trachea, bronchi, alveoli', 'Gas exchange, oxygen intake, CO2 removal'],
           ]},
-          { k: 'p', t: 'Take a practice test or diagnostic first. The questions you miss tell you exactly which systems to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
+          { k: 'p', t: 'Take a practice test or diagnostic first. The misses map directly onto the systems to review — targeted repair beats relearning the whole course.' },
           { k: 'tool', tool: 'margin', t: 'Margin is built for anatomy — draw structures, annotate functions, and explain systems in the margins of your notes.' },
         ],
       },
