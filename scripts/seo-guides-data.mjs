@@ -2850,6 +2850,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-act',
+    title: 'How to study for the <em>ACT</em>',
+    seoTitle: 'How to Study for the ACT: Strategy, Patterns, Timing',
+    description:
+      'Beat the ACT with a system: know the format, practice the question patterns, review every answer, and manage your timing — the ACT rewards speed and pattern recognition.',
+    kicker: 'Study Methods',
+    datePublished: '2027-02-23',
+    dateModified: '2027-02-27',
+    readMinutes: 7,
+    keywords: ['how to study for the ACT', 'ACT prep', 'ACT strategy', 'ACT practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-for-the-sat', 'how-to-use-practice-tests', 'how-to-ace-multiple-choice-tests'],
+    lede: 'The ACT is faster and broader than the SAT — more questions, less time per question, and a science section the SAT doesn\'t have. But the prep strategy is the same: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Practice, review, repeat — the review is where learning happens.',
+      'The ACT is faster than the SAT — timing strategy matters as much as content.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the ACT?',
+        a: 'Most students need 6-10 weeks of consistent prep for a meaningful improvement. Start with a practice test to gauge your baseline, then build a schedule around your weak sections. The ACT rewards consistent practice more than last-minute cramming.',
+      },
+      {
+        q: 'Is the ACT harder than the SAT?',
+        a: 'They\'re different, not necessarily harder. The ACT is faster-paced with more questions per minute, but the SAT has more complex reading passages. Most students do better on one format — take practice tests for both to find your strength.',
+      },
+      {
+        q: 'Do I need to memorize formulas for the ACT Math section?',
+        a: 'Yes — unlike the SAT, the ACT doesn\'t provide a formula sheet. You need to know algebra, geometry, and trigonometry formulas cold. Practice problems until the formulas are automatic.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The ACT is faster and broader than the SAT — more questions, less time per question, and a science section the SAT doesn\'t have. But the prep strategy is the same: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The ACT has four sections: English, Math, Reading, and Science — plus an optional Writing essay. Each section is 35-60 minutes, with 215 questions total. The Science section doesn\'t test science knowledge; it tests whether you can read data tables and graphs quickly. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown shows where to focus — a student who scores 30 in English but 20 in Science should spend most of their time on Science.' },
+        ],
+      },
+      {
+        h2: 'The ACT study loop',
+        blocks: [
+          { k: 'p', t: 'ACT prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the question types you miss most.',
+            'Drill those types with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'English: the grammar pattern game',
+        blocks: [
+          { k: 'p', t: 'The English section tests grammar, punctuation, and rhetorical skills. The questions are formulaic — once you learn the patterns, they become mechanical.' },
+          { k: 'deflist', items: [
+            { t: 'Comma questions', d: 'Check for independent clauses, lists, and introductory phrases.' },
+            { t: 'Verb tense', d: 'The answer maintains consistent tense unless there\'s a reason to shift.' },
+            { t: 'Pronoun agreement', d: 'The pronoun matches the noun in number and gender.' },
+            { t: 'Rhetorical questions', d: 'The best answer is concise and relevant, not the longest.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Math: the formula sheet isn\'t provided — know it',
+        blocks: [
+          { k: 'p', t: 'Unlike the SAT, the ACT Math section doesn\'t provide a formula sheet. You need to know the formulas cold — algebra, geometry, trigonometry, and statistics. The questions test application, not memorization, but you can\'t apply what you don\'t remember.' },
+          { k: 'p', t: 'Practice problems are the study method. Work through them until the patterns are automatic — the exam rewards speed and accuracy.' },
+        ],
+      },
+      {
+        h2: 'Reading and Science: the data-first strategy',
+        blocks: [
+          { k: 'p', t: 'The Reading section gives you four passages and 40 questions in 35 minutes — about 52 seconds per question. The strategy: read the questions first, then the passage with those questions in mind. You\'re looking for specific answers, not reading for pleasure.' },
+          { k: 'p', t: 'For Science, the same approach works — read the questions, scan the data, find the answer. The Science section isn\'t about science knowledge; it\'s about data interpretation speed.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'ACT timing is tight — about 49 seconds per English question, 60 per Math, 52 per Reading, and 53 per Science. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
+          { k: 'p', t: 'Never leave a question blank — there\'s no penalty for guessing. If you\'re running out of time, guess on everything remaining.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The ACT is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
