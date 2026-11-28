@@ -2780,7 +2780,7 @@ export const GUIDES = [
     faq: [
       {
         q: 'How long should I study for the SAT?',
-        a: 'Most students need 2-3 months of consistent prep for a meaningful score improvement. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak areas.',
+        a: 'Most students need 2-3 months of consistent prep. An 8-12 week plan at 5-10 hours a week beats any last-minute cram — start with a practice test to find the weak spots, then schedule around them.',
       },
       {
         q: 'Is the SAT harder than the ACT?',
@@ -2872,7 +2872,7 @@ export const GUIDES = [
     lede: 'The ACT is faster and broader than the SAT — more questions, less time per question, and a science section the SAT doesn\'t have. But the prep strategy is the same: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
     takeaways: [
       'Take a practice test first — the score breakdown tells you where to focus.',
-      'Practice, review, repeat — the review is where learning happens.',
+      'Practice, review, repeat — the loop is the method.',
       'The ACT is faster than the SAT — timing strategy matters as much as content.'
     ],
     faq: [
@@ -2955,7 +2955,7 @@ export const GUIDES = [
       {
         h2: 'If you remember one thing',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'The exam does not test what you studied. It tests what you can do under pressure.' },
           { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The ACT is beatable with a system.' },
         ],
       },
@@ -3861,17 +3861,17 @@ export const GUIDES = [
     lede: 'The GRE is the gatekeeper for graduate school — a test that feels like the SAT but for adults, with vocabulary that sounds like a different language and math that\'s mostly algebra and data analysis. But the GRE rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question.',
     takeaways: [
       'Start with a practice test — the score report shows where to aim.',
-      'Practice, review, repeat — the review is where learning happens.',
+      'Drill, review, repeat — boring and effective.',
       'Timing strategy matters as much as content knowledge.'
     ],
     faq: [
       {
         q: 'How long should I study for the GRE?',
-        a: 'Most students need 2-3 months of consistent prep for a meaningful score improvement. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline.',
+        a: 'Plan on two to three months of steady work. Roughly 5-10 hours a week across 8-12 weeks is the sweet spot for most students — a diagnostic practice test first tells you where those hours should go.',
       },
       {
         q: 'Is the GRE harder than the SAT?',
-        a: 'They test similar skills but with different formats. The GRE has more complex vocabulary and a calculator-optional math section. The study strategy is similar — practice tests, pattern recognition, and timing — but the content emphasis differs.',
+        a: 'The skills overlap, but the formats differ. The GRE has more complex vocabulary and a calculator-optional math section. The study strategy is similar — practice tests, pattern recognition, and timing — but the content emphasis differs.',
       },
       {
         q: 'Should I take the GRE or the GMAT?',
@@ -3936,7 +3936,7 @@ export const GUIDES = [
       {
         h2: 'The bottom line',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'Cramming fills your head with facts the exam never asks for.' },
           { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The GRE is beatable with a system.' },
         ],
       },
@@ -3959,7 +3959,7 @@ export const GUIDES = [
     lede: 'The MCAT is the longest standardized test you\'ll ever take — 7.5 hours, four sections, and content that spans every science course you\'ve ever taken. But the MCAT rewards the same approach as any big test: know the format, practice the patterns, and review every question. The students who do well treat it as a system, not a cram.',
     takeaways: [
       'Take a practice test before anything else — your weak spots announce themselves.',
-      'Practice, review, repeat — the review is where learning happens.',
+      'Practice it, review it, repeat it — the loop does the work.',
       'The MCAT is 7.5 hours — pacing and endurance matter as much as content.'
     ],
     faq: [
@@ -4031,7 +4031,7 @@ export const GUIDES = [
       {
         h2: 'The short version',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'The students who win are the ones who reviewed yesterday\'s mistakes today.' },
           { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The MCAT is beatable with a system.' },
         ],
       },
@@ -4054,7 +4054,7 @@ export const GUIDES = [
     lede: 'The LSAT is the test that decides law school — a 3.5-hour exam that tests logical reasoning, not legal knowledge. But the LSAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
     takeaways: [
       'Begin with a practice test; the breakdown tells you where the hours go.',
-      'Practice, review, repeat — the review is where learning happens.',
+      'The loop is the method: practice, review, repeat.',
       'Logic Games are the most learnable section — diagramming is the skill.'
     ],
     faq: [
@@ -4130,7 +4130,7 @@ export const GUIDES = [
       {
         h2: 'Where this leaves you',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'Every practice test is a rehearsal — the exam is just opening night.' },
           { k: 'p', t: 'Consistency beats intensity — a little prep every day, every miss reviewed, the clock respected ruthlessly. The LSAT is beatable with a system.' },
         ],
       },
@@ -4338,13 +4338,13 @@ export const GUIDES = [
     lede: 'The GMAT is the test that decides business school — a 3-hour exam that tests quantitative reasoning, verbal skills, and integrated reasoning. But the GMAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
     takeaways: [
       'A practice test first — it turns "study everything" into "study this".',
-      'Practice, review, repeat — the review is where learning happens.',
+      'Reps, review, reps — that is the whole method.',
       'Data sufficiency is unique to the GMAT — practice it separately.'
     ],
     faq: [
       {
         q: 'How long should I study for the GMAT?',
-        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+        a: 'Two to three months is the honest answer for most people. The formula that works: a baseline practice test, then 5-10 weekly hours aimed at the sections that need it most.',
       },
       {
         q: 'Is the GMAT harder than the GRE?',
@@ -4412,7 +4412,7 @@ export const GUIDES = [
       {
         h2: 'The honest summary',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'Speed comes from certainty. Certainty comes from reps.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The GMAT is beatable with a system.' },
         ],
       },
@@ -4511,7 +4511,7 @@ export const GUIDES = [
       {
         h2: 'If you remember one thing',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'A wrong answer reviewed is worth ten right answers ignored.' },
           { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The bar exam is beatable with a system.' },
         ],
       },
@@ -4535,12 +4535,12 @@ export const GUIDES = [
     takeaways: [
       'Start with a practice test — the score report shows where to aim.',
       'PAT is unique to the DAT — practice it daily.',
-      'Practice, review, repeat — the review is where learning happens.'
+      'Practice, review, repeat — the loop is the method.'
     ],
     faq: [
       {
         q: 'How long should I study for the DAT?',
-        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+        a: 'Most students need 8-12 weeks of consistent prep — about 5-10 hours a week. Cramming fails because the exam tests patterns, not memory; spaced practice builds them.',
       },
       {
         q: 'How do I prepare for the PAT?',
@@ -4617,7 +4617,7 @@ export const GUIDES = [
       {
         h2: 'Putting it together',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'The clock is part of the test. Train with it, not against it.' },
           { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The DAT is beatable with a system.' },
         ],
       },
@@ -4641,12 +4641,12 @@ export const GUIDES = [
     takeaways: [
       'Take a practice test before anything else — your weak spots announce themselves.',
       'Science content, reading, quant, and writing — each needs a different strategy.',
-      'Practice, review, repeat — the review is where learning happens.'
+      'Drill, review, repeat — boring and effective.'
     ],
     faq: [
       {
         q: 'How long should I study for the PCAT?',
-        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+        a: 'Two to three months of regular study is typical. Take a practice test first, then build a weekly schedule around whichever sections or topics it exposes.',
       },
       {
         q: 'How do I prepare for the PCAT writing section?',
@@ -4654,7 +4654,7 @@ export const GUIDES = [
       },
       {
         q: 'Is the PCAT harder than the DAT?',
-        a: 'They test similar skills but with different formats. The PCAT has a writing section; the DAT has the unique PAT section. The study strategy is similar — practice tests, pattern recognition, and timing.',
+        a: 'Both test comparable skills — the formats are what separate them. The PCAT has a writing section; the DAT has the unique PAT section. The study strategy is similar — practice tests, pattern recognition, and timing.',
       },
     ],
     sections: [
@@ -4681,8 +4681,8 @@ export const GUIDES = [
           { k: 'steps', items: [
             'Do a practice section with the clock running.',
             'Audit each answer — hits and misses alike.',
-            'Identify the sections you miss most.',
-            'Drill those sections with focused practice.',
+            'Find the sections costing you the most points.',
+            'Rebuild those sections with targeted reps.',
             'Repeat a timed test and measure the difference.',
           ]},
           { k: 'p', t: 'This is where the studying actually happens: reviewing what the practice test exposed.' },
@@ -4713,7 +4713,7 @@ export const GUIDES = [
       {
         h2: 'The bottom line',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'You are not preparing for the exam. You are preparing for the version of yourself that sits it.' },
           { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The PCAT is beatable with a system.' },
         ],
       },
@@ -4737,12 +4737,12 @@ export const GUIDES = [
     takeaways: [
       'Begin with a practice test; the breakdown tells you where the hours go.',
       'Science content, physics, reading, and quant — each needs a different strategy.',
-      'Practice, review, repeat — the review is where learning happens.'
+      'Practice it, review it, repeat it — the loop does the work.'
     ],
     faq: [
       {
         q: 'How long should I study for the OAT?',
-        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+        a: 'Most students need 2-3 months of consistent prep. An 8-12 week plan at 5-10 hours a week beats any last-minute cram — start with a practice test to find the weak spots, then schedule around them.',
       },
       {
         q: 'How is the OAT different from the DAT?',
@@ -4775,8 +4775,8 @@ export const GUIDES = [
           { k: 'steps', items: [
             'Take a practice section under exam conditions.',
             'Check every answer against the rationale, right or wrong.',
-            'Identify the sections you miss most.',
-            'Drill those sections with focused practice.',
+            'Mark which sections bleed the most points.',
+            'Practice just the weak sections until they flip.',
             'Come back with another timed test — progress is a number, not a feeling.',
           ]},
           { k: 'p', t: 'A practice test without review is just a measurement. The review is what turns it into a study session.' },
@@ -4808,7 +4808,7 @@ export const GUIDES = [
       {
         h2: 'The short version',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'Patterns beat content. The exam asks the same shapes in new clothes.' },
           { k: 'p', t: 'Consistency beats intensity — a little prep every day, every miss reviewed, the clock respected ruthlessly. The OAT is beatable with a system.' },
         ],
       },
@@ -4832,12 +4832,12 @@ export const GUIDES = [
     takeaways: [
       'A practice test first — it turns "study everything" into "study this".',
       'Morning is general engineering, afternoon is your discipline — each needs different prep.',
-      'Practice, review, repeat — the review is where learning happens.'
+      'The loop is the method: practice, review, repeat.'
     ],
     faq: [
       {
         q: 'How long should I study for the FE exam?',
-        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak topics.',
+        a: 'Plan on two to three months of steady work. Roughly 5-10 hours a week across 8-12 weeks is the sweet spot for most students — a diagnostic practice test first tells you where those hours should go.',
       },
       {
         q: 'Is the FE exam harder than the PE exam?',
@@ -4901,7 +4901,7 @@ export const GUIDES = [
       {
         h2: 'Where this leaves you',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'The best study plan is the one you actually finish.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The FE exam is beatable with a system.' },
         ],
       },
@@ -4925,16 +4925,16 @@ export const GUIDES = [
     takeaways: [
       'Take a practice test first — the score breakdown tells you where to focus.',
       'Four sections: reading, listening, speaking, writing — each needs a different strategy.',
-      'Practice, review, repeat — the review is where learning happens.'
+      'Reps, review, reps — that is the whole method.'
     ],
     faq: [
       {
         q: 'How long should I study for the TOEFL?',
-        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+        a: 'Two to three months is the honest answer for most people. The formula that works: a baseline practice test, then 5-10 weekly hours aimed at the sections that need it most.',
       },
       {
         q: 'Is the TOEFL harder than the IELTS?',
-        a: 'They test similar skills but with different formats. The TOEFL is computer-based with a speaking section; the IELTS has a face-to-face speaking interview. The study strategy is similar — practice tests, pattern recognition, and timing.',
+        a: 'The content overlaps; the exam format is the real difference. The TOEFL is computer-based with a speaking section; the IELTS has a face-to-face speaking interview. The study strategy is similar — practice tests, pattern recognition, and timing.',
       },
       {
         q: 'How do I improve my TOEFL speaking score?',
@@ -4963,8 +4963,8 @@ export const GUIDES = [
           { k: 'steps', items: [
             'Sit a timed practice section — same clock, same pressure.',
             'Review every question — right and wrong.',
-            'Identify the sections you miss most.',
-            'Drill those sections with focused practice.',
+            'Sort your losses by section.',
+            'Run focused sets on the sections that beat you.',
             'Retest on a timer — the score gap is your progress report.',
           ]},
           { k: 'p', t: 'The review is the step that teaches — without it, a practice test is just a measurement; with it, the test becomes the lesson.' },
@@ -4995,7 +4995,7 @@ export const GUIDES = [
       {
         h2: 'The takeaway',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'Mistakes are the syllabus the exam never published.' },
           { k: 'p', t: 'Learn the patterns, practice them under timed conditions, review every miss, and manage the clock ruthlessly. The TOEFL is beatable with a system.' },
         ],
       },
@@ -5024,11 +5024,11 @@ export const GUIDES = [
     faq: [
       {
         q: 'How long should I study for the IELTS?',
-        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+        a: 'Most students need 8-12 weeks of consistent prep — about 5-10 hours a week. Cramming fails because the exam tests patterns, not memory; spaced practice builds them.',
       },
       {
         q: 'Is the IELTS harder than the TOEFL?',
-        a: 'They test similar skills but with different formats. The IELTS has a face-to-face speaking interview; the TOEFL has a computer-based speaking section. The study strategy is similar — practice tests, pattern recognition, and timing.',
+        a: 'Similar skills, different packaging — the format is where they diverge. The IELTS has a face-to-face speaking interview; the TOEFL has a computer-based speaking section. The study strategy is similar — practice tests, pattern recognition, and timing.',
       },
       {
         q: 'How do I improve my IELTS writing score?',
@@ -5057,8 +5057,8 @@ export const GUIDES = [
           { k: 'steps', items: [
             'Run a timed practice section or full test.',
             'Go back through every question, misses included.',
-            'Identify the sections you miss most.',
-            'Drill those sections with focused practice.',
+            'Figure out which sections cost you points.',
+            'Work the weak sections in isolation.',
             'Run another timed test and compare scores.',
           ]},
           { k: 'p', t: 'Skip the review and you measured yourself without improving. With review, every missed question becomes a study rep.' },
@@ -5089,7 +5089,7 @@ export const GUIDES = [
       {
         h2: 'What to do Monday morning',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'The difference between a good score and a great one is usually review.' },
           { k: 'p', t: 'Format first, patterns second, review always — the system does the rest, so manage the clock ruthlessly. The IELTS is beatable with a system.' },
         ],
       },
@@ -5199,7 +5199,7 @@ export const GUIDES = [
       {
         h2: 'The honest summary',
         blocks: [
-          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'quote', t: 'Practice does not make perfect. Practiced review makes prepared.' },
           { k: 'p', t: 'The exam rewards a system: learn the format, drill the patterns, autopsy every mistake, manage the clock ruthlessly. The NCLEX is beatable with a system.' },
         ],
       },
