@@ -25,7 +25,7 @@ export const GUIDES = [
     readMinutes: 9,
     keywords: ['how to plan a semester', 'semester planner', 'college schedule planner', 'study schedule'],
     tools: ['syllabus', 'boxed', 'rhythm'],
-    related: ['weekly-study-routine', 'time-blocking-for-students', 'how-to-study-for-finals-week'],
+    related: ['building-a-weekly-study-routine', 'time-blocking-for-students', 'how-to-study-for-finals-week'],
     lede: 'If your semester is going to fall apart, it will probably happen in the first two weeks — not because the work is hard, but because registering for classes got mistaken for having a plan. A plan is a structure you build once and then let carry you.',
     takeaways: [
       'Extract every syllabus in week one — deadlines, weights, exam dates — before you plan anything else.',
@@ -334,7 +334,7 @@ export const GUIDES = [
     readMinutes: 8,
     keywords: ['pomodoro technique', 'pomodoro for studying', 'focus timer', 'study breaks'],
     tools: ['timer'],
-    related: ['time-blocking-for-students', 'weekly-study-routine', 'active-recall-vs-rereading'],
+    related: ['time-blocking-for-students', 'building-a-weekly-study-routine', 'active-recall-vs-rereading'],
     lede: 'The pomodoro technique is the most famous time-management method ever invented by a man with a tomato-shaped kitchen timer. Depending on which study you read, it’s either a productivity miracle or a placebo. Both are wrong. Here’s what it actually does — and how to use it without letting a kitchen timer run your life.',
     takeaways: [
       'The timer is scaffolding for starting and for real breaks — not a learning theory.',
@@ -486,7 +486,7 @@ export const GUIDES = [
     readMinutes: 10,
     keywords: ['time blocking', 'time blocking for students', 'weekly schedule template', 'daily planner'],
     tools: ['boxed', 'syllabus'],
-    related: ['plan-a-semester', 'pomodoro-technique-for-deep-study', 'weekly-study-routine'],
+    related: ['plan-a-semester', 'pomodoro-technique-for-deep-study', 'building-a-weekly-study-routine'],
     lede: 'A to-do list is a list of things you intend to do. Time blocking decides when you’ll do them — the night before, while you’re calm, instead of in the moment, when you’re tired. It’s the difference between a wish and a plan, and it’s mostly a difference in when you make the decision.',
     takeaways: [
       'Blocks decide when work happens; lists only decide what the work is.',
@@ -644,7 +644,7 @@ export const GUIDES = [
     readMinutes: 8,
     keywords: ['how to take lecture notes', 'note taking methods', 'cornell notes', 'lecture notes app'],
     tools: ['ink', 'margin'],
-    related: ['active-recall-vs-rereading', 'flashcard-best-practices', 'weekly-study-routine'],
+    related: ['active-recall-vs-rereading', 'flashcard-best-practices', 'building-a-weekly-study-routine'],
     lede: 'Most lecture notes fail before the lecture ends. The student transcribes furiously, ends up with twelve pages of verbatim prose, and three weeks later couldn’t tell you what was in them. The problem isn’t effort — it’s that transcription and learning are different activities, and only one of them is worth doing.',
     takeaways: [
       'Write what you understood, not what was said — notes are encoding, not transcription.',
@@ -2581,7 +2581,7 @@ export const GUIDES = [
     readMinutes: 7,
     keywords: ['how to focus when studying', 'study focus', 'how to concentrate studying', 'pomodoro technique'],
     tools: ['timer', 'boxed'],
-    related: ['how-to-avoid-study-burnout', 'pomodoro-technique-guide', 'building-a-weekly-study-routine'],
+    related: ['how-to-avoid-study-burnout', 'pomodoro-technique-for-deep-study', 'building-a-weekly-study-routine'],
     lede: 'Focus is the multiplier for every other study technique — flashcards, spaced repetition, and active recall all assume you can actually sit with the material. But focus isn’t a character trait; it’s a skill with specific conditions. The students who can study deeply aren’t the ones with the most willpower — they’re the ones who built environments that make distraction harder.',
     takeaways: [
       'Environment beats willpower — remove distractions before they have a chance to win.',
