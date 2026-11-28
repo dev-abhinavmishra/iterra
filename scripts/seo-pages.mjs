@@ -1581,7 +1581,7 @@ ${heroHtml}
 <div class="wrap">
 ${coverHtml}
 <div class="guide-layout">
-<article class="guide-article${variant === 2 ? ' dc' : ''}">
+<article class="guide-article${variant !== 1 ? ' dc' : ''}">
 ${tocHtml}
 ${takeawaysHtml}
 ${sectionsHtml}
