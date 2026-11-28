@@ -4918,6 +4918,94 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-ielts',
+    title: 'How to study for the <em>IELTS</em>',
+    seoTitle: 'How to Study for the IELTS: Strategy, Sections, Timing',
+    description:
+      'Beat the IELTS with a system: know the format, practice the section patterns, review every answer, and manage your timing — the IELTS rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-08-10',
+    dateModified: '2027-08-14',
+    readMinutes: 7,
+    keywords: ['how to study for the IELTS', 'IELTS prep', 'IELTS strategy', 'IELTS practice test'],
+    tools: ['timer', 'proof'],
+    related: ['how-to-study-for-the-toefl', 'how-to-learn-a-language', 'how-to-use-practice-tests'],
+    lede: 'The IELTS is the test that decides whether you can study or work in English — a 3-hour exam that tests listening, reading, writing, and speaking. But the IELTS rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Four sections: listening, reading, writing, speaking — each needs a different strategy.',
+      'Practice, review, repeat — the review is where learning happens.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the IELTS?',
+        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+      },
+      {
+        q: 'Is the IELTS harder than the TOEFL?',
+        a: 'They test similar skills but with different formats. The IELTS has a face-to-face speaking interview; the TOEFL has a computer-based speaking section. The study strategy is similar — practice tests, pattern recognition, and timing.',
+      },
+      {
+        q: 'How do I improve my IELTS writing score?',
+        a: 'Practice writing under timed conditions. Task 1 requires describing a chart or graph; Task 2 requires writing an essay. Focus on organization, development, and language use — the best essays are clear and well-supported.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The IELTS is the test that decides whether you can study or work in English — a 3-hour exam that tests listening, reading, writing, and speaking. But the IELTS rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The IELTS has four sections: Listening, Reading, Writing, and Speaking. Each section is scored separately, and the test is 3 hours long (plus 11-14 minutes for the speaking interview). Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 7 in Reading but 6 in Speaking should spend most of their time on Speaking.' },
+        ],
+      },
+      {
+        h2: 'The IELTS study loop',
+        blocks: [
+          { k: 'p', t: 'IELTS prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the sections you miss most.',
+            'Drill those sections with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'Listening and Reading: the comprehension game',
+        blocks: [
+          { k: 'p', t: 'The Listening and Reading sections test whether you can understand English — recordings, passages, and conversations. The questions are formulaic: identify the main idea, make inferences, and understand vocabulary in context.' },
+          { k: 'p', t: 'The strategy: read the questions first, then the audio or passage with those questions in mind. You\'re looking for specific answers, not reading for pleasure.' },
+        ],
+      },
+      {
+        h2: 'Writing: the essay game',
+        blocks: [
+          { k: 'p', t: 'The Writing section gives you 2 tasks — Task 1 (describe a chart, graph, or diagram) and Task 2 (write an essay). Each task is 20-60 minutes.' },
+          { k: 'p', t: 'The strategy: practice writing under timed conditions. The structure matters: introduction, body paragraphs, conclusion. The best essays are clear, organized, and well-supported.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps structure the essay — introduction, body paragraphs, conclusion — so the argument holds together under timed pressure.' },
+        ],
+      },
+      {
+        h2: 'Speaking: the interview game',
+        blocks: [
+          { k: 'p', t: 'The Speaking section is a face-to-face interview with an examiner — 3 parts covering personal topics, a cue card, and a discussion. The interview is 11-14 minutes.' },
+          { k: 'p', t: 'The strategy: practice speaking with a partner or recording yourself. Focus on fluency, coherence, and vocabulary — not perfection. The best speakers are clear and organized, not necessarily flawless.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The IELTS is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
