@@ -719,6 +719,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .series .chips a.on{background:var(--accent);border-color:var(--accent);color:#f4f1e6}
 .pager{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:3rem;padding-top:1.8rem;border-top:1px solid var(--line)}
 .pager .dir{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);display:block}
+.pager .pk{font-family:'IBM Plex Mono',monospace;font-size:9px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 4px;color:var(--faint);background:rgba(255,255,255,.5);margin-left:.3rem}
 .pager a{display:block;margin-top:.45rem;text-decoration:none;color:var(--ink)}
 .pager a .t{font-family:Newsreader,Georgia,serif;font-size:1.25rem;font-weight:500;letter-spacing:-.01em;line-height:1.3;display:block;transition:color .15s}
 .pager a:hover .t{color:var(--accent)}
@@ -1130,6 +1131,12 @@ tt.addEventListener('click',function(){scrollTo({top:0,behavior:matchMedia('(pre
     else done();
   });
 });
+var pPrev=document.querySelector('.pager a:not(.next)'),pNext=document.querySelector('.pager .next');
+if(pPrev||pNext)document.addEventListener('keydown',function(e){
+  if(/input|textarea|select/i.test(document.activeElement.tagName))return;
+  if(e.key===']'&&pNext){e.preventDefault();pNext.click()}
+  if(e.key==='['&&pPrev){e.preventDefault();pPrev.click()}
+});
 var fimgs=[].slice.call(document.querySelectorAll('.frame img'));
 if(fimgs.length){
   var lb=document.createElement('div');lb.className='lightbox';lb.setAttribute('role','dialog');lb.setAttribute('aria-label','Image preview');
@@ -1211,8 +1218,8 @@ ${tool.workflow
   const toolPagerHtml =
     prevTool || nextTool
       ? `<nav class="pager" aria-label="More tools">
-${prevTool ? `<a href="${prevTool.path}"><span class="dir">← Previous tool</span><span class="t">${esc(prevTool.name)}</span></a>` : '<span></span>'}
-${nextTool ? `<a class="next" href="${nextTool.path}"><span class="dir">Next tool →</span><span class="t">${esc(nextTool.name)}</span></a>` : ''}
+${prevTool ? `<a href="${prevTool.path}"><span class="dir">← Previous tool <kbd class="pk">[</kbd></span><span class="t">${esc(prevTool.name)}</span></a>` : '<span></span>'}
+${nextTool ? `<a class="next" href="${nextTool.path}"><span class="dir">Next tool → <kbd class="pk">]</kbd></span><span class="t">${esc(nextTool.name)}</span></a>` : ''}
 </nav>`
       : '';
   const relatedToolsHtml = neighbors.length
@@ -1440,8 +1447,8 @@ ${related
   const pagerHtml =
     prevGuide || nextGuide
       ? `<nav class="pager" aria-label="More guides">
-${prevGuide ? `<a href="/guides/${prevGuide.slug}"><span class="dir">← Previous guide</span><span class="t">${esc(prevGuide.title.replace(/<\/?em>/g, ''))}</span></a>` : '<span></span>'}
-${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir">Next guide →</span><span class="t">${esc(nextGuide.title.replace(/<\/?em>/g, ''))}</span></a>` : ''}
+${prevGuide ? `<a href="/guides/${prevGuide.slug}"><span class="dir">← Previous guide <kbd class="pk">[</kbd></span><span class="t">${esc(prevGuide.title.replace(/<\/?em>/g, ''))}</span></a>` : '<span></span>'}
+${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir">Next guide → <kbd class="pk">]</kbd></span><span class="t">${esc(nextGuide.title.replace(/<\/?em>/g, ''))}</span></a>` : ''}
 </nav>`
       : '';
   const toolsUsed = (guide.tools || [])
