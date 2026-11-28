@@ -145,7 +145,7 @@ if(fimgs.length){
     });
   });
 });
-var rv=document.querySelectorAll('.content .block,.content .plate,.content .article-cover,.content .related,.content .pager,.content .tldr,.content .takeaways,.content .article-end');
+var rv=document.querySelectorAll('.content .block,.content .gsec,.content .plate,.content .article-cover,.content .related,.content .pager,.content .tldr,.content .takeaways,.content .article-end');
 if(rv.length&&'IntersectionObserver' in window&&matchMedia('(prefers-reduced-motion: no-preference)').matches){
   [].slice.call(rv).forEach(function(el){el.classList.add('rv')});
   var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.06,rootMargin:'0px 0px -5% 0px'});
@@ -153,3 +153,6 @@ if(rv.length&&'IntersectionObserver' in window&&matchMedia('(prefers-reduced-mot
 }
 })();
 ;(function(){var el=document.querySelector('[data-read-count]');if(!el)return;try{var n=0,total=+el.getAttribute('data-total')||0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('itr-read:')===0)n++}if(n>0){el.textContent="You've read "+n+" of "+total+" guides — pick up where you left off";el.hidden=false}}catch(e){}})();
+addEventListener('beforeprint',function(){
+  [].slice.call(document.querySelectorAll('details:not([open])')).forEach(function(d){d.setAttribute('open','')});
+});
