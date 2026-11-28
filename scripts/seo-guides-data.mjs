@@ -155,6 +155,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The semester at a glance',
+        blocks: [
+          { k: 'p', t: 'A timeline makes the abstract concrete. This is what a typical fifteen-week semester looks like when the plan is doing its job:' },
+          { k: 'timeline', items: [
+            { when: 'Week 1', what: 'Extract every syllabus. Every deadline, weight, and exam date on one page.' },
+            { when: 'Weeks 2–4', what: 'Recurring blocks settle into rhythm. The plan is still flexible — nothing major has hit yet.' },
+            { when: 'Weeks 5–7', what: 'First midterms. Review blocks double as exam prep; buffer absorbs the extra hours.' },
+            { when: 'Weeks 8–10', what: 'Second wave of deadlines. The weekly review catches anything that slipped early.' },
+            { when: 'Weeks 11–13', what: 'Finals season. Deadline chains compress; slack gets spent on purpose.' },
+            { when: 'Weeks 14–15', what: 'Finals. The plan ends the way it started — with fixed points and protected blocks.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The mistakes that sink semester plans',
         blocks: [
           { k: 'deflist', items: [
@@ -1256,6 +1270,21 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A sample week, block by block',
+        blocks: [
+          { k: 'p', t: 'Routines are easier to copy than describe. Here is one honest week — the shape matters more than the exact hours:' },
+          { k: 'timeline', items: [
+            { when: 'Monday', what: 'Deep block for the hardest course. Everything else flexes around it.' },
+            { when: 'Tuesday', what: 'Second block plus one errand-sized task — keep momentum without drama.' },
+            { when: 'Wednesday', what: 'Lighter day: review cards and reset the plan for the weekend.' },
+            { when: 'Thursday', what: 'Second deep block, same time as Monday. The cue does the work.' },
+            { when: 'Friday', what: 'Catch-up buffer plus one hour of forward planning for next week.' },
+            { when: 'Saturday', what: 'Optional long block if energy allows. Rest is a legitimate plan too.' },
+            { when: 'Sunday', what: 'Weekly review: fifteen minutes, three questions, one adjustment.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The mistakes that break weekly routines',
         blocks: [
           { k: 'deflist', items: [
@@ -1866,6 +1895,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The reset checklist',
+        blocks: [
+          { k: 'p', t: 'If you are already running on empty, start here. This is a two-week protocol, not a semester plan:' },
+          { k: 'checklist', id: 'burnout-reset', items: [
+            'Cut study load by a third for one week — guilt-free, on purpose',
+            'Sleep to a fixed window for seven nights straight',
+            'One real rest block per day: walk, meal with people, or nothing scheduled',
+            'Move every deadline you can move; email one professor today',
+            'Rebuild one anchor habit — the smallest daily block that still counts',
+            'On day ten, add back one session and see how it feels before adding more',
+          ]},
+        ],
+      },
+      {
         h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'Burnout prevention isn’t self-care as a luxury — it’s maintenance as a system.' },
@@ -2354,6 +2397,14 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'Input versus output: the balance',
+        blocks: [
+          { k: 'p', t: 'Every plateau conversation eventually lands on the same argument — how much of your time should go to consuming the language versus producing it.' },
+          { k: 'versus', a: { k: 'Input', t: 'Reading, listening, review — the volume that builds vocabulary and pattern recognition. Necessary, cheap, and easy to overdo.' }, b: { k: 'Output', t: 'Speaking and writing — the friction that exposes gaps input hides. Smaller share of time, larger share of growth.' } },
+          { k: 'p', t: 'The ratio shifts with level: beginners lean input-heavy, while intermediate students need output pushed earlier than feels comfortable.' },
+        ],
+      },
+      {
         h2: 'The loop, kept',
         blocks: [
           { k: 'quote', t: 'Language learning isn’t a talent or a phase — it’s a loop you run daily.' },
@@ -2678,6 +2729,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The night, hour by hour',
+        blocks: [
+          { k: 'p', t: 'One night is not enough to learn the course — it is enough to steal back the points you would have given away. Spend it like this:' },
+          { k: 'timeline', items: [
+            { when: '6:00–7:00 pm', what: 'Triage. List every topic, mark what you half-know, and cut what you never saw.' },
+            { when: '7:00–9:30 pm', what: 'First pass: active recall on your weakest half. Blank page, closed book.' },
+            { when: '9:30–9:45 pm', what: 'Break. Real break — food, walk, no phone guilt either way.' },
+            { when: '9:45–11:30 pm', what: 'Second pass: practice problems on the same topics. Misses go back on the list.' },
+            { when: '11:30 pm–12:30 am', what: 'Sleep. The all-nighter is the single worst trade on this list.' },
+            { when: 'Exam morning', what: 'Eat, arrive early, and trust the two passes — they covered what matters.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The mistakes that waste your one night',
         blocks: [
           { k: 'deflist', items: [
@@ -2996,6 +3061,25 @@ export const GUIDES = [
             { t: 'Skipping the easy questions', d: 'Burning three minutes on a hard question costs the three easy ones you could have banked. Two-pass strategy: answer what you know, flag the rest.' },
             { t: 'Never taking a full practice test', d: 'Section practice hides pacing problems. A full timed test exposes them — take one every 2-3 weeks.' },
             { t: 'Reviewing only wrong answers', d: 'Right answers you guessed on are future wrong answers. Review every question, especially the lucky hits.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Exam day, minus the surprises',
+        blocks: [
+          { k: 'p', t: 'Strategy ends at the door. What happens in the building is logistics — sort it before test day, not during.' },
+          { k: 'stats', items: [
+            { v: '~2h 14m', l: 'Total testing time across both sections' },
+            { v: '154', l: 'Questions, all multiple choice or student-produced' },
+            { v: '2', l: 'Breaks, one of them ten minutes' },
+            { v: '400–800', l: 'Score scale, per section' },
+          ]},
+          { k: 'checklist', id: 'sat-day', items: [
+            'Admission ticket and photo ID packed the night before',
+            'Approved calculator — charged or with fresh batteries',
+            'Watch or timer for the morning, not the exam room',
+            'Arrive 30–45 minutes early; traffic is not a strategy',
+            'Eat something; the brain does not run on adrenaline',
           ]},
         ],
       },
@@ -4316,6 +4400,18 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The numbers that run the exam',
+        blocks: [
+          { k: 'p', t: 'The MCAT is a scheduling problem before it is a knowledge problem. These are the figures your plan has to respect:' },
+          { k: 'stats', items: [
+            { v: '7.5 hrs', l: 'Total seat time including breaks and optional sections' },
+            { v: '4', l: 'Scored sections: Bio/Biochem, Chem/Physics, Psych/Soc, CARS' },
+            { v: '~95', l: 'Questions per science section, ~53 in CARS' },
+            { v: '472–528', l: 'Score range most schools screen on' },
+          ]},
+        ],
+      },
+      {
         h2: 'What separates a pass from a fail',
         blocks: [
           { k: 'deflist', items: [
@@ -4791,6 +4887,18 @@ export const GUIDES = [
             'Generalize — DS questions test whether you can find the counterexample, not whether you can solve. Practice generating cases that break each statement.',
           ]},
           { k: 'p', t: 'Data Sufficiency is the section students skip — and the section that most punishes algebra habits. The skill is counterexample generation: for every statement, ask "can I make this true and the answer still ambiguous?" If yes, it is insufficient.' },
+        ],
+      },
+      {
+        h2: 'The numbers behind the four sections',
+        blocks: [
+          { k: 'p', t: 'The GMAT is shorter than its reputation — which means every question carries more weight. Know the arithmetic:' },
+          { k: 'stats', items: [
+            { v: '~2h 15m', l: 'Total testing time across four sections' },
+            { v: '4', l: 'Sections: Quant, Verbal, Integrated Reasoning, Analytical Writing' },
+            { v: '12', l: 'Data Sufficiency items in Quant — roughly a third' },
+            { v: '200–800', l: 'Total score scale, in ten-point increments' },
+          ]},
         ],
       },
       {
@@ -7850,6 +7958,14 @@ export const GUIDES = [
             { t: 'Studying courses in isolation', d: 'Marketing, finance and strategy are the same problem in different clothes — the connections are where the insight lives.' },
             { t: 'Waiting until exam week for cases', d: 'Case skill compounds — a semester of weekly case practice beats a week of cramming.' },
           ]},
+        ],
+      },
+      {
+        h2: 'Case method versus concept cramming',
+        blocks: [
+          { k: 'p', t: 'Business courses punish two opposite study errors: memorizing frameworks without applying them, or practicing cases without knowing the vocabulary.' },
+          { k: 'versus', a: { k: 'Concept cramming', t: 'Learning SWOT and the five forces as definitions. Feels productive, evaporates the moment a case asks you to use them.' }, b: { k: 'Case method', t: 'Working the frameworks on real companies until choosing one is automatic. Slower per hour, permanent per exam.' } },
+          { k: 'p', t: 'The frameworks are the vocabulary; cases are the grammar. You need both, in that order — concepts first, then reps.' },
         ],
       },
       {
