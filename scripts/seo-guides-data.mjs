@@ -204,6 +204,11 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'In 1885, Hermann Ebbinghaus measured his own memory and found something uncomfortable: we forget most of what we learn within days. The curve drops steeply at first and then flattens — which means material you review *right as you’re about to lose it* sticks far better than material you review while it’s still fresh.' },
           { k: 'p', t: 'Spaced repetition is that curve, exploited on purpose. Instead of reviewing everything on a fixed schedule, you review each item at widening intervals — minutes, then days, then weeks, then months — always landing near the edge of forgetting. Each successful recall at that edge strengthens the memory more than ten reviews while it’s still easy.' },
+          { k: 'stats', items: [
+            { v: '≈ 24 hrs', l: 'The window where most of a lecture starts fading' },
+            { v: 'Widening', l: 'Review intervals stretch as recall strengthens' },
+            { v: '10 min', l: 'A daily session beats a weekly cram' },
+          ]},
         ],
       },
       {
@@ -263,7 +268,7 @@ export const GUIDES = [
       {
         h2: 'The short version',
         blocks: [
-          { k: 'p', t: 'Spaced repetition is forgetting, harnessed. Review material at the edge of loss, grade your recall honestly, and let the intervals expand. Do it daily, keep cards atomic, and use it for the facts that need to be *automatic* — then spend your deeper thinking on everything else.' },
+          { k: 'quote', t: 'Spaced repetition is forgetting, harnessed. Review material at the edge of loss, grade your recall honestly, and let the intervals expand. Do it daily, keep cards atomic, and use it for the facts that need to be *automatic* — then spend your deeper thinking on everything else.' },
         ],
       },
       {
@@ -362,10 +367,10 @@ export const GUIDES = [
         h2: 'What the research actually says',
         blocks: [
           { k: 'p', t: 'Honesty is required here, because the evidence is genuinely mixed — and any guide that tells you pomodoros are proven to work is selling something.' },
-          { k: 'ul', items: [
-            'A 2023 randomized study (Biwer et al.) found students on fixed breaks — including pomodoro-style schedules — reported less fatigue and distraction and more concentration and motivation than students choosing their own breaks, while finishing similar work in less time.',
-            'A 2022 meta-analysis of short breaks (10 minutes or less) found they reliably boosted energy and reduced fatigue, though the effect on performance itself was small.',
-            'A 2025 study found the opposite pattern: pomodoro breaks produced *faster* rises in fatigue and faster drops in motivation compared to self-regulated breaks, though overall levels didn’t differ.',
+          { k: 'deflist', items: [
+            { t: 'Biwer et al., 2023 (randomized)', d: 'Students on fixed breaks — including pomodoro-style schedules — reported less fatigue and distraction and more concentration and motivation than students choosing their own breaks, while finishing similar work in less time.' },
+            { t: '2022 meta-analysis of short breaks', d: 'Breaks of ten minutes or less reliably boosted energy and reduced fatigue, though the effect on performance itself was small.' },
+            { t: '2025 study', d: 'Pomodoro breaks produced *faster* rises in fatigue and faster drops in motivation compared to self-regulated breaks, though overall levels didn’t differ.' },
           ]},
           { k: 'p', t: 'The honest summary: *structure helps, but the specific interval doesn’t matter much*. Fixed, short work-break cycles seem to support focus and manage fatigue for most students. Whether it’s 25/5 or 50/10 matters far less than whether you actually take the breaks — and whether the breaks are real.' },
           { k: 'callout', t: 'The pomodoro technique works best as a *starting ritual* and a *break enforcer*, not a learning theory. It won’t make you remember more. It will make you start more often — and starting is where most study plans die.' },
@@ -376,11 +381,11 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The 25/5 default was built for office work, not deep study. Students doing genuinely hard material — proofs, dense readings, problem sets — often need longer blocks to reach flow. Interrupting a proof at minute 25 to stretch isn’t a break; it’s a derailment.' },
           { k: 'p', t: 'A better default for serious study:' },
-          { k: 'ul', items: [
-            'Shallow work (flashcards, reading, admin): 25–30 min work / 5 min break.',
-            'Deep work (essays, problem sets, dense chapters): 45–75 min work / 10–15 min break.',
-            'After three to four deep blocks: a real break of 20–30 minutes — leave the desk.',
-            'Match the interval to the task, not to the tomato.',
+          { k: 'deflist', items: [
+            { t: 'Shallow work', d: 'Flashcards, reading, admin: 25–30 min work / 5 min break.' },
+            { t: 'Deep work', d: 'Essays, problem sets, dense chapters: 45–75 min work / 10–15 min break.' },
+            { t: 'Long break', d: 'After three to four deep blocks: a real break of 20–30 minutes — leave the desk.' },
+            { t: 'The rule', d: 'Match the interval to the task, not to the tomato.' },
           ]},
           { k: 'p', t: 'The technique also assumes you can pause mid-thought. If you’re in genuine flow — the kind where the timer feels like an interruption — extend the block. The rule is *protect the work*, not *obey the clock*.' },
         ],
@@ -444,11 +449,11 @@ export const GUIDES = [
         h2: 'Alternatives worth trying',
         blocks: [
           { k: 'p', t: 'If strict pomodoros feel wrong for your work, the underlying idea — bounded work intervals plus real breaks — has cousins worth knowing:' },
-          { k: 'ul', items: [
-            'Flowtime: instead of fixed intervals, you start a timer when you begin and stop it when you stop — breaks included. Better for work with unpredictable length; worse for work you avoid starting.',
-            'The 52/17 split: some research on desk workers suggests longer blocks (~52 min) with longer breaks (~17 min) match natural attention rhythms better than 25/5. Worth trying if 25 minutes keeps interrupting your flow.',
-            'Ultradian blocks: the body runs on roughly 90-minute rest-activity cycles. Some students do one 90-minute deep block per study session and stop — fewer, bigger sessions instead of many small ones.',
-            'The two-minute rule: if a task takes under two minutes, do it now instead of scheduling it. Not a study method, but it clears the small tasks that make starting feel heavy.',
+          { k: 'deflist', items: [
+            { t: 'Flowtime', d: 'Instead of fixed intervals, you start a timer when you begin and stop it when you stop — breaks included. Better for work with unpredictable length; worse for work you avoid starting.' },
+            { t: 'The 52/17 split', d: 'Some research on desk workers suggests longer blocks (~52 min) with longer breaks (~17 min) match natural attention rhythms better than 25/5. Worth trying if 25 minutes keeps interrupting your flow.' },
+            { t: 'Ultradian blocks', d: 'The body runs on roughly 90-minute rest-activity cycles. Some students do one 90-minute deep block per study session and stop — fewer, bigger sessions instead of many small ones.' },
+            { t: 'The two-minute rule', d: 'If a task takes under two minutes, do it now instead of scheduling it. Not a study method, but it clears the small tasks that make starting feel heavy.' },
           ]},
           { k: 'p', t: 'None of these is magic. They’re all the same bet: that structure helps you start and recover, and that the specific numbers matter less than actually doing them.' },
         ],
@@ -456,7 +461,7 @@ export const GUIDES = [
       {
         h2: 'How to know if it’s working',
         blocks: [
-          { k: 'p', t: 'The honest metric isn’t pomodoros completed — it’s whether you did the work. A week of perfect 25-minute sessions that produced nothing is a failure wearing a costume.' },
+          { k: 'p', t: 'The honest metric isn’t pomodoros completed — it’s whether you did the work. A week of perfect 25-minute sessions that produced nothing is just a very organized way of not studying.' },
           { k: 'p', t: 'Track three things for two weeks and you’ll know:' },
           { k: 'ul', items: [
             'Sessions started vs. sessions finished — the gap is your avoidance, measured.',
@@ -1342,7 +1347,7 @@ export const GUIDES = [
       {
         h2: 'The craft in one sentence',
         blocks: [
-          { k: 'p', t: 'Write cards that ask questions your future self needs answered, review them honestly and frequently, and prune without mercy. Flashcards aren’t magic — they’re a mirror that shows you exactly what you don’t know, every day, until you do.' },
+          { k: 'quote', t: 'Write cards that ask questions your future self needs answered, review them honestly and frequently, and prune without mercy. Flashcards aren’t magic — they’re a mirror that shows you exactly what you don’t know, every day, until you do.' },
         ],
       },
       {
