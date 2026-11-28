@@ -1929,6 +1929,115 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'write-faster-on-exams',
+    title: 'How to write <em>faster on exams</em> without writing worse',
+    seoTitle: 'How to Write Faster on Exams: Essay Strategy That Works',
+    description:
+      'Essay exams punish the unprepared writer. The structure that writes itself, timed practice that builds pace, and the last-ten-minutes moves that actually raise grades.',
+    kicker: 'Exam Season',
+    datePublished: '2026-12-17',
+    dateModified: '2026-12-22',
+    readMinutes: 7,
+    keywords: ['write faster on exams', 'essay exam tips', 'timed essay writing', 'exam essay strategy'],
+    tools: ['timer', 'proof', 'ink'],
+    related: ['how-to-use-practice-tests', 'how-to-study-for-finals-week', 'active-recall-vs-rereading'],
+    lede: 'The essay exam is the one place where knowing the material isn’t enough — you also have to produce it, in prose, under a clock. Students who know the content cold still lose points because they run out of time mid-thesis or spend twenty minutes perfecting an introduction. Writing faster on exams isn’t about typing speed. It’s about having a structure you can execute on demand.',
+    takeaways: [
+      'Speed comes from a rehearsed structure, not typing fast — coverage beats polish every time.',
+      'Two minutes of outlining saves ten minutes of drift; write the thesis last if it helps.',
+      'Three or four timed essays per course is enough to find your pace — the clock has to be real.'
+    ],
+    faq: [
+      {
+        q: 'Is the five-paragraph essay still useful for exams?',
+        a: 'As a default container, yes — it guarantees coverage, which is what graders score. Adapt it to the prompt, but walking in without a structure means spending exam time inventing one instead of filling it.',
+      },
+      {
+        q: 'Should I write the introduction first?',
+        a: 'Not necessarily. Many fast writers argue the body points first, then write the introduction last — you’ll know your actual argument instead of promising one you drift from. Either way, keep the intro to two sentences.',
+      },
+      {
+        q: 'What if I run out of time mid-essay?',
+        a: 'Compress, don’t panic: shorten remaining paragraphs to topic-sentence-plus-evidence, write a one-line conclusion, and move on. Partial answers on every question always beat perfect answers on half.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Why essay exams punish the unprepared writer',
+        blocks: [
+          { k: 'p', t: 'The essay exam is the one place where knowing the material isn’t enough — you also have to produce it, in prose, under a clock. Students who know the content cold still lose points because they run out of time mid-thesis or spend twenty minutes perfecting an introduction. Writing faster on exams isn’t about typing speed. It’s about having a structure you can execute on demand.' },
+          { k: 'deflist', items: [
+            { t: 'Sequential writing vs. holistic grading', d: 'A great intro can’t compensate for two missing body paragraphs.' },
+            { t: 'No time for discovery', d: 'You can’t “find” your argument mid-sentence under a clock.' },
+            { t: 'Coverage beats polish', d: 'A plain essay that answers everything beats a beautiful one that answers one thing.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The structure that writes itself',
+        blocks: [
+          { k: 'p', t: 'Speed on essays comes from having a template so practiced it runs without thinking. The five-paragraph essay isn’t outdated — it’s a container that guarantees coverage:' },
+          { k: 'steps', items: [
+            'Introduction: thesis + roadmap. Two sentences, thirty seconds, done.',
+            'Body paragraph 1: strongest argument + evidence.',
+            'Body paragraph 2: second argument + evidence.',
+            'Body paragraph 3: counterargument + rebuttal, or third argument.',
+            'Conclusion: restate thesis, synthesize — don’t repeat.',
+          ]},
+          { k: 'p', t: 'The template isn’t a cage — adapt it to the prompt. But having a default structure means you spend exam time *filling* it, not *inventing* it.' },
+        ],
+      },
+      {
+        h2: 'Pre-writing moves that save minutes',
+        blocks: [
+          { k: 'ul', items: [
+            'Outline before you write — two minutes of bullets saves ten minutes of drift.',
+            'Write the thesis last if it helps — argue the points first, then state the claim they support.',
+            'Use your own shorthand in the outline; expand in the essay.',
+            'If you get stuck, write the topic sentence and move on — momentum beats perfection.',
+          ]},
+        ],
+      },
+      {
+        h2: 'Timed practice is the only real training',
+        blocks: [
+          { k: 'p', t: 'You can’t get faster at essay exams by reading about them. You get faster by writing essays under time pressure until the structure is automatic.' },
+          { k: 'steps', items: [
+            'Take a past prompt or write your own from the syllabus.',
+            'Set the real time limit — no extensions, no notes beyond what the exam allows.',
+            'Write the full essay, then compare it to the rubric or a sample answer.',
+            'Repeat three or four times per course before exam day.',
+          ]},
+          { k: 'p', t: 'The first essay will be slow and messy; the third will feel different — you’ll know where the minutes go because you’ve spent them.' },
+        ],
+      },
+      {
+        h2: 'Reading the prompt like a grader',
+        blocks: [
+          { k: 'p', t: 'Half of essay-exam speed is spent answering the *right* question. Underline the actual task — “compare,” “evaluate,” “argue,” “trace” — because each demands a different structure. A compare essay with an argument structure wastes ten minutes and loses the point.' },
+          { k: 'p', t: 'If a prompt has multiple parts, answer them in order and label your sections. Graders skim; make the structure visible so they can find your answers.' },
+        ],
+      },
+      {
+        h2: 'The last ten minutes',
+        blocks: [
+          { k: 'p', t: 'Reserve the final stretch for what actually raises grades: completing every section, adding a conclusion if you skipped it, and a fast proofread for spelling and agreement. A finished plain essay beats an unfinished good one — always.' },
+          { k: 'p', t: 'If you’re running out of time mid-essay, the move is compression, not panic: shorten remaining paragraphs to topic-sentence-plus-evidence, write a one-line conclusion, and stop. Partial answers on every question beat perfect answers on half.' },
+          { k: 'tool', tool: 'proof', t: 'Proof’s problem sets and error log build the same attempt-review loop for math essays and derivations.' },
+          { k: 'tool', tool: 'timer', t: 'Timer holds the time limit honestly — the practice only counts if the clock is real.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Writing faster on exams is a structure problem, not a talent problem.' },
+          { k: 'p', t: 'Have a template, practice it under time pressure, read the prompt for the actual task, and protect the last ten minutes for completion. The students who finish strong aren’t faster writers — they’re more rehearsed ones.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
