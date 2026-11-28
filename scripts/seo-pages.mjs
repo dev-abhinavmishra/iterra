@@ -1080,6 +1080,8 @@ body.reader .guide-article{max-width:46rem}
   .hero{padding-top:0}
   .prose-table,.table-wrap,.steps li,.def,.keypoint,.example,.prose-fig,.cols{break-inside:avoid}
   .h-anchor,.nav-more-btn{display:none!important}
+  .rv{opacity:1!important;transform:none!important}
+  .gsec,.pt-tool .block,.pt-vs .block{content-visibility:visible!important}
   a{color:inherit;text-decoration:none}
 }
 
