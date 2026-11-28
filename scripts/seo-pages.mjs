@@ -414,6 +414,129 @@ const TOOL_TOURS = {
   ],
 };
 
+/* One deeper-dive section per tool page — the visual variety between the
+   "closer look" tour and the study-day workflow. Rendered with renderBlocks. */
+const TOOL_EXTRAS = {
+  boxed: {
+    h2: 'The anatomy of a Boxed day',
+    blocks: [
+      { k: 'p', t: 'A Boxed day has a shape most students never see until it becomes routine:' },
+      { k: 'steps', items: [
+        'Morning dump — five minutes, everything on your mind, no filtering.',
+        'Choose the vital few — three to five boxes that actually matter today.',
+        'Time-box each one — a start and an end, not "sometime this afternoon".',
+        'Execute the boxes — the schedule holds the boundary.',
+        'Evening rollover — unfinished boxes move forward honestly, not silently.',
+      ]},
+      { k: 'quote', t: 'The dump is the underrated half. Most planners ask you to decide under pressure — what’s important, what can wait — while your head is still noisy.' },
+    ],
+  },
+  syllabus: {
+    h2: 'How a semester lives in Syllabus',
+    blocks: [
+      { k: 'p', t: 'A semester in the Folio moves through predictable phases — and each one asks something different of you:' },
+      { k: 'timeline', items: [
+        { when: 'Week 1', what: 'Enter courses, meeting times and commitments — the skeleton goes up before the noise does.' },
+        { when: 'Weeks 2–8', what: 'Study blocks land on real days; readings and reviews attach to the courses they belong to.' },
+        { when: 'Midterms', what: 'Deadline and attendance tracking surfaces what is actually due — no spreadsheet required.' },
+        { when: 'Finals week', what: 'The schedule becomes the index: every block already knows its course, its deck, its notes.' },
+      ]},
+      { k: 'p', t: 'The honest limitation stays honest: Syllabus plans the study, not the lecture. Your class times still live wherever your registrar put them.' },
+    ],
+  },
+  rhythm: {
+    h2: 'What Rhythm actually measures',
+    blocks: [
+      { k: 'p', t: 'Rhythm does not measure productivity — it measures showing up. Those are different things, and confusing them is why most habit apps fail.' },
+      { k: 'deflist', items: [
+        { t: 'Weekly routines', d: 'The repeating commitments — study blocks, gym, sleep — tracked as habits, not tasks.' },
+        { t: 'Attendance', d: 'Whether you went, not whether you meant to — the record is the point.' },
+        { t: 'Streaks', d: 'Consecutive weeks of showing up — visible, honest, occasionally annoying.' },
+        { t: 'The weekly grid', d: 'The register view: the shape of your week at a glance, drift included.' },
+      ]},
+      { k: 'quote', t: 'Habits tracked in isolation are easy to game — mark everything done, feel productive, learn nothing.' },
+    ],
+  },
+  flashcards: {
+    h2: 'Inside a cardfile deck',
+    blocks: [
+      { k: 'p', t: 'A deck is more than front-and-back cards — the cardfile holds three kinds of recall work:' },
+      { k: 'table', head: ['Card type', 'Best for', 'Example'], rows: [
+        ['Recall cards', 'Facts, definitions, mechanisms', '"What is the Krebs cycle output?"'],
+        ['Multiple-choice', 'Exam-style discrimination', '"Which hormone raises blood glucose?"'],
+        ['Writing drills', 'Production, not recognition', '"Write the steps of mitosis from memory"'],
+      ]},
+      { k: 'p', t: 'Spaced review schedules each card at the edge of forgetting — the interval expands when you get it right and contracts when you miss. That is the entire engine: retrieval at the moment it is hardest.' },
+    ],
+  },
+  ink: {
+    h2: 'Notes that behave like a knowledge base',
+    blocks: [
+      { k: 'p', t: 'Ink notes are not documents — they are nodes. The difference is links: a note about operant conditioning that points at your memory-techniques note and your psychology lecture note becomes part of a web, not a pile.' },
+      { k: 'deflist', items: [
+        { t: 'Concept links', d: 'Link ideas across courses — "interference" in memory connects to "proactive inhibition" in psych.' },
+        { t: 'Course links', d: 'Tag notes to the course they belong to — the Folio knows which deck is due.' },
+        { t: 'Source links', d: 'Attach the lecture, page or paper a note came from — citations build themselves.' },
+      ]},
+      { k: 'p', t: 'The web compounds. A note you wrote in week two resurfaces in week ten through a link you did not plan — that is the argument for linking early and linking often.' },
+    ],
+  },
+  margin: {
+    h2: 'The materials shelf',
+    blocks: [
+      { k: 'p', t: 'Margin is where the raw material of a course lives before it becomes knowledge — tagged, searchable, and connected to the tools that consume it:' },
+      { k: 'deflist', items: [
+        { t: 'Recordings', d: 'Lecture audio and video — review at 1.5x instead of re-attending in your head.' },
+        { t: 'PDFs & slides', d: 'Readings and decks — annotated in place, linked into notes.' },
+        { t: 'Scanned handouts', d: 'The paper that never made it digital — searchable after upload.' },
+        { t: 'Tags by course', d: 'Everything files under the same course spine as your planner and cards.' },
+      ]},
+      { k: 'p', t: 'The shelf matters because scattered materials are where study time goes to die — a recording you cannot find is a lecture you have to re-watch, and nobody re-watches.' },
+    ],
+  },
+  gradestack: {
+    h2: 'From paper to mark book',
+    blocks: [
+      { k: 'p', t: 'GradeStack exists for the unglamorous middle of assessment — the part between "here are the answers" and "here is the grade":' },
+      { k: 'steps', items: [
+        'Build the assessment — question sets and answer keys in the workbench.',
+        'Print the bubble sheet — the format students already know.',
+        'Scan the stack back — pages become scores automatically.',
+        'Read the trends — per-question and per-student patterns, not just totals.',
+        'Feed the misses back — wrong answers become tomorrow\'s recall queue.',
+      ]},
+      { k: 'p', t: 'The trend data is the underrated half. A class average tells you the class struggled; the per-question breakdown tells you exactly which concept to re-teach on Monday.' },
+    ],
+  },
+  timer: {
+    h2: 'The instrument panel',
+    blocks: [
+      { k: 'p', t: 'Timer is a set of instruments, not a single stopwatch — each mode exists because a different kind of work needs a different boundary:' },
+      { k: 'deflist', items: [
+        { t: 'Countdown', d: 'A hard boundary for focused work — 25, 50, 90 minutes, your call.' },
+        { t: 'Interval routes', d: 'Alternating work and rest — the Pomodoro shape for people who hate pomodoros.' },
+        { t: 'Stopwatch', d: 'Untimed tasks that still deserve a record — the essay, the problem set, the reading.' },
+        { t: 'Session ledger', d: 'Every session logged — the week\'s honest record of where the hours went.' },
+      ]},
+      { k: 'quote', t: 'No streaks, no guilt mechanics — just honest timekeeping for work that needs a boundary.' },
+    ],
+  },
+  proof: {
+    h2: 'How Proof structures a solution',
+    blocks: [
+      { k: 'p', t: 'Proof does not hand you the answer — it walks the reasoning, step by step, so the method transfers to the next problem:' },
+      { k: 'steps', items: [
+        'Read the problem — identify what is given and what is being asked.',
+        'Choose the method — which technique applies: substitution, derivation, theorem.',
+        'Work the steps — each line earns its place; skipped algebra hides errors.',
+        'Check the result — plug back, verify units, sanity-check the magnitude.',
+        'File the miss — every problem you get wrong enters the error log for review.',
+      ]},
+      { k: 'p', t: 'The error log is the compounding part. A mistake you file today is a recall prompt next week — Proof turns your worst problems into your best review material.' },
+    ],
+  },
+};
+
 /* Palette + type lifted from shell/src/landing.css and index.css so these
    static pages sit visually inside the same world as the app. */
 const CSS = `
@@ -861,6 +984,8 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .topic:first-child{margin-top:0}
 .topic{scroll-margin-top:90px}
 .topic-d{font-family:Newsreader,Georgia,serif;font-size:1.02rem;font-style:italic;color:var(--mute);margin:-.2rem 0 .9rem;max-width:40rem;line-height:1.55}
+.topic-link{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
+.topic-link:hover{color:var(--accent);border-bottom-color:var(--gold)}
 .topic-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.6rem}
 .topic-nav a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.42rem .95rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
 .topic-nav a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
@@ -1207,6 +1332,13 @@ export function renderToolPage(tool) {
   const facts = tool.facts || ['Free', 'No account', 'Local-first', 'Works offline'];
   const factHtml = `<div class="fact-strip">${facts.map((f) => `<span class="fact">${esc(f)}</span>`).join('')}</div>`;
   const tour = TOOL_TOURS[tool.id] || [];
+  const extra = TOOL_EXTRAS[tool.id];
+  const extraHtml = extra
+    ? `<section class="block" id="deep-dive">
+<h2 class="sec mono">${esc(extra.h2)}</h2>
+<div class="prose">${renderBlocks(extra.blocks)}</div>
+</section>`
+    : '';
   const tourHtml = tour.length
     ? `<section class="block" id="closer-look">
 <h2 class="sec mono">A closer look at ${esc(tool.name)}</h2>
@@ -1336,7 +1468,7 @@ ${factHtml}
 <div class="frame"><img src="/shots/${tool.id}.webp" alt="${esc(tool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
 
 </figure>
-<nav class="ctoc" aria-label="On this page"><a href="#what">What it does</a>${tour.length ? '<a href="#closer-look">A closer look</a>' : ''}${tool.workflow?.length ? '<a href="#study-day">A study day</a>' : ''}${tool.faqs?.length ? '<a href="#faq">Questions</a>' : ''}<a href="#explore">Keep exploring</a></nav>
+<nav class="ctoc" aria-label="On this page"><a href="#what">What it does</a>${tour.length ? '<a href="#closer-look">A closer look</a>' : ''}${extra ? '<a href="#deep-dive">Go deeper</a>' : ''}${tool.workflow?.length ? '<a href="#study-day">A study day</a>' : ''}${tool.faqs?.length ? '<a href="#faq">Questions</a>' : ''}<a href="#explore">Keep exploring</a></nav>
 <section class="block" id="what">
 <h2 class="sec mono">What ${esc(tool.name)} does</h2>
 <ul class="feats">
@@ -1344,6 +1476,7 @@ ${feats}
 </ul>
 </section>
 ${tourHtml}
+${extraHtml}
 ${workflowHtml}
 ${tool.faqs?.length ? `<section class="block" id="faq">
 <h2 class="sec mono">Questions students ask</h2>
@@ -1487,7 +1620,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
   /* three article hero treatments, rotated by guide index */
   const variant = ((gi % 3) + 3) % 3; /* 0 cover below · 1 split hero · 2 centered */
   const heroCopy = `${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.title.replace(/<\/?em>/g, '') }])}
-<div class="kicker mono">Iterra Guides · <a class="klink" href="/guides#topic-${topicSlug(guide.kicker)}">${esc(guide.kicker)}</a></div>
+<div class="kicker mono">Iterra Guides · <a class="klink" href="/topics/${topicSlug(guide.kicker)}">${esc(guide.kicker)}</a></div>
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
 <div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><span>${dateFmt(guide.datePublished)}</span>${guide.dateModified && guide.dateModified !== guide.datePublished ? `<span class="dot">·</span><span>Updated ${dateFmt(guide.dateModified)}</span>` : ''}<span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
@@ -1624,6 +1757,37 @@ ${footer()}
 `;
 }
 
+const TOPIC_NOTES = {
+  'The Long View': 'Semester arcs, syllabi, and plans that survive February.',
+  'Study Methods': 'The evidence-backed techniques — recall, spacing, interleaving.',
+  'Exam Season': 'Finals week, one-night miracles, and post-exam recovery.',
+  'Test Prep': 'Strategy for the tests that gate the next thing.',
+  'Subject Guides': 'How each discipline actually wants to be studied.',
+  'Focus': 'Attention, environment, and the phone in your pocket.',
+  'Routines': 'Weekly rhythms and daily rituals that hold.',
+  'Flashcards': 'Cardfiles, decks, and honest spaced repetition.',
+  'Notes': 'Notes that are findable a month later.',
+  'Planning': 'Time blocking, calendars, and saying no on paper.',
+  'Privacy & Ownership': 'Local-first, exports, and data that’s yours.',
+  'Language Learning': 'Vocabulary, comprehensible input, and output.',
+  'Study Skills': 'Speed, groups, burnout, and the meta-skills.',
+  'Writing': 'Faster drafting, clearer arguments, less staring.',
+};
+
+const TOPIC_PAGES = (() => {
+  const map = new Map();
+  for (const g of GUIDES) {
+    if (!map.has(g.kicker)) map.set(g.kicker, []);
+    map.get(g.kicker).push(g);
+  }
+  return [...map.entries()].map(([kicker, guides]) => ({
+    kicker,
+    slug: topicSlug(kicker),
+    guides,
+    note: TOPIC_NOTES[kicker] || '',
+  }));
+})();
+
 export function renderGuidesIndex() {
   const url = `${SITE}/guides`;
   const ld = {
@@ -1661,22 +1825,6 @@ export function renderGuidesIndex() {
           .map((t) => `<a href="#topic-${topicSlug(t.k)}">${esc(t.k)}</a>`)
           .join('')}</nav>`
       : '';
-  const TOPIC_NOTES = {
-    'The Long View': 'Semester arcs, syllabi, and plans that survive February.',
-    'Study Methods': 'The evidence-backed techniques — recall, spacing, interleaving.',
-    'Exam Season': 'Finals week, one-night miracles, and post-exam recovery.',
-    'Test Prep': 'Strategy for the tests that gate the next thing.',
-    'Subject Guides': 'How each discipline actually wants to be studied.',
-    'Focus': 'Attention, environment, and the phone in your pocket.',
-    'Routines': 'Weekly rhythms and daily rituals that hold.',
-    'Flashcards': 'Cardfiles, decks, and honest spaced repetition.',
-    'Notes': 'Notes that are findable a month later.',
-    'Planning': 'Time blocking, calendars, and saying no on paper.',
-    'Privacy & Ownership': 'Local-first, exports, and data that’s yours.',
-    'Language Learning': 'Vocabulary, comprehensible input, and output.',
-    'Study Skills': 'Speed, groups, burnout, and the meta-skills.',
-    'Writing': 'Faster drafting, clearer arguments, less staring.',
-  };
   const PICKS = ['plan-a-semester', 'spaced-repetition-explained', 'how-to-study-for-finals-week'];
   const picksHtml = PICKS.map((slug) => GUIDES.find((g) => g.slug === slug))
     .filter(Boolean)
@@ -1686,7 +1834,7 @@ export function renderGuidesIndex() {
     .join('\n');
   const cards = topics
     .map(
-      (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</h3>${TOPIC_NOTES[t.k] ? `<p class="topic-d">${esc(TOPIC_NOTES[t.k])}</p>` : ''}<ul class="rows">${t.items
+      (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}"><a class="topic-link" href="/topics/${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</a></h3>${TOPIC_NOTES[t.k] ? `<p class="topic-d">${esc(TOPIC_NOTES[t.k])}</p>` : ''}<ul class="rows">${t.items
         .map(
           (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )
@@ -1746,6 +1894,94 @@ ${cards}
 <div class="cta" style="margin-top:2.5rem">
 <a class="primary" href="/#/today">Open the workspace →</a>
 <a class="ghost" href="/tools">All tools</a>
+<a class="ghost" href="/feed.xml">RSS feed</a>
+</div>
+</section>
+</div>
+${footer()}
+</body>
+</html>
+`;
+}
+
+export function renderTopicPage(topic) {
+  const url = `${SITE}/topics/${topic.slug}`;
+  const rows = topic.guides
+    .map(
+      (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+    )
+    .join('\n');
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        name: `${topic.kicker} study guides — Iterra`,
+        description: topic.note || `Iterra guides on ${topic.kicker.toLowerCase()}.`,
+        url,
+        isPartOf: { '@type': 'WebSite', name: 'Iterra', url: `${SITE}/` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Iterra', item: `${SITE}/` },
+          { '@type': 'ListItem', position: 2, name: 'Guides', item: `${SITE}/guides` },
+          { '@type': 'ListItem', position: 3, name: topic.kicker, item: url },
+        ],
+      },
+      {
+        '@type': 'ItemList',
+        itemListElement: topic.guides.map((g, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: g.title.replace(/<\/?em>/g, ''),
+          url: `${SITE}/guides/${g.slug}`,
+        })),
+      },
+    ],
+  };
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
+<title>${esc(topic.kicker)} Study Guides — Iterra</title>
+<meta name="description" content="${esc(topic.note || `Iterra guides on ${topic.kicker.toLowerCase()}.`)} ${topic.guides.length} articles, all free." />
+<link rel="canonical" href="${url}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Iterra" />
+<meta property="og:url" content="${url}" />
+<meta property="og:title" content="${esc(topic.kicker)} Study Guides — Iterra" />
+<meta property="og:description" content="${esc(topic.note || '')}" />
+<meta property="og:image" content="${SITE}/og/guides.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+${FONTS}
+<style>${CSS}</style>
+${jsonLd(ld)}
+</head>
+<body>
+${header('/guides')}
+<section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: topic.kicker }])}
+<div class="kicker mono">Iterra Guides · ${esc(topic.kicker)}</div>
+<h1>${esc(topic.kicker)} <em>guides.</em></h1>
+<p class="lede">${esc(topic.note || `Every Iterra guide filed under ${topic.kicker.toLowerCase()} — practical, research-backed, and free.`)}</p>
+<div class="stats hero-stats">
+<div class="stat"><span class="v">${topic.guides.length}</span><span class="l">Guides in this topic</span></div>
+<div class="stat"><span class="v">~${Math.round(topic.guides.reduce((a, g) => a + (g.readMinutes || 8), 0) / 60 * 10) / 10} hrs</span><span class="l">Total reading time</span></div>
+</div>
+</div></section>
+<div class="wrap">
+<section class="block" style="border-bottom:none">
+<ul class="rows">
+${rows}
+</ul>
+<div class="cta" style="margin-top:2.5rem">
+<a class="primary" href="/guides">All guides</a>
 <a class="ghost" href="/feed.xml">RSS feed</a>
 </div>
 </section>
@@ -2310,6 +2546,7 @@ export function renderSitemap(lastmod = new Date().toISOString().slice(0, 10)) {
     })),
     ...TOOLS.map((t) => ({ loc: `${SITE}${t.path}`, lastmod: t.updated || lastmod, priority: '0.7', freq: 'monthly' })),
     ...GUIDES.map((g) => ({ loc: `${SITE}/guides/${g.slug}`, lastmod: g.dateModified || g.datePublished || lastmod, priority: '0.7', freq: 'monthly' })),
+    ...TOPIC_PAGES.map((t) => ({ loc: `${SITE}/topics/${t.slug}`, lastmod, priority: '0.6', freq: 'weekly' })),
   ];
   const body = urls
     .map(
@@ -2349,6 +2586,11 @@ export function writeSeoPages(distDir) {
   for (const guide of GUIDES) {
     mkdirSync(join(distDir, 'guides', guide.slug), { recursive: true });
     writeFileSync(join(distDir, 'guides', guide.slug, 'index.html'), renderGuidePage(guide));
+  }
+  mkdirSync(join(distDir, 'topics'), { recursive: true });
+  for (const topic of TOPIC_PAGES) {
+    mkdirSync(join(distDir, 'topics', topic.slug), { recursive: true });
+    writeFileSync(join(distDir, 'topics', topic.slug, 'index.html'), renderTopicPage(topic));
   }
   writeFileSync(join(distDir, 'sitemap.xml'), renderSitemap());
   writeFileSync(join(distDir, 'feed.xml'), renderFeed());
