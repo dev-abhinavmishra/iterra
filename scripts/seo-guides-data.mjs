@@ -6002,6 +6002,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-clep',
+    title: 'How to study for the <em>CLEP</em>',
+    seoTitle: 'How to Study for the CLEP: Credit-by-Exam Prep Guide',
+    description:
+      'Beat the CLEP with a system: know the format, practice the patterns, review every question, and focus on the high-yield topics for your specific exam — the shortcut to college credit.',
+    kicker: 'Study Methods',
+    datePublished: '2027-10-26',
+    dateModified: '2027-10-30',
+    readMinutes: 7,
+    keywords: ['how to study for the CLEP', 'CLEP prep', 'CLEP exam guide', 'credit by exam'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-use-practice-tests', 'how-to-ace-multiple-choice-tests', 'how-to-study-for-the-sat'],
+    lede: 'The CLEP exam is the shortcut — a credit-by-exam that lets you skip a college course and save thousands. But most students treat it like a content review: they memorize the material, practice the questions, and hope the exam rewards their effort. The CLEP rewards a different approach: know the format, practice the patterns, and review every question.',
+    takeaways: [
+      'Take a practice test first — the questions you miss tell you which areas to review.',
+      'Focus on the high-yield topics for your specific exam.',
+      'Practice at real speed — 90 minutes per exam, 1.5-2 minutes per question.',
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the CLEP?',
+        a: 'Most students need 4-8 weeks of focused prep. The CLEP covers a single college course — you don\'t need to relearn everything, just the course content. A structured study plan with daily practice questions works better than weekend cramming.',
+      },
+      {
+        q: 'What\'s a passing score on the CLEP?',
+        a: 'A score of 50 is equivalent to a "C" grade — enough to earn credit at most colleges. Some colleges require higher scores for specific courses. Check your college\'s policy before you test.',
+      },
+      {
+        q: 'Which CLEP exam should I take first?',
+        a: 'Start with a subject you already know — it builds confidence and momentum. English Composition and College Mathematics are popular first choices because they\'re widely accepted and the content is familiar. Save the harder subjects for later.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the CLEP before you study it',
+        blocks: [
+          { k: 'p', t: 'The CLEP has 34 exams covering college subjects — English, math, science, history, and more. Each exam is 90 minutes, mostly multiple choice, and scores on a 20-80 scale. A score of 50 is equivalent to a "C" grade — enough to earn credit at most colleges.' },
+          { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the CLEP\'s pressure — 90 minutes per exam, 1.5-2 minutes per question. Practice at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The CLEP study loop',
+        blocks: [
+          { k: 'p', t: 'CLEP prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice test — the full 90 minutes.',
+            'Review every question — right and wrong — with the answer explanations.',
+            'Identify the content areas you miss most.',
+            'Drill those areas with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'The content areas: what to focus on',
+        blocks: [
+          { k: 'p', t: 'Each CLEP exam covers a specific college course — focus on the high-yield topics:' },
+          { k: 'deflist', items: [
+            { t: 'English Composition', d: 'Grammar, rhetoric, essay writing — know the rules cold.' },
+            { t: 'College Mathematics', d: 'Algebra, geometry, statistics — know the formulas.' },
+            { t: 'American Literature', d: 'Literary periods, authors, works — know the canon.' },
+            { t: 'US History', d: 'Major events, causes, consequences — know the timeline.' },
+            { t: 'Natural Sciences', d: 'Biology, chemistry, physics — know the basics.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The question types: what to expect',
+        blocks: [
+          { k: 'p', t: 'CLEP questions are mostly multiple choice — but the format varies by subject:' },
+          { k: 'deflist', items: [
+            { t: 'Recall', d: '"What year did X happen?" — the most common type.' },
+            { t: 'Application', d: '"How would you apply Y concept?" — the second most common.' },
+            { t: 'Analysis', d: '"Why did X happen?" — the hardest type.' },
+            { t: 'Essay', d: 'For English Composition — practice the timed essay.' },
+          ]},
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the facts, dates, and definitions that CLEP questions assume you know — the historical events, the literary works, the scientific terms.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'CLEP timing is generous — 90 minutes for most exams, roughly 1.5-2 minutes per question. The strategy: answer every question, don\'t change answers unless you have a reason, and don\'t leave questions blank. The CLEP doesn\'t penalize guessing.' },
+          { k: 'p', t: 'For difficult questions, don\'t panic — flag them and come back if you have time. The exam is designed to be completed in the time limit; if you\'re running out of time, you\'re spending too long on individual questions.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The CLEP isn\'t about memorizing facts — it\'s about knowing the course.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
