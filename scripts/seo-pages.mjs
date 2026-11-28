@@ -1116,7 +1116,7 @@ const JS_NAME = JS_SRC
 
 /* Reading-progress bar + scrollspy — vanilla JS, no dependencies. The bar
    tracks the article container (not the page) so it reads honestly. */
-function readProgressScript(targetSel, spySel) {
+function readProgressScript(targetSel) {
   return `<div class="read-progress" aria-hidden="true"><i></i></div>
 <script>
 (function(){
@@ -1125,11 +1125,6 @@ function readProgressScript(targetSel, spySel) {
     var tick=function(){var r=art.getBoundingClientRect(),total=r.height-window.innerHeight,p=total>0?Math.min(1,Math.max(0,-r.top/total)):0;bar.style.transform='scaleX('+p+')';var meter=document.querySelector('.rail-meter i'),label=document.querySelector('[data-read-label]');if(meter){meter.style.setProperty('--p',p);meter.classList.toggle('on',p>0&&p<1);}if(label)label.textContent=Math.round(p*100)+'% read';};
     addEventListener('scroll',tick,{passive:true});tick();
   }
-  ${spySel ? `var links=[].slice.call(document.querySelectorAll('${spySel} a')),heads=[].slice.call(document.querySelectorAll('.prose h2[id]'));
-  if(links.length&&heads.length&&'IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id);});}});},{rootMargin:'-15% 0px -75% 0px'});
-    heads.forEach(function(h){io.observe(h);});
-  }` : ''}
 })();
 </script>`;
 }
@@ -1823,7 +1818,7 @@ ${pagerHtml}
 ${toolsHtml}
 ${relatedHtml}
 </div>
-${readProgressScript('.guide-article', '.toc-rail')}
+${readProgressScript('.guide-article')}
 ${footer()}
 </body>
 </html>
