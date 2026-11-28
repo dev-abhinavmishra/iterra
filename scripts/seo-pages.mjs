@@ -1107,6 +1107,14 @@ function esc(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function metaDesc(s, max = 158) {
+  s = String(s).replace(/\s+/g, ' ').trim();
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max);
+  const sp = cut.lastIndexOf(' ');
+  return cut.slice(0, sp > 80 ? sp : max).replace(/[\s,;:—–-]+$/, '') + '…';
+}
+
 function jsonLd(obj) {
   return `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
 }
@@ -1387,7 +1395,7 @@ ${neighbors
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(tool.title)}</title>
-<meta name="description" content="${esc(tool.description)}" />
+<meta name="description" content="${esc(metaDesc(tool.description))}" />
 ${tool.keywords?.length ? `<meta name="keywords" content="${esc(tool.keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
 ${prevTool ? `<link rel="prev" href="${SITE}/tools/${prevTool.id}" />` : ''}
@@ -1682,7 +1690,7 @@ ${guide.faq
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(guide.seoTitle)}</title>
-<meta name="description" content="${esc(guide.description)}" />
+<meta name="description" content="${esc(metaDesc(guide.description))}" />
 ${guide.keywords?.length ? `<meta name="keywords" content="${esc(guide.keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
 ${prevGuide ? `<link rel="prev" href="${SITE}/guides/${prevGuide.slug}" />` : ''}
@@ -2013,7 +2021,7 @@ export function renderGuidesIndex() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Study Guides — How to Learn Better | Iterra</title>
-<meta name="description" content="Practical, research-backed guides to studying better: semester planning, spaced repetition, active recall, pomodoro, time blocking, finals week, and more — plus the free tools that make it stick." />
+<meta name="description" content="${esc(metaDesc('Practical, research-backed guides to studying better: semester planning, spaced repetition, active recall, pomodoro, time blocking, finals week, and more — plus the free tools that make it stick.'))}" />
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
@@ -2123,7 +2131,7 @@ export function renderTopicPage(topic) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(topic.kicker)} Study Guides — Iterra</title>
-<meta name="description" content="${esc(topic.note || `Iterra guides on ${topic.kicker.toLowerCase()}.`)} ${topic.guides.length} articles, all free." />
+<meta name="description" content="${esc(metaDesc(`${topic.note || `Iterra guides on ${topic.kicker.toLowerCase()}.`} ${topic.guides.length} articles, all free.`))}" />
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
@@ -2271,7 +2279,7 @@ export function renderToolsIndex() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Iterra Study Tools — Planner, Flashcards, Notes, Timer & More</title>
-<meta name="description" content="Nine study tools in one local-first workspace: time-blocking planner, spaced-repetition flashcards, linked notes, pomodoro timer, math workbench, attendance, grading, and study materials." />
+<meta name="description" content="${esc(metaDesc('Nine study tools in one local-first workspace: time-blocking planner, spaced-repetition flashcards, linked notes, pomodoro timer, math workbench, attendance, grading, and study materials.'))}" />
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
@@ -2339,7 +2347,7 @@ const COMPARE_SHOT = '/shots/today.webp';
 
 function compareHead({ title, description, url, image, published, modified, keywords }) {
   return `<title>${esc(title)}</title>
-<meta name="description" content="${esc(description)}" />
+<meta name="description" content="${esc(metaDesc(description))}" />
 ${keywords?.length ? `<meta name="keywords" content="${esc(keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="article" />
