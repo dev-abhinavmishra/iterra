@@ -1429,7 +1429,7 @@ ${factHtml}
 </div></section>
 <div class="wrap">
 <figure class="plate">
-<div class="frame"><img src="/shots/${tool.id}.webp" alt="${esc(tool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
+<div class="frame"><img src="/shots/${tool.id}.webp" alt="${esc(tool.name)} inside the Iterra study workspace" width="1440" height="900" loading="eager" fetchpriority="high" decoding="async" /></div>
 
 </figure>
 <nav class="ctoc" aria-label="On this page"><a href="#what">What it does</a>${tour.length ? '<a href="#closer-look">A closer look</a>' : ''}${extra ? '<a href="#deep-dive">Go deeper</a>' : ''}${tool.workflow?.length ? '<a href="#study-day">A study day</a>' : ''}${tool.faqs?.length ? '<a href="#faq">Questions</a>' : ''}<a href="#explore">Keep exploring</a></nav>
@@ -1610,7 +1610,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
 <div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><time datetime="${guide.datePublished}">${dateFmt(guide.datePublished)}</time>${guide.dateModified && guide.dateModified !== guide.datePublished ? `<span class="dot">·</span><span>Updated <time datetime="${guide.dateModified}">${dateFmt(guide.dateModified)}</time></span>` : ''}<span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
-  const heroFig = `<div class="frame"><img src="/shots/${coverTool.id}.webp" alt="${esc(coverTool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>`;
+  const heroFig = `<div class="frame"><img src="/shots/${coverTool.id}.webp" alt="${esc(coverTool.name)} inside the Iterra study workspace" width="1440" height="900" ${variant === 1 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" /></div>`;
   const heroHtml =
     variant === 1
       ? `<section class="hero hero-split"><div class="wrap"><div class="hero-grid"><div class="hero-copy">${heroCopy}</div><figure class="hero-fig">${heroFig}</figure></div></div></section>`
@@ -2310,7 +2310,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools' }])}
 </div></section>
 <div class="wrap">
 <figure class="plate">
-<div class="frame"><img src="/shots/boxed.webp" alt="Iterra's time-blocking planner — the Boxed place" width="1440" height="900" loading="lazy" decoding="async" /></div>
+<div class="frame"><img src="/shots/boxed.webp" alt="Iterra's time-blocking planner — the Boxed place" width="1440" height="900" loading="eager" fetchpriority="high" decoding="async" /></div>
 </figure>
 <section class="block">
 <h2 class="sec mono">How the pieces fit together</h2>
@@ -2516,7 +2516,7 @@ ${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
 ${matchupHtml}
 ${factHtml}
 <div class="meta-row"><span>${dateFmt(page.datePublished)}</span>${page.dateModified && page.dateModified !== page.datePublished ? `<span>Updated ${dateFmt(page.dateModified)}</span>` : ''}<span>${cReadMin} min read</span><span><a href="/${base}">All ${base === 'compare' ? 'comparisons' : 'alternatives'}</a></span></div>`;
-  const cFig = `<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>`;
+  const cFig = `<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="eager" fetchpriority="high" decoding="async" /></div>`;
   const cHeroHtml =
     cVariant === 1
       ? `<section class="hero hero-split"><div class="wrap"><div class="hero-grid"><div class="hero-copy">${cCopy}</div><figure class="hero-fig">${cFig}</figure></div></div></section>`
@@ -2669,7 +2669,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Compare' }])}
 </div></section>
 <div class="wrap">
 <figure class="plate">
-<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
+<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="eager" fetchpriority="high" decoding="async" /></div>
 </figure>
 <section class="block">
 <h2 class="sec mono">How to read these</h2>
@@ -2752,7 +2752,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Alternatives' }])}
 </div></section>
 <div class="wrap">
 <figure class="plate">
-<div class="frame"><img src="/shots/flashcards.webp" alt="Iterra flashcards — one of the tools covered in these comparisons" width="1440" height="900" loading="lazy" decoding="async" /></div>
+<div class="frame"><img src="/shots/flashcards.webp" alt="Iterra flashcards — one of the tools covered in these comparisons" width="1440" height="900" loading="eager" fetchpriority="high" decoding="async" /></div>
 </figure>
 <section class="block">
 <h2 class="sec mono">How these picks were chosen</h2>
