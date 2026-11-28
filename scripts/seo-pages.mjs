@@ -1178,7 +1178,7 @@ function renderBlocks(blocks) {
       if (b.k === 'quote') return `<blockquote class="pull">${inline(b.t)}</blockquote>`;
       if (b.k === 'steps')
         return `<ol class="steps">${b.items
-          .map((s, i) => `<li><span class="n mono">${String(i + 1).padStart(2, '0')}</span><span>${inline(s)}</span></li>`)
+          .map((s, i) => `<li><span class="n mono" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span><span>${inline(s)}</span></li>`)
           .join('')}</ol>`;
       if (b.k === 'stats')
         return `<div class="stats">${b.items
