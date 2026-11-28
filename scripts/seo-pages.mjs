@@ -2574,7 +2574,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Compare' }])}
 <section class="block">
 <h2 class="sec mono">How to read these</h2>
 <div class="prose">${renderBlocks([
-  { k: 'p', t: 'Each comparison below follows the same honest structure: what the other tool does well, where Iterra genuinely wins, and a verdict for specific kinds of students — not a universal "we're better."' },
+  { k: 'p', t: 'Each comparison below follows the same honest structure: what the other tool does well, where Iterra genuinely wins, and a verdict for specific kinds of students — not a universal claim that one tool wins everything.' },
   { k: 'deflist', items: [
     { t: 'The wins grid', d: 'Every page lists where the competitor comes out ahead. If a page has nothing in that column, it is not a real comparison.' },
     { t: 'The verdict', d: 'Written for a reader, not a search engine — "pick Notion if…" is more useful than "Iterra wins."' },
