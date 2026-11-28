@@ -792,8 +792,6 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .prose a:hover{color:var(--accent2)}
 .prose strong{font-weight:600}
 .prose code{font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:.86em;background:#efece0;border:1px solid var(--line);border-radius:6px;padding:.08em .42em;color:var(--accent2);white-space:nowrap}
-.prose .callout{border-left:3px solid var(--gold);background:var(--sheet);padding:1rem 1.35rem;margin:1.7rem 0;border-radius:0 10px 10px 0}
-.prose .callout p{margin:0;font-size:1.02rem;color:var(--mute);font-style:italic;line-height:1.65}
 .prose .gsec{margin-top:2.6rem}
 .tool-inline{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:center;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;background:var(--sheet);padding:.9rem 1.1rem;margin:1.5rem 0;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s,box-shadow .15s}
 .tool-inline:hover{border-color:var(--gold2);background:#fff;box-shadow:0 14px 34px -18px rgba(43,84,64,.35)}
@@ -945,9 +943,13 @@ body.reader .guide-article{max-width:46rem}
 .col .cd{font-size:.92rem;line-height:1.6;color:#4c564e}
 @media(max-width:720px){.cols{grid-template-columns:1fr}.col{border-right:0;border-bottom:1px solid var(--line);padding-right:0;padding-bottom:1.1rem}.col:last-child{border-bottom:0}}
 .prose blockquote{margin:1.8rem 0;padding:.2rem 0 .2rem 1.4rem;border-left:3px solid var(--gold);font-family:Newsreader,Georgia,serif;font-size:1.28rem;font-style:italic;font-weight:450;line-height:1.5;color:var(--ink)}
-.prose .callout{border:none;background:none;border-radius:0;padding:1.4rem 0;margin:2.2rem auto;max-width:42rem;text-align:center;position:relative}
-.prose .callout::before{content:"“";position:absolute;top:-1.5rem;left:50%;transform:translateX(-50%);font-family:Newsreader,Georgia,serif;font-size:4.2rem;font-weight:400;color:var(--gold);line-height:1;opacity:.85}
-.prose .callout p{font-family:Newsreader,Georgia,serif;font-size:1.42rem;font-style:italic;font-weight:450;line-height:1.45;color:var(--ink);margin:0}
+.prose .callout{border-left:3px solid var(--gold);background:linear-gradient(115deg,#f7f2e1,#eef3e4);padding:1.05rem 1.35rem 1.05rem 1.25rem;margin:1.8rem 0;border-radius:0 12px 12px 0;position:relative}
+.prose .callout::before{content:"Note";display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem}
+.prose .callout p{margin:0;font-size:1.02rem;line-height:1.65;color:#3d453e}
+.prose .callout--tip{border-left-color:var(--sage)}
+.prose .callout--tip::before{content:"Tip"}
+.prose .callout--warn{border-left-color:#b0703c;background:linear-gradient(115deg,#faf0e4,#f6ecdc)}
+.prose .callout--warn::before{content:"Watch out";color:#b0703c}
 .fact{transition:transform .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s,border-color .22s}
 .fact:hover{transform:translateY(-2px);border-color:rgba(43,84,64,.45);box-shadow:0 12px 24px -14px rgba(43,84,64,.5)}
 .compare-table td,.compare-table th{transition:background .15s}
@@ -1097,6 +1099,16 @@ body.reader .guide-article{max-width:46rem}
 }
 
 a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-transparency: reduce){
+  .side,.toc-rail{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:#fbf8ef}
+}
+@media (forced-colors: active){
+  .side{border:1px solid CanvasText}
+  .nav-link.on,.toc-rail li a.on{outline:2px solid Highlight;outline-offset:-2px}
+  .read-progress i{background:Highlight}
+  .checklist input{accent-color:Highlight}
+  .ad-slot{border-color:CanvasText}
+}
 @media(max-width:720px){
   .feats .t{font-size:1rem}
   .plate{margin-top:1.4rem}
@@ -1173,7 +1185,10 @@ function renderBlocks(blocks) {
       if (b.k === 'p') return `<p>${inline(b.t)}</p>`;
       if (b.k === 'ul')
         return `<ul>${b.items.map((i) => `<li>${inline(i)}</li>`).join('')}</ul>`;
-      if (b.k === 'callout') return `<div class="callout"><p>${inline(b.t)}</p></div>`;
+      if (b.k === 'callout') {
+        const tone = ['tip', 'warn'].includes(b.tone) ? ` callout--${b.tone}` : '';
+        return `<div class="callout${tone}"><p>${inline(b.t)}</p></div>`;
+      }
       if (b.k === 'quote') return `<blockquote class="pull">${inline(b.t)}</blockquote>`;
       if (b.k === 'steps')
         return `<ol class="steps">${b.items
