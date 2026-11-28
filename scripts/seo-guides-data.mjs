@@ -4476,6 +4476,94 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-dat',
+    title: 'How to study for the <em>DAT</em>',
+    seoTitle: 'How to Study for the DAT: Strategy, Content, PAT',
+    description:
+      'Beat the DAT with a system: know the format, practice the science content, drill the PAT daily, and manage your timing — the DAT rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-07-06',
+    dateModified: '2027-07-10',
+    readMinutes: 7,
+    keywords: ['how to study for the DAT', 'DAT prep', 'dental admission test', 'DAT practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-for-the-mcat', 'how-to-study-science', 'how-to-use-practice-tests'],
+    lede: 'The DAT is the test that decides dental school — a 4.5-hour exam that tests biology, chemistry, physics, reading comprehension, and perceptual ability. But the DAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'PAT is unique to the DAT — practice it daily.',
+      'Practice, review, repeat — the review is where learning happens.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the DAT?',
+        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+      },
+      {
+        q: 'How do I prepare for the PAT?',
+        a: 'Practice PAT questions daily — even 15 minutes a day builds the skill. The PAT is the section that improves most with practice; the patterns become recognizable with reps. It\'s unlike any other standardized test, so dedicated practice is essential.',
+      },
+      {
+        q: 'Is the DAT harder than the MCAT?',
+        a: 'They test different skills. The DAT is shorter (4.5 hours) but has the unique PAT section; the MCAT is longer (7.5 hours) and tests more science content. The study strategy is similar — practice tests, pattern recognition, and timing.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The DAT is the test that decides dental school — a 4.5-hour exam that tests biology, chemistry, physics, reading comprehension, and perceptual ability. But the DAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The DAT has four sections: Survey of Natural Sciences (Biology, General Chemistry, Organic Chemistry), Perceptual Ability (PAT), Reading Comprehension, and Quantitative Reasoning. Each section is scored separately, and the test is 4.5 hours long. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 20 in Bio but 15 in PAT should spend most of their time on PAT.' },
+        ],
+      },
+      {
+        h2: 'The DAT study loop',
+        blocks: [
+          { k: 'p', t: 'DAT prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the sections you miss most.',
+            'Drill those sections with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'Survey of Natural Sciences: the content game',
+        blocks: [
+          { k: 'p', t: 'The SNS section tests biology, general chemistry, organic chemistry, and physics. The questions are mostly content-based — you need to know the material, not just the patterns.' },
+          { k: 'p', t: 'Focus on the high-yield topics: cell biology, biochemistry, anatomy, organic chemistry mechanisms, and physics formulas. Practice problems are the study method — the exam rewards speed and accuracy.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the high-yield science content — the vocabulary and formulas that every question assumes you know.' },
+        ],
+      },
+      {
+        h2: 'PAT: the perceptual-ability game',
+        blocks: [
+          { k: 'p', t: 'The Perceptual Ability Test is unique to the DAT — it tests spatial reasoning, pattern recognition, and visual acuity. The questions are unlike any other standardized test — you\'re identifying patterns, rotating objects, and comparing shapes.' },
+          { k: 'p', t: 'The strategy: practice PAT questions daily — even 15 minutes a day builds the skill. The PAT is the section that improves most with practice; the patterns become recognizable with reps.' },
+        ],
+      },
+      {
+        h2: 'Reading and Quant: the familiar game',
+        blocks: [
+          { k: 'p', t: 'Reading Comprehension and Quantitative Reasoning are similar to other standardized tests — reading passages with questions, and math problems. The strategy is the same: read the questions first, then the passage or problem with those questions in mind.' },
+          { k: 'p', t: 'For Quant, the math is mostly high-school level — algebra, geometry, and data analysis. Practice problems are the study method.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The DAT is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
