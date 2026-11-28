@@ -2915,7 +2915,9 @@ ${footer()}
 }
 
 export function renderFeed() {
-  const items = GUIDES.map(
+  const items = [...GUIDES]
+    .sort((a, b) => String(b.dateModified || b.datePublished).localeCompare(String(a.dateModified || a.datePublished)))
+    .map(
     (g) => `  <item>
     <title>${esc(g.title.replace(/<\/?em>/g, ''))}</title>
     <link>${SITE}/guides/${g.slug}</link>
