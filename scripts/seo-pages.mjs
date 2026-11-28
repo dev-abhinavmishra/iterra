@@ -1390,6 +1390,8 @@ ${neighbors
 <meta name="description" content="${esc(tool.description)}" />
 ${tool.keywords?.length ? `<meta name="keywords" content="${esc(tool.keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
+${prevTool ? `<link rel="prev" href="${SITE}/tools/${prevTool.id}" />` : ''}
+${nextTool ? `<link rel="next" href="${SITE}/tools/${nextTool.id}" />` : ''}
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
 <meta property="og:url" content="${url}" />
@@ -1683,6 +1685,8 @@ ${guide.faq
 <meta name="description" content="${esc(guide.description)}" />
 ${guide.keywords?.length ? `<meta name="keywords" content="${esc(guide.keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
+${prevGuide ? `<link rel="prev" href="${SITE}/guides/${prevGuide.slug}" />` : ''}
+${nextGuide ? `<link rel="next" href="${SITE}/guides/${nextGuide.slug}" />` : ''}
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="Iterra" />
 <meta property="og:url" content="${url}" />
