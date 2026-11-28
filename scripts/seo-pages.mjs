@@ -1012,6 +1012,10 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .topic-d{font-family:Newsreader,Georgia,serif;font-size:1.02rem;font-style:italic;color:var(--mute);margin:-.2rem 0 .9rem;max-width:40rem;line-height:1.55}
 .topic-link{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
 .topic-link:hover{color:var(--accent);border-bottom-color:var(--gold)}
+.rows-more{display:inline-flex;align-items:center;gap:.5rem;margin:.4rem 0 1.6rem;padding:.55rem 1rem;border:1px solid var(--line);border-radius:99px;background:transparent;color:var(--mute);font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
+.rows-more:hover{color:var(--accent);border-color:var(--gold);background:rgba(240,236,214,.5)}
+.rows-more::after{content:"+";font-size:14px;line-height:1}
+.rows-more[aria-expanded="true"]::after{content:"–"}
 .topic-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.6rem}
 .topic-nav a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.42rem .95rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
 .topic-nav a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
@@ -1311,6 +1315,15 @@ tt.addEventListener('click',function(){scrollTo({top:0,behavior:matchMedia('(pre
     var done=function(){btn.textContent='Copied ✓';btn.classList.add('copied');setTimeout(function(){btn.textContent='Copy link';btn.classList.remove('copied')},1600)};
     if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(btn.getAttribute('data-copy')).then(done,done);
     else done();
+  });
+});
+[].slice.call(document.querySelectorAll('.rows-more')).forEach(function(btn){
+  btn.setAttribute('aria-expanded','false');
+  btn.addEventListener('click',function(){
+    var ul=btn.previousElementSibling,open=btn.getAttribute('aria-expanded')==='true';
+    [].slice.call(ul.querySelectorAll('li[hidden]')).forEach(function(li){li.hidden=open});
+    btn.setAttribute('aria-expanded',open?'false':'true');
+    btn.textContent=open?'Show all '+ul.querySelectorAll('li').length+' guides':'Show fewer';
   });
 });
 var pPrev=document.querySelector('.pager a:not(.next)'),pNext=document.querySelector('.pager .next');
@@ -2071,13 +2084,19 @@ export function renderGuidesIndex() {
     )
     .join('\n');
   const cards = topics
-    .map(
-      (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}">${TOPIC_PAGE_SLUGS.has(topicSlug(t.k)) ? `<a class="topic-link" href="/topics/${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</a>` : `${esc(t.k)} · ${t.items.length}`}</h3>${TOPIC_NOTES[t.k] ? `<p class="topic-d">${esc(TOPIC_NOTES[t.k])}</p>` : ''}<ul class="rows">${t.items
+    .map((t) => {
+      const lis = t.items
         .map(
-          (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+          (g, i) =>
+            `<li${i >= 8 ? ' hidden' : ''}><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )
-        .join('\n')}</ul>`,
-    )
+        .join('\n');
+      const moreBtn =
+        t.items.length > 8
+          ? `<button class="rows-more mono" type="button" data-more>Show all ${t.items.length} guides</button>`
+          : '';
+      return `<h3 class="topic" id="topic-${topicSlug(t.k)}">${TOPIC_PAGE_SLUGS.has(topicSlug(t.k)) ? `<a class="topic-link" href="/topics/${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</a>` : `${esc(t.k)} · ${t.items.length}`}</h3>${TOPIC_NOTES[t.k] ? `<p class="topic-d">${esc(TOPIC_NOTES[t.k])}</p>` : ''}<ul class="rows">${lis}</ul>${moreBtn}`;
+    })
     .join('\n');
   return `<!doctype html>
 <html lang="en">
