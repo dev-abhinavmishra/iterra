@@ -3,7 +3,7 @@
   "buildCommand": "npm ci --prefix shell --no-audit --no-fund && npm run build",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/((?!api/|iterra-hub\\.js|tools/|guides/|topics/|compare/|alternatives/|og/|shots/|atlas/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|iterra-hub\\.js|iterra-pages|tools/|guides/|topics/|compare/|alternatives/|og/|shots/|atlas/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
