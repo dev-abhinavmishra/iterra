@@ -102,7 +102,7 @@ if(document.querySelector('.guide-article,.compare-table'))(function(){
   chip.innerHTML='<span>Resume reading</span><span class="pct"></span>';
   document.body.appendChild(chip);
   var shown=false;
-  function maybeShow(){if(saved>0.15&&saved<0.9&&!shown){chip.querySelector('.pct').textContent=Math.round(saved*100)+'%';chip.style.display='inline-flex';shown=true}}
+  function maybeShow(){var f=frac();if(saved>0.15&&saved<0.9&&f<0.9&&f<saved+0.1&&!shown){chip.querySelector('.pct').textContent=Math.round(saved*100)+'%';chip.style.display='inline-flex';shown=true}}
   setTimeout(maybeShow,900);
   chip.addEventListener('click',function(){
     var r=art.getBoundingClientRect();
