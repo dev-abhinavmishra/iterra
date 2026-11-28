@@ -291,9 +291,9 @@ export const GUIDES = [
         h2: 'Spacing vs. massing, with real numbers',
         blocks: [
           { k: 'p', t: 'The difference between spaced and massed review is easiest to see with an example. Say you have 100 vocabulary words to learn for a language course.' },
-          { k: 'deflist', items: [
-            { t: 'Massed', d: 'One three-hour session on Sunday. By Thursday you remember maybe 30 of them. By exam day, fewer — the curve is already falling.' },
-            { t: 'Spaced', d: 'Twenty new words a day for five days, then reviews scheduled by the algorithm. Same total hours, spread out. A week later you still have most of them; a month later, nearly all.' },
+          { k: 'table', head: ['Schedule', 'What it looks like', 'Where it ends up'], rows: [
+            ['Massed', 'One three-hour session on Sunday.', 'By Thursday you remember maybe 30 of them. By exam day, fewer — the curve is already falling.'],
+            ['Spaced', 'Twenty new words a day for five days, then reviews scheduled by the algorithm.', 'Same total hours, spread out. A week later you still have most of them; a month later, nearly all.'],
           ]},
           { k: 'p', t: 'The catch is that spacing *feels* worse. The massed session gives you the dopamine of “I studied for three hours.” Spacing gives you ten quiet minutes a day and cards you mostly know — which is exactly why it works and exactly why people quit it. The method asks you to trust arithmetic over intensity.' },
         ],
@@ -864,9 +864,9 @@ export const GUIDES = [
       {
         h2: 'The honest comparison',
         blocks: [
-          { k: 'deflist', items: [
-            { t: 'Rereading', d: 'Fast, comfortable, builds familiarity, produces short-lived recognition. Best for first exposure to new material.' },
-            { t: 'Active recall', d: 'Slower, effortful, builds retrieval strength, produces durable memory. Best for review, exam prep, and long-term retention.' },
+          { k: 'table', head: ['Method', 'What it builds', 'Best for'], rows: [
+            ['Rereading', 'Fast, comfortable, builds familiarity — short-lived recognition.', 'First exposure to new material.'],
+            ['Active recall', 'Slower, effortful, builds retrieval strength — durable memory.', 'Review, exam prep, long-term retention.'],
           ]},
           { k: 'p', t: 'The winning strategy: read once to encode, then recall repeatedly to consolidate. Never reread as a substitute for recall.' },
           { k: 'tool', tool: 'flashcards', t: 'Flashcards are active recall with scheduling — the Cardfile handles the spacing so you only practice what’s about to be forgotten.' },
@@ -2512,10 +2512,10 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'One-night study sessions are a bad plan — but they happen, and sometimes they’re unavoidable. The question isn’t whether you should have started earlier; it’s how to squeeze the most learning out of the hours you have left. The answer: triage ruthlessly, study actively, and protect your sleep.' },
           { k: 'p', t: 'With one night, you can’t learn everything — so don’t try. Spend the first 30 minutes sorting the material into three piles: the stuff that’s heavily weighted on the test, the stuff you already mostly know, and the stuff that probably won’t appear.' },
-          { k: 'deflist', items: [
-            { t: 'High priority', d: 'Heavily weighted topics and things you don’t know at all — study these first and hardest.' },
-            { t: 'Medium priority', d: 'Topics you partially know or that appear occasionally — review after the high-priority pile.' },
-            { t: 'Skip', d: 'Low-yield material and topics you already know cold — don’t spend a single minute here.' },
+          { k: 'table', head: ['Priority', 'What goes in the pile', 'When you study it'], rows: [
+            ['High', 'Heavily weighted topics and things you don’t know at all.', 'First and hardest — this is where the night goes.'],
+            ['Medium', 'Topics you partially know or that appear occasionally.', 'After the high-priority pile, time permitting.'],
+            ['Skip', 'Low-yield material and topics you already know cold.', 'Never — don’t spend a single minute here.'],
           ]},
         ],
       },
