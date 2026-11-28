@@ -809,6 +809,10 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .topic{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:2.2rem 0 .4rem}
 .topic::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 .topic:first-child{margin-top:0}
+.topic{scroll-margin-top:90px}
+.topic-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.6rem}
+.topic-nav a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.42rem .95rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
+.topic-nav a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
 .skip{position:fixed;top:-60px;left:16px;z-index:100;background:var(--accent);color:#fff;padding:.6rem 1rem;border-radius:8px;font-size:13px;text-decoration:none;transition:top .2s}
 .skip:focus{top:12px}
 .frame img{cursor:zoom-in}
@@ -1515,9 +1519,16 @@ export function renderGuidesIndex() {
     }
     t.items.push(g);
   }
+  const slugifyTopic = (k) => k.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const topicNav =
+    topics.length > 4
+      ? `<nav class="topic-nav" aria-label="Guide topics">${topics
+          .map((t) => `<a href="#topic-${slugifyTopic(t.k)}">${esc(t.k)}</a>`)
+          .join('')}</nav>`
+      : '';
   const cards = topics
     .map(
-      (t) => `<h3 class="topic">${esc(t.k)} · ${t.items.length}</h3><ul class="rows">${t.items
+      (t) => `<h3 class="topic" id="topic-${slugifyTopic(t.k)}">${esc(t.k)} · ${t.items.length}</h3><ul class="rows">${t.items
         .map(
           (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )
@@ -1566,6 +1577,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
 <div class="wrap">
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Browse the guides</h2>
+${topicNav}
 ${cards}
 <div class="cta" style="margin-top:2.5rem">
 <a class="primary" href="/#/today">Open the workspace →</a>
