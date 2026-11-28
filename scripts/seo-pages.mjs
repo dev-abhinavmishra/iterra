@@ -1150,7 +1150,7 @@ function renderBlocks(blocks) {
         return `<ul class="mistakes">${b.items
           .map(
             (m) =>
-              `<li><span class="m-x" aria-hidden="true">✕</span><span class="m-w"><span class="mono m-tag">Instead</span> ${inline(m.bad || m.w || '')}</span><span class="m-r"><span class="mono m-tag ok">Better</span> ${inline(m.good || m.r || '')}</span></li>`,
+              `<li><span class="m-x" aria-hidden="true">✕</span><span class="m-w"><span class="mono m-tag">${esc(b.bad || 'Instead')}</span> ${inline(m.bad || m.w || '')}</span><span class="m-r"><span class="mono m-tag ok">${esc(b.good || 'Better')}</span> ${inline(m.good || m.r || '')}</span></li>`,
           )
           .join('')}</ul>`;
       return '';
@@ -1536,6 +1536,24 @@ ${footer()}
 `;
 }
 
+/* Sections titled like mistake roundups ("The mistakes that…", "Common X
+   mistakes") get their deflists promoted to the Instead/Better mistakes
+   layout. Sections about *sorting* or *logging* mistakes are excluded. */
+const MISTAKE_H2 = /\bmistakes?\b/i;
+const MISTAKE_EXCLUDE = /\b(?:sort|track|log|journal|analyz|review|categor)/i;
+function mistakeify(s) {
+  if (!s.h2 || !MISTAKE_H2.test(s.h2) || MISTAKE_EXCLUDE.test(s.h2)) return s.blocks;
+  return s.blocks.map((b) => {
+    if (b.k !== 'deflist' || !b.items?.length) return b;
+    return {
+      k: 'mistakes',
+      bad: 'Mistake',
+      good: 'Fix',
+      items: b.items.map((d) => ({ bad: d.t, good: d.d })),
+    };
+  });
+}
+
 export function renderGuidePage(guide) {
   const url = `${SITE}/guides/${guide.slug}`;
   const hm = guide.title.match(/^(.*?)<em>(.*?)<\/em>(.*)$/s) || [null, guide.title, '', ''];
@@ -1554,7 +1572,7 @@ export function renderGuidePage(guide) {
       h2html = `<h2 id="${id}"><span class="sec-index" aria-hidden="true">${String(si + 1).padStart(2, '0')}</span>${inline(s.h2)}<a class="h-anchor" href="#${id}" aria-label="Link to this section">#</a></h2>`;
     }
     return `<section class="gsec">
-<div class="prose">${h2html}${renderBlocks(s.blocks)}</div>
+<div class="prose">${h2html}${renderBlocks(mistakeify(s))}</div>
 </section>`;
   });
   /* mid-article ad slots — dashed placeholders, easy to swap for a real network later */
