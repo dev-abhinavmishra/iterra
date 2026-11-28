@@ -454,8 +454,7 @@ h1 em{color:var(--accent);font-style:italic;font-weight:600}
 .frame{border:1px solid var(--line2);border-radius:12px;overflow:hidden;background:var(--sheet);box-shadow:0 24px 48px -34px rgba(31,36,31,.4)}
 .frame img{display:block;width:100%;height:auto;transition:transform .6s cubic-bezier(.2,.6,.2,1)}
 .frame:hover img{transform:scale(1.012)}
-.frame figcaption{display:flex;justify-content:space-between;gap:1rem;margin-top:.9rem;padding:.7rem 1.1rem;border:1px solid var(--line);border-radius:10px;background:var(--sheet);color:var(--mute);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-.frame figcaption span:last-child{color:var(--faint)}
+
 
 /* ── body sections ────────────────────────────────────── */
 section.block{padding:clamp(36px,5vw,72px) 0;border-bottom:1px solid var(--line)}
@@ -921,7 +920,7 @@ ${factHtml}
 <div class="wrap">
 <figure class="plate">
 <div class="frame"><img src="/shots/${tool.id}.webp" alt="${esc(tool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
-<figcaption><span>Iterra · ${esc(tool.name)}</span><span>Local-first study terrain</span></figcaption>
+
 </figure>
 <section class="block">
 <h2 class="sec mono">What ${esc(tool.name)} does</h2>
@@ -1139,7 +1138,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, 
 <div class="wrap">
 <figure class="plate article-cover">
 <div class="frame"><img src="/shots/${coverTool.id}.webp" alt="${esc(coverTool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
-<figcaption><span>Iterra · ${esc(coverTool.name)}</span><span>Local-first study terrain</span></figcaption>
+
 </figure>
 <div class="guide-layout">
 <article class="guide-article">
@@ -1458,7 +1457,7 @@ ${factHtml}
 <div class="wrap compare-body">
 <figure class="plate">
 <div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
-<figcaption><span>Iterra · the integrated study terrain</span><span>Local-first · free · no account</span></figcaption>
+
 </figure>
 <aside class="tldr"><span class="tk mono">In short</span><p>${esc(tldrOf(page.verdict))}</p></aside>
 <section class="block">
