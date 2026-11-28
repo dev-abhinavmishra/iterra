@@ -515,6 +515,8 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .hero::after{content:"";position:absolute;inset:16px;border:1px solid #d9c8972e;background:linear-gradient(#d9c897,#d9c897) left top/24px 1px,left top/1px 24px,right bottom/24px 1px,right bottom/1px 24px;background-repeat:no-repeat;pointer-events:none;opacity:.8}
 .hero .wrap{position:relative;z-index:1}
 .kicker{display:flex;align-items:center;gap:.7rem;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.kicker a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;padding-bottom:1px;transition:border-color .15s}
+.kicker a:hover{border-bottom-color:var(--gold)}
 .kicker::before{content:"";width:26px;height:1px;background:linear-gradient(90deg,var(--gold),transparent);flex:none}
 .crumbs{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:1.1rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
 .crumbs a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
@@ -911,6 +913,7 @@ function jsonLd(obj) {
 
 const dateFmt = (d) =>
   new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const topicSlug = (k) => k.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 /* Minimal inline markup for guide prose: **bold**, *italic*, [text](/path).
    Content is authored in seo-guides-data.mjs — no user input reaches this. */
@@ -1416,7 +1419,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
   /* three article hero treatments, rotated by guide index */
   const variant = ((gi % 3) + 3) % 3; /* 0 cover below · 1 split hero · 2 centered */
   const heroCopy = `${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.title.replace(/<\/?em>/g, '') }])}
-<div class="kicker mono">Iterra Guides · ${esc(guide.kicker)}</div>
+<div class="kicker mono">Iterra Guides · <a class="klink" href="/guides#topic-${topicSlug(guide.kicker)}">${esc(guide.kicker)}</a></div>
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
 <div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><span>${dateFmt(guide.datePublished)}</span><span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
@@ -1580,16 +1583,15 @@ export function renderGuidesIndex() {
     }
     t.items.push(g);
   }
-  const slugifyTopic = (k) => k.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const topicNav =
     topics.length > 4
       ? `<nav class="topic-nav" aria-label="Guide topics">${topics
-          .map((t) => `<a href="#topic-${slugifyTopic(t.k)}">${esc(t.k)}</a>`)
+          .map((t) => `<a href="#topic-${topicSlug(t.k)}">${esc(t.k)}</a>`)
           .join('')}</nav>`
       : '';
   const cards = topics
     .map(
-      (t) => `<h3 class="topic" id="topic-${slugifyTopic(t.k)}">${esc(t.k)} · ${t.items.length}</h3><ul class="rows">${t.items
+      (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</h3><ul class="rows">${t.items
         .map(
           (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )

@@ -4741,6 +4741,95 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-fe-exam',
+    title: 'How to study for the <em>FE exam</em>',
+    seoTitle: 'How to Study for the FE Exam: Strategy, Content, Timing',
+    description:
+      'Beat the FE exam with a system: know the format, practice the engineering content, drill your discipline, and manage your timing — the FE rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-07-27',
+    dateModified: '2027-07-31',
+    readMinutes: 7,
+    keywords: ['how to study for the FE exam', 'FE exam prep', 'fundamentals of engineering', 'FE practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-engineering', 'how-to-study-for-the-mcat', 'how-to-use-practice-tests'],
+    lede: 'The FE exam is the first step toward PE licensure — a 6-hour test that covers every engineering discipline. But the FE rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Morning is general engineering, afternoon is your discipline — each needs different prep.',
+      'Practice, review, repeat — the review is where learning happens.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the FE exam?',
+        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak topics.',
+      },
+      {
+        q: 'Is the FE exam harder than the PE exam?',
+        a: 'The FE is the first step — it tests general engineering knowledge. The PE is the second step — it tests discipline-specific expertise and requires work experience. The FE is more about breadth; the PE is more about depth.',
+      },
+      {
+        q: 'What\'s the best way to prepare for the FE?',
+        a: 'Practice problems — hundreds of them, with rationales. The FE tests whether you can apply engineering concepts, not just recall them. Work through problems until the patterns are automatic.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The FE exam is the first step toward PE licensure — a 6-hour test that covers every engineering discipline. But the FE rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.' },
+          { k: 'p', t: 'The FE exam has two parts: a morning section (120 questions, 5.5 hours) covering general engineering topics, and an afternoon section (60 questions, 5.5 hours) covering your chosen discipline. Each part is scored separately. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 140 in the morning but struggles with afternoon discipline should spend most of their time on the discipline section.' },
+        ],
+      },
+      {
+        h2: 'The FE study loop',
+        blocks: [
+          { k: 'p', t: 'FE prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the topics you miss most.',
+            'Drill those topics with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'The morning section: general engineering',
+        blocks: [
+          { k: 'p', t: 'The morning section covers mathematics, probability and statistics, engineering economics, statics, dynamics, mechanics of materials, materials science, and engineering ethics. The questions are mostly content-based — you need to know the material.' },
+          { k: 'p', t: 'Focus on the high-yield topics: calculus, differential equations, statics, dynamics, and materials science. Practice problems are the study method — the exam rewards speed and accuracy.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the high-yield engineering content — the formulas and concepts that every problem assumes you know.' },
+        ],
+      },
+      {
+        h2: 'The afternoon section: your discipline',
+        blocks: [
+          { k: 'p', t: 'The afternoon section covers your chosen discipline — civil, mechanical, electrical, chemical, environmental, industrial, or computer engineering. The questions are discipline-specific — you need to know the material for your field.' },
+          { k: 'p', t: 'Focus on the topics that appear most often in your discipline. Practice problems are the study method — work through them until the patterns are automatic.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'FE timing is tight — about 2.75 minutes per question in the morning, 5.5 minutes per question in the afternoon. The strategy: answer the easy questions first, flag the hard ones, and come back.' },
+          { k: 'p', t: 'For both sections, write down the formula before you start solving — it prevents careless errors. And check your units on every problem — unit errors are the most common mistake.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the FE\'s timed pressure — practice sections at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The FE exam is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
