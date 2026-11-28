@@ -1829,6 +1829,19 @@ function compareLd(page, url, extra = []) {
         ],
       },
     },
+    ...(page.kind === 'vs'
+      ? [
+          {
+            '@type': 'SoftwareApplication',
+            name: 'Iterra',
+            url: `${SITE}/`,
+            applicationCategory: 'EducationalApplication',
+            operatingSystem: 'Web browser',
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+            description: 'Free, local-first study workspace — planner, notes, flashcards, timer, and grader in one place.',
+          },
+        ]
+      : []),
     ...extra,
   ];
   return { '@context': 'https://schema.org', '@graph': graph };
