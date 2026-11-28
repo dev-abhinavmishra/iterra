@@ -1538,6 +1538,22 @@ function mistakeify(s) {
   });
 }
 
+const readMinsCache = new Map();
+function guideReadMinutes(g) {
+  if (!readMinsCache.has(g.slug)) {
+    const html = (g.sections || [])
+      .map((s) => `${s.h2 || ''} ${renderBlocks(mistakeify(s))}`)
+      .join(' ');
+    const words = html
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&[a-z#0-9]+;/gi, ' ')
+      .split(/\s+/)
+      .filter(Boolean).length;
+    readMinsCache.set(g.slug, Math.max(1, Math.round(words / 200)));
+  }
+  return readMinsCache.get(g.slug);
+}
+
 export function renderGuidePage(guide) {
   const url = `${SITE}/guides/${guide.slug}`;
   const hm = guide.title.match(/^(.*?)<em>(.*?)<\/em>(.*)$/s) || [null, guide.title, '', ''];
@@ -1654,7 +1670,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
 <div class="kicker mono">Iterra Guides · <a class="klink" href="${topicHref(guide.kicker)}">${esc(guide.kicker)}</a></div>
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
-<div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><time datetime="${guide.datePublished}">${dateFmt(guide.datePublished)}</time>${guide.dateModified && guide.dateModified !== guide.datePublished ? `<span class="dot">·</span><span>Updated <time datetime="${guide.dateModified}">${dateFmt(guide.dateModified)}</time></span>` : ''}<span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
+<div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><time datetime="${guide.datePublished}">${dateFmt(guide.datePublished)}</time>${guide.dateModified && guide.dateModified !== guide.datePublished ? `<span class="dot">·</span><span>Updated <time datetime="${guide.dateModified}">${dateFmt(guide.dateModified)}</time></span>` : ''}<span class="dot">·</span><span>${guideReadMinutes(guide)} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
   const heroFig = `<div class="frame"><img src="/shots/${coverTool.id}.webp" alt="${esc(coverTool.name)} inside the Iterra study workspace" width="1440" height="900" ${variant === 1 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" /></div>`;
   const heroHtml =
     variant === 1
@@ -2053,7 +2069,7 @@ export function renderGuidesIndex() {
   const picksHtml = PICKS.map((slug) => GUIDES.find((g) => g.slug === slug))
     .filter(Boolean)
     .map(
-      (g) => `<a class="pick" href="/guides/${g.slug}"><span class="pk mono">Start here</span><span class="pt">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="pd">${esc(g.description.split('.')[0])}.</span><span class="pm"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${g.readMinutes} min</span></a>`,
+      (g) => `<a class="pick" href="/guides/${g.slug}"><span class="pk mono">Start here</span><span class="pt">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="pd">${esc(g.description.split('.')[0])}.</span><span class="pm"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${guideReadMinutes(g)} min</span></a>`,
     )
     .join('\n');
   const cards = topics
@@ -2061,7 +2077,7 @@ export function renderGuidesIndex() {
       const lis = t.items
         .map(
           (g, i) =>
-            `<li${i >= 8 ? ' hidden' : ''}><a href="/guides/${g.slug}"><span class="k mono"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+            `<li${i >= 8 ? ' hidden' : ''}><a href="/guides/${g.slug}"><span class="k mono"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${guideReadMinutes(g)} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )
         .join('\n');
       const moreBtn =
@@ -2112,7 +2128,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
 <p class="lede">Practical guides to the methods that actually work — planning, memory, focus, and the tools that make them stick. No productivity fluff; just what the research supports and what students actually need.</p>
 <div class="stats hero-stats">
 <div class="stat"><span class="v">${GUIDES.length}</span><span class="l">Guides, all free</span></div>
-<div class="stat"><span class="v">~${Math.round(GUIDES.reduce((a, g) => a + (g.readMinutes || 8), 0) / 60 * 10) / 10} hrs</span><span class="l">Total reading time</span></div>
+<div class="stat"><span class="v">~${Math.round(GUIDES.reduce((a, g) => a + guideReadMinutes(g), 0) / 60 * 10) / 10} hrs</span><span class="l">Total reading time</span></div>
 <div class="stat"><span class="v">${TOOLS.length}</span><span class="l">Tools to put them to work</span></div>
 </div>
 </div></section>
@@ -2160,7 +2176,7 @@ export function renderTopicPage(topic) {
     : '';
   const rows = topic.guides
     .map(
-      (g) => `<li><a href="/guides/${g.slug}"><span class="k mono"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+      (g) => `<li><a href="/guides/${g.slug}"><span class="k mono"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${guideReadMinutes(g)} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
     )
     .join('\n');
   const ld = {
@@ -2232,7 +2248,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, 
 <p class="lede">${esc(topic.note || `Every Iterra guide filed under ${topic.kicker.toLowerCase()} — practical, research-backed, and free.`)}</p>
 <div class="stats hero-stats">
 <div class="stat"><span class="v">${topic.guides.length}</span><span class="l">Guides in this topic</span></div>
-<div class="stat"><span class="v">~${Math.round(topic.guides.reduce((a, g) => a + (g.readMinutes || 8), 0) / 60 * 10) / 10} hrs</span><span class="l">Total reading time</span></div>
+<div class="stat"><span class="v">~${Math.round(topic.guides.reduce((a, g) => a + guideReadMinutes(g), 0) / 60 * 10) / 10} hrs</span><span class="l">Total reading time</span></div>
 </div>
 </div></section>
 <div class="wrap">
