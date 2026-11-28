@@ -862,7 +862,13 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .resume-chip{position:fixed;right:1.2rem;bottom:5.6rem;z-index:55;display:none;align-items:center;gap:.6rem;padding:.7rem 1.1rem;border-radius:99px;border:1px solid rgba(255,255,255,.6);background:linear-gradient(160deg,rgba(255,253,246,.85),rgba(240,244,230,.75));-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 14px 34px -16px rgba(31,36,31,.4),inset 0 1px 0 rgba(255,255,255,.7);color:var(--ink);font-size:.85rem;text-decoration:none;cursor:pointer;transition:transform .2s,box-shadow .2s}
 .resume-chip:hover{transform:translateY(-2px);box-shadow:0 18px 40px -16px rgba(31,36,31,.45),inset 0 1px 0 rgba(255,255,255,.7)}
 .resume-chip .pct{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--accent)}
-@media print{.resume-chip{display:none!important}}
+.reader-toggle{position:fixed;left:1.2rem;bottom:1.2rem;z-index:55;display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1rem;border-radius:99px;border:1px solid rgba(255,255,255,.6);background:linear-gradient(160deg,rgba(255,253,246,.85),rgba(240,244,230,.75));-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 14px 34px -16px rgba(31,36,31,.4),inset 0 1px 0 rgba(255,255,255,.7);color:var(--mute);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:color .15s,transform .2s}
+.reader-toggle:hover{color:var(--accent);transform:translateY(-2px)}
+.reader-toggle.on{color:var(--accent);border-color:var(--gold)}
+body.reader .toc-rail,body.reader .ad-slot{display:none!important}
+body.reader .prose p,body.reader .prose li{font-size:1.06em;line-height:1.78}
+body.reader .guide-article{max-width:46rem}
+@media print{.reader-toggle,.resume-chip{display:none!important}}
 .read-progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:60;pointer-events:none;background:#d9c89733}
 .read-progress i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--sage));transform:scaleX(0);transform-origin:left}
 .guide-layout{display:block}
@@ -1333,6 +1339,16 @@ tt.addEventListener('click',function(){scrollTo({top:0,behavior:matchMedia('(pre
     btn.textContent=open?'Show all '+ul.querySelectorAll('li').length+' guides':'Show fewer';
   });
 });
+if(document.querySelector('.guide-article'))(function(){
+  var KEY='itr-reader',btn=document.createElement('button');
+  btn.type='button';btn.className='reader-toggle';btn.textContent='Reader';
+  btn.setAttribute('aria-pressed','false');btn.setAttribute('aria-label','Toggle reader mode');
+  document.body.appendChild(btn);
+  var on=false;try{on=localStorage.getItem(KEY)==='1'}catch(e){}
+  function apply(){document.body.classList.toggle('reader',on);btn.classList.toggle('on',on);btn.setAttribute('aria-pressed',on?'true':'false');btn.textContent=on?'Exit reader':'Reader'}
+  apply();
+  btn.addEventListener('click',function(){on=!on;try{localStorage.setItem(KEY,on?'1':'0')}catch(e){}apply()});
+})();
 var onChip=document.querySelector('.series .chips a.on');
 if(onChip&&onChip.scrollIntoView)onChip.scrollIntoView({inline:'center',block:'nearest'});
 if(document.querySelector('.guide-article,.compare-table'))(function(){
