@@ -20,6 +20,12 @@ How Iterra gets found on Google, what the build emits, and the ongoing plan.
   Each carries `Article` + `FAQPage` + `BreadcrumbList` JSON-LD and
   links into the relevant `/tools/*` pages. Content lives in
   `scripts/seo-guides-data.mjs`; rendering in `scripts/seo-pages.mjs`.
+- Every marketing page shows a publish/update date: guides and
+  compare/alternatives pages carry `datePublished`/`dateModified` in
+  their data files (rendered in the hero meta-row, `article:*` meta
+  tags, JSON-LD, index cards, and per-URL sitemap `lastmod`); tool
+  pages carry `updated`. Keep the dates staggered — clustered or
+  identical dates read as bulk-generated.
 - `/compare`, `/alternatives` — competitor comparison pages (Chunk A).
   Content lives in `scripts/seo-compare-data.mjs`.
 - All marketing pages share one chrome: a docs-style layout (Claude

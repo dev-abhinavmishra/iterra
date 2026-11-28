@@ -17,6 +17,8 @@ export const COMPARE_PAGES = [
       'Iterra vs Notion for students: Notion is a flexible workspace you build yourself; Iterra is a ready-made study terrain with planner, flashcards, notes, timer and grading. Compare features, price and privacy.',
     h1: 'Iterra <em>vs</em> Notion',
     kicker: 'Head-to-head',
+    datePublished: '2026-09-08',
+    dateModified: '2026-10-21',
     lede: 'Notion can become anything — including a study system — if you invest the hours to build it. Iterra is already built: nine study tools wired into one course-aware workspace. Here is where each actually wins.',
     table: T(
       ['Quality', 'Iterra', 'Notion'],
@@ -32,6 +34,8 @@ export const COMPARE_PAGES = [
         ['Grading / assessments', 'GradeStack bubble sheets', 'Not built for it'],
         ['Mobile app', 'Mobile browser', 'Native iOS/Android apps'],
         ['Real-time collaboration', 'Single-user, local', 'Best-in-class multiplayer'],
+        ['AI features', 'Optional document chat in Margin', 'Notion AI built in'],
+        ['Extensibility', 'Fixed nine-tool terrain', 'Unlimited — databases, embeds, API'],
       ],
     ),
     iterraWins: [
@@ -57,6 +61,12 @@ export const COMPARE_PAGES = [
         'Iterra has JSON backup/restore for its own data and Ink accepts markdown-style notes; there is no one-click Notion importer yet — export Notion pages as Markdown and copy them in.'),
       F('Which is better for exam season?',
         'For closed-book recall — flashcards, problem work, timed sessions — Iterra’s integrated review loop is stronger. For organizing group projects and shared docs, Notion wins.'),
+      F('Is Iterra good for students who hate building systems?',
+        'That is exactly who it is for. Notion rewards the builder; Iterra rewards the studier. If you have ever abandoned a Notion template after day three, the ready-made terrain is the point.'),
+      F('Can Iterra and Notion work together?',
+        'Yes — many students keep a light Notion dashboard for life-admin and do all actual studying in Iterra. The tools do not compete for the same job.'),
+      F('What happens to my Iterra data if I want to leave?',
+        'Everything exports — JSON backup/restore covers the workspace and Ink notes export as text. Local-first means leaving is a feature, not a hostage negotiation.'),
     ],
     related: [
       { href: '/alternatives/notion-alternative', label: 'Notion alternatives for students' },
@@ -74,7 +84,9 @@ export const COMPARE_PAGES = [
       'Iterra vs Quizlet: Quizlet owns shared flashcard sets and Learn modes; Iterra is a full local-first study workspace where flashcards connect to your planner, notes, timer and courses. Honest comparison.',
     h1: 'Iterra <em>vs</em> Quizlet',
     kicker: 'Head-to-head',
-    lede: 'Quizlet is the flashcard utility billions of students know. Iterra starts where Quizlet ends: cards wired into a whole study terrain. Here is the honest split.',
+    datePublished: '2026-09-15',
+    dateModified: '2026-10-28',
+    lede: 'Quizlet is the flashcard utility billions of students know. Iterra starts where Quizlet ends: cards wired into a whole study terrain. Here’s how it actually divides.',
     table: T(
       ['Quality', 'Iterra', 'Quizlet'],
       [
@@ -89,6 +101,8 @@ export const COMPARE_PAGES = [
         ['Ads / upsells', 'None', 'Ads on free tier'],
         ['Mobile app', 'Mobile browser', 'Native iOS/Android'],
         ['Grading tools', 'GradeStack', 'None'],
+        ['Study reminders', 'Today rail surfaces due reviews automatically', 'Manual — you must open the set'],
+        ['Exam-mode practice', 'GradeStack self-quizzing + Proof problem sets', 'Learn/Test modes only'],
       ],
     ),
     iterraWins: [
@@ -113,6 +127,12 @@ export const COMPARE_PAGES = [
         'No — Iterra is completely free with no account required.'),
       F('Which is more private?',
         'Iterra: all data lives in your browser. Quizlet stores sets and study activity on its servers.'),
+      F('Does Iterra have Quizlet-style study modes?',
+        'It has quizzes, writing drills and spaced review — the learning mechanics are there. What it lacks is Quizlet’s gamified layer (Match, Gravity) and the shared-set discovery feed.'),
+      F('What about ads on the free tier?',
+        'Iterra has none — free means free, no ads, no account, no premium gate. Quizlet’s free tier carries ads and pushes Quizlet+ upsells.'),
+      F('Can I study Quizlet sets inside Iterra?',
+        'Not directly — there is no Quizlet importer. Export the set as text from Quizlet and bulk-create the cards in the Cardfile; after that they schedule and review like any Iterra deck.'),
     ],
     related: [
       { href: '/alternatives/quizlet-alternative', label: 'Quizlet alternatives' },
@@ -130,7 +150,9 @@ export const COMPARE_PAGES = [
       'Iterra vs Anki: Anki is the spaced-repetition gold standard with a steep learning curve; Iterra offers spaced review inside a ready-made, free, local-first study workspace. Honest comparison for students.',
     h1: 'Iterra <em>vs</em> Anki',
     kicker: 'Head-to-head',
-    lede: 'Anki is the engine room of memorization — brutally efficient, famously austere. Iterra gives you spaced review inside a warm, finished workspace. Different philosophies; here is the honest map.',
+    datePublished: '2026-09-29',
+    dateModified: '2026-11-03',
+    lede: 'Anki is the engine room of memorization — brutally efficient, famously austere. Iterra gives you spaced review inside a warm, finished workspace. Different philosophies; here’s the map.',
     table: T(
       ['Quality', 'Iterra', 'Anki'],
       [
@@ -144,6 +166,8 @@ export const COMPARE_PAGES = [
         ['Learning curve', 'Gentle — open and study', 'Notorious setup curve'],
         ['Sync', 'Local-only by default', 'AnkiWeb free sync'],
         ['Mobile', 'Mobile browser', 'AnkiDroid free; AnkiMobile paid'],
+        ['Sync options', 'Local-only (export/backup)', 'AnkiWeb free sync across devices'],
+        ['Card media support', 'Text, quizzes, writing drills', 'Images, audio, video, LaTeX, cloze'],
       ],
     ),
     iterraWins: [
@@ -169,6 +193,10 @@ export const COMPARE_PAGES = [
         'For typical course flashcards, yes. For image occlusion, audio cards or massive shared decks, no — Anki remains the specialist tool.'),
       F('Which is better on iPhone?',
         'Iterra runs in any mobile browser for free. Anki’s iOS app (AnkiMobile) is paid; AnkiDroid is Android-only.'),
+      F('How long does it take to migrate from Anki?',
+        'An afternoon for a typical deck — export your cards as text, bulk-create them in the Cardfile, and the scheduler takes over. There is no .apkg importer yet, so very large or media-heavy decks are the painful case.'),
+      F('Is Iterra’s spaced repetition as scientifically sound as Anki’s?',
+        'The principle is the same — expanding intervals based on performance. Anki exposes more scheduling knobs (again/hard/good/easy, fuzz, desired retention); Iterra simplifies to what most students need and hides the theory.'),
     ],
     related: [
       { href: '/alternatives/anki-alternative', label: 'Anki alternatives' },
@@ -186,7 +214,9 @@ export const COMPARE_PAGES = [
       'Iterra vs StudySmarter/Vaia: both bundle flashcards, notes, planning and AI. Iterra is free, local-first and account-free; StudySmarter is cloud-based with ads and premium tiers. Honest comparison.',
     h1: 'Iterra <em>vs</em> StudySmarter',
     kicker: 'Head-to-head',
-    lede: 'StudySmarter (now Vaia) is the closest commercial cousin: flashcards, notes, planner and AI in one subscription. Iterra takes the opposite bet — free, private, local-first, no account. The honest differences matter.',
+    datePublished: '2026-10-06',
+    dateModified: '2026-11-10',
+    lede: 'StudySmarter (now Vaia) is the closest commercial cousin: flashcards, notes, planner and AI in one subscription. Iterra takes the opposite bet — free, private, local-first, no account. The differences matter.',
     table: T(
       ['Quality', 'Iterra', 'StudySmarter / Vaia'],
       [
@@ -201,6 +231,8 @@ export const COMPARE_PAGES = [
         ['AI features', 'Optional (Margin doc chat)', 'Core selling point — card/note/test generation'],
         ['Mobile apps', 'Mobile browser', 'Native iOS/Android'],
         ['Ads', 'None', 'Ads on free tier'],
+        ['AI content generation', 'Optional document chat only', 'Core feature — cards, notes, tests from PDFs'],
+        ['Content library', 'None — you bring materials', 'Large built-in question/content banks'],
       ],
     ),
     iterraWins: [
@@ -226,6 +258,10 @@ export const COMPARE_PAGES = [
         'Iterra keeps everything in your browser by default — there is no company database holding your notes. StudySmarter stores everything in its cloud.'),
       F('Does Iterra work on mobile?',
         'It runs in a mobile browser and even installs as a web app, but there are no native iOS/Android apps — StudySmarter has both.'),
+      F('What exactly does StudySmarter’s AI do that Iterra cannot?',
+        'It generates flashcard decks, summaries and practice tests directly from your PDFs and recordings. Iterra’s Margin can chat with and analyze documents via optional AI providers, but will not auto-build study material — yet.'),
+      F('Is StudySmarter worth the subscription?',
+        'If you have a stack of PDFs you never open and want cards generated for you, probably yes. If you already take your own notes and just want them organized, Iterra covers the same ground for free.'),
     ],
     related: [
       { href: '/alternatives/study-smarter-alternative', label: 'StudySmarter alternatives' },
@@ -243,7 +279,9 @@ export const COMPARE_PAGES = [
       'Iterra vs Structured: Structured is a beautiful visual day planner with optional AI scheduling; Iterra is a full local-first study workspace where time-blocking connects to flashcards, notes, timer and grading.',
     h1: 'Iterra <em>vs</em> Structured',
     kicker: 'Head-to-head',
-    lede: 'Structured makes your day look gorgeous — color-coded timeline blocks you drag around. Iterra asks what happens inside those blocks: recall, notes, timed focus, grading. Different scopes; honest comparison inside.',
+    datePublished: '2026-10-20',
+    dateModified: '2026-11-17',
+    lede: 'Structured makes your day look gorgeous — color-coded timeline blocks you drag around. Iterra asks what happens inside those blocks: recall, notes, timed focus, grading. Different scopes; the comparison below.',
     table: T(
       ['Quality', 'Iterra', 'Structured'],
       [
@@ -258,6 +296,7 @@ export const COMPARE_PAGES = [
         ['Offline', 'Fully local-first', 'Local-first on device'],
         ['Mobile apps', 'Mobile browser', 'Native iOS/Android'],
         ['Course awareness', 'Everything files under courses', 'Generic tasks, not courses'],
+        ['Price ceiling', 'No paid tier exists', 'Pro unlocks AI scheduling + sync'],
       ],
     ),
     iterraWins: [
@@ -283,6 +322,10 @@ export const COMPARE_PAGES = [
         'Absolutely — Structured for the visual day, Iterra for the study work inside it. They don’t conflict.'),
       F('Is Iterra free like Structured’s free tier?',
         'Iterra is free with no paid tier at all.'),
+      F('Can Iterra’s time-blocking feel as good as Structured’s?',
+        'It is less tactile — Syllabus blocks and Boxed cover the planning, but the drag-and-drop timeline beauty is Structured’s signature. What Iterra adds is what happens *inside* the block: timer, cards, notes.'),
+      F('Which is better for someone who hates planning?',
+        'Structured’s Pro AI auto-schedules your day, which Iterra deliberately does not offer. If planning is the chore you avoid, Structured Pro or a hybrid setup is the honest answer.'),
     ],
     related: [
       { href: '/tools/syllabus', label: 'Syllabus — the Folio' },
@@ -302,7 +345,9 @@ export const COMPARE_PAGES = [
       'Looking for a Quizlet alternative? Compare Iterra, Anki and StudySmarter on flashcards, privacy, price and what else the app does — honest picks for different study styles.',
     h1: 'Best <em>Quizlet</em> alternatives',
     kicker: 'Alternatives',
-    lede: 'Quizlet is great at one thing — shared flashcard sets — but it is ads-and-subscription shaped and stops there. These are the honest alternatives, depending on what you actually need.',
+    datePublished: '2026-09-02',
+    dateModified: '2026-10-16',
+    lede: 'Quizlet is great at one thing — shared flashcard sets — but it is ads-and-subscription shaped and stops there. These are the alternatives worth knowing, depending on what you actually need.',
     table: T(
       ['App', 'Best for', 'Price', 'The catch'],
       [
@@ -311,6 +356,7 @@ export const COMPARE_PAGES = [
         ['StudySmarter / Vaia', 'AI-generated cards and tests from your PDFs', 'Freemium + Premium', 'Cloud-based, ads on free tier'],
         ['Knowt', 'Free flashcards + AI notes from lectures', 'Freemium', 'Feature breadth can feel scattered'],
         ['RemNote', 'Notes that morph into flashcards', 'Freemium', 'Note-first; review is secondary'],
+        ['Brainscape', 'Confidence-rated repetition with polished mobile apps', 'Freemium', 'Subscription for full power'],
       ],
     ),
     iterraWins: [
@@ -334,6 +380,10 @@ export const COMPARE_PAGES = [
         'AnkiDroid (Android, free) and RemNote have native apps. Iterra runs in a mobile browser and installs as a web app, but has no native app.'),
       F('Which alternative is most private?',
         'Iterra — local-first, nothing leaves your device by default. Every other option stores your study data on company servers.'),
+      F('What if my class uses Quizlet sets assigned by the teacher?',
+        'Stay on Quizlet for those — the shared library is the point. Iterra works best for the cards you make yourself; many students run both.'),
+      F('Is there a Quizlet alternative that is also a planner?',
+        'Iterra is the only one — flashcards sit next to a course planner, notes, timer and grading in the same workspace. The rest are single-purpose card apps.'),
     ],
     related: [
       { href: '/compare/iterra-vs-quizlet', label: 'Iterra vs Quizlet' },
@@ -348,9 +398,11 @@ export const COMPARE_PAGES = [
     rival: 'Notion',
     title: 'Best Notion Alternatives for Students (2026)',
     description:
-      'Notion is a blank workspace — great if you love building systems. These are the best Notion alternatives for students who want studying tools that already work: Iterra, Obsidian, RemNote compared honestly.',
+      'Notion is a blank workspace — great if you love building systems. These are the best Notion alternatives for students who want studying tools that already work: Iterra, Obsidian, RemNote compared.',
     h1: 'Best <em>Notion</em> alternatives for students',
     kicker: 'Alternatives',
+    datePublished: '2026-09-19',
+    dateModified: '2026-11-01',
     lede: 'Notion’s superpower is that it can be anything. Its tax is that you have to build the study system yourself — templates, databases, discipline. These alternatives meet you further along.',
     table: T(
       ['App', 'Best for', 'Price', 'The catch'],
@@ -360,6 +412,7 @@ export const COMPARE_PAGES = [
         ['RemNote', 'Notes that integrate spaced-repetition flashcards', 'Freemium', 'Learning curve; subscription for full power'],
         ['OneNote', 'Free-form notebooks, good handwriting/Office ties', 'Free', 'Clunky for structured study workflows'],
         ['Google Keep + Calendar', 'Zero-effort capture and scheduling', 'Free', 'No real study loop — just lists and dates'],
+        ['Anytype', 'Local-first Notion-style workspace', 'Free', 'You still build the study system'],
       ],
     ),
     iterraWins: [
@@ -383,6 +436,10 @@ export const COMPARE_PAGES = [
         'Iterra ships a sample semester and sensible defaults rather than a template marketplace — less flexible, far less setup.'),
       F('Can Iterra replace Notion entirely?',
         'For studying, yes. For life-admin dashboards, shared docs and databases — no, Notion is still the better general workspace.'),
+      F('What about Obsidian — is it a better Notion alternative?',
+        'For pure note-graph flexibility and longevity, yes — Obsidian is superb. For students who want the study system already assembled (planner, cards, timer, grading), Iterra requires zero setup.'),
+      F('Do any of these work without an account?',
+        'Iterra and Obsidian (local-only mode) — both keep data on your device. Notion, RemNote and OneNote all want accounts.'),
     ],
     related: [
       { href: '/compare/iterra-vs-notion', label: 'Iterra vs Notion' },
@@ -400,6 +457,8 @@ export const COMPARE_PAGES = [
       'Anki’s spaced repetition is unmatched but its setup is infamous. These are the best Anki alternatives — Iterra, Quizlet and RemNote — compared on ease, price and what else they do.',
     h1: 'Best <em>Anki</em> alternatives',
     kicker: 'Alternatives',
+    datePublished: '2026-10-03',
+    dateModified: '2026-11-08',
     lede: 'Anki is the most powerful flashcard engine ever made and also one of the least friendly. If you bounced off it, these alternatives keep the spaced-repetition idea and lose the friction.',
     table: T(
       ['App', 'Best for', 'Price', 'The catch'],
@@ -409,6 +468,7 @@ export const COMPARE_PAGES = [
         ['RemNote', 'Notes + flashcards in one document flow', 'Freemium', 'Setup still takes effort'],
         ['Brainscape', 'Confidence-rated repetition, polished mobile apps', 'Freemium', 'Subscription for full power'],
         ['Mochi', 'Deep SRS customization, beautiful card types', 'Paid one-time', 'Desktop-first; smaller ecosystem'],
+        ['Brainscape', 'Confidence-rated repetition, adaptive scheduling', 'Freemium', 'Subscription for full power'],
       ],
     ),
     iterraWins: [
@@ -432,6 +492,10 @@ export const COMPARE_PAGES = [
         'Iterra runs free in Safari/any mobile browser. AnkiMobile costs ~$25; AnkiDroid is Android-only.'),
       F('Can I import Anki decks into Iterra?',
         'There is no direct .apkg importer yet — export cards as text and bulk-create them in the Cardfile.'),
+      F('Which Anki alternative has the best mobile experience?',
+        'AnkiDroid on Android is excellent and free; Iterra runs free in any mobile browser including iPhone, where AnkiMobile costs ~$25.'),
+      F('Is Iterra good enough for medical or law school memorization?',
+        'For typical course cards, yes. For high-stakes boards with image occlusion, audio cards and massive shared decks, Anki remains the specialist — honestly.'),
     ],
     related: [
       { href: '/compare/iterra-vs-anki', label: 'Iterra vs Anki' },
@@ -449,7 +513,9 @@ export const COMPARE_PAGES = [
       'StudySmarter/Vaia bundles AI study tools behind ads and Premium. These are the best alternatives — Iterra, Quizlet, Anki — compared on price, privacy and what they actually do.',
     h1: 'Best <em>StudySmarter</em> alternatives',
     kicker: 'Alternatives',
-    lede: 'StudySmarter (now Vaia) does a lot — flashcards, notes, planner, AI generation — but monetizes with ads and a premium wall. If that trade bothers you, these are the honest exits.',
+    datePublished: '2026-10-14',
+    dateModified: '2026-11-14',
+    lede: 'StudySmarter (now Vaia) does a lot — flashcards, notes, planner, AI generation — but monetizes with ads and a premium wall. If that trade bothers you, these are the realistic exits.',
     table: T(
       ['App', 'Best for', 'Price', 'The catch'],
       [
@@ -458,6 +524,7 @@ export const COMPARE_PAGES = [
         ['Anki', 'Maximum-power spaced repetition', 'Free (iOS paid)', 'Brutal learning curve'],
         ['Google Keep + Calendar + Drive', 'Free, familiar, everywhere', 'Free', 'No study loop — you assemble it'],
         ['RemNote', 'Notes and flashcards fused together', 'Freemium', 'Subscription for full features'],
+        ['Knowt', 'Free flashcards + AI notes from lectures', 'Freemium', 'Cloud-based; feature breadth feels scattered'],
       ],
     ),
     iterraWins: [
@@ -481,6 +548,10 @@ export const COMPARE_PAGES = [
         'Margin can analyze and chat with your documents via optional AI providers — useful, but not the automated deck/test generator StudySmarter offers.'),
       F('Will my StudySmarter data transfer?',
         'There is no importer — decks and notes would need manual recreation. Iterra does offer full JSON backup/restore for its own data.'),
+      F('Is StudySmarter’s free tier actually usable?',
+        'It works but shows ads and gates the better features behind Premium. If the AI generation is what you use daily, the subscription may be fair; if you just need flashcards and a planner, it is overkill.'),
+      F('Does Iterra do what StudySmarter does, minus the AI?',
+        'Mostly yes — planner, flashcards with spaced review, notes, timer, grading, all free and offline. The honest gap is AI-generated study material from PDFs.'),
     ],
     related: [
       { href: '/compare/iterra-vs-study-smarter', label: 'Iterra vs StudySmarter' },
@@ -498,6 +569,8 @@ export const COMPARE_PAGES = [
       'The best free study planners compared honestly: Iterra, MyStudyLife, Google Calendar, Structured and paper. No account, offline, ads and hidden paywalls — what each free tier really gives you.',
     h1: 'Free study planners, <em>actually compared</em>',
     kicker: 'Alternatives',
+    datePublished: '2026-10-27',
+    dateModified: '2026-11-18',
     lede: '“Free” means five different things across study planners — free forever, free trial, free with ads, free-but-cloud-only, and free-if-you-assemble-it-yourself. Here is what each really offers.',
     table: T(
       ['Planner', 'Free tier reality', 'Account', 'Offline', 'Beyond planning'],
@@ -508,6 +581,7 @@ export const COMPARE_PAGES = [
         ['Structured', 'Free timeline; Pro for AI/sync', 'Optional', 'On-device', 'Timer only'],
         ['Todoist', 'Free tier capped (~5 projects)', 'Yes', 'Limited', 'Generic tasks only'],
         ['Paper planner', 'Free if you own paper', 'No', 'Perfect', 'Nothing digital'],
+        ['MyHomework / school portals', 'Free but school-issued', 'Yes', 'Limited', 'Read-only — you cannot customize'],
       ],
     ),
     iterraWins: [
@@ -532,6 +606,10 @@ export const COMPARE_PAGES = [
         'Iterra for an integrated private workspace; MyStudyLife for traditional timetable+homework tracking; Notion (education plan) if you want to build your own.'),
       F('Can a free study planner include flashcards and notes?',
         'Iterra is the only free option here that bundles planner + flashcards + notes + timer + grading in one place.'),
+      F('What does “free” cost me in privacy?',
+        'On cloud planners, your schedule and study data sit on company servers. Iterra’s local-first design means your week never leaves the device — free without the data trade.'),
+      F('Is a paper planner still better than any app?',
+        'For zero friction and zero battery, honestly yes — nothing beats paper for a brain dump. Iterra wins when you want the plan connected to cards, notes and a timer; paper wins when you want pure simplicity.'),
     ],
     related: [
       { href: '/tools/syllabus', label: 'Syllabus — the Folio' },
@@ -546,9 +624,11 @@ export const COMPARE_PAGES = [
     rival: 'roundup',
     title: 'Best Study Apps for Students in 2026 — Honest Ranking',
     description:
-      'The best study apps for students in 2026, ranked honestly: Iterra, Quizlet, Anki, Notion, StudySmarter, Structured. What each does best, what it costs, and who should actually use it.',
+      'The best study apps for students in 2026, ranked: Iterra, Quizlet, Anki, Notion, StudySmarter, Structured. What each does best, what it costs, and who should actually use it.',
     h1: 'The best study apps, <em>honestly ranked</em>',
     kicker: 'Roundup',
+    datePublished: '2026-11-10',
+    dateModified: '2026-11-24',
     lede: 'Every “best study apps” list is secretly a list of the writer’s favorites. Here is ours — including where each tool loses, because the right app depends on whether you need flashcards, notes, planning or all three.',
     table: T(
       ['Rank', 'App', 'Best at', 'Price', 'Honest weakness'],
@@ -559,6 +639,8 @@ export const COMPARE_PAGES = [
         ['4', 'Notion', 'Custom study dashboards', 'Freemium', 'You build the study system yourself'],
         ['5', 'StudySmarter / Vaia', 'AI-generated study material', 'Freemium + Premium', 'Ads; subscription; cloud'],
         ['6', 'Structured', 'Beautiful visual day-planning', 'Freemium', 'Planning only — no study tools'],
+        ['7', 'Todoist', 'Generic task management', 'Freemium', 'Not study-specific; no recall loop'],
+        ['8', 'MyStudyLife', 'School timetable + homework tracking', 'Free', 'Cloud-based; dated interface'],
       ],
     ),
     iterraWins: [
@@ -583,6 +665,12 @@ export const COMPARE_PAGES = [
         'Ideally no — juggling five single-purpose apps is why studying fragments. Iterra was built specifically to collapse that into one terrain.'),
       F('Are these study apps safe for student data?',
         'Iterra keeps data in your browser by default — the most private option listed. Others store study data on company servers; check each privacy policy.'),
+      F('What is the best study app for exam week specifically?',
+        'Iterra — due flashcard reviews surface on Today next to your plan, timed sessions file back into the schedule, and GradeStack self-quizzing gives instant feedback. The loop is designed for exactly that week.'),
+      F('Do any of these apps work without Wi-Fi?',
+        'Iterra works fully offline after first load — local-first by design. Most others need connectivity for sync, AI features or account checks.'),
+      F('Should I pick one app or combine several?',
+        'One, ideally — app-hopping is where study time goes to die. Iterra was built to collapse the planner/cards/notes/timer stack into a single terrain so you stop context-switching.'),
     ],
     related: [
       { href: '/compare', label: 'All comparisons' },

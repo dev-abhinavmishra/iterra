@@ -1567,6 +1567,257 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-use-practice-tests',
+    title: 'How to use practice tests and <em>actually learn from them</em>',
+    seoTitle: 'How to Use Practice Tests for Exams: A Practical Guide',
+    description:
+      'Practice tests only work if you review the misses. How to run a realistic practice test, sort your errors, and turn them into a study plan — with free tools.',
+    kicker: 'Exam Season',
+    datePublished: '2026-11-26',
+    dateModified: '2026-12-01',
+    readMinutes: 8,
+    keywords: ['practice tests', 'practice test strategy', 'exam preparation', 'retrieval practice'],
+    tools: ['gradestack', 'proof', 'flashcards'],
+    related: ['how-to-study-for-finals-week', 'active-recall-vs-rereading', 'spaced-repetition-explained'],
+    lede: 'Every study guide says “take practice tests.” Almost none explain the part that actually matters: a practice test is not a study session, it’s a diagnostic. The studying happens afterward, in the review — and most students skip it entirely.',
+    takeaways: [
+      'A practice test is a diagnostic, not a workout — the review of your misses is the actual studying.',
+      'Run it like the real exam: timed, closed-book, same format. Then stop and don’t peek at answers.',
+      'Sort every error into knowledge gaps, application errors, or careless mistakes — each needs a different fix.'
+    ],
+    faq: [
+      {
+        q: 'How often should I take practice tests?',
+        a: 'Weekly or every other week per course is sustainable. Ten well-reviewed questions beat a full-length test you skim. The habit matters more than the volume — a running error log makes finals week review instead of discovery.',
+      },
+      {
+        q: 'Should I review the questions I got right?',
+        a: 'Yes — some correct answers are lucky guesses. If you can’t explain *why* the right answer is right, treat it like a miss. The questions you got right for the wrong reasons are the ones that fail you on the real exam.',
+      },
+      {
+        q: 'What if my course has no practice tests?',
+        a: 'Build your own. Past exams, textbook end-of-chapter questions, and questions you write from your own notes all work. GradeStack can build a bubble-sheet assessment from material you supply; Proof generates problem sets for math and science courses.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Why practice tests beat rereading',
+        blocks: [
+          { k: 'p', t: 'Every study guide says “take practice tests.” Almost none explain the part that actually matters: a practice test is not a study session, it’s a diagnostic. The studying happens afterward, in the review — and most students skip it entirely.' },
+          { k: 'p', t: 'Rereading a chapter produces familiarity. A practice test produces evidence — a list of specific things you can and cannot do. That difference is why testing is one of the two techniques learning science rates as “very effective,” alongside spaced practice.' },
+          { k: 'deflist', items: [
+            { t: 'Practice test', d: 'Forces retrieval under mild pressure — the same act that builds durable recall. Reveals gaps while they’re still cheap to fix. Calibrates what “prepared” feels like.' },
+            { t: 'Rereading', d: 'Builds recognition, not recall. Produces confidence without competence — the most dangerous combination in exam season.' },
+          ]},
+          { k: 'p', t: 'The mechanism underneath is retrieval practice: every question pulls information out of memory, and that act of pulling is itself a learning event. Rereading never asks you to produce anything.' },
+        ],
+      },
+      {
+        h2: 'What makes a practice test worth your time',
+        blocks: [
+          { k: 'p', t: 'Not every practice test is equal. A good one shares three properties with the real exam:' },
+          { k: 'table', head: ['Property', 'What it looks like'], rows: [
+            ['Same format', 'If the real exam is multiple choice, practice multiple choice — format is part of what’s being tested.'],
+            ['Same coverage', 'Pulled from the same chapters, lectures, and topic weights the syllabus promises.'],
+            ['Same stakes', 'Timed, closed-book, no notes. A practice test with your textbook open is a reading exercise.'],
+          ]},
+          { k: 'p', t: 'Past exams from the same professor are gold. Second-best: the textbook’s end-of-chapter questions, which usually mirror the course’s emphasis. Worst: generic online question banks that test the subject, not *your* course.' },
+        ],
+      },
+      {
+        h2: 'How to run the test itself',
+        blocks: [
+          { k: 'p', t: 'Treat the practice test like the real thing, because the point is rehearsal:' },
+          { k: 'steps', items: [
+            'Same time of day if you can manage it — exam morning has its own fatigue pattern.',
+            'Timed, strictly. A practice test that runs long teaches you nothing about pacing.',
+            'Closed book, phone away. The discomfort is the point.',
+            'No breaks beyond what the real exam allows.',
+            'Write answers fully — partial answers on essays, every step on problems.',
+          ]},
+          { k: 'p', t: 'Then stop. Don’t check answers question by question as you go — that turns a test into a worksheet and destroys the diagnostic value.' },
+        ],
+      },
+      {
+        h2: 'The review is the actual studying',
+        blocks: [
+          { k: 'p', t: 'Here’s where most students fail: they grade the test, look at the score, and move on. The score is almost useless. The *errors* are the whole point.' },
+          { k: 'p', t: 'For every missed or shaky question, write down three things: what the question asked, what you answered, and what the correct answer actually was — in your own words. That list is your study plan for the next week. Not “review chapter 6” but “confused mitosis phases with meiosis — redo those three questions.”' },
+          { k: 'callout', t: 'A practice test you don’t review is just a very stressful quiz. The review is where the learning happens — budget equal time for both.' },
+        ],
+      },
+      {
+        h2: 'Sorting your mistakes',
+        blocks: [
+          { k: 'p', t: 'Not all misses are equal. Sort every error into one of three piles:' },
+          { k: 'deflist', items: [
+            { t: 'Knowledge gaps', d: 'You didn’t know the fact or concept. Fix: cards, rereading the specific section, office hours.' },
+            { t: 'Application errors', d: 'You knew it but applied it wrong. Fix: more practice problems of that exact type.' },
+            { t: 'Careless errors', d: 'You knew it and still missed it. Fix: slower pacing, more time on review, check-your-work habits.' },
+          ]},
+          { k: 'p', t: 'The piles need different fixes. Reviewing “chapter 6” because you bombed three application questions is wasted time; you needed fifty more problems, not ten more pages.' },
+        ],
+      },
+      {
+        h2: 'Practice tests by exam type',
+        blocks: [
+          { k: 'p', t: 'The format changes what “good practice” means:' },
+          { k: 'deflist', items: [
+            { t: 'Multiple choice', d: 'Practice discrimination — questions that ask you to *choose* between similar concepts, not just recall definitions.' },
+            { t: 'Essays', d: 'Practice outlines and thesis statements under time pressure. Writing full essays in practice is too slow to be efficient.' },
+            { t: 'Problem-based', d: 'Do problems before looking at solutions. The setup struggle is the learning.' },
+            { t: 'Oral exams', d: 'Practice explaining aloud — if you can’t say it clearly, you don’t know it.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Mistakes that waste practice tests',
+        blocks: [
+          { k: 'ul', items: [
+            'Taking the test open-book, then pretending the score means something.',
+            'Reviewing only the questions you missed and skipping the ones you got right by luck.',
+            'Doing one giant practice test the night before instead of several spaced ones.',
+            'Never retaking a missed question — if you can’t explain the fix, it wasn’t fixed.',
+          ]},
+        ],
+      },
+      {
+        h2: 'Making it a habit, not an event',
+        blocks: [
+          { k: 'p', t: 'The students who benefit most treat practice tests as a weekly ritual, not a finals-week panic. One short quiz per course every week or two does two things: it keeps retrieval sharp, and it gives you a running error log so exam week is review, not discovery.' },
+          { k: 'p', t: 'Ten questions on Friday is enough. The habit matters more than the volume — a small test you actually review beats a full-length one you skim.' },
+          { k: 'tool', tool: 'gradestack', t: 'GradeStack builds the assessment and grades the sheet — the practice test becomes data instead of a stack of paper.' },
+          { k: 'tool', tool: 'proof', t: 'Proof’s problem sets and error log do the same loop for math — attempt, check, review what you missed.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'A practice test is a mirror, not a workout. It shows you exactly where you stand — the value is entirely in what you do with the reflection.' },
+          { k: 'p', t: 'Take it seriously, review every miss, and let the error list drive the next week of studying.' },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: 'how-to-avoid-study-burnout',
+    title: 'How to avoid study burnout before it <em>derails your semester</em>',
+    seoTitle: 'How to Avoid Study Burnout: Prevention and Recovery',
+    description:
+      'Study burnout is exhaustion plus cynicism plus inefficacy — and it’s preventable. Warning signs, weekly recovery design, pacing the semester, and what to do when you’re already there.',
+    kicker: 'Routines',
+    datePublished: '2026-12-03',
+    dateModified: '2026-12-08',
+    readMinutes: 7,
+    keywords: ['study burnout', 'how to avoid burnout', 'student burnout', 'study rest', 'academic burnout'],
+    tools: ['rhythm', 'boxed', 'syllabus'],
+    related: ['building-a-weekly-study-routine', 'time-blocking-for-students', 'plan-a-semester'],
+    lede: 'Burnout doesn’t announce itself. It accumulates — a skipped break here, a night of bad sleep there, a week of “I’ll rest after this exam” — until studying stops feeling like work and starts feeling like weather you can’t control. The students who avoid it aren’t tougher. They built systems that make rest structural instead of aspirational.',
+    takeaways: [
+      'Burnout is exhaustion + cynicism + inefficacy — a system problem, not a character flaw.',
+      'Recovery is load-bearing structure: protect sleep, one real day off, breaks that leave the screen.',
+      'If you’re already burned out: 48 hours off, cut to the floor, rebuild smaller — and see someone if it persists.'
+    ],
+    faq: [
+      {
+        q: 'How do I know if I’m burned out or just tired?',
+        a: 'Tiredness resolves with a weekend; burnout doesn’t. If you’ve had three or more warning signs — Sunday dread, rereading the same paragraph, irritability, unexplained score drops — for two weeks straight, treat it as burnout, not fatigue.',
+      },
+      {
+        q: 'Is it okay to take a day off from studying?',
+        a: 'It’s necessary. A routine with a floor and a real off-day survives; one that demands daily perfection guarantees burnout. Recovery is part of the system, not a violation of it.',
+      },
+      {
+        q: 'What if my burnout is caused by my workload, not my habits?',
+        a: 'Then the fix is structural too — talk to your professors, request extensions, drop a commitment if you can. Burnout from an impossible load isn’t a discipline problem; it’s a workload problem that needs a human conversation.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'What burnout actually is',
+        blocks: [
+          { k: 'p', t: 'Burnout doesn’t announce itself. It accumulates — a skipped break here, a night of bad sleep there, a week of “I’ll rest after this exam” — until studying stops feeling like work and starts feeling like weather you can’t control. The students who avoid it aren’t tougher. They built systems that make rest structural instead of aspirational.' },
+          { k: 'deflist', items: [
+            { t: 'Exhaustion', d: 'Fatigue that sleep doesn’t fix — the body’s account is overdrawn.' },
+            { t: 'Cynicism', d: '“What’s the point” becoming your default thought about the work.' },
+            { t: 'Inefficacy', d: 'Hours of studying that produce nothing you can name.' },
+          ]},
+          { k: 'p', t: 'It’s not a character flaw and it’s not “being bad at school.” It’s what happens when demand exceeds recovery for long enough that the system can’t catch up.' },
+        ],
+      },
+      {
+        h2: 'The warning signs most students miss',
+        blocks: [
+          { k: 'ul', items: [
+            'Sunday dread that starts Friday afternoon.',
+            'Reading the same paragraph four times.',
+            '“I’ll study tomorrow” becoming a permanent fixture.',
+            'Irritability at small things — group chats, roommate noise, the kettle.',
+            'Score drops you can’t explain.',
+          ]},
+          { k: 'p', t: 'Any one of these alone is normal. Three or more for two weeks straight is a signal — not a verdict, but a signal.' },
+        ],
+      },
+      {
+        h2: 'Why “just push through” fails',
+        blocks: [
+          { k: 'p', t: 'The push-through model treats rest as the reward for finishing. But the semester never finishes — there’s always another deadline, another exam, another week. Students who wait for the finish line to rest arrive there already depleted.' },
+          { k: 'p', t: 'Recovery isn’t the prize at the end. It’s a load-bearing part of the structure — like sleep, like food, like the buffer in a time-blocked week.' },
+        ],
+      },
+      {
+        h2: 'Designing recovery into the week',
+        blocks: [
+          { k: 'p', t: 'The fix isn’t a spa day. It’s making rest a scheduled, non-negotiable part of the system:' },
+          { k: 'deflist', items: [
+            { t: 'Sleep', d: 'Protect it like a class you can’t skip — 7+ hours, same window, phone outside the bedroom.' },
+            { t: 'One full day off', d: 'Per week — not “light study,” genuinely off. Recovery is part of the routine, not a violation of it.' },
+            { t: 'Real breaks inside blocks', d: 'A break spent scrolling is just a shorter work session in disguise.' },
+            { t: 'Movement', d: 'Not exercise-as-punishment — walks, stretching, anything that gets you out of the chair.' },
+          ]},
+          { k: 'tool', tool: 'rhythm', t: 'Rhythm shows the week’s actual shape — the rest days you protected, the sessions you kept, the gaps where burnout starts.' },
+        ],
+      },
+      {
+        h2: 'When the routine itself is the problem',
+        blocks: [
+          { k: 'p', t: 'Sometimes burnout is the routine’s fault — it’s too big, too rigid, or anchored to the wrong times. A routine that requires willpower every day isn’t a routine; it’s a second job.' },
+          { k: 'p', t: 'Shrink it. The minimum viable week exists for exactly this: on the worst weeks, twenty honest minutes per session keeps the structure alive without feeding the resentment. A routine that survives bad weeks is the one that prevents burnout; one that demands perfection guarantees it.' },
+          { k: 'tool', tool: 'boxed', t: 'Boxed makes shrinking painless — the day’s dump becomes a smaller, honest version instead of a source of guilt.' },
+        ],
+      },
+      {
+        h2: 'The semester-scale view',
+        blocks: [
+          { k: 'p', t: 'Burnout is also a pacing problem. Students who sprint October — every block filled, every night a study night — hit the wall in November, right when midterms demand the most.' },
+          { k: 'p', t: 'The fix is pacing across the whole term: weeks that are deliberately lighter, breaks built into the calendar before they’re needed. Think marathon with aid stations, not sprint with a finish line.' },
+          { k: 'tool', tool: 'syllabus', t: 'Syllabus holds the term’s shape — the lighter weeks and protected days belong on the same calendar as the deadlines.' },
+        ],
+      },
+      {
+        h2: 'What to do when you’re already burned out',
+        blocks: [
+          { k: 'p', t: 'If you’re already there, the recovery sequence matters more than the prevention advice:' },
+          { k: 'steps', items: [
+            'Take 48 hours genuinely off — no “just a little review.” The guilt is part of the burnout; don’t feed it.',
+            'Cut the routine to the floor — minimum viable sessions only, for one week.',
+            'See someone — a counselor, a doctor, a professor you trust. Burnout that persists is a health issue, not a discipline issue.',
+            'Rebuild smaller than before. The routine that caused the burnout can’t be the one that fixes it.',
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Burnout prevention isn’t self-care as a luxury — it’s maintenance as a system.' },
+          { k: 'p', t: 'Protect sleep, schedule real rest, keep the routine small enough to survive, and pace the semester like the long event it is. The students who last aren’t the ones who never tire; they’re the ones who built recovery into the plan.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
