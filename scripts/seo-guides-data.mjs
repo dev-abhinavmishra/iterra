@@ -3144,6 +3144,106 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-literature',
+    title: 'How to <em>study literature</em>',
+    seoTitle: 'How to Study Literature: Close Reading, Patterns, Essays',
+    description:
+      'Study literature as analysis, not memorization: read closely, annotate for patterns, identify themes, and practice the essay format most exams require.',
+    kicker: 'Study Methods',
+    datePublished: '2027-03-16',
+    dateModified: '2027-03-20',
+    readMinutes: 6,
+    keywords: ['how to study literature', 'literature study tips', 'literature exam', 'how to analyze literature'],
+    tools: ['margin', 'proof'],
+    related: ['how-to-study-history', 'write-faster-on-exams', 'active-recall-vs-rereading'],
+    lede: 'Literature is the subject where students most often freeze — the material is dense, the analysis is subjective, and the "right answer" isn\'t obvious. But literature rewards a specific kind of preparation: close reading, pattern recognition, and practice arguing with the text. The students who do well aren\'t the ones who read the most — they\'re the ones who read *closely*.',
+    takeaways: [
+      'Close reading is the skill — notice word choice, imagery, structure, and pattern.',
+      'Annotate everything — the evidence you need for the essay is in the text.',
+      'Practice the essay — most literature exams require argument, not just recall.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for a literature exam?',
+        a: 'Read closely and annotate — mark the patterns, images, and shifts. Identify the themes, gather evidence, and practice essays under timed conditions. Literature exams test analysis, not plot recall.',
+      },
+      {
+        q: 'How do I analyze a literary text?',
+        a: 'Look for patterns: recurring images, character contradictions, structural shifts, tone changes, and allusions. Ask what the author is doing and why. The best interpretations are supported by specific evidence from the text.',
+      },
+      {
+        q: 'How do I write a literature essay?',
+        a: 'Structure: thesis, evidence, analysis, conclusion. Practice under timed conditions. The goal is to argue an interpretation, not summarize the plot. Use specific passages as evidence and explain how they support your argument.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Close reading is the skill',
+        blocks: [
+          { k: 'p', t: 'Literature is the subject where students most often freeze — the material is dense, the analysis is subjective, and the "right answer" isn\'t obvious. But literature rewards a specific kind of preparation: close reading, pattern recognition, and practice arguing with the text. The students who do well aren\'t the ones who read the most — they\'re the ones who read *closely*.' },
+          { k: 'p', t: 'Literature exams test whether you can analyze a text, not whether you remember the plot. Close reading means slowing down — noticing word choice, imagery, structure, and pattern. The details that seem random are usually significant; the author put them there for a reason.' },
+          { k: 'p', t: 'When you read, annotate. Mark the passages that confuse you, the images that recur, the shifts in tone. These annotations become your evidence when you write the essay.' },
+        ],
+      },
+      {
+        h2: 'The literature study loop',
+        blocks: [
+          { k: 'p', t: 'A productive literature study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Read the text once for the story — plot, characters, setting.',
+            'Go back and read closely — annotate for patterns, images, shifts.',
+            'Identify the themes — what is the text *about*?',
+            'Find the evidence — specific passages that support your interpretation.',
+            'Practice the essay — thesis, evidence, analysis, conclusion.',
+          ]},
+          { k: 'p', t: 'The close-reading step is where the learning happens. A first read gives you the story; a second close read gives you the material for analysis.' },
+          { k: 'tool', tool: 'margin', t: 'Margin is built for annotation — mark the passages, tag the patterns, and build your evidence base as you read.' },
+        ],
+      },
+      {
+        h2: 'Patterns to look for',
+        blocks: [
+          { k: 'p', t: 'Literature is full of patterns — once you learn to spot them, the analysis becomes mechanical. Look for:' },
+          { k: 'deflist', items: [
+            { t: 'Recurring images', d: 'What do they symbolize?' },
+            { t: 'Character contradictions', d: 'What do they reveal?' },
+            { t: 'Structural shifts', d: 'How does the form mirror the content?' },
+            { t: 'Tone changes', d: 'Where does the narrator\'s attitude shift?' },
+            { t: 'Allusions', d: 'What is the author referencing?' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The essay is the exam',
+        blocks: [
+          { k: 'p', t: 'Most literature exams are essay-based — the goal is to construct an argument about the text, not just recall the plot. Practice writing essays under timed conditions. The structure matters: thesis, evidence, analysis, conclusion.' },
+          { k: 'p', t: 'The best literature students don\'t just describe the text — they *argue* with it. Practice forming interpretations: "The author uses X to suggest Y" or "The character\'s behavior reveals Z about..."' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps structure the essay argument — thesis, evidence, analysis — so the argument holds together under exam pressure.' },
+        ],
+      },
+      {
+        h2: 'Common literature study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common literature study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Reading for plot only', d: 'Missing the patterns that drive analysis.' },
+            { t: 'Not annotating', d: 'The evidence you need is in the text.' },
+            { t: 'Not practicing essays', d: 'Most literature exams require them.' },
+            { t: 'Treating interpretation as subjective', d: 'The best readings are supported by evidence.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Literature rewards close reading, pattern recognition, and argument.' },
+          { k: 'p', t: 'Read slowly, annotate everything, identify the themes, and practice the essay format. The students who treat literature as a puzzle to solve outperform the ones who treat it as a story to remember.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
