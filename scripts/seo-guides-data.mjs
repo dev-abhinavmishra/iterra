@@ -6200,6 +6200,110 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-cfa',
+    title: 'How to study for the <em>CFA</em>',
+    seoTitle: 'How to Study for the CFA: Three Levels, One Strategy',
+    description:
+      'Beat the CFA with understanding, not memorization: learn the concepts, practice the question types, explain the ideas, and conquer all three levels — the hardest test in finance.',
+    kicker: 'Study Methods',
+    datePublished: '2027-11-09',
+    dateModified: '2027-11-13',
+    readMinutes: 7,
+    keywords: ['how to study for the CFA', 'CFA exam prep', 'CFA study plan', 'CFA certification'],
+    tools: ['timer', 'proof'],
+    related: ['how-to-study-for-the-cpa', 'how-to-study-for-the-acc', 'how-to-study-economics'],
+    lede: 'The CFA exam is the hardest test in finance — three levels, each a separate beast, each demanding deep understanding of ethics, quantitative methods, economics, financial reporting, corporate finance, equity, fixed income, derivatives, alternative investments, and portfolio management. But most students treat it like a marathon of memorization: they review the material, practice the questions, and hope the exam rewards their effort. The CFA rewards a different approach: understand the *why* behind each concept, and practice the question types until they\'re automatic.',
+    takeaways: [
+      'Take a practice test first — the questions you miss tell you which areas to review.',
+      'Understand the concepts, not just the formulas — explain ideas in your own words.',
+      'Practice the question types: multiple choice, constructed response, item sets, ethics.',
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the CFA?',
+        a: 'Most candidates need 300+ hours per level. Level I is typically 6-9 months of consistent prep; Levels II and III are harder and may need 8-12 months. A structured study plan with daily practice questions and weekly review sessions works better than weekend cramming.',
+      },
+      {
+        q: 'What\'s the pass rate for the CFA?',
+        a: 'Pass rates vary by level but are generally around 40% for Level I, 45% for Level II, and 55% for Level III. The exam is challenging because it tests practical application, not just recall. Candidates who practice with real exam-style questions and review their mistakes thoroughly have the best chance of passing.',
+      },
+      {
+        q: 'Can I take the CFA levels in any order?',
+        a: 'No — you must pass each level before taking the next. Level I is the prerequisite for Level II, and Level II is the prerequisite for Level III. You have 48 months to pass all three levels from your first attempt.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the CFA before you study it',
+        blocks: [
+          { k: 'p', t: 'The CFA has three levels — Level I, Level II, and Level III. Each level is a separate exam, taken in order, with Level I offered in February, May, August, and November. Each exam is 4.5 hours, covers 10 topic areas, and uses multiple choice and constructed response questions. A pass rate of ~40% means preparation matters.' },
+          { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which topic areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the CFA\'s pressure — 4.5 hours per exam, hundreds of questions. Practice at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The CFA study loop',
+        blocks: [
+          { k: 'p', t: 'CFA prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the concept — read the curriculum or watch a lecture.',
+            'Work through example problems — understand *why* each step works.',
+            'Solve problems independently — start with easy, then harder.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why a bond\'s price moves inversely to interest rates understands finance; a student who can only plug into formulas doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The topic areas: what to focus on',
+        blocks: [
+          { k: 'p', t: 'The CFA covers 10 topic areas — focus on the high-yield ones:' },
+          { k: 'deflist', items: [
+            { t: 'Ethics', d: 'The most important topic — every question tests professional standards.' },
+            { t: 'Financial Reporting & Analysis', d: 'The largest topic — know the standards cold.' },
+            { t: 'Equity', d: 'Valuation, analysis, portfolio construction — know the frameworks.' },
+            { t: 'Fixed Income', d: 'Bonds, yields, duration — know the calculations.' },
+            { t: 'Portfolio Management', d: 'The capstone — ties everything together.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The question types that matter',
+        blocks: [
+          { k: 'p', t: 'CFA questions fall into predictable types:' },
+          { k: 'deflist', items: [
+            { t: 'Multiple choice', d: 'The most common — know the answer choices and the distractors.' },
+            { t: 'Constructed response', d: 'For Level II and III — practice the written format.' },
+            { t: 'Item sets', d: 'A passage with multiple questions — practice the reading and analysis.' },
+            { t: 'Ethics', d: 'Every section has ethics questions — know the Standards of Professional Conduct.' },
+          ]},
+          { k: 'tool', tool: 'proof', t: 'Proof helps organize CFA problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'The common CFA traps',
+        blocks: [
+          { k: 'p', t: 'CFA questions have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'Ethics', d: 'The Standards of Professional Conduct are strict — know them cold.' },
+            { t: 'Timing', d: '4.5 hours for hundreds of questions — practice pacing.' },
+            { t: 'Calculations', d: 'The math is often simple but the concepts are complex — know *why*.' },
+            { t: 'Reading', d: 'The passages are dense — practice extracting the key information.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The CFA isn\'t about memorizing formulas — it\'s about understanding why they work.' },
+          { k: 'p', t: 'Understand the concepts, practice the question types, explain the ideas, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
