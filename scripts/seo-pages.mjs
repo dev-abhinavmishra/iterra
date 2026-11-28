@@ -2788,6 +2788,10 @@ ${guideLines}
 All guides: https://iterrapp.vercel.app/guides
 RSS feed: https://iterrapp.vercel.app/feed.xml
 
+## Guide topics
+
+${TOPIC_PAGES.map((t) => `- [${t.kicker} guides](https://iterrapp.vercel.app/topics/${t.slug}): ${t.guides.length} articles`).join('\n')}
+
 ## Comparisons & alternatives
 
 ${cmpLines}

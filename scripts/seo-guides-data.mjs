@@ -5429,6 +5429,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked integrated question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic TOEFL reading question: a passage describes how beavers engineer wetlands, and asks "According to the passage, why do beavers build dams?" Four options — the method finds the one the text actually supports.' },
+          { k: 'steps', items: [
+            'Return to the text — do not answer from memory; the passage is right there and it is the only authority.',
+            'Locate the relevant sentence — find where dams are explained, not where beavers are introduced.',
+            'Match, do not infer — the correct option paraphrases the text; wrong options add unstated purposes ("to impress mates").',
+            'Eliminate the plausible — options that are true of beavers generally but not stated as the dam\'s purpose are traps.',
+            'Choose the literal answer — TOEFL rewards fidelity to the text over real-world knowledge.',
+          ]},
+          { k: 'p', t: 'TOEFL reading questions are won by discipline, not vocabulary — the passage contains the answer; the test is whether you can find it under time pressure. Practice locating before you read for meaning.' },
+        ],
+      },
+      {
         h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'Mistakes are the syllabus the exam never published.' },
@@ -5531,6 +5545,20 @@ export const GUIDES = [
             { t: 'Ignoring the speaking rubric', d: 'Speaking is scored on fluency, vocabulary, grammar and pronunciation — practicing alone without recording misses half the criteria.' },
             { t: 'Reading for comprehension, not speed', d: 'IELTS reading is 60 minutes for 40 questions — you cannot afford full comprehension; learn to skim for what the questions ask.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked writing task',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic Task 2 prompt: "Some people believe university education should be free for all students. To what extent do you agree or disagree?" Most candidates freeze — the method gives the essay a skeleton.' },
+          { k: 'steps', items: [
+            'Take a position — agree, disagree, or qualified; sitting on the fence caps your score.',
+            'Build the outline — introduction with position, two body paragraphs with topic sentences and examples, conclusion that echoes (not repeats) the thesis.',
+            'Write the introduction last-in-thought — know your position before you type, even if the paragraph comes first on the page.',
+            'Spend 40 minutes, not 60 — Task 2 is worth double Task 1; guard the clock.',
+            'Reserve 5 minutes — read it once for grammar and coherence; a clean B beats a brilliant unfinished A.',
+          ]},
+          { k: 'p', t: 'IELTS writing rewards structure under time — a simple position argued coherently outscores a complex one argued chaotically. Practice the skeleton until it is automatic, then fill it with your own ideas.' },
         ],
       },
       {
