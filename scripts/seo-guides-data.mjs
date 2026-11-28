@@ -2143,6 +2143,130 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-learn-a-language',
+    title: 'How to learn a language without <em>quitting in week three</em>',
+    seoTitle: 'How to Learn a Language: A Practical Student Guide',
+    description:
+      'Most language students plateau because they use the wrong method. The input-notice-produce loop, vocabulary habits that survive the forgetting curve, and output practice that actually works.',
+    kicker: 'Study Methods',
+    datePublished: '2027-01-05',
+    dateModified: '2027-01-09',
+    readMinutes: 8,
+    keywords: ['how to learn a language', 'language learning', 'learn a language fast', 'language study tips'],
+    tools: ['flashcards', 'rhythm', 'ink'],
+    related: ['spaced-repetition-explained', 'flashcard-best-practices', 'building-a-weekly-study-routine'],
+    lede: 'Language learning has a dirty secret: most students quit in week three, not because the language is hard but because they’re using the wrong method. They collect vocabulary lists they never review, watch shows with subtitles they don’t understand, and call it immersion. Actual progress comes from a boring loop: learn a little, recall it often, use it before you feel ready.',
+    takeaways: [
+      'Progress comes from a loop — input, notice, produce, get corrected — not from collecting resources.',
+      'Vocabulary needs spaced review and a daily cap; 10–20 words a day beats 100 a week.',
+      'Output is where languages consolidate — speak badly early, not perfectly late.'
+    ],
+    faq: [
+      {
+        q: 'How long does it take to learn a language?',
+        a: 'For basic conversational ability, consistent daily practice of 30–60 minutes typically takes 6–12 months depending on the language and your prior experience. Fluency takes years — but “enough to get by” arrives much sooner than most people fear.',
+      },
+      {
+        q: 'Is it better to learn grammar first or vocabulary first?',
+        a: 'Neither in isolation. Input-first learners absorb grammar patterns naturally through exposure; grammar-first learners often stall because rules without input produce paralysis. Learn patterns from examples, then formalize the rules later.',
+      },
+      {
+        q: 'What is the best way to practice speaking?',
+        a: 'Produce before you feel ready. Shadowing audio, self-talk in the target language, journaling five sentences a day, and language exchange with a patient partner. The only wrong way to practice speaking is not to.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Why most language students plateau',
+        blocks: [
+          { k: 'p', t: 'Language learning has a dirty secret: most students quit in week three, not because the language is hard but because they’re using the wrong method. They collect vocabulary lists they never review, watch shows with subtitles they don’t understand, and call it immersion. Actual progress comes from a boring loop: learn a little, recall it often, use it before you feel ready.' },
+          { k: 'deflist', items: [
+            { t: 'Recognition vs. production', d: '“I know that word” means you’ve seen it, not that you can use it — the same gap that makes rereading feel productive.' },
+            { t: 'Input without output', d: 'Builds a spectator, not a speaker.' },
+            { t: 'Unreviewed vocabulary', d: 'Decays on the forgetting curve like everything else.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The core loop that actually works',
+        blocks: [
+          { k: 'p', t: 'Language learning runs on a simple cycle — input, notice, produce, get corrected, repeat:' },
+          { k: 'steps', items: [
+            'Input: read or listen to material slightly above your level — the “comprehensible input” zone.',
+            'Notice: pay attention to patterns — how verbs conjugate, how questions form — not just vocabulary.',
+            'Produce: write or say something using what you noticed, even if it’s broken.',
+            'Feedback: get corrections — a tutor, an app, a patient friend, or self-checking against examples.',
+          ]},
+          { k: 'p', t: 'The loop matters more than the materials. An hour a day in this cycle beats a weekend binge of passive watching.' },
+        ],
+      },
+      {
+        h2: 'Vocabulary: the highest-leverage habit',
+        blocks: [
+          { k: 'p', t: 'Vocabulary is where most learners either build or stall. The rules are strict:' },
+          { k: 'deflist', items: [
+            { t: 'Context over lists', d: '“I missed the bus” teaches more than “bus = autobús.”' },
+            { t: 'One direction at a time', d: 'Recognition (L2→L1) is easy; production (L1→L2) is the real skill.' },
+            { t: 'Spacing, not cramming', d: 'Flashcards are the tool because the forgetting curve is merciless.' },
+            { t: 'Cap the intake', d: '10–20 new words a day beats 100 a week you’ll never retain.' },
+          ]},
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards handles the spaced review — the vocabulary you learn stays learned because the schedule keeps it alive.' },
+        ],
+      },
+      {
+        h2: 'Input that doesn’t feel like studying',
+        blocks: [
+          { k: 'p', t: 'Comprehensible input is the fuel — but it has to be *just* above your level. Too easy and you coast; too hard and it’s noise. The sweet spot: you understand 70–80% and have to work for the rest.' },
+          { k: 'ul', items: [
+            'Graded readers and learner podcasts for early stages.',
+            'Shows and videos *without* subtitles first — your ear needs the reps, not the crutch.',
+            'Anything you’d enjoy in your native language, in the target language.',
+          ]},
+          { k: 'p', t: 'The trap is “study materials” that feel like homework. If you dread it, you won’t sustain it — pick input you’d actually choose.' },
+        ],
+      },
+      {
+        h2: 'Output: the part everyone avoids',
+        blocks: [
+          { k: 'p', t: 'Speaking and writing are where languages actually consolidate. Passive knowledge — “I understand” — is a different skill from active production — “I can say it.” Exams and real conversations test the second one.' },
+          { k: 'ul', items: [
+            'Shadowing: repeat audio immediately after hearing it — trains rhythm and pronunciation.',
+            'Self-talk: describe your day in the target language while walking.',
+            'Journal: five sentences a day about anything — the constraint forces production.',
+            'Language exchange or tutor: the only way to get real corrections.',
+          ]},
+        ],
+      },
+      {
+        h2: 'The mistakes that stall progress',
+        blocks: [
+          { k: 'ul', items: [
+            'Waiting until you “feel ready” to speak — readiness is built by speaking badly.',
+            'Collecting resources instead of using one — the best app is the one you open daily.',
+            'Grammar-first learning — rules without input produce paralyzed perfectionists.',
+            'Quitting at the plateau — the dip between “beginner wins” and “actual fluency” is where most give up.',
+          ]},
+        ],
+      },
+      {
+        h2: 'Making it stick past week three',
+        blocks: [
+          { k: 'p', t: 'The loop only works if it survives real life. Attach it to existing habits — flashcards with morning coffee, a podcast on the commute, five journal sentences before bed. The students who last aren’t the most motivated; they’re the ones who made the loop automatic.' },
+          { k: 'tool', tool: 'rhythm', t: 'Rhythm keeps the language habit visible — the daily review streak that turns “I should practice” into “I did practice.”' },
+          { k: 'tool', tool: 'ink', t: 'Ink’s journal pages are where the daily five sentences live — dated, searchable, and yours.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Language learning isn’t a talent or a phase — it’s a loop you run daily.' },
+          { k: 'p', t: 'Input you can almost understand, vocabulary you review honestly, and output you produce before you feel ready. The students who stick with the loop for six months are the ones who wake up in a different language.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
