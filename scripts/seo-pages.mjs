@@ -1250,7 +1250,7 @@ function header(activePath) {
   );
   const guideLinks =
     guideArr.length > 12
-      ? `${guideArr.slice(0, 10).join('\n')}\n<div class="nav-more" hidden>${guideArr.slice(10).join('\n')}</div>\n<button type="button" class="nav-more-btn" data-more>Show all guides</button>`
+      ? `${guideArr.slice(0, 10).join('\n')}\n<div class="nav-more" hidden>${guideArr.slice(10).join('\n')}</div>\n<button type="button" class="nav-more-btn" data-more aria-expanded="false">Show all guides</button>`
       : guideArr.join('\n');
   const compareLinks = COMPARE_PAGES.map((p) =>
     navLink(`/${p.section}/${p.slug}`, esc(String(p.h1).replace(/<\/?em>/g, ''))),

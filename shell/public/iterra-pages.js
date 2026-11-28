@@ -25,6 +25,7 @@ if(nf){
     navMoreBtn.addEventListener('click',function(){
       var open=navMore.hasAttribute('hidden');
       navMore.classList.toggle('uopen',open);
+      navMoreBtn.setAttribute('aria-expanded',open?'true':'false');
       if(open){navMore.removeAttribute('hidden');navMoreBtn.textContent='Show fewer'}
       else{navMore.setAttribute('hidden','');navMoreBtn.textContent='Show all guides'}
     });
