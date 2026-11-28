@@ -1517,7 +1517,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The short version',
         blocks: [
           { k: 'p', t: 'Local-first software isn’t a luxury or a niche preference — it’s the difference between renting your own intellectual output and owning it. For students, whose notes and study materials are often their most valuable assets, this isn’t about ideology. It’s about not losing years of work because a platform changed its mind, went bankrupt, or decided your data was more valuable as training material than as yours.' },
           { k: 'p', t: 'Choose tools that treat your data as yours. The best ones already do.' },
@@ -1693,7 +1693,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Where this leaves you',
         blocks: [
           { k: 'quote', t: 'A practice test is a mirror, not a workout. It shows you exactly where you stand — the value is entirely in what you do with the reflection.' },
           { k: 'p', t: 'Take it seriously, review every miss, and let the error list drive the next week of studying.' },
@@ -1810,7 +1810,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'Burnout prevention isn’t self-care as a luxury — it’s maintenance as a system.' },
           { k: 'p', t: 'Protect sleep, schedule real rest, keep the routine small enough to survive, and pace the semester like the long event it is. The students who last aren’t the ones who never tire; they’re the ones who built recovery into the plan.' },
@@ -1922,7 +1922,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'An open-book exam is a closed-book exam with training wheels. Prepare the book like it’s the exam, because it is.' },
         ],
@@ -2030,7 +2030,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'Writing faster on exams is a structure problem, not a talent problem.' },
           { k: 'p', t: 'Have a template, practice it under time pressure, read the prompt for the actual task, and protect the last ten minutes for completion. The students who finish strong aren’t faster writers — they’re more rehearsed ones.' },
@@ -2136,7 +2136,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'A study group is a system, not a hangout. Design it like a class you’re teaching each other — because that’s what it is.' },
         ],
@@ -2259,7 +2259,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'Language learning isn’t a talent or a phase — it’s a loop you run daily.' },
           { k: 'p', t: 'Input you can almost understand, vocabulary you review honestly, and output you produce before you feel ready. The students who stick with the loop for six months are the ones who wake up in a different language.' },
@@ -2464,7 +2464,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'The content matters, but the process matters more — and the process can be practiced.' },
           { k: 'p', t: 'Read the question first, formulate your answer, eliminate aggressively, and save the hard ones for a second pass. MC tests are beatable with a system.' },
@@ -2561,7 +2561,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Where this leaves you',
         blocks: [
           { k: 'p', t: 'One-night study is triage, not coverage: pick the highest-yield material, study it actively, practice problems, and protect your sleep. It’s not the ideal way to learn — but it’s the best way to survive a bad situation.' },
         ],
@@ -2657,7 +2657,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'The students who can focus deeply aren’t lucky; they’re prepared.' },
           { k: 'p', t: 'Remove the distractions, time-box the work, and build a ritual. Focus is a skill — and like any skill, it responds to practice.' },
@@ -2749,7 +2749,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'Math rewards practice, not preparation.' },
           { k: 'p', t: 'The students who do well aren’t the ones who read the most — they’re the ones who solve the most problems, understand the why behind the how, and review their mistakes until the patterns are automatic.' },
@@ -2847,7 +2847,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The SAT is beatable with a system.' },
@@ -2891,7 +2891,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'Learn the format before you study for it',
         blocks: [
           { k: 'p', t: 'The ACT is faster and broader than the SAT — more questions, less time per question, and a science section the SAT doesn\'t have. But the prep strategy is the same: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The ACT has four sections: English, Math, Reading, and Science — plus an optional Writing essay. Each section is 35-60 minutes, with 215 questions total. The Science section doesn\'t test science knowledge; it tests whether you can read data tables and graphs quickly. Knowing the format prevents wasted effort.' },
@@ -2953,7 +2953,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The ACT is beatable with a system.' },
@@ -3050,7 +3050,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'Science rewards understanding, not memorization.' },
           { k: 'p', t: 'Learn the core concepts, connect everything to the system, draw the diagrams, and explain it out loud. The students who treat science as a set of interconnected ideas outperform the ones who treat it as a list of facts.' },
@@ -3248,7 +3248,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'Literature rewards close reading, pattern recognition, and argument.' },
           { k: 'p', t: 'Read slowly, annotate everything, identify the themes, and practice the essay format. The students who treat literature as a puzzle to solve outperform the ones who treat it as a story to remember.' },
@@ -3346,7 +3346,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Where this leaves you',
         blocks: [
           { k: 'quote', t: 'Psychology rewards understanding frameworks, not memorizing terms.' },
           { k: 'p', t: 'Learn the core theories, connect the terms to them, use application-based recall, and practice the essay format. The students who treat psychology as a set of interconnected ideas outperform the ones who treat it as a vocabulary list.' },
@@ -3443,7 +3443,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'Economics rewards understanding incentives, not memorizing graphs.' },
           { k: 'p', t: 'Learn the logic behind the models, draw the graphs, use application-based recall, and connect to real-world events. The students who treat economics as a way of thinking outperform the ones who treat it as a list of models.' },
@@ -3542,7 +3542,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'Philosophy rewards understanding arguments, not memorizing positions.' },
           { k: 'p', t: 'Learn to identify claims, reasons, and objections; draw the argument maps; and practice the essay format. The students who treat philosophy as a way of thinking outperform the ones who treat it as a list of positions.' },
@@ -3640,7 +3640,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'Art history rewards understanding the narrative, not memorizing images.' },
           { k: 'p', t: 'Learn the story of how art has changed, organize images by period and movement, use visual study methods, and practice identification. The students who treat art history as a story outperform the ones who treat it as a list of pictures.' },
@@ -3738,7 +3738,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'Nursing rewards understanding systems, not memorizing facts.' },
           { k: 'p', t: 'Learn the body systems, connect everything to the patient, use application-based recall, and practice NCLEX questions relentlessly. The students who treat nursing as applied science outperform the ones who treat it as a content course.' },
@@ -3836,7 +3836,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'Engineering rewards understanding the physics behind the math, not memorizing formulas.' },
           { k: 'p', t: 'Learn the physical principles, work through problems relentlessly, connect to the real world, and check your units. The students who treat engineering as applied physics outperform the ones who treat it as a math course.' },
@@ -3880,7 +3880,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'What the exam actually tests',
         blocks: [
           { k: 'p', t: 'The GRE is the gatekeeper for graduate school — a test that feels like the SAT but for adults, with vocabulary that sounds like a different language and math that\'s mostly algebra and data analysis. But the GRE rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question.' },
           { k: 'p', t: 'The GRE has three sections: Verbal Reasoning, Quantitative Reasoning, and Analytical Writing. Each section is scored separately, and the Verbal and Quant sections are adaptive — the second section is harder if you do well on the first. Knowing the format prevents wasted effort on material that won\'t appear.' },
@@ -3978,7 +3978,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'Inside the exam',
         blocks: [
           { k: 'p', t: 'The MCAT is the longest standardized test you\'ll ever take — 7.5 hours, four sections, and content that spans every science course you\'ve ever taken. But the MCAT rewards the same approach as any big test: know the format, practice the patterns, and review every question. The students who do well treat it as a system, not a cram.' },
           { k: 'p', t: 'The MCAT has four sections: Chemical and Physical Foundations, Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations, and Critical Analysis and Reasoning Skills (CARS). Each section is scored separately, and the test is 7.5 hours long. Knowing the format prevents wasted effort.' },
@@ -4029,7 +4029,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The MCAT is beatable with a system.' },
@@ -4073,7 +4073,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'The exam, decoded',
         blocks: [
           { k: 'p', t: 'The LSAT is the test that decides law school — a 3.5-hour exam that tests logical reasoning, not legal knowledge. But the LSAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The LSAT has four sections: Logical Reasoning, Analytical Reasoning (Logic Games), Reading Comprehension, and an unscored Writing Sample. Each section is 35 minutes, with about 100-101 questions total. Knowing the format prevents wasted effort.' },
@@ -4128,7 +4128,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Where this leaves you',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The LSAT is beatable with a system.' },
@@ -4215,7 +4215,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'Improving your GPA isn\'t about working harder — it\'s about working smarter on the courses that matter most.' },
           { k: 'p', t: 'Audit your grades, triage the workload, build a study schedule, and get help early. The students who raise their GPA fastest aren\'t the ones who study everything — they\'re the ones who execute consistently on the right things.' },
@@ -4313,7 +4313,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'Music theory rewards understanding patterns, not memorizing rules.' },
           { k: 'p', t: 'Learn the patterns, connect to the music you know, practice ear training, and apply the concepts to real music. The students who treat theory as a way of hearing music outperform the ones who treat it as a list of rules.' },
@@ -4410,7 +4410,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The GMAT is beatable with a system.' },
@@ -4454,7 +4454,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'Learn the format before you study for it',
         blocks: [
           { k: 'p', t: 'The bar exam is the final boss of law school — a two-day test that covers every subject you studied, plus performance tests that require writing under pressure. But the bar rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.' },
           { k: 'p', t: 'The bar exam has multiple sections: Multistate Bar Examination (MBE), Multistate Essay Examination (MEE), Multistate Performance Test (MPT), and state-specific components. The MBE is 200 multiple-choice questions; the MEE is 6 essays; the MPT is 2 performance tasks. Knowing the format prevents wasted effort.' },
@@ -4509,7 +4509,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The bar exam is beatable with a system.' },
@@ -4553,7 +4553,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'What the exam actually tests',
         blocks: [
           { k: 'p', t: 'The DAT is the test that decides dental school — a 4.5-hour exam that tests biology, chemistry, physics, reading comprehension, and perceptual ability. But the DAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The DAT has four sections: Survey of Natural Sciences (Biology, General Chemistry, Organic Chemistry), Perceptual Ability (PAT), Reading Comprehension, and Quantitative Reasoning. Each section is scored separately, and the test is 4.5 hours long. Knowing the format prevents wasted effort.' },
@@ -4615,7 +4615,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The DAT is beatable with a system.' },
@@ -4659,7 +4659,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'Inside the exam',
         blocks: [
           { k: 'p', t: 'The PCAT is the test that decides pharmacy school — a 3.25-hour exam that tests biology, chemistry, physics, reading comprehension, and quantitative reasoning. But the PCAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The PCAT has five sections: Biology, Chemistry, Physics, Reading Comprehension, Quantitative Reasoning, and a Writing section. Each section is scored separately, and the test is 3.25 hours long. Knowing the format prevents wasted effort.' },
@@ -4755,7 +4755,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'The exam, decoded',
         blocks: [
           { k: 'p', t: 'The OAT is the test that decides optometry school — a 4-hour exam that tests natural sciences, reading comprehension, physics, and quantitative reasoning. But the OAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The OAT has four sections: Survey of Natural Sciences (Biology, General Chemistry, Organic Chemistry), Physics, Reading Comprehension, and Quantitative Reasoning. Each section is scored separately, and the test is 4 hours long. Knowing the format prevents wasted effort.' },
@@ -4806,7 +4806,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The OAT is beatable with a system.' },
@@ -4899,7 +4899,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Where this leaves you',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The FE exam is beatable with a system.' },
@@ -4943,7 +4943,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'Learn the format before you study for it',
         blocks: [
           { k: 'p', t: 'The TOEFL is the test that decides whether you can study in English — a 3-hour exam that tests reading, listening, speaking, and writing. But the TOEFL rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The TOEFL has four sections: Reading, Listening, Speaking, and Writing. Each section is scored separately, and the test is 3 hours long (plus 10 minutes for the speaking section). Knowing the format prevents wasted effort.' },
@@ -4993,7 +4993,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The TOEFL is beatable with a system.' },
@@ -5037,7 +5037,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'What the exam actually tests',
         blocks: [
           { k: 'p', t: 'The IELTS is the test that decides whether you can study or work in English — a 3-hour exam that tests listening, reading, writing, and speaking. But the IELTS rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The IELTS has four sections: Listening, Reading, Writing, and Speaking. Each section is scored separately, and the test is 3 hours long (plus 11-14 minutes for the speaking interview). Knowing the format prevents wasted effort.' },
@@ -5087,7 +5087,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The IELTS is beatable with a system.' },
@@ -5131,7 +5131,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the test before you study for it',
+        h2: 'Inside the exam',
         blocks: [
           { k: 'p', t: 'The NCLEX is a computerized adaptive test (CAT) — the questions get harder or easier based on your answers. It\'s not a fixed-length test; you answer until the computer is confident in your ability. The test covers all nursing content areas: management of care, safety, pharmacology, and more.' },
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who struggles with pharmacology should spend most of their time on medications.' },
@@ -5197,7 +5197,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The NCLEX is beatable with a system.' },
@@ -5300,7 +5300,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'Vocabulary isn\'t about memorizing words — it\'s about recognizing them in context.' },
           { k: 'p', t: 'Learn words in context, focus on the words that matter, practice daily, and review every question. The GRE vocabulary is beatable with a system.' },
@@ -5344,7 +5344,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know physics before you study it',
+        h2: 'What physics actually tests',
         blocks: [
           { k: 'p', t: 'Physics is built on a few core principles — Newton\'s laws, conservation of energy, conservation of momentum, and electromagnetism. Everything else is application. If you understand the principles, the problems solve themselves; if you don\'t, you\'re just memorizing patterns.' },
           { k: 'table', head: ['Topic', 'Key Concepts', 'Problem Types'], rows: [
@@ -5406,7 +5406,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'Physics isn\'t about memorizing formulas — it\'s about understanding why they work.' },
           { k: 'p', t: 'Understand the principles, practice the problems, explain the concepts, and check your units. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
@@ -5450,7 +5450,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know chemistry before you study it',
+        h2: 'Inside chemistry',
         blocks: [
           { k: 'p', t: 'Chemistry is built on a few core ideas — atomic structure, bonding, stoichiometry, and equilibrium. Everything else is application. If you understand the core ideas, the problems solve themselves; if you don\'t, you\'re just memorizing patterns.' },
           { k: 'table', head: ['Topic', 'Key Concepts', 'Problem Types'], rows: [
@@ -5556,7 +5556,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know biology before you study it',
+        h2: 'biology, decoded',
         blocks: [
           { k: 'p', t: 'Biology is built on a few core systems — cells, genetics, evolution, physiology, and ecology. Everything else is application. If you understand the systems, the details make sense; if you don\'t, you\'re just memorizing disconnected facts.' },
           { k: 'table', head: ['System', 'Key Concepts', 'Details to Memorize'], rows: [
@@ -5618,7 +5618,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'Biology isn\'t about memorizing facts — it\'s about understanding systems.' },
           { k: 'p', t: 'Understand the systems, memorize the details that attach, explain the concepts, and practice the problem types. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
@@ -5717,7 +5717,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Where this leaves you',
         blocks: [
           { k: 'quote', t: 'CARS isn\'t about what you know — it\'s about how well you read.' },
           { k: 'p', t: 'Read actively, answer strategically, review every question, and manage your time ruthlessly. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -5761,7 +5761,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know statistics before you study it',
+        h2: 'What statistics actually tests',
         blocks: [
           { k: 'p', t: 'Statistics is built on a few core ideas — descriptive statistics, probability, hypothesis testing, and regression. Everything else is application. If you understand the core ideas, the problems solve themselves; if you don\'t, you\'re just memorizing formulas.' },
           { k: 'table', head: ['Topic', 'Key Concepts', 'Problem Types'], rows: [
@@ -5823,7 +5823,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'Statistics isn\'t about calculating numbers — it\'s about understanding what they mean.' },
           { k: 'p', t: 'Understand the core ideas, practice the problem types, explain the concepts, and check your assumptions. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
@@ -5867,7 +5867,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the ACC before you study it',
+        h2: 'Inside the ACC',
         blocks: [
           { k: 'p', t: 'The ACC is a professional certification exam — it covers financial accounting, managerial accounting, and auditing. The questions are practical: journal entries, financial statements, cost calculations, and audit procedures. It\'s not a trivia test; it\'s a skills test.' },
           { k: 'table', head: ['Area', 'Topics', 'Question Types'], rows: [
@@ -5932,7 +5932,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'What to do Monday morning',
         blocks: [
           { k: 'quote', t: 'The ACC isn\'t about memorizing rules — it\'s about understanding why they exist.' },
           { k: 'p', t: 'Understand the standards, practice the problem types, explain the concepts, and check your work. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -5976,7 +5976,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the CPA before you study it',
+        h2: 'the CPA, decoded',
         blocks: [
           { k: 'p', t: 'The CPA exam has four sections: Auditing and Attestation (AUD), Business Environment and Concepts (BEC), Financial Accounting and Reporting (FAR), and Regulation (REG). Each section is 4 hours, and you can take them in any order, spread over 18 months. The questions are practical: journal entries, financial statements, audit procedures, and tax calculations.' },
           { k: 'table', head: ['Section', 'Topics', 'Question Types'], rows: [
@@ -6041,7 +6041,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'The CPA isn\'t about memorizing rules — it\'s about understanding why they exist.' },
           { k: 'p', t: 'Understand the standards, practice the question types, explain the concepts, and check your work. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -6140,7 +6140,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'The research paper isn\'t about finding information — it\'s about building an argument.' },
           { k: 'p', t: 'Start with a question, build an argument, organize the structure, and revise relentlessly. The grade isn\'t a measure of intelligence — it\'s a measure of process.' },
@@ -6245,7 +6245,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'The CLEP isn\'t about memorizing facts — it\'s about knowing the course.' },
           { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -6289,7 +6289,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know anatomy before you study it',
+        h2: 'What anatomy actually tests',
         blocks: [
           { k: 'p', t: 'Anatomy is organized into systems — skeletal, muscular, nervous, cardiovascular, respiratory, digestive, urinary, reproductive, and integumentary. Each system has structures, functions, and relationships. If you understand the systems, the details make sense; if you don\'t, you\'re just memorizing disconnected facts.' },
           { k: 'table', head: ['System', 'Key Structures', 'Functions'], rows: [
@@ -6395,7 +6395,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the CFA before you study it',
+        h2: 'Inside the CFA',
         blocks: [
           { k: 'p', t: 'The CFA has three levels — Level I, Level II, and Level III. Each level is a separate exam, taken in order, with Level I offered in February, May, August, and November. Each exam is 4.5 hours, covers 10 topic areas, and uses multiple choice and constructed response questions. A pass rate of ~40% means preparation matters.' },
           { k: 'table', head: ['Level', 'Format', 'Focus'], rows: [
@@ -6460,7 +6460,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'The CFA isn\'t about memorizing formulas — it\'s about understanding why they work.' },
           { k: 'p', t: 'Understand the concepts, practice the question types, explain the ideas, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -6504,7 +6504,7 @@ export const GUIDES = [
     ],
     sections: [
       {
-        h2: 'Know the PMP before you study it',
+        h2: 'the PMP, decoded',
         blocks: [
           { k: 'p', t: 'The PMP exam is 180 questions, 4 hours, based on the PMBOK Guide and Agile practices. It covers three domains: People (42%), Process (50%), and Business Environment (8%). The questions are situational — you\'re given a scenario and asked what to do next.' },
           { k: 'table', head: ['Domain', 'Weight', 'Focus'], rows: [
@@ -6568,7 +6568,7 @@ export const GUIDES = [
         ],
       },
       {
-        h2: 'The bottom line',
+        h2: 'Where this leaves you',
         blocks: [
           { k: 'quote', t: 'The PMP isn\'t about memorizing processes — it\'s about understanding why they exist.' },
           { k: 'p', t: 'Understand the processes, practice the question types, explain the concepts, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },

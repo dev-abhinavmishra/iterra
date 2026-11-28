@@ -377,7 +377,7 @@ export const COMPARE_PAGES = [
         ['Offline', 'Fully local-first', 'Local-first on device'],
         ['Mobile apps', 'Mobile browser', 'Native iOS/Android'],
         ['Course awareness', 'Everything files under courses', 'Generic tasks, not courses'],
-        ['Price ceiling', 'No paid tier exists', 'Pro unlocks AI scheduling + sync'],
+        ['Price ceiling', 'No paid tier exists', 'Pro adds AI scheduling + sync'],
       ],
     ),
     iterraWins: [
