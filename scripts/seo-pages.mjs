@@ -2176,14 +2176,14 @@ export function renderTopicPage(topic) {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
-<title>${esc(topic.kicker)} Study Guides — Iterra</title>
+<title>${esc(/guide/i.test(topic.kicker) ? topic.kicker : `${topic.kicker} Study Guides`)} — Iterra</title>
 <meta name="description" content="${esc(metaDesc(`${topic.note || `Iterra guides on ${topic.kicker.toLowerCase()}.`} ${topic.guides.length} articles, all free.`))}" />
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
 <meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
-<meta property="og:title" content="${esc(topic.kicker)} Study Guides — Iterra" />
+<meta property="og:title" content="${esc(/guide/i.test(topic.kicker) ? topic.kicker : `${topic.kicker} Study Guides`)} — Iterra" />
 <meta property="og:description" content="${esc(topic.note || '')}" />
 <meta property="og:image" content="${SITE}/og/topic-${topic.slug}.png" />
 <meta property="og:image:width" content="1200" />
@@ -2203,7 +2203,7 @@ ${header('/guides')}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: topic.kicker }])}
 <div class="kicker mono">Iterra Guides · ${esc(topic.kicker)}</div>
-<h1>${esc(topic.kicker)} <em>guides.</em></h1>
+<h1>${esc(topic.kicker)}${/guide/i.test(topic.kicker) ? '.' : ' <em>guides.</em>'}</h1>
 <p class="lede">${esc(topic.note || `Every Iterra guide filed under ${topic.kicker.toLowerCase()} — practical, research-backed, and free.`)}</p>
 <div class="stats hero-stats">
 <div class="stat"><span class="v">${topic.guides.length}</span><span class="l">Guides in this topic</span></div>
