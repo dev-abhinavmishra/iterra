@@ -771,8 +771,19 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .topic:first-child{margin-top:0}
 .skip{position:fixed;top:-60px;left:16px;z-index:100;background:var(--accent);color:#fff;padding:.6rem 1rem;border-radius:8px;font-size:13px;text-decoration:none;transition:top .2s}
 .skip:focus{top:12px}
+.frame img{cursor:zoom-in}
+.lightbox{position:fixed;inset:0;z-index:110;background:rgba(16,24,20,.84);-webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);display:grid;place-items:center;padding:4vmin;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;cursor:zoom-out}
+.lightbox.on{opacity:1;visibility:visible}
+.lightbox figure{margin:0;max-width:min(1100px,94vw);max-height:92vh;display:flex;flex-direction:column;align-items:center;gap:.8rem}
+.lightbox img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:12px;box-shadow:0 44px 110px -24px rgba(0,0,0,.7);display:block}
+.lightbox .lb-x{position:fixed;top:18px;right:22px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:19px;line-height:1;cursor:pointer;transition:background .15s,transform .15s}
+.lightbox .lb-x:hover{background:rgba(255,255,255,.25);transform:rotate(90deg)}
+.lightbox figcaption{color:#cfd8cc;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;text-align:center}
+.to-top{position:fixed;right:22px;bottom:22px;z-index:55;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.65);background:rgba(255,253,246,.72);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);color:var(--accent);font-size:16px;cursor:pointer;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .25s,transform .25s,visibility .25s,background .15s;box-shadow:0 12px 32px -14px rgba(31,36,31,.45)}
+.to-top.on{opacity:1;visibility:visible;transform:none}
+.to-top:hover{background:#fff;transform:translateY(-2px)}
 @media print{
-  .side,.topbar,.scrim,.read-progress,.ad-slot,.toc-rail,.pager,.author-card,.cta,.byline .av{display:none!important}
+  .side,.topbar,.scrim,.read-progress,.ad-slot,.toc-rail,.pager,.author-card,.cta,.byline .av,.to-top,.lightbox{display:none!important}
   .main{margin-left:0}.content,.foot{background:#fff}
   body::before,body::after{display:none}
   .hero{padding-top:0}
@@ -987,6 +998,26 @@ var links=document.querySelectorAll('.side nav a');for(var i=0;i<links.length;i+
     var cs=tbl.querySelectorAll('.col');for(var j=0;j<cs.length;j++)cs[j].classList.remove('col');
   });
 });
+var tt=document.createElement('button');tt.className='to-top';tt.type='button';tt.setAttribute('aria-label','Back to top');tt.textContent='↑';document.body.appendChild(tt);
+addEventListener('scroll',function(){tt.classList.toggle('on',scrollY>640)},{passive:true});
+tt.addEventListener('click',function(){scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})});
+var fimgs=[].slice.call(document.querySelectorAll('.frame img'));
+if(fimgs.length){
+  var lb=document.createElement('div');lb.className='lightbox';lb.setAttribute('role','dialog');lb.setAttribute('aria-label','Image preview');
+  lb.innerHTML='<figure><button type="button" class="lb-x" aria-label="Close preview">×</button><img alt=""><figcaption></figcaption></figure>';
+  document.body.appendChild(lb);
+  var lbImg=lb.querySelector('img'),lbCap=lb.querySelector('figcaption'),lbX=lb.querySelector('.lb-x');
+  function closeLb(){lb.classList.remove('on')}
+  fimgs.forEach(function(im){
+    im.addEventListener('click',function(){
+      lbImg.src=im.currentSrc||im.src;lbImg.alt=im.alt||'';lbCap.textContent=im.alt||'';
+      lb.classList.add('on');document.body.style.overflow='hidden';
+    });
+  });
+  lb.addEventListener('click',function(e){if(e.target===lb||e.target===lbImg)closeLb()});
+  lbX.addEventListener('click',closeLb);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLb()});
+}
 var rv=document.querySelectorAll('.content .block,.content .plate,.content .article-cover,.content .related,.content .pager,.content .tldr,.content .takeaways,.content .article-end');
 if(rv.length&&'IntersectionObserver' in window&&matchMedia('(prefers-reduced-motion: no-preference)').matches){
   [].slice.call(rv).forEach(function(el){el.classList.add('rv')});
