@@ -924,6 +924,13 @@ body.reader .guide-article{max-width:46rem}
 .prose-fig{margin:2.4rem 0}
 .prose-fig .frame{box-shadow:0 1px 2px rgba(31,36,31,.05),0 24px 50px -30px rgba(31,36,31,.4)}
 .prose-fig figcaption{margin-top:.7rem;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line2);margin:1.8rem 0}
+.col{padding:1.15rem 1.4rem 1.25rem 0;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:.5rem}
+.col:last-child{border-right:0;padding-right:0}
+.col .cn{font-size:10px;letter-spacing:.16em;color:var(--gold);font-weight:500}
+.col .ct{font-family:Newsreader,Georgia,serif;font-size:1.12rem;font-weight:550;letter-spacing:-.01em;line-height:1.35;color:var(--ink)}
+.col .cd{font-size:.92rem;line-height:1.6;color:#4c564e}
+@media(max-width:720px){.cols{grid-template-columns:1fr}.col{border-right:0;border-bottom:1px solid var(--line);padding-right:0;padding-bottom:1.1rem}.col:last-child{border-bottom:0}}
 .prose blockquote{margin:1.8rem 0;padding:.2rem 0 .2rem 1.4rem;border-left:3px solid var(--gold);font-family:Newsreader,Georgia,serif;font-size:1.28rem;font-style:italic;font-weight:450;line-height:1.5;color:var(--ink)}
 .prose .callout{border:none;background:none;border-radius:0;padding:1.4rem 0;margin:2.2rem auto;max-width:42rem;text-align:center;position:relative}
 .prose .callout::before{content:"“";position:absolute;top:-1.5rem;left:50%;transform:translateX(-50%);font-family:Newsreader,Georgia,serif;font-size:4.2rem;font-weight:400;color:var(--gold);line-height:1;opacity:.85}
@@ -1058,7 +1065,7 @@ body.reader .guide-article{max-width:46rem}
   .main{margin-left:0}.content,.foot{background:#fff}
   body::before,body::after{display:none}
   .hero{padding-top:0}
-  .prose-table,.table-wrap,.steps li,.def,.keypoint,.example,.prose-fig{break-inside:avoid}
+  .prose-table,.table-wrap,.steps li,.def,.keypoint,.example,.prose-fig,.cols{break-inside:avoid}
   .h-anchor,.nav-more-btn{display:none!important}
   a{color:inherit;text-decoration:none}
 }
@@ -1195,6 +1202,14 @@ function renderBlocks(blocks) {
         return `<div class="versus"><div class="vside a"><span class="vk mono">${esc(b.a?.k || 'Instead of')}</span><span class="vt">${inline(b.a?.t || '')}</span></div><span class="vmedal mono" aria-hidden="true">vs</span><div class="vside b"><span class="vk mono">${esc(b.b?.k || 'Try')}</span><span class="vt">${inline(b.b?.t || '')}</span></div></div>`;
       if (b.k === 'example')
         return `<div class="example"><span class="ex-tag mono">${esc(b.label || 'Worked example')}</span><div class="ex-body">${inline(b.t)}</div></div>`;
+      if (b.k === 'cols')
+        return `<div class="cols">${b.items
+          .map((c, i) => {
+            const h = typeof c === 'string' ? c : c.h || c.t || '';
+            const d = typeof c === 'string' ? '' : c.d || '';
+            return `<div class="col"><span class="cn mono" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span><span class="ct">${inline(h)}</span>${d ? `<span class="cd">${inline(d)}</span>` : ''}</div>`;
+          })
+          .join('')}</div>`;
       if (b.k === 'figure') {
         const t = TOOLS.find((x) => x.id === b.tool);
         const src = b.src || (t ? `/shots/${t.id}.webp` : '');

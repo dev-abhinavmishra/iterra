@@ -26,6 +26,7 @@ fields support inline markup via `inline()`: `**bold**`, `*italic*`,
 | `mistakes` | `{bad?, good?, items:[{bad,good}]}` | Instead/Better (labels overridable) error→fix rows |
 | `example` | `{label?, t}` | "Worked example" card (sage gradient, gold tag) |
 | `figure` | `{tool:'<id>'}` or `{src, alt?, caption?}` | framed screenshot plate mid-article (click for lightbox); `tool` pulls `/shots/<id>.webp` |
+| `cols` | `{items:[{h,d} | 'string']}` | 2–3 ruled editorial columns with numbered gold markers — for triads/pillars |
 
 ## Automatic transforms (renderGuidePage)
 

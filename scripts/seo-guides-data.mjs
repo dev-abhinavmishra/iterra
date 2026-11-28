@@ -491,10 +491,10 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The honest metric isn’t pomodoros completed — it’s whether you did the work. A week of perfect 25-minute sessions that produced nothing is just a very organized way of not studying.' },
           { k: 'p', t: 'Track three things for two weeks and you’ll know:' },
-          { k: 'ul', items: [
-            'Sessions started vs. sessions finished — the gap is your avoidance, measured.',
-            'Output per session — pages read, problems done, cards reviewed. Not time served.',
-            'Break quality — did you actually stand up, or did you scroll? The ledger can’t tell, but you can.',
+          { k: 'cols', items: [
+            { h: 'Sessions started vs. finished', d: 'The gap is your avoidance, measured.' },
+            { h: 'Output per session', d: 'Pages read, problems done, cards reviewed — not time served.' },
+            { h: 'Break quality', d: 'Did you actually stand up, or did you scroll? Only you can tell.' },
           ]},
           { k: 'p', t: 'If sessions are starting but output is flat, the problem isn’t the timer — it’s the task. Shrink the block, pick a more specific assignment, or admit the material needs a different approach entirely. The timer only manages attention; it can’t manufacture interest.' },
         ],
