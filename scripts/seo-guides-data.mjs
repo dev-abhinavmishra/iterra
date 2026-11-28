@@ -595,15 +595,15 @@ export const GUIDES = [
         h2: 'A blocked Tuesday, hour by hour',
         blocks: [
           { k: 'p', t: 'Theory is cheap; here’s what a blocked day actually feels like. A realistic Tuesday for a student taking four courses:' },
-          { k: 'table', head: ['Time', 'The block'], rows: [
-            ['8:00–9:30', 'Deep block: essay draft (English). Phone in another room — hardest work gets the freshest hour.'],
-            ['9:45–10:30', 'Class: Biology lecture. Fixed anchor, already blocked.'],
-            ['10:45–11:30', 'Shallow block: flashcards (all courses) + check Thursday’s reading quiz.'],
-            ['12:00–13:00', 'Lunch. Unscheduled on purpose — buffer that happens to be food.'],
-            ['13:30–15:00', 'Deep block: problem set (Math). Sixty–90 minutes, timer on.'],
-            ['15:30–16:00', 'Admin block: email, scheduling, the small stuff that otherwise leaks everywhere.'],
-            ['16:30–18:00', 'Open. The 20% buffer — absorbs overruns, a group chat that runs long, or just a nap.'],
-            ['19:00–20:00', 'Shallow block: notes review for tomorrow’s classes.'],
+          { k: 'timeline', items: [
+            { when: '8:00–9:30', what: 'Deep block: essay draft (English). Phone in another room — hardest work gets the freshest hour.' },
+            { when: '9:45–10:30', what: 'Class: Biology lecture. Fixed anchor, already blocked.' },
+            { when: '10:45–11:30', what: 'Shallow block: flashcards (all courses) + check Thursday’s reading quiz.' },
+            { when: '12:00–13:00', what: 'Lunch. Unscheduled on purpose — buffer that happens to be food.' },
+            { when: '13:30–15:00', what: 'Deep block: problem set (Math). Sixty–90 minutes, timer on.' },
+            { when: '15:30–16:00', what: 'Admin block: email, scheduling, the small stuff that otherwise leaks everywhere.' },
+            { when: '16:30–18:00', what: 'Open. The 20% buffer — absorbs overruns, a group chat that runs long, or just a nap.' },
+            { when: '19:00–20:00', what: 'Shallow block: notes review for tomorrow’s classes.' },
           ]},
           { k: 'p', t: 'Notice what’s *not* there: no “study chemistry” anywhere. Every block names a finishable task with a start and an end. When 1:30pm rolls around, you don’t decide anything — the calendar already did. That’s the entire mechanism working in your favor.' },
         ],
@@ -1064,7 +1064,7 @@ export const GUIDES = [
         h2: 'Finals week kit: what to have ready',
         blocks: [
           { k: 'p', t: 'A little preparation removes a lot of finals-week friction. Before the week starts, assemble:' },
-          { k: 'ul', items: [
+          { k: 'checklist', id: 'finals-kit', items: [
             'One page per course: the triage matrix, key formulas, and your three highest-yield topics — printed or on your phone, not buried in a notebook.',
             'Practice tests and past exams for every course — actually located, not “somewhere in the folder.”',
             'Flashcards or a recall document for each course — whatever format you actually use.',
@@ -3828,6 +3828,99 @@ export const GUIDES = [
         blocks: [
           { k: 'quote', t: 'Engineering rewards understanding the physics behind the math, not memorizing formulas.' },
           { k: 'p', t: 'Learn the physical principles, work through problems relentlessly, connect to the real world, and check your units. The students who treat engineering as applied physics outperform the ones who treat it as a math course.' },
+        ],
+      },
+    ],
+  },
+
+  {
+    slug: 'how-to-study-for-the-gre',
+    title: 'How to study for the <em>GRE</em>',
+    seoTitle: 'How to Study for the GRE: Strategy, Patterns, Timing',
+    description:
+      'Beat the GRE with a system: know the format, practice the question patterns, review every answer, and manage your timing — preparation method beats raw knowledge.',
+    kicker: 'Study Methods',
+    datePublished: '2027-05-18',
+    dateModified: '2027-05-22',
+    readMinutes: 7,
+    keywords: ['how to study for the GRE', 'GRE prep', 'GRE strategy', 'GRE practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-for-the-sat', 'how-to-study-for-the-act', 'how-to-use-practice-tests'],
+    lede: 'The GRE is the gatekeeper for graduate school — a test that feels like the SAT but for adults, with vocabulary that sounds like a different language and math that\'s mostly algebra and data analysis. But the GRE rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Practice, review, repeat — the review is where learning happens.',
+      'Timing strategy matters as much as content knowledge.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the GRE?',
+        a: 'Most students need 2-3 months of consistent prep for a meaningful score improvement. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline.',
+      },
+      {
+        q: 'Is the GRE harder than the SAT?',
+        a: 'They test similar skills but with different formats. The GRE has more complex vocabulary and a calculator-optional math section. The study strategy is similar — practice tests, pattern recognition, and timing — but the content emphasis differs.',
+      },
+      {
+        q: 'Should I take the GRE or the GMAT?',
+        a: 'It depends on your program. Business schools often prefer the GMAT; most other graduate programs accept the GRE. Check your program\'s requirements — some accept either, and the GRE is generally more flexible.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The GRE is the gatekeeper for graduate school — a test that feels like the SAT but for adults, with vocabulary that sounds like a different language and math that\'s mostly algebra and data analysis. But the GRE rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question.' },
+          { k: 'p', t: 'The GRE has three sections: Verbal Reasoning, Quantitative Reasoning, and Analytical Writing. Each section is scored separately, and the Verbal and Quant sections are adaptive — the second section is harder if you do well on the first. Knowing the format prevents wasted effort on material that won\'t appear.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 160 in Verbal but 145 in Quant should spend 80% of their time on Quant.' },
+        ],
+      },
+      {
+        h2: 'The GRE study loop',
+        blocks: [
+          { k: 'p', t: 'GRE prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the question types you miss most.',
+            'Drill those types with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'Verbal: the vocabulary-plus-pattern game',
+        blocks: [
+          { k: 'p', t: 'The Verbal section tests vocabulary in context, reading comprehension, and text completion. The questions are formulaic — once you learn the patterns, they become mechanical.' },
+          { k: 'deflist', items: [
+            { t: 'Text completion', d: 'The correct answer fits the context, not the dictionary definition.' },
+            { t: 'Reading comprehension', d: 'The answer is supported by the text, not assumed.' },
+            { t: 'Sentence equivalence', d: 'Two answers must be synonyms in context.' },
+            { t: 'Vocabulary', d: 'Learn words in context, not in isolation.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Quant: the algebra-and-data game',
+        blocks: [
+          { k: 'p', t: 'The Quant section tests algebra, arithmetic, geometry, and data analysis. The math is mostly high-school level — the challenge is speed and accuracy under time pressure. The calculator is provided, but mental math is faster.' },
+          { k: 'p', t: 'Practice problems are the study method. Work through them until the patterns are automatic — the exam rewards speed and accuracy, not deep understanding.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'GRE timing is tight — about 90 seconds per Verbal question, 95 per Quant, and 30 minutes for the essay. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
+          { k: 'p', t: 'For Verbal, read the question first, then the passage — you know what you\'re looking for. For Quant, write down the formula before you start solving — it prevents careless errors.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the GRE\'s timed pressure — practice sections at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The GRE is beatable with a system.' },
         ],
       },
     ],
