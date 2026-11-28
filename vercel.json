@@ -40,7 +40,19 @@
       ]
     },
     {
-      "source": "/(sw.js|iterra-hub.js|iterra-pages.js|iterra-pages.css)",
+      "source": "/iterra-pages.:hash.css",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/iterra-pages.:hash.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(sw.js|iterra-hub.js|iterra-pages.js)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" }
       ]
