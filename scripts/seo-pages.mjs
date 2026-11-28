@@ -845,6 +845,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .topic::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 .topic:first-child{margin-top:0}
 .topic{scroll-margin-top:90px}
+.topic-d{font-family:Newsreader,Georgia,serif;font-size:1.02rem;font-style:italic;color:var(--mute);margin:-.2rem 0 .9rem;max-width:40rem;line-height:1.55}
 .topic-nav{display:flex;flex-wrap:wrap;gap:.5rem;margin:0 0 1.6rem}
 .topic-nav a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.42rem .95rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
 .topic-nav a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
@@ -1472,7 +1473,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
 <div class="kicker mono">Iterra Guides · <a class="klink" href="/guides#topic-${topicSlug(guide.kicker)}">${esc(guide.kicker)}</a></div>
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
-<div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><span>${dateFmt(guide.datePublished)}</span><span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
+<div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><span>${dateFmt(guide.datePublished)}</span>${guide.dateModified && guide.dateModified !== guide.datePublished ? `<span class="dot">·</span><span>Updated ${dateFmt(guide.dateModified)}</span>` : ''}<span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
   const heroFig = `<div class="frame"><img src="/shots/${coverTool.id}.webp" alt="${esc(coverTool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>`;
   const heroHtml =
     variant === 1
@@ -1640,9 +1641,25 @@ export function renderGuidesIndex() {
           .map((t) => `<a href="#topic-${topicSlug(t.k)}">${esc(t.k)}</a>`)
           .join('')}</nav>`
       : '';
+  const TOPIC_NOTES = {
+    'The Long View': 'Semester arcs, syllabi, and plans that survive February.',
+    'Study Methods': 'The evidence-backed techniques — recall, spacing, interleaving.',
+    'Exam Season': 'Finals week, one-night miracles, and post-exam recovery.',
+    'Test Prep': 'Strategy for the tests that gate the next thing.',
+    'Subject Guides': 'How each discipline actually wants to be studied.',
+    'Focus': 'Attention, environment, and the phone in your pocket.',
+    'Routines': 'Weekly rhythms and daily rituals that hold.',
+    'Flashcards': 'Cardfiles, decks, and honest spaced repetition.',
+    'Notes': 'Notes that are findable a month later.',
+    'Planning': 'Time blocking, calendars, and saying no on paper.',
+    'Privacy & Ownership': 'Local-first, exports, and data that’s yours.',
+    'Language Learning': 'Vocabulary, comprehensible input, and output.',
+    'Study Skills': 'Speed, groups, burnout, and the meta-skills.',
+    'Writing': 'Faster drafting, clearer arguments, less staring.',
+  };
   const cards = topics
     .map(
-      (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</h3><ul class="rows">${t.items
+      (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</h3>${TOPIC_NOTES[t.k] ? `<p class="topic-d">${esc(TOPIC_NOTES[t.k])}</p>` : ''}<ul class="rows">${t.items
         .map(
           (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )
@@ -1935,7 +1952,7 @@ ${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
   );
 
   const cReadMin = Math.max(1, Math.round(
-    ((page.lede || '') + (page.verdict || '') + JSON.stringify(page.table || '') +
+    ((page.lede || '') + (page.verdict || '') + JSON.stringify(page.table || '') + JSON.stringify(page.sections || '') +
       (page.faqs || []).map((f) => f.q + ' ' + f.a).join(' ') + (page.iterraWins || []).join(' ') + (page.rivalWins || []).join(' ')).length / 800,
   ));
   /* rotate the same three hero treatments used on guide articles */
@@ -1985,6 +2002,11 @@ ${tableRows}
 <h2 class="sec mono">The honest split</h2>
 ${winsHtml}
 </section>
+${(page.sections || [])
+  .map(
+    (s) => `<section class="block"><h2 class="sec mono">${esc(s.h2)}</h2><div class="prose">${renderBlocks(s.blocks)}</div></section>`,
+  )
+  .join('\n')}
 <section class="block">
 <div class="verdict"><div>
 <span class="mono">The verdict</span>
