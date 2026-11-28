@@ -4830,6 +4830,94 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-toefl',
+    title: 'How to study for the <em>TOEFL</em>',
+    seoTitle: 'How to Study for the TOEFL: Strategy, Sections, Timing',
+    description:
+      'Beat the TOEFL with a system: know the format, practice the section patterns, review every answer, and manage your timing — the TOEFL rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-08-03',
+    dateModified: '2027-08-07',
+    readMinutes: 7,
+    keywords: ['how to study for the TOEFL', 'TOEFL prep', 'TOEFL strategy', 'TOEFL practice test'],
+    tools: ['timer', 'proof'],
+    related: ['how-to-learn-a-language', 'how-to-study-for-the-sat', 'how-to-use-practice-tests'],
+    lede: 'The TOEFL is the test that decides whether you can study in English — a 3-hour exam that tests reading, listening, speaking, and writing. But the TOEFL rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Four sections: reading, listening, speaking, writing — each needs a different strategy.',
+      'Practice, review, repeat — the review is where learning happens.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the TOEFL?',
+        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+      },
+      {
+        q: 'Is the TOEFL harder than the IELTS?',
+        a: 'They test similar skills but with different formats. The TOEFL is computer-based with a speaking section; the IELTS has a face-to-face speaking interview. The study strategy is similar — practice tests, pattern recognition, and timing.',
+      },
+      {
+        q: 'How do I improve my TOEFL speaking score?',
+        a: 'Practice speaking under timed conditions — record yourself and listen back. Focus on clarity, organization, and fluency, not perfection. The best speakers are clear and structured, not necessarily flawless.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The TOEFL is the test that decides whether you can study in English — a 3-hour exam that tests reading, listening, speaking, and writing. But the TOEFL rewards the same approach as any standardized test: know the format, practice the patterns, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The TOEFL has four sections: Reading, Listening, Speaking, and Writing. Each section is scored separately, and the test is 3 hours long (plus 10 minutes for the speaking section). Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 25 in Reading but 20 in Speaking should spend most of their time on Speaking.' },
+        ],
+      },
+      {
+        h2: 'The TOEFL study loop',
+        blocks: [
+          { k: 'p', t: 'TOEFL prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the sections you miss most.',
+            'Drill those sections with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'Reading and Listening: the comprehension game',
+        blocks: [
+          { k: 'p', t: 'The Reading and Listening sections test whether you can understand academic English — passages, lectures, and conversations. The questions are formulaic: identify the main idea, make inferences, and understand vocabulary in context.' },
+          { k: 'p', t: 'The strategy: read the questions first, then the passage or audio with those questions in mind. You\'re looking for specific answers, not reading for pleasure.' },
+        ],
+      },
+      {
+        h2: 'Speaking: the fluency game',
+        blocks: [
+          { k: 'p', t: 'The Speaking section gives you 6 tasks — 2 independent (your opinion) and 4 integrated (listen/read/speak). The tasks are timed — you have 15-30 seconds to prepare and 45-60 seconds to speak.' },
+          { k: 'p', t: 'The strategy: practice speaking under timed conditions. The best speakers are clear, organized, and fluent — not necessarily perfect. Record yourself and listen back to identify areas for improvement.' },
+        ],
+      },
+      {
+        h2: 'Writing: the essay game',
+        blocks: [
+          { k: 'p', t: 'The Writing section gives you 2 tasks — an integrated task (read, listen, write) and an independent task (write your opinion). Each task is 20-30 minutes.' },
+          { k: 'p', t: 'The strategy: practice writing essays under timed conditions. The structure matters: introduction, body paragraphs, conclusion. The best essays are clear, organized, and well-supported.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps structure the essay — introduction, body paragraphs, conclusion — so the argument holds together under timed pressure.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The TOEFL is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
