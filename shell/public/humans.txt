@@ -1,0 +1,9 @@
+/* TEAM */
+Iterra — an all-in-one study workspace for students.
+Made by students, for students.
+
+Site: https://iterrapp.vercel.app
+Guides: https://iterrapp.vercel.app/guides
+
+/* THANKS */
+Built with Vite, React, and an unreasonable amount of coffee.
