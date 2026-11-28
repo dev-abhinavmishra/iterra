@@ -2370,6 +2370,108 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-ace-multiple-choice-tests',
+    title: 'How to ace <em>multiple-choice tests</em>',
+    seoTitle: 'How to Ace Multiple-Choice Tests: Strategy, Tactics, Practice',
+    description:
+      'Beat multiple-choice tests with a repeatable system: read first, eliminate aggressively, spot distractor tricks, and use a two-pass strategy under time pressure.',
+    kicker: 'Study Methods',
+    datePublished: '2027-01-19',
+    dateModified: '2027-01-23',
+    readMinutes: 7,
+    keywords: ['multiple choice test strategy', 'how to ace multiple choice', 'MC test tips', 'exam strategy'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-use-practice-tests', 'active-recall-vs-rereading', 'how-to-study-for-finals-week'],
+    lede: 'Multiple-choice tests feel like they should be easy — pick the right answer, done. But anyone who has stared at four nearly identical options knows the format has its own traps. The good news: MC tests reward a repeatable strategy more than raw intelligence, and most of that strategy can be practiced before exam day.',
+    takeaways: [
+      'Read the question before the answers — the options are designed to plant wrong ideas in your head.',
+      'Eliminate aggressively; the difference between a 25% guess and a 50% guess is a letter grade on a long test.',
+      'Practice the format under time pressure — the strategy is a skill, not just knowledge.'
+    ],
+    faq: [
+      {
+        q: 'Should I guess on multiple-choice questions?',
+        a: 'Almost always yes, unless the test penalizes wrong answers. Even a random guess is better than a blank — and after eliminating even one option, your odds jump significantly. Check the test instructions for penalty rules before the exam starts.',
+      },
+      {
+        q: 'What does "all of the above" usually mean?',
+        a: 'It’s right more often than it’s wrong — but not always. Read every option before deciding; if even one is clearly false, eliminate "all of the above" immediately. The same logic applies to "none of the above" — verify each option first.',
+      },
+      {
+        q: 'How do I stop second-guessing my answers?',
+        a: 'Trust your first instinct unless you find concrete evidence you misread the question. Studies consistently show first answers are correct more often than changed answers. Only change an answer if you can articulate exactly why the first one was wrong.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'The test is not a knowledge test — it’s a process test',
+        blocks: [
+          { k: 'p', t: 'Multiple-choice tests feel like they should be easy — pick the right answer, done. But anyone who has stared at four nearly identical options knows the format has its own traps. The good news: MC tests reward a repeatable strategy more than raw intelligence, and most of that strategy can be practiced before exam day.' },
+          { k: 'p', t: 'Professors write MC questions to test whether you *understand* material, not whether you memorized it. The wrong answers aren’t random — they’re the misconceptions students actually hold.' },
+          { k: 'deflist', items: [
+            { t: 'Distractors are designed', d: 'Wrong answers attract specific mistakes — they’re misconceptions, not filler.' },
+            { t: 'Precision wins', d: 'The correct answer is often the most qualified option, not the most extreme.' },
+            { t: 'Absolute words are risky', d: '"Always", "never", "all" are more often wrong than right.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Read the question before the answers',
+        blocks: [
+          { k: 'p', t: 'The most common MC mistake is anchoring on the first plausible answer after scanning the options. Instead, read the question stem alone first — formulate your own answer before you look at any choices.' },
+          { k: 'p', t: 'This works because the answer options are designed to plant ideas in your head. If you let them in first, you’ll start convincing yourself that a wrong answer sounds right.' },
+        ],
+      },
+      {
+        h2: 'Eliminate before you select',
+        blocks: [
+          { k: 'p', t: 'Never pick the first answer that looks right. Eliminate the options you can rule out — even if that only leaves two. The difference between a 25% guess and a 50% guess is the difference between a C and a B on a long test.' },
+          { k: 'p', t: 'When you can’t eliminate anything, use the "best answer" heuristic: the correct option is usually the most complete, most qualified, and least absolute one.' },
+        ],
+      },
+      {
+        h2: 'Watch for the classic distractors',
+        blocks: [
+          { k: 'p', t: 'Professors reuse the same distractor tricks across courses. Learn to spot them:' },
+          { k: 'table', head: ['Distractor type', 'What it looks like', 'How to catch it'], rows: [
+            ['True but irrelevant', 'Factually correct, but doesn’t answer the question', 'Ask "does this actually answer what was asked?"'],
+            ['Swapped cause/effect', 'Right facts, wrong relationship', 'Check the direction of the relationship'],
+            ['Too extreme', '"Always", "never", "only"', 'Absolute claims are almost always wrong'],
+            ['Exception as rule', 'A true exception stated as general', 'Look for qualifying words'],
+            ['Detail bait', 'True detail about the topic', 'Check if it’s the answer or just related'],
+          ]},
+        ],
+      },
+      {
+        h2: 'The two-pass system',
+        blocks: [
+          { k: 'steps', items: [
+            'First pass: answer only the questions you know cold; flag the rest.',
+            'Second pass: work through flagged questions with fresh eyes.',
+            'Review: use later questions to jog memory on earlier ones.',
+            'Guess: make your best educated guess on anything still unclear — never leave blank if there’s no penalty.',
+          ]},
+        ],
+      },
+      {
+        h2: 'Practice the format, not just the content',
+        blocks: [
+          { k: 'p', t: 'Reading about MC strategy helps, but the real skill is recognizing distractor patterns under time pressure. Practice with past exams, practice tests, or self-made questions where you write the wrong answers first.' },
+          { k: 'p', t: 'Time yourself. MC tests are fast — if you’re spending more than 90 seconds per question on average, you need to speed up or triage harder.' },
+          { k: 'tool', tool: 'timer', t: 'Timer runs the two-pass practice loop — set it for the real exam length and train your pacing until 90 seconds per question feels natural.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The content matters, but the process matters more — and the process can be practiced.' },
+          { k: 'p', t: 'Read the question first, formulate your answer, eliminate aggressively, and save the hard ones for a second pass. MC tests are beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
