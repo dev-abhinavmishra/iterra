@@ -171,7 +171,7 @@ export const GUIDES = [
     seoTitle: 'Spaced Repetition Explained: How the Study Method Works',
     description:
       'What spaced repetition actually is, why it beats cramming, how review intervals expand, and how to use flashcards for language, science, medicine, and law. A clear, honest guide.',
-    kicker: 'Study Methods',
+    kicker: 'Study Skills',
     datePublished: '2026-08-29',
     dateModified: '2026-09-19',
     readMinutes: 7,
@@ -798,7 +798,7 @@ export const GUIDES = [
     seoTitle: 'Active Recall vs Rereading: Which Study Method Works?',
     description:
       'Rereading feels productive but barely works. Active recall feels harder but actually builds memory. Here’s the evidence, and how to switch from one to the other.',
-    kicker: 'Study Methods',
+    kicker: 'Study Skills',
     datePublished: '2026-10-24',
     dateModified: '2026-11-11',
     readMinutes: 9,
@@ -2045,7 +2045,7 @@ export const GUIDES = [
     seoTitle: 'How to Run a Study Group That Actually Works',
     description:
       'Study groups fail without structure. How to design one — size, roles, prep work, session shape — that produces real learning instead of a social hour with snacks.',
-    kicker: 'Study Methods',
+    kicker: 'Study Skills',
     datePublished: '2026-12-24',
     dateModified: '2026-12-29',
     readMinutes: 7,
@@ -2150,7 +2150,7 @@ export const GUIDES = [
     seoTitle: 'How to Learn a Language: A Practical Student Guide',
     description:
       'Most language students plateau because they use the wrong method. The input-notice-produce loop, vocabulary habits that survive the forgetting curve, and output practice that actually works.',
-    kicker: 'Study Methods',
+    kicker: 'Language Learning',
     datePublished: '2027-01-05',
     dateModified: '2027-01-09',
     readMinutes: 8,
@@ -2274,7 +2274,7 @@ export const GUIDES = [
     seoTitle: 'Memory Techniques for Students: Mnemonics, Palaces, Chunking',
     description:
       'How to remember more: chunking, the memory palace, mnemonics, and elaboration — the techniques that work with how memory actually operates, plus their honest limits.',
-    kicker: 'Study Methods',
+    kicker: 'Study Skills',
     datePublished: '2027-01-12',
     dateModified: '2027-01-16',
     readMinutes: 8,
@@ -2377,7 +2377,7 @@ export const GUIDES = [
     seoTitle: 'How to Ace Multiple-Choice Tests: Strategy, Tactics, Practice',
     description:
       'Beat multiple-choice tests with a repeatable system: read first, eliminate aggressively, spot distractor tricks, and use a two-pass strategy under time pressure.',
-    kicker: 'Study Methods',
+    kicker: 'Study Skills',
     datePublished: '2027-01-19',
     dateModified: '2027-01-23',
     readMinutes: 7,
@@ -2479,7 +2479,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for a Test in One Night: Cramming Strategy',
     description:
       'Survive a one-night cram session: triage the material, use active recall, practice problems, and protect your sleep — the highest-yield strategy for last-minute studying.',
-    kicker: 'Study Methods',
+    kicker: 'Study Skills',
     datePublished: '2027-01-26',
     dateModified: '2027-01-30',
     readMinutes: 7,
@@ -2575,7 +2575,7 @@ export const GUIDES = [
     seoTitle: 'How to Focus When Studying: Environment, Time-Boxing, Rituals',
     description:
       'Build study focus that lasts: control your environment, time-box your work in sprints, manage the phone problem, and create a pre-study ritual that signals your brain.',
-    kicker: 'Study Methods',
+    kicker: 'Study Skills',
     datePublished: '2027-02-02',
     dateModified: '2027-02-06',
     readMinutes: 7,
@@ -2672,7 +2672,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Math: Problems Are the Method, Not Reading',
     description:
       'Study math like a skill, not a subject: problems are the method, the study loop builds fluency, and understanding the why beats memorizing formulas.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-02-09',
     dateModified: '2027-02-13',
     readMinutes: 6,
@@ -2764,7 +2764,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the SAT: Strategy, Patterns, Timing',
     description:
       'Beat the SAT with a system: know the format, practice the question patterns, review every answer, and manage your timing — preparation method beats raw knowledge.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-02-16',
     dateModified: '2027-02-20',
     readMinutes: 7,
@@ -2857,7 +2857,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the ACT: Strategy, Patterns, Timing',
     description:
       'Beat the ACT with a system: know the format, practice the question patterns, review every answer, and manage your timing — the ACT rewards speed and pattern recognition.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-02-23',
     dateModified: '2027-02-27',
     readMinutes: 7,
@@ -2956,7 +2956,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Science: Systems, Diagrams, Active Recall',
     description:
       'Study science like a system, not a list: learn the core concepts, draw the diagrams, explain it out loud, and use active recall for processes and relationships.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-03-02',
     dateModified: '2027-03-06',
     readMinutes: 6,
@@ -3053,7 +3053,7 @@ export const GUIDES = [
     seoTitle: 'How to Study History: Stories, Timelines, Essays',
     description:
       'Study history as a story, not a list: learn the narrative, draw the timeline, use significance-based recall, and practice the essay format most exams require.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-03-09',
     dateModified: '2027-03-13',
     readMinutes: 6,
@@ -3151,7 +3151,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Literature: Close Reading, Patterns, Essays',
     description:
       'Study literature as analysis, not memorization: read closely, annotate for patterns, identify themes, and practice the essay format most exams require.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-03-16',
     dateModified: '2027-03-20',
     readMinutes: 6,
@@ -3251,7 +3251,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Psychology: Frameworks, Terms, Application',
     description:
       'Study psychology as frameworks, not terms: learn the core theories, organize concepts by framework, use application-based recall, and connect to real-world examples.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-03-23',
     dateModified: '2027-03-27',
     readMinutes: 6,
@@ -3349,7 +3349,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Economics: Incentives, Models, Application',
     description:
       'Study economics as logic, not graphs: learn the incentive logic behind models, draw the curves, use application-based recall, and connect to real-world events.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-04-06',
     dateModified: '2027-04-10',
     readMinutes: 6,
@@ -3446,7 +3446,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Philosophy: Arguments, Maps, Essays',
     description:
       'Study philosophy as argument, not doctrine: learn to identify claims, reasons, and objections; draw the argument maps; and practice the essay format.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-04-13',
     dateModified: '2027-04-17',
     readMinutes: 6,
@@ -3545,7 +3545,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Art History: Narrative, Images, Identification',
     description:
       'Study art history as a story, not a list: learn the narrative arc, organize images by movement, use visual study methods, and practice identification.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-04-20',
     dateModified: '2027-04-24',
     readMinutes: 6,
@@ -3643,7 +3643,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for Nursing School: Systems, Application, NCLEX',
     description:
       'Survive nursing school by studying smart: learn the body systems, connect everything to the patient, use application-based recall, and practice NCLEX questions relentlessly.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-05-04',
     dateModified: '2027-05-08',
     readMinutes: 7,
@@ -3741,7 +3741,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Engineering: Physics, Problems, Application',
     description:
       'Study engineering as applied physics: learn the physical principles behind the math, work through problems relentlessly, and check your units.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-05-11',
     dateModified: '2027-05-15',
     readMinutes: 6,
@@ -3839,7 +3839,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the GRE: Strategy, Patterns, Timing',
     description:
       'Beat the GRE with a system: know the format, practice the question patterns, review every answer, and manage your timing — preparation method beats raw knowledge.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-05-18',
     dateModified: '2027-05-22',
     readMinutes: 7,
@@ -3932,7 +3932,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the MCAT: Strategy, Content, Timing',
     description:
       'Beat the MCAT with a system: know the format, practice the question patterns, review every answer, and manage your timing — the MCAT rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-05-25',
     dateModified: '2027-05-29',
     readMinutes: 7,
@@ -4021,7 +4021,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the LSAT: Strategy, Patterns, Timing',
     description:
       'Beat the LSAT with a system: know the format, practice the question patterns, review every answer, and manage your timing — the LSAT rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-06-01',
     dateModified: '2027-06-05',
     readMinutes: 7,
@@ -4201,7 +4201,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Music Theory: Patterns, Ear Training, Application',
     description:
       'Study music theory as patterns, not rules: learn the patterns, connect to real music, practice ear training, and apply concepts to songs you know.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-06-15',
     dateModified: '2027-06-19',
     readMinutes: 6,
@@ -4299,7 +4299,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the GMAT: Strategy, Patterns, Timing',
     description:
       'Beat the GMAT with a system: know the format, practice the question patterns, review every answer, and manage your timing — the GMAT rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-06-22',
     dateModified: '2027-06-26',
     readMinutes: 7,
@@ -4390,7 +4390,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the Bar Exam: MBE, MEE, MPT Strategy',
     description:
       'Beat the bar exam with a system: know the format, practice the patterns, review every question, and manage your time ruthlessly — the bar rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-06-29',
     dateModified: '2027-07-03',
     readMinutes: 7,
@@ -4483,7 +4483,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the DAT: Strategy, Content, PAT',
     description:
       'Beat the DAT with a system: know the format, practice the science content, drill the PAT daily, and manage your timing — the DAT rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-07-06',
     dateModified: '2027-07-10',
     readMinutes: 7,
@@ -4571,7 +4571,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the PCAT: Strategy, Content, Writing',
     description:
       'Beat the PCAT with a system: know the format, practice the science content, drill reading and quant, and write essays under timed conditions.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-07-13',
     dateModified: '2027-07-17',
     readMinutes: 7,
@@ -4659,7 +4659,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the OAT: Strategy, Content, Timing',
     description:
       'Beat the OAT with a system: know the format, practice the science content, drill physics and reading, and manage your timing — the OAT rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-07-20',
     dateModified: '2027-07-24',
     readMinutes: 7,
@@ -4748,7 +4748,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the FE Exam: Strategy, Content, Timing',
     description:
       'Beat the FE exam with a system: know the format, practice the engineering content, drill your discipline, and manage your timing — the FE rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-07-27',
     dateModified: '2027-07-31',
     readMinutes: 7,
@@ -4837,7 +4837,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the TOEFL: Strategy, Sections, Timing',
     description:
       'Beat the TOEFL with a system: know the format, practice the section patterns, review every answer, and manage your timing — the TOEFL rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-08-03',
     dateModified: '2027-08-07',
     readMinutes: 7,
@@ -4925,7 +4925,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the IELTS: Strategy, Sections, Timing',
     description:
       'Beat the IELTS with a system: know the format, practice the section patterns, review every answer, and manage your timing — the IELTS rewards preparation, not cramming.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-08-10',
     dateModified: '2027-08-14',
     readMinutes: 7,
@@ -5013,7 +5013,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the NCLEX: Prep Strategy & Timing',
     description:
       'Beat the NCLEX with a system: know the CAT format, practice the prioritization and safety patterns, review every question, and focus your prep on the high-yield content areas.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-08-17',
     dateModified: '2027-08-21',
     readMinutes: 7,
@@ -5111,7 +5111,7 @@ export const GUIDES = [
     seoTitle: 'How to Learn GRE Vocabulary: Context, Not Lists',
     description:
       'Beat the GRE vocabulary with context-based learning: focus on the 300-500 words that actually appear, practice daily, and review every question — not generic word lists.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-08-24',
     dateModified: '2027-08-28',
     readMinutes: 7,
@@ -5209,7 +5209,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Physics: Concepts, Problems & Understanding',
     description:
       'Beat physics by understanding the principles, not just memorizing formulas: practice problems, explain concepts in your own words, and check your units — the grade is a measure of understanding.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-08-31',
     dateModified: '2027-09-04',
     readMinutes: 7,
@@ -5308,7 +5308,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Chemistry: Concepts, Problems & Balance',
     description:
       'Beat chemistry by understanding the core ideas, not just memorizing formulas: practice the problem types, explain concepts in your own words, and balance problems with concepts.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-09-07',
     dateModified: '2027-09-11',
     readMinutes: 7,
@@ -5407,7 +5407,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Biology: Systems, Not Just Facts',
     description:
       'Beat biology by understanding the systems — cells, genetics, evolution, physiology, ecology — then memorizing the details that attach. Systems first, facts second.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-09-14',
     dateModified: '2027-09-18',
     readMinutes: 7,
@@ -5506,7 +5506,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for MCAT CARS: Reading, Not Memorizing',
     description:
       'Beat MCAT CARS with argument analysis: read actively, identify the main idea and evidence, practice at real speed, and review every question — it\'s about how well you read, not what you know.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-09-21',
     dateModified: '2027-09-25',
     readMinutes: 7,
@@ -5605,7 +5605,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Statistics: Concepts, Calculations & Meaning',
     description:
       'Beat statistics by understanding the core ideas, not just memorizing formulas: practice the problem types, explain concepts in your own words, and balance calculations with interpretation.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-09-28',
     dateModified: '2027-10-02',
     readMinutes: 7,
@@ -5704,7 +5704,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the ACC: Accounting Certification Prep',
     description:
       'Beat the ACC with understanding, not memorization: learn the standards, practice the problem types, explain concepts in your own words, and focus on the high-yield content areas.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-10-05',
     dateModified: '2027-10-09',
     readMinutes: 7,
@@ -5807,7 +5807,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the CPA: Four Sections, One Strategy',
     description:
       'Beat the CPA with understanding, not memorization: learn the standards, practice the question types, explain concepts in your own words, and conquer all four sections.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-10-12',
     dateModified: '2027-10-16',
     readMinutes: 7,
@@ -6009,7 +6009,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the CLEP: Credit-by-Exam Prep Guide',
     description:
       'Beat the CLEP with a system: know the format, practice the patterns, review every question, and focus on the high-yield topics for your specific exam — the shortcut to college credit.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-10-26',
     dateModified: '2027-10-30',
     readMinutes: 7,
@@ -6108,7 +6108,7 @@ export const GUIDES = [
     seoTitle: 'How to Study Anatomy: Systems, Not Just Structures',
     description:
       'Beat anatomy by understanding the systems — skeletal, muscular, nervous, cardiovascular — then drawing the structures and memorizing the details that attach. Visualization beats memorization.',
-    kicker: 'Study Methods',
+    kicker: 'Subject Guides',
     datePublished: '2027-11-02',
     dateModified: '2027-11-06',
     readMinutes: 7,
@@ -6207,7 +6207,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the CFA: Three Levels, One Strategy',
     description:
       'Beat the CFA with understanding, not memorization: learn the concepts, practice the question types, explain the ideas, and conquer all three levels — the hardest test in finance.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-11-09',
     dateModified: '2027-11-13',
     readMinutes: 7,
@@ -6311,7 +6311,7 @@ export const GUIDES = [
     seoTitle: 'How to Study for the PMP: Project Management Cert Prep',
     description:
       'Beat the PMP with understanding, not memorization: learn the processes, practice the situational questions, explain concepts in your own words, and conquer all three domains.',
-    kicker: 'Study Methods',
+    kicker: 'Test Prep',
     datePublished: '2027-11-16',
     dateModified: '2027-11-20',
     readMinutes: 7,
