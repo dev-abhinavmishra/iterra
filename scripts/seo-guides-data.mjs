@@ -3925,6 +3925,95 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-mcat',
+    title: 'How to study for the <em>MCAT</em>',
+    seoTitle: 'How to Study for the MCAT: Strategy, Content, Timing',
+    description:
+      'Beat the MCAT with a system: know the format, practice the question patterns, review every answer, and manage your timing — the MCAT rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-05-25',
+    dateModified: '2027-05-29',
+    readMinutes: 7,
+    keywords: ['how to study for the MCAT', 'MCAT prep', 'MCAT strategy', 'MCAT practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-for-the-gre', 'how-to-study-for-nursing-school', 'how-to-use-practice-tests'],
+    lede: 'The MCAT is the longest standardized test you\'ll ever take — 7.5 hours, four sections, and content that spans every science course you\'ve ever taken. But the MCAT rewards the same approach as any big test: know the format, practice the patterns, and review every question. The students who do well treat it as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Practice, review, repeat — the review is where learning happens.',
+      'The MCAT is 7.5 hours — pacing and endurance matter as much as content.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the MCAT?',
+        a: 'Most students need 3-6 months of consistent prep. A focused 12-16 week plan with 10-15 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+      },
+      {
+        q: 'Is the MCAT harder than the GRE?',
+        a: 'They test different skills. The MCAT is longer (7.5 hours) and tests science content more heavily; the GRE tests vocabulary and general reasoning. The study strategy is similar — practice tests, pattern recognition, and timing — but the content emphasis differs.',
+      },
+      {
+        q: 'How do I prepare for CARS?',
+        a: 'CARS is reading comprehension, not science. Practice with dense academic passages, read the questions first, then the passage with those questions in mind. The answer is always in the text — CARS doesn\'t test outside knowledge.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The MCAT is the longest standardized test you\'ll ever take — 7.5 hours, four sections, and content that spans every science course you\'ve ever taken. But the MCAT rewards the same approach as any big test: know the format, practice the patterns, and review every question. The students who do well treat it as a system, not a cram.' },
+          { k: 'p', t: 'The MCAT has four sections: Chemical and Physical Foundations, Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations, and Critical Analysis and Reasoning Skills (CARS). Each section is scored separately, and the test is 7.5 hours long. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 125 in CARS but 115 in Bio should spend most of their time on Bio.' },
+        ],
+      },
+      {
+        h2: 'The MCAT study loop',
+        blocks: [
+          { k: 'p', t: 'MCAT prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the question types you miss most.',
+            'Drill those types with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'The science sections: content plus strategy',
+        blocks: [
+          { k: 'p', t: 'The three science sections test whether you can apply content knowledge to passage-based questions. The passages are dense — the strategy is to read the questions first, then the passage with those questions in mind.' },
+          { k: 'p', t: 'For the science content, focus on the high-yield topics: biochemistry, biology, chemistry, physics, and psychology. The questions test application, not memorization — but you can\'t apply what you don\'t know.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the high-yield science content — the vocabulary and formulas that every passage-based question assumes you know.' },
+        ],
+      },
+      {
+        h2: 'CARS: the reading-comprehension game',
+        blocks: [
+          { k: 'p', t: 'CARS is the section that surprises most students — it\'s not science, it\'s reading comprehension. The passages are dense academic texts, and the questions test whether you can identify the main idea, make inferences, and evaluate arguments.' },
+          { k: 'p', t: 'The strategy: read the questions first, then the passage with those questions in mind. The answer is always in the text — CARS doesn\'t test outside knowledge, just reading comprehension.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'MCAT timing is tight — about 95 seconds per science question, 90 per CARS. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
+          { k: 'p', t: 'For science, read the questions first, then the passage — you know what you\'re looking for. For CARS, the same approach works — the questions tell you what to look for.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the MCAT\'s timed pressure — practice sections at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The MCAT is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
