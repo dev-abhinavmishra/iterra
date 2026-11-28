@@ -1429,6 +1429,7 @@ ${prevTool ? `<link rel="prev" href="${SITE}/tools/${prevTool.id}" />` : ''}
 ${nextTool ? `<link rel="next" href="${SITE}/tools/${nextTool.id}" />` : ''}
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="${esc(tool.title)}" />
 <meta property="og:description" content="${esc(tool.description)}" />
@@ -1727,6 +1728,7 @@ ${prevGuide ? `<link rel="prev" href="${SITE}/guides/${prevGuide.slug}" />` : ''
 ${nextGuide ? `<link rel="next" href="${SITE}/guides/${nextGuide.slug}" />` : ''}
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="${esc(guide.seoTitle)}" />
 <meta property="og:description" content="${esc(guide.description)}" />
@@ -1737,6 +1739,7 @@ ${nextGuide ? `<link rel="next" href="${SITE}/guides/${nextGuide.slug}" />` : ''
 <meta property="article:modified_time" content="${guide.dateModified || guide.datePublished}" />
 <meta property="article:section" content="${esc(guide.kicker)}" />
 <meta property="article:tag" content="${esc(guide.kicker)}" />
+<meta property="article:author" content="Iterra terrain team" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(guide.seoTitle)}" />
 <meta name="twitter:description" content="${esc(guide.description)}" />
@@ -2058,6 +2061,7 @@ export function renderGuidesIndex() {
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Iterra Study Guides — How to Learn Better" />
 <meta property="og:description" content="Research-backed guides to studying better, from semester planning to spaced repetition." />
@@ -2171,6 +2175,7 @@ export function renderTopicPage(topic) {
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="${esc(topic.kicker)} Study Guides — Iterra" />
 <meta property="og:description" content="${esc(topic.note || '')}" />
@@ -2258,6 +2263,7 @@ export function renderTopicsIndex() {
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Study Guides by Topic — Iterra" />
 <meta property="og:description" content="Iterra study guides organized by topic." />
@@ -2325,6 +2331,7 @@ export function renderToolsIndex() {
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Iterra Study Tools — Planner, Flashcards, Notes, Timer & More" />
 <meta property="og:description" content="Nine study tools in one local-first workspace for students." />
@@ -2398,6 +2405,7 @@ ${keywords?.length ? `<meta name="keywords" content="${esc(keywords.join(', '))}
 <meta property="og:type" content="article" />
 ${published ? `<meta property="article:published_time" content="${published}" />\n<meta property="article:modified_time" content="${modified || published}" />` : ''}
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="${esc(title)}" />
 <meta property="og:description" content="${esc(description)}" />
@@ -2690,6 +2698,7 @@ export function renderCompareIndex() {
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Compare Iterra — Honest Study App Comparisons" />
 <meta property="og:description" content="Where Iterra wins, where the competition wins, and who should pick which." />
@@ -2776,6 +2785,7 @@ export function renderAlternativesIndex() {
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
+<meta property="og:locale" content="en_US" />
 <meta property="og:url" content="${url}" />
 <meta property="og:title" content="Study App Alternatives — Honest Picks for Students" />
 <meta property="og:description" content="When the app you outgrew isn't enough anymore." />
