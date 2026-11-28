@@ -5301,6 +5301,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-chemistry',
+    title: 'How to study <em>chemistry</em>',
+    seoTitle: 'How to Study Chemistry: Concepts, Problems & Balance',
+    description:
+      'Beat chemistry by understanding the core ideas, not just memorizing formulas: practice the problem types, explain concepts in your own words, and balance problems with concepts.',
+    kicker: 'Study Methods',
+    datePublished: '2027-09-07',
+    dateModified: '2027-09-11',
+    readMinutes: 7,
+    keywords: ['how to study chemistry', 'chemistry study tips', 'chemistry problems', 'chemistry concepts'],
+    tools: ['proof', 'flashcards'],
+    related: ['how-to-study-science', 'how-to-study-math', 'how-to-study-engineering'],
+    lede: 'Chemistry is the subject where "I get it" and "I can solve it" are different things. Students who understand the concepts still struggle with the problems — balancing equations, calculating molarity, predicting products. Chemistry rewards a different approach: understand the *why* behind each reaction, and practice the problem types until they\'re automatic.',
+    takeaways: [
+      'Take a diagnostic first — the problems you can\'t solve tell you which concepts to review.',
+      'Understand the core ideas, not just the formulas — explain concepts in your own words.',
+      'Balance problems and concepts — 60% practice, 40% understanding.',
+    ],
+    faq: [
+      {
+        q: 'Is chemistry harder than biology?',
+        a: 'Chemistry and biology are different — chemistry is more mathematical, biology is more conceptual. Chemistry requires balancing equations and calculating molarity; biology requires understanding systems and processes. Both are hard, but in different ways.',
+      },
+      {
+        q: 'How do I know if I understand chemistry?',
+        a: 'If you can explain a concept in your own words — why atoms bond, why reactions happen — you understand it. If you can only balance equations or plug numbers into formulas, you don\'t. The Feynman technique works: teach the concept to someone else, and the gaps show up immediately.',
+      },
+      {
+        q: 'How much time should I spend on chemistry problems vs. concepts?',
+        a: 'Aim for 60% problems and 40% concepts. Problems build fluency — you need to solve enough to recognize patterns. Concepts build understanding — you need to know *why* the reactions happen. You need both.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know chemistry before you study it',
+        blocks: [
+          { k: 'p', t: 'Chemistry is built on a few core ideas — atomic structure, bonding, stoichiometry, and equilibrium. Everything else is application. If you understand the core ideas, the problems solve themselves; if you don\'t, you\'re just memorizing patterns.' },
+          { k: 'p', t: 'Take a practice test or diagnostic first. The problems you can\'t solve tell you exactly which concepts to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps organize chemistry problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'The chemistry study loop',
+        blocks: [
+          { k: 'p', t: 'Chemistry prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the concept — read the textbook or watch a lecture.',
+            'Work through example problems — understand *why* each step works.',
+            'Solve problems independently — start with easy, then harder.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why atoms bond understands chemistry; a student who can only balance equations doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The problem types that matter',
+        blocks: [
+          { k: 'p', t: 'Chemistry problems fall into predictable types:' },
+          { k: 'deflist', items: [
+            { t: 'Stoichiometry', d: 'Mole-to-mole conversions — the foundation of everything.' },
+            { t: 'Balancing equations', d: 'Atoms must balance on both sides.' },
+            { t: 'Molarity', d: 'Moles per liter — the workhorse of solution chemistry.' },
+            { t: 'Equilibrium', d: 'Reactions that go both ways — know the equilibrium constant.' },
+            { t: 'Acids and bases', d: 'pH, pOH, titrations — know the definitions cold.' },
+          ]},
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the constants, formulas, and definitions that every chemistry problem assumes you know.' },
+        ],
+      },
+      {
+        h2: 'The concept-vs-calculation balance',
+        blocks: [
+          { k: 'p', t: 'Chemistry has two halves: conceptual questions ("why does this reaction happen?") and calculation problems ("how much product forms?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
+          { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
+        ],
+      },
+      {
+        h2: 'The common chemistry traps',
+        blocks: [
+          { k: 'p', t: 'Chemistry problems have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'Units', d: 'Always check units — a wrong unit means a wrong answer.' },
+            { t: 'Significant figures', d: 'Chemistry cares about precision — round at the end, not during.' },
+            { t: 'Mole ratios', d: 'The coefficients in a balanced equation are mole ratios, not molecule counts.' },
+            { t: 'States of matter', d: '(s), (l), (g), (aq) matter in thermochemistry.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Chemistry isn\'t about memorizing formulas — it\'s about understanding why reactions happen.' },
+          { k: 'p', t: 'Understand the core ideas, practice the problem types, explain the concepts, and check your units. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
