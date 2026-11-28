@@ -1563,16 +1563,17 @@ export function renderGuidePage(guide) {
   const usedIds = new Set();
   const tocItems = [];
   const sectionHtml = guide.sections.map((s, si) => {
-    let h2html = '';
+    let h2html = '', secId = '';
     if (s.h2) {
       let id = slugify(s.h2);
       while (usedIds.has(id)) id += '-x';
       usedIds.add(id);
+      secId = id;
       tocItems.push({ id, label: s.h2 });
       h2html = `<h2 id="${id}"><span class="sec-index" aria-hidden="true">${String(si + 1).padStart(2, '0')}</span>${inline(s.h2)}<a class="h-anchor" href="#${id}" aria-label="Link to this section">#</a></h2>`;
     }
     const isMistakeSec = s.h2 && MISTAKE_H2.test(s.h2) && !MISTAKE_EXCLUDE.test(s.h2);
-    return `<section class="gsec${isMistakeSec ? ' mistake-sec' : ''}">
+    return `<section class="gsec${isMistakeSec ? ' mistake-sec' : ''}"${secId ? ` aria-labelledby="${secId}"` : ''}>
 <div class="prose">${h2html}${renderBlocks(mistakeify(s))}</div>
 </section>`;
   });
@@ -2701,7 +2702,7 @@ ${winsHtml}
 </section>
 ${(page.sections || [])
   .map(
-    (s, i) => `<section class="block" id="section-${i + 1}"><h2 class="sec mono">${esc(s.h2)}</h2><div class="prose">${renderBlocks(s.blocks)}</div></section>`,
+    (s, i) => `<section class="block" id="section-${i + 1}" aria-labelledby="section-${i + 1}-h"><h2 class="sec mono" id="section-${i + 1}-h">${esc(s.h2)}</h2><div class="prose">${renderBlocks(s.blocks)}</div></section>`,
   )
   .join('\n')}
 <section class="block" id="verdict">
