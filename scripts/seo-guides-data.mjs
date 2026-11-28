@@ -7350,6 +7350,118 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-business',
+    title: 'How to study <em>business</em>',
+    seoTitle: 'How to Study Business: Frameworks, Cases, Application',
+    description:
+      'Business courses test application, not recall. Learn the frameworks — SWOT, five forces, 4Ps, break-even — apply them to cases, and compare your answers to the solutions.',
+    kicker: 'Subject Guides',
+    datePublished: '2027-12-21',
+    dateModified: '2027-12-25',
+    readMinutes: 7,
+    keywords: ['how to study business', 'business school study tips', 'case study method', 'business frameworks'],
+    tools: ['ink', 'timer'],
+    related: ['how-to-study-economics', 'how-to-study-psychology', 'how-to-study-for-finals-week'],
+    lede: 'Business courses feel easy and are not. The reading is accessible, the lectures are engaging, and the exams feel like common sense — right up until you try to apply a framework to a case you have never seen. Business is learned through application: frameworks you can deploy to new situations, not definitions you can recite.',
+    takeaways: [
+      'Learn the framework, then attack cases — application is the learning.',
+      'Cases are argument exercises — the grade is in your recommendation, not your summary.',
+      'A small set of frameworks does most of the work across all business courses.',
+    ],
+    faq: [
+      {
+        q: 'How is studying business different from other subjects?',
+        a: 'It is the most application-heavy subject on most transcripts. Exams are case analyses — fact patterns that require framework-driven recommendations. Reading and memorizing produce almost nothing; the cases are the practice.',
+      },
+      {
+        q: 'What frameworks should I learn for business courses?',
+        a: 'Start with five: SWOT (internal/external audit), Porter\'s five forces (competitive intensity), the marketing mix 4Ps (marketing decisions), break-even and ROI (quantitative backbone), and the BCG matrix (portfolio logic). Learn them once, apply them everywhere.',
+      },
+      {
+        q: 'How do I study for business case exams?',
+        a: 'Practice cases under time — define the problem, apply the framework, support with evidence, commit to a recommendation. Compare your answer to the case solution and write down where your reasoning diverged.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'How business is actually learned',
+        blocks: [
+          { k: 'p', t: 'Business courses feel easy and are not. The reading is accessible, the lectures are engaging, and the exams feel like common sense — right up until you try to apply a framework to a case you have never seen. Business is learned through application: frameworks you can deploy to new situations, not definitions you can recite.' },
+          { k: 'p', t: 'The study method that works: learn the framework, then attack cases. SWOT, Porter\'s five forces, the marketing mix, break-even analysis — these are not facts to memorize but lenses to apply. A student who can run a framework on an unfamiliar case outperforms one who memorized every definition.' },
+          { k: 'tool', tool: 'ink', t: 'Ink holds the case notes — frameworks applied to real examples, the connections between courses that lectures never make.' },
+        ],
+      },
+      {
+        h2: 'The business study loop',
+        blocks: [
+          { k: 'p', t: 'A week of business study that actually works:' },
+          { k: 'steps', items: [
+            'Learn the framework — SWOT, five forces, 4Ps, break-even, BCG matrix.',
+            'Apply it to a case — a real company, a Harvard case, your own analysis.',
+            'Compare your answer to the case solution — where did your reasoning diverge?',
+            'Write the insight down — frameworks only stick when you use them.',
+            'Review the quantitative tools — break-even, ROI, ratio analysis.',
+          ]},
+          { k: 'p', t: 'The apply step is where learning happens. A framework you have only read is a framework you do not own — the case is the gym where it becomes yours.' },
+        ],
+      },
+      {
+        h2: 'The frameworks that carry business courses',
+        blocks: [
+          { k: 'p', t: 'A small set of frameworks does most of the work across business courses — learn them once, apply them everywhere:' },
+          { k: 'deflist', items: [
+            { t: 'SWOT', d: 'Strengths, weaknesses, opportunities, threats — the internal/external audit that starts most strategy cases.' },
+            { t: 'Porter\'s five forces', d: 'Competitive intensity — supplier, buyer, rival, substitute, entrant power.' },
+            { t: 'Marketing mix (4Ps)', d: 'Product, price, place, promotion — the levers of any marketing decision.' },
+            { t: 'Break-even & ROI', d: 'The quantitative backbone — when does this decision pay, and by how much?' },
+            { t: 'BCG matrix', d: 'Stars, cash cows, question marks, dogs — portfolio logic for product decisions.' },
+          ]},
+          { k: 'quote', t: 'The frameworks are not the answer — they are the questions. A good case answer is a framework applied honestly to messy facts.' },
+        ],
+      },
+      {
+        h2: 'The course types: different skills, different methods',
+        blocks: [
+          { k: 'p', t: 'Business is not one subject — the study method shifts by course type:' },
+          { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
+            ['Marketing', 'Frameworks + consumer psychology', 'Cases + campaign analysis'],
+            ['Finance', 'Quantitative reasoning', 'Problem sets + ratio drills'],
+            ['Management/OB', 'Case analysis + people problems', 'Case discussions + frameworks'],
+            ['Accounting', 'Rules + application', 'Journal entries + statement problems'],
+            ['Strategy', 'Integration across functions', 'Capstone cases + synthesis'],
+          ]},
+        ],
+      },
+      {
+        h2: 'Case analysis: the skill business courses actually test',
+        blocks: [
+          { k: 'p', t: 'Most business exams are case exams — a fact pattern and a recommendation to make. The grading rewards structure: define the problem, apply the framework, support with evidence, commit to an answer.' },
+          { k: 'p', t: 'The students who struggle are the ones who treat cases as reading comprehension — summarizing instead of arguing. A case answer is a recommendation with reasoning, not a summary with adjectives.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost business students points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Memorizing frameworks without applying them', d: 'A SWOT you cannot run on a new case is a definition, not a skill. Apply every framework to at least three cases.' },
+            { t: 'Treating cases as reading comprehension', d: 'Cases are argument exercises — the grade is in your recommendation and reasoning, not your summary.' },
+            { t: 'Skipping the quantitative tools', d: 'Break-even, ROI and ratio analysis are the backbone of finance and strategy courses — they are also the easiest points to lose.' },
+            { t: 'Studying courses in isolation', d: 'Marketing, finance and strategy are the same problem in different clothes — the connections are where the insight lives.' },
+            { t: 'Waiting until exam week for cases', d: 'Case skill compounds — a semester of weekly case practice beats a week of cramming.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'Business school does not test whether you know the frameworks — it tests whether you can think with them.' },
+          { k: 'p', t: 'Learn the framework, apply it to a case, compare your answer to the solution, and write down where you diverged. That loop is the whole method — and it works for every business course you will ever take.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
