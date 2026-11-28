@@ -987,6 +987,8 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .m-tag.ok{color:var(--accent)}
 .m-w{color:var(--mute);font-size:.95rem;line-height:1.6}
 .m-r{font-size:.95rem;line-height:1.6;color:var(--ink)}
+.mistake-sec .prose>ul:not(.mistakes):not(.checklist):not(.steps){border-left:2px solid #b3563f;padding-left:1.2rem}
+.mistake-sec .prose>ul:not(.mistakes):not(.checklist):not(.steps)>li::marker{color:#b3563f}
 @media(max-width:720px){.mistakes li{grid-template-columns:1.4rem 1fr}.m-r{grid-column:2;margin-top:.4rem;padding-top:.6rem;border-top:1px dashed var(--line)}}
 .guide-article.dc .gsec:first-of-type .prose p:first-of-type::first-letter{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:3.5em;float:left;line-height:.8;padding:.08em .14em 0 0;color:var(--accent)}
 .picks{display:grid;grid-template-columns:repeat(3,1fr);gap:2.2rem;margin-bottom:1rem}
@@ -1571,7 +1573,8 @@ export function renderGuidePage(guide) {
       tocItems.push({ id, label: s.h2 });
       h2html = `<h2 id="${id}"><span class="sec-index" aria-hidden="true">${String(si + 1).padStart(2, '0')}</span>${inline(s.h2)}<a class="h-anchor" href="#${id}" aria-label="Link to this section">#</a></h2>`;
     }
-    return `<section class="gsec">
+    const isMistakeSec = s.h2 && MISTAKE_H2.test(s.h2) && !MISTAKE_EXCLUDE.test(s.h2);
+    return `<section class="gsec${isMistakeSec ? ' mistake-sec' : ''}">
 <div class="prose">${h2html}${renderBlocks(mistakeify(s))}</div>
 </section>`;
   });
