@@ -2038,6 +2038,111 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-run-a-study-group',
+    title: 'How to run a study group that <em>actually works</em>',
+    seoTitle: 'How to Run a Study Group That Actually Works',
+    description:
+      'Study groups fail without structure. How to design one — size, roles, prep work, session shape — that produces real learning instead of a social hour with snacks.',
+    kicker: 'Study Methods',
+    datePublished: '2026-12-24',
+    dateModified: '2026-12-29',
+    readMinutes: 7,
+    keywords: ['study group', 'how to run a study group', 'study group tips', 'group study'],
+    tools: ['flashcards', 'margin', 'timer'],
+    related: ['active-recall-vs-rereading', 'building-a-weekly-study-routine', 'how-to-use-practice-tests'],
+    lede: 'Study groups have a 50/50 reputation: either the best hour of your week or a two-hour social event with snacks. The difference isn’t the group — it’s whether someone designed it. A study group with a structure produces more learning per hour than solo study; a group without one produces nothing but guilt about the snacks.',
+    takeaways: [
+      'Groups excel at explaining, quizzing, and accountability — not coverage. Divide the work before meeting.',
+      'Three to five people, weekly, same time — consistency beats intensity.',
+      'The teaching segment is the engine: if you can’t explain it simply, that’s your study list.'
+    ],
+    faq: [
+      {
+        q: 'How many people should be in a study group?',
+        a: 'Three to five. Two is a conversation; six is a crowd where people stop participating. If your group is larger, split into subgroups by topic or confidence level.',
+      },
+      {
+        q: 'What if some members don’t prepare?',
+        a: 'That’s a design failure, not a people failure. Assign specific sections with a deadline, rotate the “teacher” role so everyone must prep, and make the first ten minutes a check-in where unprepared members answer questions they should know.',
+      },
+      {
+        q: 'Is group study better than studying alone?',
+        a: 'For explaining concepts, quizzing each other, and staying accountable — yes. For coverage and individual problem sets — no. The best students use both: solo for the work, group for the explanation.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'When a study group actually helps',
+        blocks: [
+          { k: 'p', t: 'Study groups have a 50/50 reputation: either the best hour of your week or a two-hour social event with snacks. The difference isn’t the group — it’s whether someone designed it. A study group with a structure produces more learning per hour than solo study; a group without one produces nothing but guilt about the snacks.' },
+          { k: 'deflist', items: [
+            { t: 'Explaining', d: 'Teaching a concept exposes whether you actually know it — the Feynman test with an audience.' },
+            { t: 'Quizzing', d: 'A partner can test you in ways you can’t test yourself — retrieval with stakes.' },
+            { t: 'Accountability', d: 'Showing up is easier when someone expects you.' },
+          ]},
+          { k: 'p', t: 'Groups fail at coverage — five people reading the same chapter together is five people doing one person’s work. The fix is dividing labor *before* meeting, not during.' },
+        ],
+      },
+      {
+        h2: 'Designing the group before it meets',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Size', d: 'Three to five people. Two is a conversation; six is a crowd.' },
+            { t: 'Frequency', d: 'Weekly, same time, same place — consistency beats intensity.' },
+            { t: 'Roles', d: 'Rotate who brings the quiz questions, who leads the explanation, who takes notes.' },
+            { t: 'Prep work', d: 'Everyone completes the assigned section *before* meeting — the group discusses, it doesn’t re-read.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'What to actually do in the session',
+        blocks: [
+          { k: 'p', t: 'A productive hour has a shape. Ninety minutes, three moves:' },
+          { k: 'steps', items: [
+            'First 20 minutes: each person teaches one concept from the prep work. If you can’t explain it simply, that’s your study list.',
+            'Middle 40 minutes: practice problems or quiz questions — take turns, no answer-sharing until everyone has attempted.',
+            'Last 30 minutes: compare what everyone got wrong, build the shared error list, assign who reviews what before next week.',
+          ]},
+          { k: 'p', t: 'The teaching segment is the engine. Explaining forces recall, exposes gaps, and gives the listener a model — it’s the highest-yield activity a group can do.' },
+        ],
+      },
+      {
+        h2: 'The failure modes',
+        blocks: [
+          { k: 'ul', items: [
+            'The social hour that studies for twenty minutes at the end.',
+            'The dominator who answers every question and learns nothing.',
+            'The free-rider who never preps and absorbs the group’s work.',
+            'The group that quizzes on definitions instead of explaining concepts.',
+          ]},
+          { k: 'p', t: 'Every one of these is a design failure, not a people failure. Fix the structure and the same group becomes productive.' },
+        ],
+      },
+      {
+        h2: 'When solo is better',
+        blocks: [
+          { k: 'p', t: 'Some material doesn’t benefit from groups — dense technical reading, individual problem sets, anything where your pace differs wildly from the group’s. The honest answer is hybrid: solo for coverage, group for explanation and quizzing.' },
+          { k: 'p', t: 'And if your group keeps failing, that’s data too. Two people who actually prep and teach outperform five who show up. Quality of attendance beats quantity of members.' },
+        ],
+      },
+      {
+        h2: 'Making the group share work digitally',
+        blocks: [
+          { k: 'p', t: 'The prep-work problem disappears if the materials live somewhere everyone can reach. A shared deck of questions, a common error log, a rotating “teacher of the week” — the group runs on artifacts, not memory.' },
+          { k: 'tool', tool: 'flashcards', t: 'Decks can be shared by link — the group’s quiz questions live in one place instead of five group chats.' },
+          { k: 'tool', tool: 'margin', t: 'The readings and recordings the group discusses stay filed by course, so “what did the professor say about X” is a search, not a scavenger hunt.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'A study group is a system, not a hangout. Design it like a class you’re teaching each other — because that’s what it is.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
