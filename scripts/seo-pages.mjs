@@ -1211,6 +1211,7 @@ ${placeLinks}
 </div>
 <div class="navg"><div class="gh">Learn · ${GUIDES.length} guides</div>
 ${navLink('/guides', 'All guides')}
+${navLink('/topics', 'Topics')}
 ${TOPIC_PAGES.map((t) => navLink(`/topics/${t.slug}`, `${esc(t.kicker)} · ${t.guides.length}`)).join('\n')}
 ${guideLinks}
 </div>
@@ -2279,6 +2280,79 @@ ${footer()}
 `;
 }
 
+export function renderTopicsIndex() {
+  const url = `${SITE}/topics`;
+  const ld = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'CollectionPage',
+        name: 'Study guide topics — Iterra',
+        description: 'Iterra guide collections by topic — test prep, subject guides, study skills, and exam season.',
+        url,
+        isPartOf: { '@type': 'WebSite', name: 'Iterra', url: `${SITE}/` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Iterra', item: `${SITE}/` },
+          { '@type': 'ListItem', position: 2, name: 'Guides', item: `${SITE}/guides` },
+          { '@type': 'ListItem', position: 3, name: 'Topics', item: url },
+        ],
+      },
+    ],
+  };
+  const cards = TOPIC_PAGES.map(
+    (t) => `<li><a href="/topics/${t.slug}"><span class="k mono">${t.guides.length} guides</span><span class="t">${esc(t.kicker)}</span><span class="d">${esc(t.note || '')}</span></a></li>`,
+  ).join('\n');
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f5ec" />
+<title>Guide Topics — Iterra Study Guides</title>
+<meta name="description" content="Iterra study guides organized by topic — test prep, subject guides, study skills, and exam season. ${GUIDES.length} articles, all free." />
+<link rel="canonical" href="${url}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Iterra" />
+<meta property="og:url" content="${url}" />
+<meta property="og:title" content="Guide Topics — Iterra Study Guides" />
+<meta property="og:description" content="Iterra study guides organized by topic." />
+<meta property="og:image" content="${SITE}/og/guides.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+${FONTS}
+<style>${CSS}</style>
+${jsonLd(ld)}
+</head>
+<body>
+${header('/guides')}
+<section class="hero"><div class="wrap">
+${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: 'Topics' }])}
+<div class="kicker mono">Iterra Guides</div>
+<h1>Browse by <em>topic.</em></h1>
+<p class="lede">The guides, grouped the way students actually look for them — by the test they’re facing or the subject they’re drowning in.</p>
+</div></section>
+<div class="wrap">
+<section class="block" style="border-bottom:none">
+<ul class="rows">
+${cards}
+</ul>
+<div class="cta" style="margin-top:2.5rem">
+<a class="primary" href="/guides">All guides</a>
+<a class="ghost" href="/feed.xml">RSS feed</a>
+</div>
+</section>
+</div>
+${footer()}
+</body>
+</html>
+`;
+}
+
 export function renderToolsIndex() {
   const url = `${SITE}/tools`;
   const ld = {
@@ -2877,6 +2951,7 @@ export function renderSitemap(lastmod = new Date().toISOString().slice(0, 10)) {
     { loc: `${SITE}/`, priority: '1.0', freq: 'weekly' },
     { loc: `${SITE}/tools`, priority: '0.8', freq: 'weekly' },
     { loc: `${SITE}/guides`, priority: '0.8', freq: 'weekly' },
+    { loc: `${SITE}/topics`, priority: '0.7', freq: 'weekly' },
     { loc: `${SITE}/compare`, priority: '0.8', freq: 'weekly' },
     { loc: `${SITE}/alternatives`, priority: '0.8', freq: 'weekly' },
     ...COMPARE_PAGES.map((p) => ({
@@ -2929,6 +3004,7 @@ export function writeSeoPages(distDir) {
     writeFileSync(join(distDir, 'guides', guide.slug, 'index.html'), renderGuidePage(guide));
   }
   mkdirSync(join(distDir, 'topics'), { recursive: true });
+  writeFileSync(join(distDir, 'topics', 'index.html'), renderTopicsIndex());
   for (const topic of TOPIC_PAGES) {
     mkdirSync(join(distDir, 'topics', topic.slug), { recursive: true });
     writeFileSync(join(distDir, 'topics', topic.slug, 'index.html'), renderTopicPage(topic));
