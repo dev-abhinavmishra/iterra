@@ -3172,6 +3172,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked data question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "A study finds that students who sleep more score higher. Which conclusion is best supported?" Four options, all sounding scientific — the method finds the one the data actually licenses.' },
+          { k: 'steps', items: [
+            'Check the design — this is a correlation, not an experiment; sleep and scores were measured, not manipulated.',
+            'Eliminate causal claims — "sleep causes higher scores" overclaims; a third factor (stress, health, time management) could drive both.',
+            'Eliminate the reverse — "higher scores cause more sleep" has the same problem in reverse.',
+            'Choose the supported claim — sleep and scores are associated; the direction of causation is unresolved.',
+            'Name the missing piece — a randomized experiment manipulating sleep would be needed to claim causation.',
+          ]},
+          { k: 'p', t: 'Science questions test whether you can match conclusions to evidence strength — correlation supports association, experiment supports causation, and confusing the two is the most common wrong answer on every science exam.' },
+        ],
+      },
+      {
         h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'Science rewards understanding, not memorization.' },
@@ -4028,6 +4042,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked statics problem',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "A 100 N force acts at 30° above horizontal on a block. What are its horizontal and vertical components?" The trigonometry is trivial — the method is in setting it up correctly.' },
+          { k: 'steps', items: [
+            'Draw the vector — arrow from the block at 30° above horizontal; label magnitude 100 N.',
+            'Resolve horizontally — Fₓ = 100 × cos(30°) ≈ 86.6 N, pointing right.',
+            'Resolve vertically — Fᵧ = 100 × sin(30°) = 50 N, pointing up.',
+            'Check the components — 86.6² + 50² ≈ 100², so the components recombine to the original force.',
+            'State the answer — the force is equivalent to 86.6 N horizontal plus 50 N vertical; equilibrium problems start here.',
+          ]},
+          { k: 'p', t: 'Engineering problems are mostly setup problems — the calculation is never the hard part; choosing the right decomposition, diagram, or principle is. Practice the first step until it is automatic: draw it, label it, then compute.' },
+        ],
+      },
+      {
         h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'Engineering rewards understanding the physics behind the math, not memorizing formulas.' },
@@ -4571,6 +4599,20 @@ export const GUIDES = [
             { t: 'Not connecting to real music', d: 'The ear is the best flashcard — connect every concept to a song.' },
             { t: 'Studying only before exams', d: 'Music theory requires consistent practice — the material accumulates.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked analysis, start to finish',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "Analyze the chord progression I–V–vi–IV in C major." The symbols look cryptic — the method turns them into a story.' },
+          { k: 'steps', items: [
+            'Name the key — C major means C is home; every chord gets named by its scale degree.',
+            'Identify each chord — I = C major (home), V = G major (dominant tension), vi = A minor (relative minor), IV = F major (subdominant).',
+            'Hear the function — I establishes, V creates pull toward home, vi adds emotional color, IV relaxes before the return.',
+            'Name the progression — I–V–vi–IV is the "sensitive female chord progression" — the axis of pop music since the 1950s.',
+            'Generalize — once you can label any progression, you can transpose it, harmonize a melody, or write your own.',
+          ]},
+          { k: 'p', t: 'Music theory exams test whether you can move from symbol to sound to function — the progression is not four chords, it is a four-chord emotional arc. Practice narrating what each chord is doing, not just what it is called.' },
         ],
       },
       {
@@ -6138,6 +6180,20 @@ export const GUIDES = [
             { t: 'Answering from memory of a similar passage', d: 'Every passage is self-contained — the correct answer is always in the text, never in your head.' },
             { t: 'Skipping the first read', d: 'A fast first pass for structure — claims, evidence, shifts — makes the questions faster. Skipping it makes every question a re-read.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked CARS question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: a passage argues that "cities should ban cars downtown, not because driving is evil but because the street belongs to everyone." The question asks: "The author\'s main claim depends on which assumption?"' },
+          { k: 'steps', items: [
+            'Identify the claim — downtown streets should be car-free.',
+            'Find the hinge — "the street belongs to everyone" only matters if everyone actually shares the street equitably.',
+            'Test the assumption — if drivers already have equal access, the ban is symbolic; the argument needs shared benefit to work.',
+            'Eliminate the traps — answers about pollution or safety support the claim but are not assumptions it depends on.',
+            'Choose the structural answer — the claim assumes that removing cars increases equitable access for non-drivers.',
+          ]},
+          { k: 'p', t: 'CARS questions reward structural reading — not what the passage says but what it needs to be true. Practice asking "what must be true for this argument to work?" — that question is the whole exam.' },
         ],
       },
       {
