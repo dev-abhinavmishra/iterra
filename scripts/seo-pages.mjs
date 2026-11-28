@@ -847,6 +847,15 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .timeline .what{font-size:1rem;line-height:1.65;color:#333a34;padding-left:.4rem}
 @media(max-width:640px){.timeline::before{left:4.6rem}.timeline li{grid-template-columns:4rem 1fr;gap:.9rem}.timeline .when{font-size:10px}.timeline .when::after{left:calc(4rem + .9rem - 3px)}}
 .guide-article.dc .gsec:first-of-type .prose p:first-of-type::first-letter{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:3.5em;float:left;line-height:.8;padding:.08em .14em 0 0;color:var(--accent)}
+.picks{display:grid;grid-template-columns:repeat(3,1fr);gap:2.2rem;margin-bottom:1rem}
+.pick{display:flex;flex-direction:column;gap:.5rem;text-decoration:none;color:var(--ink);padding-top:1.2rem;border-top:2px solid var(--ink);transition:border-color .2s}
+.pick:hover{border-top-color:var(--accent)}
+.pick .pk{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.pick .pt{font-family:Newsreader,Georgia,serif;font-size:1.45rem;font-weight:500;letter-spacing:-.015em;line-height:1.25;transition:color .15s}
+.pick:hover .pt{color:var(--accent)}
+.pick .pd{font-size:.92rem;color:var(--mute);line-height:1.55}
+.pick .pm{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;color:var(--faint);margin-top:auto;padding-top:.4rem}
+@media(max-width:900px){.picks{grid-template-columns:1fr;gap:1.6rem}}
 .topic{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:2.2rem 0 .4rem}
 .topic::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 .topic:first-child{margin-top:0}
@@ -1668,6 +1677,13 @@ export function renderGuidesIndex() {
     'Study Skills': 'Speed, groups, burnout, and the meta-skills.',
     'Writing': 'Faster drafting, clearer arguments, less staring.',
   };
+  const PICKS = ['plan-a-semester', 'spaced-repetition-explained', 'how-to-study-for-finals-week'];
+  const picksHtml = PICKS.map((slug) => GUIDES.find((g) => g.slug === slug))
+    .filter(Boolean)
+    .map(
+      (g) => `<a class="pick" href="/guides/${g.slug}"><span class="pk mono">Start here</span><span class="pt">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="pd">${esc(g.description.split('.')[0])}.</span><span class="pm">${dateFmt(g.datePublished)} · ${g.readMinutes} min</span></a>`,
+    )
+    .join('\n');
   const cards = topics
     .map(
       (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</h3>${TOPIC_NOTES[t.k] ? `<p class="topic-d">${esc(TOPIC_NOTES[t.k])}</p>` : ''}<ul class="rows">${t.items
@@ -1717,7 +1733,13 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
 </div>
 </div></section>
 <div class="wrap">
-<section class="block" style="border-bottom:none">
+<section class="block">
+<h2 class="sec mono">Start here</h2>
+<div class="picks">
+${picksHtml}
+</div>
+</section>
+<section class="block">
 <h2 class="sec mono">Browse the guides</h2>
 ${topicNav}
 ${cards}
