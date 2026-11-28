@@ -151,3 +151,4 @@ if(rv.length&&'IntersectionObserver' in window&&matchMedia('(prefers-reduced-mot
   [].slice.call(rv).forEach(function(el){io.observe(el)});
 }
 })();
+;(function(){var el=document.querySelector('[data-read-count]');if(!el)return;try{var n=0,total=+el.getAttribute('data-total')||0;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('itr-read:')===0)n++}if(n>0){el.textContent="You've read "+n+" of "+total+" guides — pick up where you left off";el.hidden=false}}catch(e){}})();

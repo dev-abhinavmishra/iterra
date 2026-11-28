@@ -1020,6 +1020,7 @@ body.reader .guide-article{max-width:46rem}
 .topic::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 .topic:first-child{margin-top:0}
 .topic{scroll-margin-top:90px}
+.read-count{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:-.4rem 0 1.2rem}
 .topic-d{font-family:Newsreader,Georgia,serif;font-size:1.02rem;font-style:italic;color:var(--mute);margin:-.2rem 0 .9rem;max-width:40rem;line-height:1.55}
 .topic-link{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
 .topic-link:hover{color:var(--accent);border-bottom-color:var(--gold)}
@@ -2038,6 +2039,7 @@ ${picksHtml}
 </section>
 <section class="block">
 <h2 class="sec mono">Browse the guides</h2>
+<p class="read-count mono" data-read-count data-total="${GUIDES.length}" hidden></p>
 ${topicNav}
 ${cards}
 <div class="cta" style="margin-top:2.5rem">
