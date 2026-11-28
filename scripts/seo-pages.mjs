@@ -488,8 +488,11 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .scrim{display:none}
 .main{flex:1;min-width:0;margin-left:282px;display:flex;flex-direction:column}
 .topbar{display:none}
-.content{flex:1;min-width:0;background:var(--bg)}
-.foot{background:var(--bg)}
+.content{flex:1;min-width:0;background-color:var(--bg);background-image:
+  radial-gradient(55% 42% at 88% -4%,rgba(124,160,120,.09),transparent 62%),
+  radial-gradient(40% 30% at 0% 100%,rgba(217,200,151,.12),transparent 60%),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");background-attachment:fixed}
+.foot{background:transparent}
 @media(max-width:960px){
   .side{top:10px;bottom:10px;left:10px;width:auto;right:10px;max-width:320px;transform:translateX(calc(-100% - 30px));transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
   body.nav-open .side{transform:none}
