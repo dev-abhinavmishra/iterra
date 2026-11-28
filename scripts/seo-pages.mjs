@@ -2043,6 +2043,7 @@ ${cards}
 <div class="cta" style="margin-top:2.5rem">
 <a class="primary" href="/#/today">Open the workspace →</a>
 <a class="ghost" href="/tools">All tools</a>
+<a class="ghost" href="/topics">Browse by topic</a>
 <a class="ghost" href="/feed.xml">RSS feed</a>
 </div>
 </section>
@@ -2824,6 +2825,8 @@ All guides: https://iterrapp.vercel.app/guides
 RSS feed: https://iterrapp.vercel.app/feed.xml
 
 ## Guide topics
+
+Index: https://iterrapp.vercel.app/topics
 
 ${TOPIC_PAGES.map((t) => `- [${t.kicker} guides](https://iterrapp.vercel.app/topics/${t.slug}): ${t.guides.length} articles`).join('\n')}
 
