@@ -31,6 +31,8 @@ export const TOOLS = [
       { q: "Do I have to plan my whole week in Boxed?", a: "No — Boxed works day by day. Dump today's tasks, pick the few that matter, time-box them, and done. The weekly view fills in on its own as you use it." },
       { q: "What happens to tasks I don't finish?", a: "They don't vanish. Unfinished boxes roll forward so tomorrow's dump starts honest instead of starting over." },
       { q: "Is Boxed a calendar or a to-do list?", a: "It's the step between them. A to-do list says what; a calendar says when. Boxed turns 'study bio' into 'bio reading, 2–4pm, Tuesday' — a commitment small enough to keep." },
+      { q: "How is Boxed different from just using my phone's reminders?", a: "Reminders ping you once; Boxed holds the whole shape of the day. The dump, the prioritization, and the time-boxes all live together — a reminder tells you to look, a box tells you what to do with the next two hours." },
+      { q: "Can Boxed handle group projects or shared deadlines?", a: "Boxed is personal — it plans your day, not your team's. Shared deadlines belong in Margin as course materials or in whatever your group actually uses; the tool's job is making sure your slice of the work has a box." },
     ],
     facts: [
       'Brain dump first',
@@ -67,6 +69,8 @@ export const TOOLS = [
       { q: "Do I have to set up every course manually?", a: "Once per term, yes — and that's the point. Ten minutes of setup in week one buys you a semester of 'what's due when' answered automatically." },
       { q: "Does Syllabus replace my Google Calendar?", a: "It plans the study blocks; your calendar keeps the lectures. Most students run both — Syllabus decides what to work on, the calendar decides where you physically are." },
       { q: "What if my schedule changes mid-semester?", a: "The folio is meant to be edited, not worshipped. Move a block, drop a commitment, and the week replans around it." },
+      { q: "Can Syllabus handle irregular schedules — night classes, internships?", a: "Yes — blocks aren't tied to a MWF/TT pattern. If your week looks like nothing, that's fine; the folio plans around whatever slots you actually have, including one-off blocks." },
+      { q: "Does Syllabus know my exam dates automatically?", a: "You enter them as commitments when they're announced — the syllabus PDF is the source, not the tool. Once it's in, the plan rearranges around real deadlines instead of pretending they don't exist." },
     ],
     facts: [
       'Term setup once',
@@ -103,6 +107,8 @@ export const TOOLS = [
       { q: "How is Rhythm different from a habit tracker?", a: "A habit tracker counts reps. Rhythm keeps the register — your study cadence and class attendance in one place — so 'am I actually showing up' is a glance, not a guess." },
       { q: "Do missed days break everything?", a: "Streaks reset, patterns don't. The register is honest about the gap and keeps going — one bad week doesn't erase the semester." },
       { q: "Can it track attendance as well as habits?", a: "Yes — that's the 'register' idea. Class attendance and study sessions live on the same weekly grid." },
+      { q: "What if I miss a whole week — do I start over?", a: "No. The register shows the gap honestly and keeps the streak history intact — you can see exactly which days broke the pattern and rebuild from there, not from zero." },
+      { q: "Can I use Rhythm for non-study habits too?", a: "Yes — gym, sleep, reading, anything with a weekly rhythm. The register doesn't care what you're tracking; it cares that you're honest about it." },
     ],
     facts: [
       'Weekly register',
@@ -139,6 +145,8 @@ export const TOOLS = [
       { q: "Is this real spaced repetition or just flashcards?", a: "Real scheduling — cards come due based on how you answered, not on a fixed rotation. It's deliberately simpler than Anki's engine, which is the point." },
       { q: "Can I import decks from Quizlet or Anki?", a: "Cards can come in through links the workspace shares. There's no bulk CSV importer yet — if your deck lives in a file, copy-paste is still faster than rebuilding it." },
       { q: "Do my decks sync to my phone?", a: "Iterra runs in the browser and works offline after first load. Sync across devices isn't wired up yet — treat it as your study device's cardfile." },
+      { q: "How many cards should I make per lecture?", a: "Fewer than you think. One idea per card, made within a day of the lecture — a deck of 30 solid cards beats 100 made in a panic the night before the exam." },
+      { q: "Can I use the same deck across multiple courses?", a: "Decks can be tagged to courses, but nothing stops you from reviewing any deck anytime. The course tag is for organization, not a lock." },
     ],
     facts: [
       'Spaced scheduling',
@@ -175,6 +183,8 @@ export const TOOLS = [
       { q: "Are my notes actually private?", a: "Yes — Ink is local-first. Notes live in your browser's storage, not a server. Export them anytime; nothing is held hostage." },
       { q: "Does Ink support markdown?", a: "Ink is built for long-form writing with wiki-links between notes. Pasting markdown works; it isn't a markdown editor first." },
       { q: "Can notes connect to my courses and cards?", a: "Yes — notes can be tagged to courses and wiki-linked to each other, so a lecture note can surface inside the course dossier alongside its flashcards." },
+      { q: "What happens if I need my notes on another computer?", a: "Export them — Ink is local-first, so your data is yours to move. There's no sync service holding them hostage, which is the trade: portability over convenience." },
+      { q: "Is Ink good for long essays or just notes?", a: "Both — it's a writing desk, not a sticky-note app. Wiki-links and daily pages help with thinking, but the editor handles long-form prose without breaking a sweat." },
     ],
     facts: [
       'Wiki-linked notes',
@@ -211,6 +221,8 @@ export const TOOLS = [
       { q: "What can I store in Margin?", a: "Recordings, PDFs, slides, scanned handouts — the raw material of a course, filed by course and topic so Notes and Flashcards can reach it." },
       { q: "Is Margin a Google Drive replacement?", a: "No — Drive stores files; Margin organizes course material. Think of it as the shelf your notes and cards draw from, not a sync client." },
       { q: "Is there a storage limit?", a: "Everything lives in your browser, so you're bounded by browser storage — generous for documents and recordings, but very large media libraries are worth keeping elsewhere too." },
+      { q: "Can I share materials with classmates?", a: "Margin is a personal shelf — sharing happens through exports. If your study group needs a shared drive, use a real one; Margin's job is keeping *your* copy organized." },
+      { q: "Does Margin work with scanned handwritten notes?", a: "Yes — images and scans file the same as PDFs. Handwritten notes that get scanned become searchable course material instead of drawer clutter." },
     ],
     facts: [
       'Course-filed shelf',
@@ -247,6 +259,8 @@ export const TOOLS = [
       { q: "Do I need a physical scanner?", a: "No — capture works through your device camera in the browser. You print the bubble sheet, students fill it in, you photograph it." },
       { q: "Is GradeStack only for teachers?", a: "Teachers get the roster and class analytics; anyone self-quizzing gets the same builder and grading without the classroom layer." },
       { q: "Can it grade freeform written answers?", a: "No — it's built for structured answer sheets (bubbles and scantron-style marks), not essay grading. For written work, Ink's notes and Proof's error log do the heavy lifting." },
+      { q: "Can students use GradeStack for self-quizzing?", a: "Yes — the builder and grading work without the roster layer. Build a sheet from your notes, scan your own answers, and get the same score trends teachers get." },
+      { q: "What if a student fills the sheet wrong or marks two answers?", a: "The scanner flags ambiguous marks for review — it doesn't guess silently. You see the flagged sheets and decide, which keeps grading honest without needing a physical scantron." },
     ],
     facts: [
       'Printable sheets',
@@ -283,6 +297,8 @@ export const TOOLS = [
       { q: "Are the pomodoro lengths customizable?", a: "Yes — sessions and interval routes are configurable, and you can launch a session straight from a Syllabus block so the plan and the timer stay linked." },
       { q: "Does Timer track time even when I'm not in a session?", a: "It logs sessions you start — honest focus time, not ambient surveillance. The ledger shows what you actually sat down for." },
       { q: "Can I use the timer without the rest of Iterra?", a: "Timer lives inside the workspace — open Iterra in a mobile browser and it's there, offline, no account." },
+      { q: "What if I need to pause mid-session?", a: "Pause works — the session keeps its place and the ledger only counts finished time. A break you actually take beats a session you abandon and restart." },
+      { q: "Does the timer work on my phone during a study session?", a: "Yes — Iterra runs in any modern browser, and the timer works offline after first load. Phone or laptop, the ledger follows your account-free workspace." },
     ],
     facts: [
       'Pomodoro + intervals',
@@ -317,6 +333,8 @@ export const TOOLS = [
     ],
     faqs: [
       { q: "Does Proof just solve the problem for me?", a: "No — it's a workbench, not an answer machine. You work the steps; Proof keeps the problem set, your derivations, and resurfaces what you missed." },
+      { q: "What subjects does Proof work for?", a: "Anything with derivations — math, physics, chemistry, economics. If the answer is a process rather than a number, Proof's step-by-step space is built for it." },
+      { q: "How does the error log decide what to resurface?", a: "Missed problems get filed by concept, not just by question — so a derivative you botched on Tuesday resurfaces when Friday's set hits the same idea, regardless of how the numbers change." },
       { q: "What subjects does it cover?", a: "Math-first: problem sets, step-by-step working, and an error log that brings missed concepts back around for review." },
       { q: "Is it a graphing calculator replacement?", a: "It complements one — Proof is for practicing method, not for computing answers quickly. The error log is what makes it study software instead of a solver." },
     ],
@@ -355,26 +373,32 @@ const TOOL_TOURS = {
   boxed: [
     'Most planners fail the same way: they ask you to decide what matters before you’ve emptied your head. Boxed flips the order. The brain dump comes first — every errand, worry, and half-formed intention lands in one place, where it stops looping in your skull. Only then do you choose.',
     'Time-boxing is where the day gets real. “Study biology” is a wish; “bio reading, 2–4pm” is a commitment your future self can actually keep or break. Unfinished boxes roll forward instead of evaporating, so tomorrow’s dump starts from what really happened.',
+    'The dump is the underrated half. Most planners ask you to decide under pressure — what’s important, what can wait — while your head is still noisy. Boxed separates those jobs on purpose: capture first, prioritize once the noise is on paper. Students who’ve tried it say the dump alone is worth it, even on days they never open the schedule.',
   ],
   syllabus: [
     'The Folio is where a semester stops being a rumor. You enter courses once — meeting times, rooms, instructor notes — and the schedule becomes the skeleton every other tool hangs off. Planned study blocks land on real days, and attendance and deadlines pick up the same course context for free.',
     'What separates it from a generic calendar is that it knows what a course *is* inside Iterra. A block tagged to Organic Chemistry can surface its readings, its flashcard deck’s due count, and its notes without you filing anything twice. The schedule ends up being the index.',
+    'The honest limitation: it plans the study, not the lecture. Your actual class times still live wherever your registrar put them. What the Folio replaces is the spreadsheet of “I should review chapter 4” — that layer was never a calendar problem, and pretending it was is why most planners fail students.',
   ],
   rhythm: [
     'Routines are the least glamorous tool here and probably the most useful. Rhythm doesn’t try to motivate you — it keeps a faithful record of what you actually did, which is the only data a habit needs. Weekly routines, attendance logs, and streaks live in one place so “am I showing up?” has a real answer.',
     'Students consistently overestimate willpower and underestimate friction. Rhythm is built for the second problem: logging takes seconds, streaks make skipping visible, and the weekly review turns vague guilt into a pattern you can actually adjust.',
+    'The register view matters more than it looks. Habits tracked in isolation are easy to game — mark everything done, feel productive, learn nothing. Rhythm’s weekly grid makes the shape of the week visible at a glance: the courses you’re drifting on, the habits you’ve quietly dropped, the streak that’s actually alive.',
   ],
   flashcards: [
     'Flashcards in Iterra are built around an uncomfortable truth: rereading feels productive and isn’t. Every deck supports active recall — you answer before you flip — and spaced review schedules cards based on how well you actually knew them, not on a fixed timer.',
     'The writing drills matter more than they sound. Typing an answer is a harder, more honest test than recognizing one, and it’s the mode that transfers to exams. Decks attach to courses, so a card made during lecture week resurfaces during review week without any filing on your part.',
+    'Deliberately simpler than Anki, which is a feature, not a bug. Anki’s scheduling engine is excellent and its interface is a project. The cardfile trades a few scheduling knobs for a deck that takes five minutes to set up and zero minutes to dread opening. For most courses, that trade wins.',
   ],
   ink: [
     'Ink treats notes as a thinking surface, not a storage unit. Wiki-links let a concept in one lecture connect to a concept in another; daily pages give you a low-friction place to think out loud; folders keep courses from dissolving into one long scroll.',
     'The focus-writing mode is the quiet killer feature. Distraction-free prose with your links and references one keystroke away means the note stays connected to the rest of your thinking without competing for attention.',
+    'It’s also where Iterra’s local-first claim stops being abstract. Your notes — the most personal files a student has — never leave the browser. No sync service to breach, no company pivot that turns your semester into a hostage situation. Export when you want a copy; otherwise it just stays yours.',
   ],
   margin: [
     'Margin is the shelf behind the desk. Recordings, PDFs, handouts, and imported class files live here, filed by course, ready to surface wherever you’re working — a recording’s timestamp can point at the exact moment a concept got explained.',
     'It exists because study materials have a habit of scattering across downloads folders and chat apps. Keeping them course-tagged means “what was that example the professor gave?” is a search, not an archaeology project.',
+    'The shelf also answers the question every student asks too late: where did that recording go? Lecture capture, scanned handouts, professor slides — if it entered through Margin, it’s filed by course and reachable from the same place your notes and cards live.',
   ],
   gradestack: [
     'GradeStack is the part of studying nobody enjoys and everybody needs. It builds assessments, reads completed answer sheets back in, and keeps a gradebook that shows score trends over time — so a bad week reads as data instead of a verdict.',
@@ -1057,6 +1081,10 @@ ${tool.workflow
 </div>
 </section>`
     : '';
+  const toolReadMin = Math.max(1, Math.round(
+    ((tool.lede || '') + (tool.features || []).join(' ') + (TOOL_TOURS[tool.id] || []).join(' ') +
+      (tool.workflow || []).map((w) => w.t + ' ' + w.d).join(' ') + (tool.faqs || []).map((f) => f.q + ' ' + f.a).join(' ')).length / 800,
+  ));
   const neighbors = (TOOL_NEIGHBORS[tool.id] || TOOLS.filter((t) => t.id !== tool.id).slice(0, 3).map((t) => t.id))
     .map((id) => TOOLS.find((t) => t.id === id))
     .filter(Boolean);
@@ -1156,7 +1184,7 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools', href: '/tools' }, { 
 <h1>${h1html}</h1>
 <p class="lede">${esc(tool.lede)}</p>
 ${factHtml}
-<div class="meta-row"><span>Updated ${dateFmt(tool.updated)}</span><span><a href="/tools">All tools</a></span></div>
+<div class="meta-row"><span>Updated ${dateFmt(tool.updated)}</span><span>${toolReadMin} min read</span><span><a href="/tools">All tools</a></span></div>
 </div></section>
 <div class="wrap">
 <figure class="plate">
@@ -1716,6 +1744,10 @@ ${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
         : [],
   );
 
+  const cReadMin = Math.max(1, Math.round(
+    ((page.lede || '') + (page.verdict || '') + JSON.stringify(page.table || '') +
+      (page.faqs || []).map((f) => f.q + ' ' + f.a).join(' ') + (page.iterraWins || []).join(' ') + (page.rivalWins || []).join(' ')).length / 800,
+  ));
   /* rotate the same three hero treatments used on guide articles */
   const cIdx = COMPARE_PAGES.indexOf(page);
   const cVariant = ((cIdx % 3) + 3) % 3;
@@ -1725,7 +1757,7 @@ ${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
 <p class="lede">${esc(page.lede)}</p>
 ${matchupHtml}
 ${factHtml}
-<div class="meta-row"><span>${dateFmt(page.datePublished)}</span>${page.dateModified && page.dateModified !== page.datePublished ? `<span>Updated ${dateFmt(page.dateModified)}</span>` : ''}<span><a href="/${base}">All ${base === 'compare' ? 'comparisons' : 'alternatives'}</a></span></div>`;
+<div class="meta-row"><span>${dateFmt(page.datePublished)}</span>${page.dateModified && page.dateModified !== page.datePublished ? `<span>Updated ${dateFmt(page.dateModified)}</span>` : ''}<span>${cReadMin} min read</span><span><a href="/${base}">All ${base === 'compare' ? 'comparisons' : 'alternatives'}</a></span></div>`;
   const cFig = `<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>`;
   const cHeroHtml =
     cVariant === 1
