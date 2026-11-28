@@ -8500,6 +8500,317 @@ export const GUIDES = [
       },
     ],
   },
+    {
+    slug: 'how-to-study-anthropology',
+    title: 'How to study <em>anthropology</em>',
+    seoTitle: 'How to Study Anthropology: Fieldwork, Theory, Four Fields',
+    description: 'Anthropology courses test whether you can think across four fields and argue from evidence. Learn the subfields, master ethnographic method, and write analysis that commits.',
+    kicker: 'Subject Guides',
+    datePublished: '2028-02-14',
+    dateModified: '2028-02-21',
+    readMinutes: 8,
+    keywords: [
+        'how to study anthropology',
+        'anthropology study tips',
+        'anthropology exam prep',
+        'four fields anthropology'
+      ],
+    tools: [
+        'ink',
+        'margin'
+      ],
+    related: [
+        'how-to-study-sociology',
+        'how-to-study-political-science',
+        'how-to-study-education'
+      ],
+    lede: 'Anthropology is the only subject that asks you to hold four different disciplines in your head at once — archaeology digs, cultural anthropology observes, linguistics analyzes language, biological anthropology studies bodies and bones. The exam does not test whether you memorized four syllabi. It tests whether you can argue across them.',
+    takeaways: [
+        'Learn the four fields as lenses, not separate subjects — most exam questions ask you to compare them.',
+        'Ethnographic method is the spine: participant observation, thick description, reflexivity.',
+        'Every claim needs an example — anthropology grades analysis, not summary.'
+      ],
+    faq: [
+        {
+          q: 'What are the four fields of anthropology?',
+          a: 'Archaeology studies past societies through material remains. Cultural anthropology studies living societies through fieldwork. Linguistic anthropology studies language in social context. Biological anthropology studies human evolution, variation, and behavior. Most intro courses sample all four.'
+        },
+        {
+          q: 'How is anthropology different from sociology?',
+          a: 'Both study society, but anthropology insists on firsthand fieldwork — living inside a community rather than analyzing data about it. Anthropologists also span four subfields where sociologists focus on social institutions. Exams reward the ethnographic imagination: seeing the ordinary as strange.'
+        },
+        {
+          q: 'How do I study for anthropology exams?',
+          a: 'Practice argument essays: take a concept like cultural relativism or thick description, define it, apply it to an ethnographic example, and defend a claim. Review your field notes or readings for concrete cases you can deploy under time pressure.'
+        }
+      ],
+    sections: [
+        {
+          h2: 'What anthropology actually tests',
+          blocks: [
+            {
+              k: 'p',
+              t: 'Strip away the four-field structure and anthropology exams test one skill: can you argue that a practice, belief, or artifact means something specific in its cultural context — and defend that reading with evidence?'
+            },
+            {
+              k: 'p',
+              t: 'That is why the subject rewards argument over recall. A student who can define thick description but cannot apply it to a ethnographic vignette will score worse than one who uses the concept loosely but argues well.'
+            }
+          ]
+        },
+        {
+          h2: 'The anthropology study loop',
+          blocks: [
+            {
+              k: 'steps',
+              items: [
+                'Read for the claim — every ethnography and theory text argues something. Extract the argument, not the plot.',
+                'Attach an example — for every concept, find one ethnographic case you can use to illustrate it.',
+                'Compare across fields — ask how archaeology, cultural, linguistic, and biological perspectives would each approach the same question.',
+                'Write the argument — practice defending a reading of a case in 300 words, timed.',
+                'Review the misses — every wrong answer is a concept you half-knew; fix the concept, not the question.'
+              ]
+            },
+            {
+              k: 'p',
+              t: 'The loop works because anthropology is cumulative in a specific way: each new case you analyze makes the next argument faster. By midterms you should be arguing about culture, not summarizing it.'
+            }
+          ]
+        },
+        {
+          h2: 'The four fields: different evidence, different questions',
+          blocks: [
+            {
+              k: 'p',
+              t: 'The four fields share a subject — humans — but not a method. Each asks different questions of different evidence:'
+            },
+            {
+              k: 'table',
+              head: [
+                'Field',
+                'Evidence',
+                'Core question',
+                'Example'
+              ],
+              rows: [
+                [
+                  'Archaeology',
+                  'Artifacts, sites, stratigraphy',
+                  'What did past people do and why?',
+                  'A pottery style spreading = trade or migration?'
+                ],
+                [
+                  'Cultural',
+                  'Field notes, interviews, observation',
+                  'What do living people believe and do?',
+                  'Why do Nuer practice ghost marriage?'
+                ],
+                [
+                  'Linguistic',
+                  'Speech, narratives, categories',
+                  'How does language structure thought?',
+                  'Does the language have separate words for blue and green?'
+                ],
+                [
+                  'Biological',
+                  'Bones, genes, primate behavior',
+                  'How did humans evolve and vary?',
+                  'What does pelvis shape tell us about bipedalism?'
+                ]
+              ]
+            },
+            {
+              k: 'p',
+              t: 'The exam\'s favorite move is asking you to apply one field\'s question to another field\'s evidence — "how would an archaeologist study this modern practice?" The answer is always: translate the evidence into that field\'s questions.'
+            }
+          ]
+        },
+        {
+          h2: 'Ethnographic method: the toolkit',
+          blocks: [
+            {
+              k: 'deflist',
+              items: [
+                {
+                  t: 'Participant observation',
+                  d: 'Immersion — you live the routine, learn the categories, and let the analysis emerge. Malinowski made this the discipline\'s method.'
+                },
+                {
+                  t: 'Thick description',
+                  d: 'Geertz — describing behavior with its layers of meaning. Not "she bowed" but what the bow meant, to whom, in that moment.'
+                },
+                {
+                  t: 'Reflexivity',
+                  d: 'The observer is part of the data — your presence changes what you see, and honest ethnography admits it.'
+                },
+                {
+                  t: 'Key informants',
+                  d: 'The people who translate the culture for you — and whose biases you must account for.'
+                },
+                {
+                  t: 'Emic vs etic',
+                  d: 'The insider\'s view vs the analyst\'s view — exams ask you to argue which is more valid for a given question.'
+                }
+              ]
+            },
+            {
+              k: 'p',
+              t: 'These are not vocabulary words — they are analytical tools. A good exam answer names the method, explains what it reveals, and applies it to a specific case.'
+            }
+          ]
+        },
+        {
+          h2: 'A worked example: arguing about a practice',
+          blocks: [
+            {
+              k: 'p',
+              t: 'The exam gives you a vignette — say, a community that holds an annual ritual involving masked dancers — and asks you to analyze it. Here is how the argument builds:'
+            },
+            {
+              k: 'steps',
+              items: [
+                'Name the concept — thick description, ritual, liminality — whatever the question is really asking about.',
+                'Describe the practice precisely — who, what, when, what it means to participants.',
+                'Apply the theory — what does Geertz or Turner or Douglas say this kind of ritual does?',
+                'Commit to a claim — "the ritual reinforces social cohesion by marking the transition between statuses."',
+                'Defend with evidence — cite the specific details that support the claim and address the strongest counter-argument.'
+              ]
+            },
+            {
+              k: 'p',
+              t: 'The difference between a B and an A is not knowing more theories — it is committing to an argument and defending it. Summary gets you halfway; analysis gets you the rest.'
+            }
+          ]
+        },
+        {
+          h2: 'Emic versus etic: the argument underneath',
+          blocks: [
+            {
+              k: 'p',
+              t: 'Every ethnographic claim sits on a methodological choice — whose perspective you privilege:'
+            },
+            {
+              k: 'versus',
+              a: {
+                k: 'Emic',
+                t: 'The insider\'s view — how participants understand their own practice. Captures meaning, risks missing patterns participants cannot see.'
+              },
+              b: {
+                k: 'Etic',
+                t: 'The analyst\'s view — categories imposed from outside. Reveals patterns, risks distorting local meaning.'
+              }
+            },
+            {
+              k: 'p',
+              t: 'The best answers argue for a position: "for this question, the emic view is more valid because..." or "the etic view reveals what participants take for granted." Naming the choice is the skill.'
+            }
+          ]
+        },
+        {
+          h2: 'The theorists who keep appearing',
+          blocks: [
+            {
+              k: 'p',
+              t: 'Four names cover most theory questions. Learn the claim, not the biography:'
+            },
+            {
+              k: 'deflist',
+              items: [
+                {
+                  t: 'Boas',
+                  d: 'Cultural relativism — cultures understood on their own terms, not ranked against yours.'
+                },
+                {
+                  t: 'Malinowski',
+                  d: 'Participant observation as method — the fieldwork that defined what fieldwork means.'
+                },
+                {
+                  t: 'Geertz',
+                  d: 'Thick description — culture as a system of meaning to be read, not a variable to be measured.'
+                },
+                {
+                  t: 'Mead',
+                  d: 'Coming of age in Samoa — culture shapes personality. Famous and famously criticized.'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          h2: 'The numbers that shape the semester',
+          blocks: [
+            {
+              k: 'p',
+              t: 'Anthropology reads like a lecture subject but grades like a writing subject. The workload reflects that:'
+            },
+            {
+              k: 'stats',
+              items: [
+                {
+                  v: '4',
+                  l: 'Subfields most intro courses sample'
+                },
+                {
+                  v: '~40%',
+                  l: 'Of exam marks typically from essay arguments'
+                },
+                {
+                  v: '300',
+                  l: 'Words — the length of a typical timed answer'
+                },
+                {
+                  v: '1',
+                  l: 'Fieldwork placement many programs require'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          h2: 'The mistakes that cost anthropology students points',
+          blocks: [
+            {
+              k: 'deflist',
+              items: [
+                {
+                  t: 'Treating the four fields as separate subjects',
+                  d: 'The exam rewards synthesis — an answer connecting archaeology to cultural anthropology beats two separate answers.'
+                },
+                {
+                  t: 'Judging cultures by your own norms',
+                  d: 'Cultural relativism is the founding stance — "that practice is wrong" without engaging its internal logic fails the course\'s core test.'
+                },
+                {
+                  t: 'Summarizing instead of analyzing',
+                  d: 'Anthropology grades argument — "the Nuer practice ghost marriage" is a fact; "ghost marriage solves the problem of male heirs dying without sons" is analysis.'
+                },
+                {
+                  t: 'Ignoring the researcher',
+                  d: 'Reflexivity is not optional — an ethnographic claim that pretends the observer was invisible is methodologically naive.'
+                },
+                {
+                  t: 'Memorizing theorists without their claims',
+                  d: 'Exams ask "what does Geertz mean by thick description" not "who was Geertz" — learn the idea, attach the name.'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          h2: 'The part to remember',
+          blocks: [
+            {
+              k: 'quote',
+              t: 'Anthropology is the discipline that makes the familiar strange and the strange familiar — the exam tests whether you can do both at once.'
+            },
+            {
+              k: 'p',
+              t: 'Learn the four fields as lenses, master the ethnographic method, know the theorists\' claims, and practice arguing from evidence. That loop is the whole method.'
+            }
+          ]
+        }
+      ],
+    },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
