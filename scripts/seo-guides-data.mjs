@@ -5903,6 +5903,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-write-a-research-paper',
+    title: 'How to write a <em>research paper</em>',
+    seoTitle: 'How to Write a Research Paper: Question, Argument & Structure',
+    description:
+      'Write a research paper that earns the grade: start with a question, build an argument, organize the structure, and revise relentlessly — the process matters more than the topic.',
+    kicker: 'Writing',
+    datePublished: '2027-10-19',
+    dateModified: '2027-10-23',
+    readMinutes: 7,
+    keywords: ['how to write a research paper', 'research paper guide', 'academic writing', 'research paper structure'],
+    tools: ['ink', 'proof'],
+    related: ['write-faster-on-exams', 'how-to-study-literature', 'how-to-run-a-study-group'],
+    lede: 'The research paper is the assignment that separates "I can write" from "I can think." Most students treat it like a long essay: they pick a topic, gather sources, and write until they run out of time. The research paper rewards a different approach: start with a question, not a topic; build an argument, not a summary; and let the evidence lead the structure.',
+    takeaways: [
+      'Start with a question, not a topic — the question gives you direction.',
+      'Build an argument, not a summary — connect the sources into a thesis.',
+      'Revise relentlessly — the first draft is never the final product.',
+    ],
+    faq: [
+      {
+        q: 'How long should a research paper be?',
+        a: 'Most research papers are 10-15 pages (2,500-4,000 words). The length depends on the assignment — some professors want 5 pages, others want 20. The key is depth over breadth: a focused argument with strong evidence beats a broad topic with shallow coverage.',
+      },
+      {
+        q: 'How many sources do I need?',
+        a: 'Most research papers need 5-10 credible sources — peer-reviewed articles, books, or reputable websites. Quality matters more than quantity: one well-argued source is worth more than five shallow ones. Aim for sources that directly support your thesis.',
+      },
+      {
+        q: 'How do I know if my thesis is strong?',
+        a: 'A strong thesis is specific, arguable, and supported by evidence. If your thesis is "Climate change is important," it\'s too broad. If it\'s "Coastal cities face disproportionate climate risk because of infrastructure, economics, and geography," it\'s specific and arguable. Test it: can someone disagree with it? If not, it\'s not a thesis.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Start with a question, not a topic',
+        blocks: [
+          { k: 'p', t: 'A topic is "climate change." A question is "How does climate change affect coastal cities?" The question gives you direction; the topic gives you a pile of information. Start with a question that\'s specific enough to answer in 10-15 pages but broad enough to find sources.' },
+          { k: 'p', t: 'Test your question: can you answer it with evidence? If the answer is just an opinion, the question is too broad. If you can\'t find sources, the question is too narrow. The sweet spot is a question that requires research but has a clear answer.' },
+          { k: 'tool', tool: 'ink', t: 'Ink lets you brainstorm questions and sketch argument structures by hand — the research paper starts with thinking, not typing.' },
+        ],
+      },
+      {
+        h2: 'The research process: from question to argument',
+        blocks: [
+          { k: 'p', t: 'The research paper process works best as a cycle:' },
+          { k: 'steps', items: [
+            'Ask a question — specific enough to answer, broad enough to research.',
+            'Find sources — peer-reviewed articles, books, credible websites.',
+            'Take notes — summarize each source\'s argument and evidence.',
+            'Build an argument — connect the sources into a thesis.',
+            'Write and revise — the draft is never the final product.',
+          ]},
+          { k: 'p', t: 'The argument step is where research becomes writing. A student who can connect three sources into a coherent argument understands research; a student who just summarizes sources doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The thesis: your argument in one sentence',
+        blocks: [
+          { k: 'p', t: 'The thesis is the argument you\'re making — not the topic, not the summary, but the claim. A good thesis is specific, arguable, and supported by evidence.' },
+          { k: 'p', t: 'Bad thesis: "Climate change is important." Good thesis: "Coastal cities face disproportionate climate risk because of their infrastructure, economics, and geography — and adaptation strategies must address all three."' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps structure the argument — the thesis, the evidence, the analysis, the conclusion — so the paper holds together.' },
+        ],
+      },
+      {
+        h2: 'The structure: how to organize the paper',
+        blocks: [
+          { k: 'p', t: 'The research paper has a standard structure — but the content inside each section matters:' },
+          { k: 'deflist', items: [
+            { t: 'Introduction', d: 'The question, the context, and the thesis.' },
+            { t: 'Literature review', d: 'What\'s already known — the gap your paper fills.' },
+            { t: 'Methodology', d: 'How you found your sources and built your argument.' },
+            { t: 'Results/Analysis', d: 'The evidence and what it means.' },
+            { t: 'Discussion', d: 'The implications, the limitations, the future research.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The writing process: draft, revise, repeat',
+        blocks: [
+          { k: 'p', t: 'The first draft is never the final product. The process:' },
+          { k: 'steps', items: [
+            'Draft — get the ideas down, don\'t worry about perfection.',
+            'Revise — cut, reorganize, strengthen the argument.',
+            'Edit — fix grammar, clarity, and flow.',
+            'Proofread — catch the errors the spell-checker misses.',
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The research paper isn\'t about finding information — it\'s about building an argument.' },
+          { k: 'p', t: 'Start with a question, build an argument, organize the structure, and revise relentlessly. The grade isn\'t a measure of intelligence — it\'s a measure of process.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
