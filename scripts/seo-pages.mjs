@@ -1776,6 +1776,11 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools' }])}
 <div class="kicker mono">The terrain</div>
 <h1>Nine tools. <em>One study workspace.</em></h1>
 <p class="lede">Iterra gives every course a place. Plan the week, review the cards, write the notes, run the timer, work the math — all local-first, all connected.</p>
+<div class="stats hero-stats">
+<div class="stat"><span class="v">${TOOLS.length}</span><span class="l">Places, one workspace</span></div>
+<div class="stat"><span class="v">0</span><span class="l">Accounts required</span></div>
+<div class="stat"><span class="v">${TOOLS.reduce((a, t) => a + (t.features || []).length, 0)}</span><span class="l">Features across the terrain</span></div>
+</div>
 </div></section>
 <div class="wrap">
 <figure class="plate">
