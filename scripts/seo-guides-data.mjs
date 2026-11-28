@@ -5202,6 +5202,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-physics',
+    title: 'How to study <em>physics</em>',
+    seoTitle: 'How to Study Physics: Concepts, Problems & Understanding',
+    description:
+      'Beat physics by understanding the principles, not just memorizing formulas: practice problems, explain concepts in your own words, and check your units — the grade is a measure of understanding.',
+    kicker: 'Study Methods',
+    datePublished: '2027-08-31',
+    dateModified: '2027-09-04',
+    readMinutes: 7,
+    keywords: ['how to study physics', 'physics study tips', 'physics problems', 'physics concepts'],
+    tools: ['proof', 'margin'],
+    related: ['how-to-study-math', 'how-to-study-engineering', 'how-to-study-science'],
+    lede: 'Physics is the subject that separates "I can solve problems" from "I understand the world." But most students treat it like math with extra steps — they memorize formulas and plug in numbers. Physics rewards a different approach: understand the *why* behind the formula, and practice explaining concepts in your own words.',
+    takeaways: [
+      'Take a diagnostic first — the problems you can\'t solve tell you which concepts to review.',
+      'Understand the principles, not just the formulas — explain concepts in your own words.',
+      'Balance problems and concepts — 60% practice, 40% understanding.',
+    ],
+    faq: [
+      {
+        q: 'Is physics harder than math?',
+        a: 'Physics is different from math — it applies math to the physical world. The concepts can be harder because they\'re abstract, but the math itself is usually simpler. The key is understanding the physics concepts, not just the calculations.',
+      },
+      {
+        q: 'How do I know if I understand physics?',
+        a: 'If you can explain a concept in your own words — without looking at your notes — you understand it. If you can only plug numbers into formulas, you don\'t. The Feynman technique works: teach the concept to someone else, and the gaps in your understanding show up immediately.',
+      },
+      {
+        q: 'How much time should I spend on physics problems vs. concepts?',
+        a: 'Aim for 60% problems and 40% concepts. Problems build fluency — you need to solve enough to recognize patterns. Concepts build understanding — you need to know *why* the formulas work. You need both.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know physics before you study it',
+        blocks: [
+          { k: 'p', t: 'Physics is built on a few core principles — Newton\'s laws, conservation of energy, conservation of momentum, and electromagnetism. Everything else is application. If you understand the principles, the problems solve themselves; if you don\'t, you\'re just memorizing patterns.' },
+          { k: 'p', t: 'Take a practice test or diagnostic first. The problems you can\'t solve tell you exactly which concepts to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps organize physics problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'The physics study loop',
+        blocks: [
+          { k: 'p', t: 'Physics prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the concept — read the textbook or watch a lecture.',
+            'Work through example problems — understand *why* each step works.',
+            'Solve problems independently — start with easy, then harder.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why F=ma works understands physics; a student who can only plug in numbers doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The problem-solving method',
+        blocks: [
+          { k: 'p', t: 'Physics problems are puzzles — the answer isn\'t always obvious. The method:' },
+          { k: 'deflist', items: [
+            { t: 'Read carefully', d: 'Identify what\'s given and what\'s asked.' },
+            { t: 'Draw a diagram', d: 'Visualize the situation before solving.' },
+            { t: 'List equations', d: 'Choose the right physics principles.' },
+            { t: 'Solve step by step', d: 'Show your work, check units.' },
+            { t: 'Sanity-check', d: 'Does the answer make physical sense?' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The concept-vs-calculation balance',
+        blocks: [
+          { k: 'p', t: 'Physics has two halves: conceptual questions ("why does this happen?") and calculation problems ("how fast does it go?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
+          { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
+          { k: 'tool', tool: 'margin', t: 'Margin is built for physics — sketch diagrams, annotate equations, and explain concepts in the margins of your notes.' },
+        ],
+      },
+      {
+        h2: 'The common physics traps',
+        blocks: [
+          { k: 'p', t: 'Physics problems have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'Units', d: 'Always check units — a wrong unit means a wrong answer.' },
+            { t: 'Sign errors', d: 'Negative vs. positive matters in physics.' },
+            { t: 'Assumptions', d: 'Many problems assume frictionless surfaces or ideal conditions.' },
+            { t: 'Vector vs. scalar', d: 'Force and velocity are vectors; speed and energy are scalars.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Physics isn\'t about memorizing formulas — it\'s about understanding why they work.' },
+          { k: 'p', t: 'Understand the principles, practice the problems, explain the concepts, and check your units. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
