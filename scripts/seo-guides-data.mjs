@@ -2267,6 +2267,109 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'memory-techniques',
+    title: 'Memory techniques that <em>actually work</em> for students',
+    seoTitle: 'Memory Techniques for Students: Mnemonics, Palaces, Chunking',
+    description:
+      'How to remember more: chunking, the memory palace, mnemonics, and elaboration — the techniques that work with how memory actually operates, plus their honest limits.',
+    kicker: 'Study Methods',
+    datePublished: '2027-01-12',
+    dateModified: '2027-01-16',
+    readMinutes: 8,
+    keywords: ['memory techniques', 'memory palace', 'mnemonics', 'how to improve memory', 'chunking'],
+    tools: ['flashcards', 'ink'],
+    related: ['spaced-repetition-explained', 'active-recall-vs-rereading', 'flashcard-best-practices'],
+    lede: 'Memory isn’t a vault you fill — it’s a muscle you train, and like any muscle it responds to specific exercises. The techniques that work share one principle: make the material *meaningful* and *attached* to something you already know. Rereading a list is the weakest form of practice; linking a fact to a ridiculous image is one of the strongest.',
+    takeaways: [
+      'Memory works by association — every technique below manufactures connections to images, locations, and stories.',
+      'Chunking beats volume; the memory palace beats lists; elaboration beats definitions.',
+      'Mnemonics store information but don’t teach it — pair them with spaced review to keep it alive.'
+    ],
+    faq: [
+      {
+        q: 'Do memory techniques actually work or are they just tricks?',
+        a: 'They work because they work with how memory operates — the brain evolved to remember places, stories, and images, not abstract lists. The memory palace, for example, has been used since ancient Greece and is still one of the most effective encoding methods known.',
+      },
+      {
+        q: 'What’s the difference between memory techniques and spaced repetition?',
+        a: 'Memory techniques help you encode information — turn it into something memorable. Spaced repetition keeps it alive — reviews at expanding intervals so the encoding doesn’t decay. You need both: mnemonics to learn, flashcards to keep.',
+      },
+      {
+        q: 'Can anyone use the memory palace?',
+        a: 'Yes — it requires no special talent, just a familiar location and willingness to make absurd mental images. Most people can build a functional palace in an afternoon and use it for lists, speeches, or ordered material.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Why some things stick and others don’t',
+        blocks: [
+          { k: 'p', t: 'Memory isn’t a vault you fill — it’s a muscle you train, and like any muscle it responds to specific exercises. The techniques that work share one principle: make the material *meaningful* and *attached* to something you already know. Rereading a list is the weakest form of practice; linking a fact to a ridiculous image is one of the strongest.' },
+          { k: 'deflist', items: [
+            { t: 'Association', d: 'Memory encodes what it can connect — a random string is unmemorable; a phone number is easy.' },
+            { t: 'Absurdity wins', d: 'Bizarre, emotional images stick better than neutral ones.' },
+            { t: 'Structure beats volume', d: 'A framework you can navigate beats a pile of facts.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Chunking: the oldest trick in the book',
+        blocks: [
+          { k: 'p', t: 'Working memory holds about four chunks at once — that’s the bottleneck every technique fights. Chunking turns many small items into fewer meaningful groups: a ten-digit number becomes three chunks, a list of twelve cranial nerves becomes three categories, a speech becomes an outline.' },
+          { k: 'p', t: 'When you need to remember a list, look for the pattern that groups it. History dates become eras; biology terms become systems; vocabulary becomes themes. The chunk is the unit memory actually stores.' },
+        ],
+      },
+      {
+        h2: 'The memory palace',
+        blocks: [
+          { k: 'p', t: 'The method of loci — the memory palace — is the oldest documented technique and still one of the strongest. You pick a familiar location, place vivid images of the items along a path, then “walk” the path to recall them in order.' },
+          { k: 'steps', items: [
+            'Choose a location you know cold — every room, every turn.',
+            'Make the images absurd — the weirder, the stickier.',
+            'One item per location, in a fixed order.',
+            'Walk the path mentally to retrieve — the spatial sequence is the retrieval cue.',
+          ]},
+          { k: 'p', t: 'It sounds theatrical because it is — and that’s why it works. The brain evolved to remember places and stories, not lists.' },
+        ],
+      },
+      {
+        h2: 'Mnemonics for lists and sequences',
+        blocks: [
+          { k: 'p', t: 'For ordered material — the planets, the cranial nerves, the order of operations — first-letter mnemonics are the workhorse:' },
+          { k: 'ul', items: [
+            'ROYGBIV for the rainbow colors.',
+            'PEMDAS for the order of operations.',
+            '“Every Good Boy Does Fine” for the treble clef lines.',
+            'Make up your own — the stranger the sentence, the better it sticks.',
+          ]},
+          { k: 'p', t: 'The acronym is just the scaffold; the real work is attaching each letter to its meaning until the link is automatic. Practice retrieving the sequence, not just reciting the mnemonic.' },
+        ],
+      },
+      {
+        h2: 'Elaboration: the connection technique',
+        blocks: [
+          { k: 'p', t: 'Elaboration means attaching new facts to things you already know — a personal story, a related concept, a sensory detail. “The mitochondria is the powerhouse” becomes “the mitochondria is the cell’s power plant, and like a real plant it burns fuel to make energy.”' },
+          { k: 'p', t: 'The more personal and specific the connection, the stronger the hook. A fact linked to your own experience is nearly impossible to forget; the same fact as a definition is gone by Friday.' },
+        ],
+      },
+      {
+        h2: 'What these techniques can’t do',
+        blocks: [
+          { k: 'p', t: 'Honest limits: mnemonics help you *store* information, not *understand* it. A memory palace can hold a list of terms but won’t teach you what they mean. And every technique decays without review — the palace you built in September is a storage unit you need to visit monthly.' },
+          { k: 'p', t: 'The techniques are scaffolding for encoding; spaced repetition is what keeps the encoding alive. Use mnemonics to learn, flashcards to keep.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards handles the keeping-alive part — the spaced schedule that turns a September memory into a December one.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The goal isn’t to remember everything; it’s to give every fact a hook it can hang on.' },
+          { k: 'p', t: 'Pick one technique per type of material: chunking for structure, the palace for sequences, elaboration for concepts. Memory works with associations and images — give every fact something to stick to.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
