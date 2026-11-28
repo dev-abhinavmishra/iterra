@@ -1,6 +1,7 @@
 {
   "name": "Iterra — an integrated study terrain",
   "short_name": "Iterra",
+  "id": "/",
   "description": "A local-first study workspace that unifies planning, flashcards, notes, timers, calculations, attendance, assessments, and study materials around your courses.",
   "start_url": "/",
   "scope": "/",
