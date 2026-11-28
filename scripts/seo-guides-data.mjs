@@ -4145,8 +4145,8 @@ export const GUIDES = [
       'Raise your GPA by working smarter, not harder: audit your grades, triage the workload, build a study schedule, and get help early.',
     kicker: 'Study Methods',
     datePublished: '2027-06-08',
-    dateModified: '2027-06-12',
-    readMinutes: 6,
+    dateModified: '2027-06-19',
+    readMinutes: 7,
     keywords: ['how to improve GPA', 'raise GPA', 'GPA improvement', 'how to get better grades'],
     tools: ['boxed', 'flashcards'],
     related: ['building-a-weekly-study-routine', 'how-to-focus-when-studying', 'how-to-study-for-finals-week'],
@@ -4176,6 +4176,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Your GPA is a lagging indicator — it reflects the study habits you built months ago, not the ones you\'re building now. Improving it isn\'t about working harder; it\'s about working *smarter* on the courses that matter most. The students who raise their GPA fastest aren\'t the ones who study everything — they\'re the ones who triage ruthlessly and execute consistently.' },
           { k: 'p', t: 'Every course is a different weight in your GPA — a 4-credit course matters more than a 1-credit seminar, and a course in your major matters more for grad school than an elective. Think of your GPA as a portfolio: you don\'t need every asset to perform, you need the high-weight ones to.' },
+          { k: 'table', head: ['Course', 'Credits', 'Current grade', 'GPA impact', 'Verdict'], rows: [
+            ['Organic Chemistry', '4', 'C+', 'High — major requirement', 'Recover — biggest lever'],
+            ['Art History elective', '3', 'B', 'Medium — elective', 'Maintain'],
+            ['PE', '1', 'A', 'Low — minimal weight', 'Coast'],
+            ['Statistics', '3', 'D', 'High — required course', 'Recover or repeat'],
+          ]},
           { k: 'p', t: 'Audit your current grades: which courses are dragging you down? Which are recoverable? Which are already strong? The audit tells you where to focus.' },
         ],
       },
@@ -4199,19 +4205,49 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Your GPA isn\'t just about studying — it\'s about course selection. A strategic student loads up on courses they can ace and balances the hard ones with the manageable ones. A student who takes five hard courses and gets three B\'s has a lower GPA than one who takes three hard and two easy and gets five A\'s.' },
           { k: 'p', t: 'This isn\'t about avoiding challenge — it\'s about strategic sequencing. Take the hard courses when you have the bandwidth; take the easier ones when you\'re overloaded.' },
+          { k: 'deflist', items: [
+            { t: 'Front-load the hard courses', d: 'Take your toughest requirements early in the degree when you have more energy and fewer competing demands.' },
+            { t: 'Pair a hard course with an easy one', d: 'Balance a 4-credit challenge with a lighter elective so one bad week doesn\'t sink the semester.' },
+            { t: 'Avoid stacking requirements', d: 'Two must-pass courses in the same semester doubles the risk; spread them across terms when you can.' },
+          ]},
         ],
       },
       {
         h2: 'The recovery playbook',
         blocks: [
           { k: 'p', t: 'If you\'re behind in a course, the recovery playbook is specific: go to office hours, form a study group, use past exams, and ask the professor for help. The students who recover fastest aren\'t the ones who study more — they\'re the ones who get help sooner.' },
+          { k: 'steps', items: [
+            'Diagnose the gap — compare your grade to what the course requires and find where the points were lost.',
+            'Go to office hours this week — one conversation reveals more than a week of solo guessing.',
+            'Get the past exams — they show the professor\'s patterns and what "good" actually looks like.',
+            'Build a weekly check-in — a short study group or a recurring review session keeps the recovery on track.',
+            'Confirm the recovery math — know exactly what score you need on the final to hit your target.',
+          ]},
           { k: 'p', t: 'Don\'t wait until the midterm to realize you\'re behind. The earlier you intervene, the more recoverable the grade. A student who gets help in week 3 has a much better shot than one who waits until week 10.' },
         ],
       },
       {
         h2: 'The habits that compound',
         blocks: [
-          { k: 'p', t: 'The students who raise their GPA fastest share specific habits: they study daily (not just before exams), they use active recall (not just rereading), they track their grades weekly, and they ask for help early. These habits compound — small improvements in each course add up to a significant GPA increase over a semester.' },
+          { k: 'p', t: 'The students who raise their GPA fastest share specific habits — each one small, all of them compounding:' },
+          { k: 'deflist', items: [
+            { t: 'Study daily, not in bursts', d: 'An hour a day beats a six-hour Sunday — spacing is what moves material into long-term memory.' },
+            { t: 'Use active recall', d: 'Flashcards and practice problems beat rereading because they test retrieval, which is what exams measure.' },
+            { t: 'Track grades weekly', d: 'A five-minute grade check each week catches a slide while it\'s still a C+ and not a D.' },
+            { t: 'Ask for help early', d: 'Office hours in week 3 are a strategy; office hours in week 12 are a eulogy.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The math of a comeback',
+        blocks: [
+          { k: 'p', t: 'GPA improvements are math, not magic. If you\'re sitting on a 2.8 across 15 credits, here is what different recoveries do to it:' },
+          { k: 'table', head: ['Scenario', 'Courses improved', 'New GPA', 'What it takes'], rows: [
+            ['Raise two C\'s to A\'s', '8 credits', '~3.0', 'Focused work in the high-weight courses only'],
+            ['Raise one D to a B', '3 credits', '~2.9', 'Targeted rescue — office hours, past exams, daily review'],
+            ['Ace the remaining courses', '9 credits', '~3.1', 'Protect what\'s working; don\'t fix what isn\'t broken'],
+          ]},
+          { k: 'p', t: 'Notice the pattern: you don\'t need to fix everything. Two strong courses move the number more than five mediocre efforts — that\'s the portfolio logic again.' },
         ],
       },
       {
