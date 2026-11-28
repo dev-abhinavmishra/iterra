@@ -645,7 +645,7 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .crumbs a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:color .15s,border-color .15s}
 .crumbs a:hover{color:var(--accent);border-color:var(--gold2)}
 .crumbs .sep{color:var(--line2)}
-h1{font-family:Newsreader,Georgia,serif;font-weight:490;letter-spacing:-.045em;font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.05;max-width:22ch;margin:.55rem 0 1rem;color:var(--ink)}
+h1{font-family:Newsreader,Georgia,serif;font-weight:490;letter-spacing:-.045em;font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.05;max-width:22ch;margin:.55rem 0 1rem;color:var(--ink);text-wrap:balance}
 h1 em{color:var(--accent);font-style:italic;font-weight:430}
 .lede{max-width:56ch;color:var(--mute);font-size:clamp(1rem,1.5vw,1.15rem);line-height:1.7}
 @media(prefers-reduced-motion:no-preference){
@@ -781,7 +781,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .toc a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}
 .toc a:hover{color:var(--accent);border-color:var(--gold2)}
 @media(max-width:719px){.toc ol{max-height:15rem;overflow-y:auto;scrollbar-width:thin;padding-right:.4rem}}
-.prose p{font-size:1.06rem;line-height:1.78;color:#333a34;margin-bottom:1.15rem}
+.prose p{font-size:1.06rem;line-height:1.78;color:#333a34;margin-bottom:1.15rem;text-wrap:pretty}
 .prose mark{background:linear-gradient(transparent 55%,rgba(212,175,55,.38) 55%);color:inherit;padding:0 .08em;border-radius:2px}
 .prose ul{margin:0 0 1.3rem;padding-left:1.35rem}
 .prose li{font-size:1.04rem;line-height:1.7;color:#333a34;margin-bottom:.5rem}
