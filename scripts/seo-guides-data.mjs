@@ -3538,6 +3538,104 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-art-history',
+    title: 'How to <em>study art history</em>',
+    seoTitle: 'How to Study Art History: Narrative, Images, Identification',
+    description:
+      'Study art history as a story, not a list: learn the narrative arc, organize images by movement, use visual study methods, and practice identification.',
+    kicker: 'Study Methods',
+    datePublished: '2027-04-20',
+    dateModified: '2027-04-24',
+    readMinutes: 6,
+    keywords: ['how to study art history', 'art history study tips', 'art history exam', 'how to memorize art history'],
+    tools: ['margin', 'ink'],
+    related: ['how-to-study-history', 'how-to-study-literature', 'active-recall-vs-rereading'],
+    lede: 'Art history is the subject where students most often drown in images — hundreds of paintings, sculptures, and buildings, each with a date, artist, and style that blurs together. But art history isn\'t a list of images; it\'s a story about how people have seen and represented the world across time. The students who do well learn the *narrative*, not just the images.',
+    takeaways: [
+      'Art history is a story, not a list — learn the narrative arc and the images organize themselves.',
+      'Organize by period and movement — group images by style, not alphabetically.',
+      'Use visual study methods — the images are the material.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for an art history exam?',
+        a: 'Learn the narrative arc first, then organize images by period and movement. Use visual study methods — copies, timelines, mood boards. Practice image identification with the actual images, not just descriptions.',
+      },
+      {
+        q: 'How do I memorize art history dates and artists?',
+        a: 'Don\'t memorize dates in isolation — connect them to the narrative. "High Renaissance" means more than "1500-1527"; it means "the era of Leonardo, Michelangelo, and Raphael." The context makes the date memorable.',
+      },
+      {
+        q: 'How do I identify art history images?',
+        a: 'Practice with the actual images — style, composition, and technique are visual skills. Look for the movement\'s characteristic features: sfumato for High Renaissance, impasto for Baroque, flatness for Modernism. The ability to recognize a style at a glance requires visual reps.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Art history is a story, not a list',
+        blocks: [
+          { k: 'p', t: 'Art history is the subject where students most often drown in images — hundreds of paintings, sculptures, and buildings, each with a date, artist, and style that blurs together. But art history isn\'t a list of images; it\'s a story about how people have seen and represented the world across time. The students who do well learn the *narrative*, not just the images.' },
+          { k: 'p', t: 'Every art history course is built on a narrative — the shift from medieval to Renaissance, from realism to abstraction, from Europe to the world. The images are examples of this narrative; the story is what makes them memorable. Learn the narrative arc and the images organize themselves; memorize the images and they\'re just pictures.' },
+          { k: 'p', t: 'When you encounter a new artwork, ask: where does this fit in the story? What came before? What came after? The context is what makes the image meaningful.' },
+        ],
+      },
+      {
+        h2: 'The art history study loop',
+        blocks: [
+          { k: 'p', t: 'A productive art history study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Read the material once for the big picture — the period, the style, the context.',
+            'Go back and study the images — look closely, note the details.',
+            'Organize by period or movement — group images by style, not alphabetically.',
+            'Draw the timeline — see the sequence of styles and movements.',
+            'Test yourself — recall the images and their significance.',
+          ]},
+          { k: 'p', t: 'The organize-by-period step is crucial for art history. An image memorized in isolation is forgotten; the same image placed in a movement is remembered. "Mona Lisa" means nothing until you connect it to "High Renaissance" and "Leonardo da Vinci" and "sfumato technique."' },
+          { k: 'tool', tool: 'margin', t: 'Margin is built for the organize-by-period step — group images by movement, tag the styles, and build your visual map as you read.' },
+        ],
+      },
+      {
+        h2: 'Active recall for art history',
+        blocks: [
+          { k: 'p', t: 'Art history flashcards work best when they test *identification* and *context*, not just recall. Instead of "Who painted the Mona Lisa?" use "What style is this painting and why?" or "How does this image reflect the values of its period?"' },
+          { k: 'deflist', items: [
+            { t: 'For images', d: '"What movement does this belong to and why?"' },
+            { t: 'For artists', d: '"What is this artist known for and how did they innovate?"' },
+            { t: 'For periods', d: '"What characterizes this period and how does it differ from the last?"' },
+            { t: 'For techniques', d: '"How does this technique create the effect?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The visual connection',
+        blocks: [
+          { k: 'p', t: 'Art history is visual — the images are the material. Use visual study methods: make your own copies of key works, create a timeline of styles, or build a digital mood board. The visual connection is what makes the material stick.' },
+          { k: 'p', t: 'If your course has image identification exams, practice with the actual images — not just descriptions. The ability to recognize a style or technique at a glance is a skill that requires visual reps.' },
+        ],
+      },
+      {
+        h2: 'Common art history study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common art history study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing images without understanding the narrative', d: 'Images are examples of movements — learn the story, not just the picture.' },
+            { t: 'Treating periods as isolated', d: 'Art history is continuous — each movement builds on the last.' },
+            { t: 'Not practicing image identification', d: 'Visual recognition is a skill — practice with the actual images.' },
+            { t: 'Studying only before exams', d: 'Art history requires consistent review — the material accumulates.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Art history rewards understanding the narrative, not memorizing images.' },
+          { k: 'p', t: 'Learn the story of how art has changed, organize images by period and movement, use visual study methods, and practice identification. The students who treat art history as a story outperform the ones who treat it as a list of pictures.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
