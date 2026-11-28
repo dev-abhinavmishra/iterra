@@ -2568,6 +2568,103 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-focus-when-studying',
+    title: 'How to <em>focus when studying</em>',
+    seoTitle: 'How to Focus When Studying: Environment, Time-Boxing, Rituals',
+    description:
+      'Build study focus that lasts: control your environment, time-box your work in sprints, manage the phone problem, and create a pre-study ritual that signals your brain.',
+    kicker: 'Study Methods',
+    datePublished: '2027-02-02',
+    dateModified: '2027-02-06',
+    readMinutes: 7,
+    keywords: ['how to focus when studying', 'study focus', 'how to concentrate studying', 'pomodoro technique'],
+    tools: ['timer', 'boxed'],
+    related: ['how-to-avoid-study-burnout', 'pomodoro-technique-guide', 'building-a-weekly-study-routine'],
+    lede: 'Focus is the multiplier for every other study technique — flashcards, spaced repetition, and active recall all assume you can actually sit with the material. But focus isn’t a character trait; it’s a skill with specific conditions. The students who can study deeply aren’t the ones with the most willpower — they’re the ones who built environments that make distraction harder.',
+    takeaways: [
+      'Environment beats willpower — remove distractions before they have a chance to win.',
+      'Time-box the work — sprints beat marathons, and breaks consolidate learning.',
+      'Build a pre-study ritual — the sequence signals "study mode" to your brain.'
+    ],
+    faq: [
+      {
+        q: 'How long should a study session be?',
+        a: 'For most students, 50-90 minute blocks with real breaks work better than shorter sprints for deep material, while 25-minute Pomodoros work better for tedious tasks like flashcards. The key is a hard boundary — stop when the timer ends, even if you feel like continuing.',
+      },
+      {
+        q: 'Is the Pomodoro technique actually effective?',
+        a: 'It works because it matches the brain’s natural attention rhythm — sustained focus for 25 minutes, then a break to consolidate. The exact timing matters less than the structure: defined blocks, real breaks, and repetition. Some students prefer longer blocks; the principle is the same.',
+      },
+      {
+        q: 'What if I still can’t focus after fixing my environment?',
+        a: 'If you’re consistently unable to focus for more than 10 minutes, the problem is probably the material — too hard, too boring, or too big. Break it into smaller pieces or switch topics. Focus follows engagement; engagement follows the right challenge level.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Why focus fails',
+        blocks: [
+          { k: 'p', t: 'Focus is the multiplier for every other study technique — flashcards, spaced repetition, and active recall all assume you can actually sit with the material. But focus isn’t a character trait; it’s a skill with specific conditions. The students who can study deeply aren’t the ones with the most willpower — they’re the ones who built environments that make distraction harder.' },
+          { k: 'p', t: 'Attention is a finite resource. Every notification, tab switch, and "quick check" costs you not just the seconds it takes but the minutes it takes to re-enter the material. The brain wasn’t built for sustained focus on abstract content — it evolved to scan for threats and rewards. Studying asks it to do something unnatural, which means the environment has to do the work.' },
+        ],
+      },
+      {
+        h2: 'The environment does the work',
+        blocks: [
+          { k: 'p', t: 'Willpower loses to environment every time. If your phone is in reach, you’ll check it — not because you’re weak, but because the cue is there. The fix is friction: make the distracting thing harder to reach than the studying thing.' },
+          { k: 'deflist', items: [
+            { t: 'Phone in another room', d: 'Out of sight is out of mind — face-down on the desk still costs willpower.' },
+            { t: 'One tab at a time', d: 'Close everything that isn’t the material.' },
+            { t: 'Same place, same time', d: 'The ritual tells your brain it’s study time.' },
+            { t: 'Control the soundscape', d: 'Noise-canceling headphones or a quiet corner.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Time-boxing: focus in sprints',
+        blocks: [
+          { k: 'p', t: 'Sustained focus for hours is a myth — the brain needs breaks to consolidate. The Pomodoro technique (25 minutes focused, 5 minutes break) works because it matches the brain’s natural rhythm. But the exact timing matters less than the structure: work in defined blocks, take real breaks, and repeat.' },
+          { k: 'p', t: 'For deep work — reading dense material, solving hard problems — extend the blocks to 50-90 minutes. The key is a hard boundary: when the timer ends, stop. The anticipation of the break makes the work easier.' },
+          { k: 'tool', tool: 'timer', t: 'Timer enforces the boundaries — set the sprint, and it won’t let you negotiate with yourself about when to stop.' },
+        ],
+      },
+      {
+        h2: 'The phone problem',
+        blocks: [
+          { k: 'p', t: 'The phone is the single biggest focus killer for students — not because of the time spent on it, but because of the *interruptions*. A single notification can derail 20 minutes of work. The solution isn’t willpower; it’s removal.' },
+          { k: 'ul', items: [
+            'Use app blockers or Screen Time limits during study sessions.',
+            'Put the phone on airplane mode — calls and texts can wait.',
+            'If you need your phone for flashcards or notes, use a dedicated device or a distraction-free mode.',
+            'Track your screen time — awareness alone reduces usage.',
+          ]},
+        ],
+      },
+      {
+        h2: 'What to do when focus breaks',
+        blocks: [
+          { k: 'p', t: 'You will get distracted — that’s normal, not a failure. The skill is recovering quickly. When you notice your mind wandering, don’t fight it or judge it; just note "I’m distracted" and return to the material. The faster you return, the less the distraction costs.' },
+          { k: 'p', t: 'If you’re consistently unable to focus for more than 10 minutes, the problem is probably the material — too hard, too boring, or too big. Break it into smaller pieces or switch to a different topic. Focus follows engagement; engagement follows the right challenge level.' },
+        ],
+      },
+      {
+        h2: 'The focus ritual',
+        blocks: [
+          { k: 'p', t: 'The most focused students have a pre-study ritual — a short sequence of actions that signals "study mode" to the brain. It can be as simple as making coffee, clearing the desk, and setting a timer. The ritual doesn’t need to be long; it needs to be consistent.' },
+          { k: 'p', t: 'Over time, the ritual itself becomes the cue — you sit down, the sequence starts, and focus follows automatically. This is classical conditioning applied to studying.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The students who can focus deeply aren’t lucky; they’re prepared.' },
+          { k: 'p', t: 'Remove the distractions, time-box the work, and build a ritual. Focus is a skill — and like any skill, it responds to practice.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
