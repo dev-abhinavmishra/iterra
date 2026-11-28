@@ -2193,6 +2193,15 @@ ${footer()}
 
 export function renderTopicPage(topic) {
   const url = `${SITE}/topics/${topic.slug}`;
+  const ti = TOPIC_PAGES.findIndex((t) => t.slug === topic.slug);
+  const tPrev = TOPIC_PAGES[(ti - 1 + TOPIC_PAGES.length) % TOPIC_PAGES.length];
+  const tNext = TOPIC_PAGES[(ti + 1) % TOPIC_PAGES.length];
+  const topicPager = TOPIC_PAGES.length > 1
+    ? `<nav class="pager" aria-label="More topics">
+<a href="/topics/${tPrev.slug}"><span class="dir">← ${esc(tPrev.kicker)}</span><span class="t">${tPrev.guides.length} guides</span></a>
+<a class="next" href="/topics/${tNext.slug}"><span class="dir">${esc(tNext.kicker)} →</span><span class="t">${tNext.guides.length} guides</span></a>
+</nav>`
+    : '';
   const rows = topic.guides
     .map(
       (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
@@ -2274,8 +2283,10 @@ ${rows}
 </ul>
 <div class="cta" style="margin-top:2.5rem">
 <a class="primary" href="/guides">All guides</a>
+<a class="ghost" href="/topics">All topics</a>
 <a class="ghost" href="/feed.xml">RSS feed</a>
 </div>
+${topicPager}
 </section>
 </div>
 ${footer()}
