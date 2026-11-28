@@ -7805,6 +7805,122 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-education',
+    title: 'How to study <em>education</em>',
+    seoTitle: 'How to Study Education: Pedagogy, Field Experience, Theory',
+    description:
+      'Education courses test theory application to real classrooms. Learn constructivism, behaviorism and differentiation, apply them to field experience, and reflect.',
+    kicker: 'Subject Guides',
+    datePublished: '2028-01-18',
+    dateModified: '2028-01-25',
+    readMinutes: 7,
+    keywords: ['how to study education', 'education study tips', 'education major exam prep', 'pedagogy'],
+    tools: ['ink', 'margin'],
+    related: ['how-to-study-for-nursing-school', 'how-to-study-psychology', 'how-to-study-sociology'],
+    lede: 'Education courses feel like they should be easy — no equations, no lab reports, just reading about teaching. They are not. The subject tests whether you can apply pedagogical theory to real classrooms: explain why a lesson worked, predict a student reaction, argue about curriculum design. That skill is built by analyzing classrooms, not by reading about them.',
+    takeaways: [
+      'Learn the theory, then apply it to your field experience — application is the learning.',
+      'Education is argument, not description — every claim needs evidence.',
+      'Your field experience is the data — the skill is seeing the pedagogy in the ordinary.',
+    ],
+    faq: [
+      {
+        q: 'How is studying education different from other subjects?',
+        a: 'It is the most field-experience-heavy subject on most transcripts. Exams are essays about why teaching works — lessons, classroom interactions, student behaviors. Reading about pedagogy produces almost nothing; analyzing real classroom moments produces the skill.',
+      },
+      {
+        q: 'What theories should I learn for education?',
+        a: 'Start with four: constructivism (learning is built, not transmitted), behaviorism (learning shaped by reinforcement), developmental psychology (learning depends on stage), and differentiation (instruction adapts to learner needs). These cover most foundations and psychology courses.',
+      },
+      {
+        q: 'How do I study for education exams?',
+        a: 'Practice theory application essays under time — define the classroom moment, apply the framework, support with evidence, commit to an argument. Compare your analysis to what actually happened and write down where your reasoning diverged.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'How education courses are actually learned',
+        blocks: [
+          { k: 'p', t: 'Education courses feel like they should be easy — no equations, no lab reports, just reading about teaching. They are not. The subject tests whether you can apply pedagogical theory to real classrooms: explain why a lesson worked, predict a student reaction, argue about curriculum design.' },
+          { k: 'p', t: 'The study method that works: learn the theory, then apply it to your field experience. A student who has explained fifty classroom moments understands teaching better than one who has read fifty pages about it.' },
+          { k: 'tool', tool: 'ink', t: 'Ink holds the theory applications — constructivism, behaviorism, developmental psychology applied to real classroom moments.' },
+        ],
+      },
+      {
+        h2: 'The education study loop',
+        blocks: [
+          { k: 'p', t: 'A week of education study that actually works:' },
+          { k: 'steps', items: [
+            'Learn the framework — constructivism, behaviorism, developmental psychology, differentiation.',
+            'Find a real moment — a lesson, a classroom interaction, a student behavior you observed.',
+            'Apply the theory — explain the moment using the lens.',
+            'Reflect on the gap — where did your analysis diverge from what actually happened?',
+            'Commit to a claim — education rewards argued answers, not neutral ones.',
+          ]},
+          { k: 'quote', t: 'Education is not about what teachers say — it is about what students learn and why.' },
+        ],
+      },
+      {
+        h2: 'The major frameworks',
+        blocks: [
+          { k: 'p', t: 'Several pedagogical frameworks do most of the work across education courses — learn them once, apply them everywhere:' },
+          { k: 'deflist', items: [
+            { t: 'Constructivism', d: 'Learning is built, not transmitted — Piaget, Vygotsky. Ask: how does the student construct meaning?' },
+            { t: 'Behaviorism', d: 'Learning is shaped by reinforcement and punishment — Skinner, Watson. Ask: what behaviors are being reinforced?' },
+            { t: 'Developmental psychology', d: 'Learning depends on developmental stage — Piaget, Erikson. Ask: is this age-appropriate?' },
+            { t: 'Differentiation', d: 'Instruction adapts to learner needs — Tomlinson. Ask: how does this lesson reach every student?' },
+          ]},
+          { k: 'p', t: 'The frameworks are not answers — they are lenses. A good educational analysis applies the right lens to a real classroom moment and argues for why it fits.' },
+        ],
+      },
+      {
+        h2: 'The course types: different skills, different methods',
+        blocks: [
+          { k: 'p', t: 'Education is not one subject — the study method shifts by course type:' },
+          { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
+            ['Foundations', 'Theory application', 'Essay analysis of classroom moments'],
+            ['Child development', 'Stage theory + observation', 'Observation notes + theory application'],
+            ['Curriculum design', 'Lesson planning', 'Unit design + assessment alignment'],
+            ['Special education', 'IEP + differentiation', 'Case studies + accommodation strategies'],
+            ['Educational psychology', 'Learning theory', 'Experiment analysis + theory application'],
+          ]},
+        ],
+      },
+      {
+        h2: 'Field experience: the data you already have',
+        blocks: [
+          { k: 'p', t: 'Education programs require field experience — student teaching, observations, practicums. This is not just a requirement; it is your primary data source. Every classroom moment is a case study waiting to be analyzed.' },
+          { k: 'deflist', items: [
+            { t: 'Observation notes', d: 'What you saw, what you expected, what surprised you — the raw material for theory application.' },
+            { t: 'Reflection journals', d: 'Your analysis of why something worked or failed — the space where theory meets practice.' },
+            { t: 'Student work samples', d: 'Evidence of learning — the data that shows whether your teaching worked.' },
+          ]},
+          { k: 'p', t: 'The students who struggle are the ones who treat field experience as a checklist. The ones who treat it as research — observing, hypothesizing, testing — extract the most learning.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost education students points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Treating theory as trivia', d: 'A framework you cannot apply to a real classroom moment is a framework you do not know. Apply every theory to at least three observations.' },
+            { t: 'Describing instead of analyzing', d: 'Education essays argue a claim about why something worked — a summary of a lesson is not an analysis.' },
+            { t: 'Ignoring developmental context', d: 'Learning depends on age and stage — analysis that ignores development misses the mechanism.' },
+            { t: 'Forgetting differentiation', d: 'Every lesson should reach every student — analysis that assumes a single learner is incomplete.' },
+            { t: 'Waiting until exam week for reflection', d: 'Reflection compounds — a semester of weekly analysis beats a week of cramming.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'Education is the course where your field experience is the data — the skill is seeing the pedagogy in the ordinary.' },
+          { k: 'p', t: 'Learn the framework, observe real classrooms, apply the theory, and reflect on what happened. That loop is the whole method — and it holds for every education course you will take.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
