@@ -6304,6 +6304,109 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-pmp',
+    title: 'How to study for the <em>PMP</em>',
+    seoTitle: 'How to Study for the PMP: Project Management Cert Prep',
+    description:
+      'Beat the PMP with understanding, not memorization: learn the processes, practice the situational questions, explain concepts in your own words, and conquer all three domains.',
+    kicker: 'Study Methods',
+    datePublished: '2027-11-16',
+    dateModified: '2027-11-20',
+    readMinutes: 7,
+    keywords: ['how to study for the PMP', 'PMP exam prep', 'PMP study plan', 'project management certification'],
+    tools: ['timer', 'proof'],
+    related: ['how-to-study-for-the-cpa', 'how-to-study-for-the-cfa', 'how-to-run-a-study-group'],
+    lede: 'The PMP exam is the test that proves you can manage projects — not just study project management. But most students treat it like a content review: they memorize the processes, practice the questions, and hope the exam rewards their effort. The PMP rewards a different approach: understand the *why* behind each process, and practice the question types until they\'re automatic.',
+    takeaways: [
+      'Take a practice test first — the questions you miss tell you which areas to review.',
+      'Understand the processes, not just the steps — explain concepts in your own words.',
+      'Practice the situational questions — the exam tests judgment, not recall.',
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the PMP?',
+        a: 'Most candidates need 2-3 months of consistent prep. The PMP covers the PMBOK Guide and Agile practices — a lot of material, but not as deep as the CPA or CFA. A structured study plan with daily practice questions works better than weekend cramming.',
+      },
+      {
+        q: 'What\'s the pass rate for the PMP?',
+        a: 'Pass rates are around 60-70% for first-time candidates. The exam is challenging because it tests situational judgment, not just recall. Candidates who practice with real exam-style questions and review their mistakes thoroughly have the best chance of passing.',
+      },
+      {
+        q: 'Do I need project management experience for the PMP?',
+        a: 'Yes — you need 36 months of project management experience (or 60 months if you don\'t have a bachelor\'s degree). The experience requirement ensures you\'re not just studying theory; you\'re applying it in practice.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the PMP before you study it',
+        blocks: [
+          { k: 'p', t: 'The PMP exam is 180 questions, 4 hours, based on the PMBOK Guide and Agile practices. It covers three domains: People (42%), Process (50%), and Business Environment (8%). The questions are situational — you\'re given a scenario and asked what to do next.' },
+          { k: 'p', t: 'Take a practice test first. The questions you miss tell you exactly which areas to review — you don\'t need to relearn everything; you need to shore up the weak spots.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the PMP\'s pressure — 4 hours for 180 questions, about 80 seconds per question. Practice at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The PMP study loop',
+        blocks: [
+          { k: 'p', t: 'PMP prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the process or concept — read the PMBOK or watch a lecture.',
+            'Work through example questions — understand *why* each answer is correct.',
+            'Solve questions independently — start with easy, then harder.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why a project manager escalates a risk understands project management; a student who can only recite the processes doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The domains: what to focus on',
+        blocks: [
+          { k: 'p', t: 'The PMP covers three domains — focus on the high-yield topics:' },
+          { k: 'deflist', items: [
+            { t: 'People', d: 'Leadership, team management, conflict resolution — know the soft skills.' },
+            { t: 'Process', d: 'The 5 process groups and 10 knowledge areas — know the flows.' },
+            { t: 'Business Environment', d: 'Strategic alignment, benefits realization — know the concepts.' },
+            { t: 'Agile', d: 'Hybrid and agile practices — know the frameworks.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The question types that matter',
+        blocks: [
+          { k: 'p', t: 'PMP questions are situational — you\'re given a scenario and asked what to do:' },
+          { k: 'deflist', items: [
+            { t: 'What should the PM do first?', d: 'The most common type — tests prioritization.' },
+            { t: 'What is the best course of action?', d: 'The second most common — tests judgment.' },
+            { t: 'What is the PM\'s responsibility?', d: 'Tests the role boundaries.' },
+            { t: 'What is the PM\'s authority?', d: 'Tests the escalation path.' },
+          ]},
+          { k: 'tool', tool: 'proof', t: 'Proof helps organize PMP problem solutions — the step-by-step structure that turns a messy scenario into a clean, checkable answer.' },
+        ],
+      },
+      {
+        h2: 'The common PMP traps',
+        blocks: [
+          { k: 'p', t: 'PMP questions have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'The "best" answer', d: 'The exam wants the *best* answer, not just *a* correct answer.' },
+            { t: 'Process groups', d: 'Know the order: Initiating, Planning, Executing, Monitoring & Controlling, Closing.' },
+            { t: 'Knowledge areas', d: 'Know the 10 areas and how they interrelate.' },
+            { t: 'Agile vs. predictive', d: 'Know when to use which approach.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The PMP isn\'t about memorizing processes — it\'s about understanding why they exist.' },
+          { k: 'p', t: 'Understand the processes, practice the question types, explain the concepts, and manage your time. The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
