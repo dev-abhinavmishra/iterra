@@ -3734,6 +3734,104 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-engineering',
+    title: 'How to <em>study engineering</em>',
+    seoTitle: 'How to Study Engineering: Physics, Problems, Application',
+    description:
+      'Study engineering as applied physics: learn the physical principles behind the math, work through problems relentlessly, and check your units.',
+    kicker: 'Study Methods',
+    datePublished: '2027-05-11',
+    dateModified: '2027-05-15',
+    readMinutes: 6,
+    keywords: ['how to study engineering', 'engineering study tips', 'engineering exam', 'how to solve engineering problems'],
+    tools: ['proof', 'flashcards'],
+    related: ['how-to-study-math', 'how-to-study-science', 'how-to-study-for-nursing-school'],
+    lede: 'Engineering is the subject where students most often hit a wall — the material is mathematical, the concepts are abstract, and the applications aren\'t obvious. But engineering rewards a specific approach: understand the *why* behind the equations, connect the math to the physical world, and practice the problem-solving relentlessly.',
+    takeaways: [
+      'Engineering is math applied to the physical world — learn the physics behind the equations.',
+      'Do problems — engineering is learned by solving, not reading.',
+      'Check your units — unit errors are the most common mistake.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for an engineering exam?',
+        a: 'Learn the physical principles behind the math, then work through problems relentlessly. Check your units on every problem. Engineering exams test whether you can apply the math, not whether you recognize the formula.',
+      },
+      {
+        q: 'Is engineering harder than math?',
+        a: 'Engineering is math applied to physical systems — the math is similar but the application is harder. The concepts are more abstract and the problems require physical intuition. The study method is similar: practice problems relentlessly.',
+      },
+      {
+        q: 'How do I understand engineering concepts?',
+        a: 'Ask: what physical phenomenon does this describe? What would happen if I changed a variable? The physical intuition is what makes the math stick. Connect every concept to something you\'ve built, measured, or observed.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Engineering is math applied to the physical world',
+        blocks: [
+          { k: 'p', t: 'Engineering is the subject where students most often hit a wall — the material is mathematical, the concepts are abstract, and the applications aren\'t obvious. But engineering rewards a specific approach: understand the *why* behind the equations, connect the math to the physical world, and practice the problem-solving relentlessly.' },
+          { k: 'p', t: 'Every engineering course is built on a physical principle expressed mathematically — Ohm\'s law, Newton\'s laws, thermodynamics. The equations aren\'t arbitrary; they\'re the math of how things work. Learn the physical principle and the equation becomes obvious; memorize the equation and it\'s just symbols.' },
+          { k: 'p', t: 'When you encounter a new concept, ask: what physical phenomenon does this describe? What would happen if I changed a variable? The physical intuition is what makes the math stick.' },
+        ],
+      },
+      {
+        h2: 'The engineering study loop',
+        blocks: [
+          { k: 'p', t: 'A productive engineering study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Review the concept — the physical principle and the math.',
+            'Work through examples — see how the concept applies.',
+            'Do problems — engineering is learned by solving, not reading.',
+            'Check your work — understand every step, not just the answer.',
+            'Connect to the real world — where does this apply?',
+          ]},
+          { k: 'p', t: 'The do-problems step is crucial for engineering. Reading the textbook explains the concept; solving problems teaches you to *apply* it. The exam tests whether you can use the math, not whether you recognize the formula.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps organize the solution steps — the same discipline that turns a messy attempt into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'Active recall for engineering',
+        blocks: [
+          { k: 'p', t: 'Engineering flashcards work best when they test *problem-solving*, not just formulas. Instead of "What is Ohm\'s law?" use "A circuit has 12V and 4Ω — what\'s the current?" or "What happens to the voltage if I double the resistance?"' },
+          { k: 'deflist', items: [
+            { t: 'For formulas', d: '"What problem does this formula solve?"' },
+            { t: 'For concepts', d: '"How would I apply this to a real system?"' },
+            { t: 'For units', d: '"What are the units and why do they matter?"' },
+            { t: 'For design', d: '"What are the trade-offs in this approach?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The lab connection',
+        blocks: [
+          { k: 'p', t: 'Engineering courses often have labs — treat them as part of the study method. The lab is where the math becomes physical; the experiment you did is the best example you\'ll have. Connect every concept to something you built, measured, or observed.' },
+          { k: 'p', t: 'If your course doesn\'t have labs, use simulations, CAD tools, or virtual labs. The goal is the same: make the abstract concrete. A concept you\'ve seen in action is easier to recall than one you\'ve only read about.' },
+        ],
+      },
+      {
+        h2: 'Common engineering study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common engineering study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing formulas without understanding the physics', d: 'Formulas are math of physical principles — learn the principle, not the formula.' },
+            { t: 'Skipping problems', d: 'Engineering is learned by solving — problems are the study method.' },
+            { t: 'Not checking units', d: 'Unit errors are the most common mistake — always verify.' },
+            { t: 'Studying only before exams', d: 'Engineering requires consistent practice — the material accumulates.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Engineering rewards understanding the physics behind the math, not memorizing formulas.' },
+          { k: 'p', t: 'Learn the physical principles, work through problems relentlessly, connect to the real world, and check your units. The students who treat engineering as applied physics outperform the ones who treat it as a math course.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
