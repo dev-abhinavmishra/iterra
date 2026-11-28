@@ -485,6 +485,8 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .side .end{margin-top:auto;padding-top:14px;border-top:1px solid rgba(120,115,90,.25);display:grid;gap:3px;padding-left:10px}
 .side .end a{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--faint);text-decoration:none;text-transform:uppercase;transition:color .15s}
 .side .end a:hover{color:var(--accent)}
+.nav-more-btn{display:block;width:calc(100% - 20px);margin:2px 10px 4px;padding:6px 10px;border:1px dashed rgba(120,115,90,.35);border-radius:9px;background:transparent;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s,background .15s}
+.nav-more-btn:hover{border-color:rgba(43,84,64,.45);color:var(--accent);background:rgba(43,84,64,.05)}
 .nav-empty{display:none;padding:14px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
 .nav-empty.show{display:block}
 .scrim{display:none}
@@ -649,6 +651,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .toc a:hover{color:var(--accent);border-color:var(--gold2)}
 @media(max-width:719px){.toc ol{max-height:15rem;overflow-y:auto;scrollbar-width:thin;padding-right:.4rem}}
 .prose p{font-size:1.06rem;line-height:1.78;color:#333a34;margin-bottom:1.15rem}
+.prose mark{background:linear-gradient(transparent 55%,rgba(212,175,55,.38) 55%);color:inherit;padding:0 .08em;border-radius:2px}
 .prose ul{margin:0 0 1.3rem;padding-left:1.35rem}
 .prose li{font-size:1.04rem;line-height:1.7;color:#333a34;margin-bottom:.5rem}
 .prose a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--gold2)}
@@ -915,6 +918,7 @@ function inline(s) {
   let out = esc(s);
   out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
   out = out.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  out = out.replace(/==([^=\n]+)==/g, '<mark>$1</mark>');
   out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   out = out.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
   return out;
@@ -979,9 +983,13 @@ function header(activePath) {
   const navLink = (href, label, extra = '') =>
     `<a href="${href}"${act(href)}><span class="lbl">${label}</span>${extra}</a>`;
   const placeLinks = TOOLS.map((t) => navLink(t.path, esc(t.name))).join('\n');
-  const guideLinks = GUIDES.map((g) =>
+  const guideArr = GUIDES.map((g) =>
     navLink(`/guides/${g.slug}`, esc(g.title.replace(/<\/?em>/g, ''))),
-  ).join('\n');
+  );
+  const guideLinks =
+    guideArr.length > 12
+      ? `${guideArr.slice(0, 10).join('\n')}\n<div class="nav-more" hidden>${guideArr.slice(10).join('\n')}</div>\n<button type="button" class="nav-more-btn" data-more>Show all guides</button>`
+      : guideArr.join('\n');
   const compareLinks = COMPARE_PAGES.map((p) =>
     navLink(`/${p.section}/${p.slug}`, esc(String(p.h1).replace(/<\/?em>/g, ''))),
   ).join('\n');
@@ -1065,8 +1073,19 @@ if(nf){
   var navAs=[].slice.call(document.querySelectorAll('.side nav a'));
   var navGs=[].slice.call(document.querySelectorAll('.side .navg'));
   var navEmpty=document.querySelector('.nav-empty');
+  var navMore=document.querySelector('.nav-more');
+  var navMoreBtn=document.querySelector('[data-more]');
+  if(navMore&&navMoreBtn){
+    navMoreBtn.addEventListener('click',function(){
+      var open=navMore.hasAttribute('hidden');
+      navMore.classList.toggle('uopen',open);
+      if(open){navMore.removeAttribute('hidden');navMoreBtn.textContent='Show fewer'}
+      else{navMore.setAttribute('hidden','');navMoreBtn.textContent='Show all guides'}
+    });
+  }
   function applyFilter(){
     var q=nf.value.trim().toLowerCase();
+    if(navMore){if(q)navMore.removeAttribute('hidden');else if(!navMore.classList.contains('uopen'))navMore.setAttribute('hidden','')}
     navAs.forEach(function(a){a.style.display=!q||a.textContent.toLowerCase().indexOf(q)>-1?'':'none'});
     navGs.forEach(function(g){
       var any=navAs.some(function(a){return a.closest('.navg')===g&&a.style.display!=='none'});
