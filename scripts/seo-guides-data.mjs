@@ -4652,6 +4652,95 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-oat',
+    title: 'How to study for the <em>OAT</em>',
+    seoTitle: 'How to Study for the OAT: Strategy, Content, Timing',
+    description:
+      'Beat the OAT with a system: know the format, practice the science content, drill physics and reading, and manage your timing — the OAT rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-07-20',
+    dateModified: '2027-07-24',
+    readMinutes: 7,
+    keywords: ['how to study for the OAT', 'OAT prep', 'optometry admission test', 'OAT practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-for-the-dat', 'how-to-study-for-the-pcat', 'how-to-use-practice-tests'],
+    lede: 'The OAT is the test that decides optometry school — a 4-hour exam that tests natural sciences, reading comprehension, physics, and quantitative reasoning. But the OAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Science content, physics, reading, and quant — each needs a different strategy.',
+      'Practice, review, repeat — the review is where learning happens.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the OAT?',
+        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+      },
+      {
+        q: 'How is the OAT different from the DAT?',
+        a: 'They test similar content but with different formats. The OAT has a dedicated Physics section; the DAT has the unique PAT (perceptual ability) section. The study strategy is similar — practice tests, pattern recognition, and timing.',
+      },
+      {
+        q: 'What\'s the hardest section on the OAT?',
+        a: 'It varies by student — the science sections test content knowledge, physics tests formulas, and reading tests comprehension. Take a practice test to identify your weakest section, then focus your prep there.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The OAT is the test that decides optometry school — a 4-hour exam that tests natural sciences, reading comprehension, physics, and quantitative reasoning. But the OAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The OAT has four sections: Survey of Natural Sciences (Biology, General Chemistry, Organic Chemistry), Physics, Reading Comprehension, and Quantitative Reasoning. Each section is scored separately, and the test is 4 hours long. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 350 in Bio but 300 in Quant should spend most of their time on Quant.' },
+        ],
+      },
+      {
+        h2: 'The OAT study loop',
+        blocks: [
+          { k: 'p', t: 'OAT prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the sections you miss most.',
+            'Drill those sections with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'The science sections: content plus strategy',
+        blocks: [
+          { k: 'p', t: 'The Survey of Natural Sciences and Physics sections test content knowledge — you need to know the material, not just the patterns. Focus on the high-yield topics: cell biology, biochemistry, anatomy, organic chemistry, and physics formulas.' },
+          { k: 'p', t: 'Practice problems are the study method — the exam rewards speed and accuracy. Work through problems until the patterns are automatic.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the high-yield science content — the vocabulary and formulas that every question assumes you know.' },
+        ],
+      },
+      {
+        h2: 'Reading and Quant: the familiar game',
+        blocks: [
+          { k: 'p', t: 'Reading Comprehension and Quantitative Reasoning are similar to other standardized tests — reading passages with questions, and math problems. The strategy is the same: read the questions first, then the passage or problem with those questions in mind.' },
+          { k: 'p', t: 'For Quant, the math is mostly high-school level — algebra, geometry, and data analysis. Practice problems are the study method.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'OAT timing is tight — about 60 seconds per science question, 50 per physics, 50 per reading, and 65 per quant. The strategy: answer the easy questions first, flag the hard ones, and come back.' },
+          { k: 'p', t: 'For science, read the questions first, then the passage — you know what you\'re looking for. For reading, the same approach works.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the OAT\'s timed pressure — practice sections at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The OAT is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
