@@ -1446,6 +1446,7 @@ ${neighbors
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(tool.title)}</title>
@@ -1768,6 +1769,7 @@ ${guide.faq
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(guide.seoTitle)}</title>
@@ -2108,6 +2110,7 @@ export function renderGuidesIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Study Guides — How to Learn Better | Iterra</title>
@@ -2233,6 +2236,7 @@ export function renderTopicPage(topic) {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(/guide/i.test(topic.kicker) ? topic.kicker : `${topic.kicker} Study Guides`)} — Iterra</title>
@@ -2323,6 +2327,7 @@ export function renderTopicsIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Study Guides by Topic — Iterra</title>
@@ -2397,6 +2402,7 @@ export function renderToolsIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Iterra Study Tools — Planner, Flashcards, Notes & Timer</title>
@@ -2681,6 +2687,7 @@ ${factHtml}
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 ${compareHead({
@@ -2785,6 +2792,7 @@ export function renderCompareIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Compare Iterra — Honest Study App Comparisons</title>
@@ -2875,6 +2883,7 @@ export function renderAlternativesIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Study App Alternatives — Honest Picks for Students</title>
@@ -3080,6 +3089,7 @@ export function render404() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <meta name="robots" content="noindex" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Page not found — Iterra</title>
