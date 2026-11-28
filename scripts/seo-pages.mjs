@@ -859,7 +859,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 @media(max-width:720px){.pager{grid-template-columns:1fr;gap:1.6rem}}
 
 /* ── article chrome: progress, TOC rail, ads ───────────── */
-.resume-chip{position:fixed;right:1.2rem;bottom:1.2rem;z-index:55;display:none;align-items:center;gap:.6rem;padding:.7rem 1.1rem;border-radius:99px;border:1px solid rgba(255,255,255,.6);background:linear-gradient(160deg,rgba(255,253,246,.85),rgba(240,244,230,.75));-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 14px 34px -16px rgba(31,36,31,.4),inset 0 1px 0 rgba(255,255,255,.7);color:var(--ink);font-size:.85rem;text-decoration:none;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.resume-chip{position:fixed;right:1.2rem;bottom:5.6rem;z-index:55;display:none;align-items:center;gap:.6rem;padding:.7rem 1.1rem;border-radius:99px;border:1px solid rgba(255,255,255,.6);background:linear-gradient(160deg,rgba(255,253,246,.85),rgba(240,244,230,.75));-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:0 14px 34px -16px rgba(31,36,31,.4),inset 0 1px 0 rgba(255,255,255,.7);color:var(--ink);font-size:.85rem;text-decoration:none;cursor:pointer;transition:transform .2s,box-shadow .2s}
 .resume-chip:hover{transform:translateY(-2px);box-shadow:0 18px 40px -16px rgba(31,36,31,.45),inset 0 1px 0 rgba(255,255,255,.7)}
 .resume-chip .pct{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--accent)}
 @media print{.resume-chip{display:none!important}}
