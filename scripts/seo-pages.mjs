@@ -725,7 +725,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 }
 .toc-rail{display:none}
 @media(min-width:1200px){
-  .toc-rail{display:block;position:sticky;top:28px;align-self:start;height:fit-content;max-height:calc(100vh - 56px);overflow-y:auto;scrollbar-width:thin}
+  .toc-rail{display:block;position:sticky;top:28px;align-self:start;height:fit-content;max-height:calc(100vh - 56px);overflow-y:auto;scrollbar-width:thin;padding:1.1rem 1.2rem;border-radius:14px;border:1px solid rgba(255,255,255,.55);background:linear-gradient(160deg,rgba(255,253,246,.55),rgba(240,244,230,.4));-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 14px 34px -22px rgba(31,36,31,.35)}
 }
 .toc-rail .tk{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:.8rem}
 .toc-rail ol{list-style:none;padding:0;margin:0;display:grid;gap:.15rem;border-left:1px solid var(--line)}
