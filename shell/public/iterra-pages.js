@@ -118,6 +118,7 @@ if(document.querySelector('.guide-article,.compare-table'))(function(){
 var pPrev=document.querySelector('.pager a:not(.next)'),pNext=document.querySelector('.pager .next');
 if(pPrev||pNext)document.addEventListener('keydown',function(e){
   if(/input|textarea|select/i.test(document.activeElement.tagName))return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
   if(e.key===']'&&pNext){e.preventDefault();pNext.click()}
   if(e.key==='['&&pPrev){e.preventDefault();pPrev.click()}
 });
