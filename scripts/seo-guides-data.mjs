@@ -3342,6 +3342,103 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-economics',
+    title: 'How to <em>study economics</em>',
+    seoTitle: 'How to Study Economics: Incentives, Models, Application',
+    description:
+      'Study economics as logic, not graphs: learn the incentive logic behind models, draw the curves, use application-based recall, and connect to real-world events.',
+    kicker: 'Study Methods',
+    datePublished: '2027-04-06',
+    dateModified: '2027-04-10',
+    readMinutes: 6,
+    keywords: ['how to study economics', 'economics study tips', 'econ exam', 'supply and demand study'],
+    tools: ['ink', 'flashcards'],
+    related: ['how-to-study-math', 'how-to-study-psychology', 'active-recall-vs-rereading'],
+    lede: 'Economics is the subject where students most often get lost in models — supply and demand curves, game theory matrices, macroeconomic indicators. But economics isn\'t a list of models; it\'s a set of interconnected ideas about how people make choices under constraints. The students who do well learn the *logic* of the models, not just the graphs.',
+    takeaways: [
+      'Economics is logic, not graphs — learn the incentive logic and the models become obvious.',
+      'Draw the curves — economics is visual, and the graph is the concept.',
+      'Apply to real-world events — connection makes the model stick.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for an economics exam?',
+        a: 'Learn the incentive logic behind each model, then draw the graphs. Use application-based flashcards — "how would this model explain X" rather than "what is X." Connect concepts to real-world events and practice essays under timed conditions.',
+      },
+      {
+        q: 'Are graphs important in economics?',
+        a: 'Yes, but as tools, not ends. Draw the graph to understand the relationship — supply and demand, market equilibrium, production possibilities. The graph is the concept made visible; the logic behind it is what matters.',
+      },
+      {
+        q: 'How do I understand economics models?',
+        a: 'Ask: what incentive is driving this behavior? What would happen if the incentive changed? Every econ model is built on incentives — learn the logic and the model becomes intuitive.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Economics is logic, not graphs',
+        blocks: [
+          { k: 'p', t: 'Economics is the subject where students most often get lost in models — supply and demand curves, game theory matrices, macroeconomic indicators. But economics isn\'t a list of models; it\'s a set of interconnected ideas about how people make choices under constraints. The students who do well learn the *logic* of the models, not just the graphs.' },
+          { k: 'p', t: 'Every economics model is built on a simple premise: people respond to incentives. Supply and demand works because buyers and sellers adjust behavior based on price. Game theory works because players anticipate each other\'s moves. Learn the *incentive logic* and the models become obvious; memorize the graphs and they\'re just pictures.' },
+          { k: 'p', t: 'When you encounter a new model, ask: what incentive is driving this behavior? What would happen if the incentive changed? The questions turn abstract models into intuitive logic.' },
+        ],
+      },
+      {
+        h2: 'The economics study loop',
+        blocks: [
+          { k: 'p', t: 'A productive economics study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Read the material once for the big picture — the model and its assumptions.',
+            'Go back and learn the details — formulas, graphs, key terms.',
+            'Draw the graph — economics is visual; the curve is the concept.',
+            'Explain it out loud — teach the model to an imaginary student.',
+            'Test yourself — apply the model to a new scenario.',
+          ]},
+          { k: 'p', t: 'The draw-the-graph step is crucial for economics. Most econ concepts are spatial — supply curves, production possibilities frontiers, market equilibria. A graph forces you to understand the *relationship*, not just the label.' },
+          { k: 'tool', tool: 'ink', t: 'Ink is built for the graph step — sketch the curve, label the axes, and the relationship becomes visible.' },
+        ],
+      },
+      {
+        h2: 'Active recall for economics',
+        blocks: [
+          { k: 'p', t: 'Economics flashcards work best when they test *application*, not just definition. Instead of "What is elasticity?" use "How would a tax affect a market with elastic demand?" or "What happens to supply when input costs rise?"' },
+          { k: 'deflist', items: [
+            { t: 'For models', d: '"How would this model explain X outcome?"' },
+            { t: 'For terms', d: '"What\'s an example of this concept in real life?"' },
+            { t: 'For policies', d: '"What would be the unintended consequences of X?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The real-world connection',
+        blocks: [
+          { k: 'p', t: 'Economics is the most real-world of the social sciences — every policy debate, market movement, and business decision is economics in action. Connect every concept to a current event: "This is supply and demand in action" or "This is a real-world example of game theory."' },
+          { k: 'p', t: 'The best economics students don\'t just know the models — they can *apply* them. Practice applying supply and demand to new markets, game theory to new scenarios, and macroeconomic models to new policies.' },
+        ],
+      },
+      {
+        h2: 'Common economics study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common economics study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing graphs without understanding the incentive logic', d: 'Graphs are pictures of incentives — learn the logic, not the picture.' },
+            { t: 'Skipping the assumptions', d: 'Every model has limits — know when it applies.' },
+            { t: 'Not connecting concepts to real-world examples', d: 'Application is what makes the model stick.' },
+            { t: 'Studying only before exams', d: 'Economics requires consistent review — the material accumulates.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Economics rewards understanding incentives, not memorizing graphs.' },
+          { k: 'p', t: 'Learn the logic behind the models, draw the graphs, use application-based recall, and connect to real-world events. The students who treat economics as a way of thinking outperform the ones who treat it as a list of models.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
