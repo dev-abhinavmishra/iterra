@@ -5104,6 +5104,104 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-learn-gre-vocabulary',
+    title: 'How to learn <em>GRE vocabulary</em>',
+    seoTitle: 'How to Learn GRE Vocabulary: Context, Not Lists',
+    description:
+      'Beat the GRE vocabulary with context-based learning: focus on the 300-500 words that actually appear, practice daily, and review every question — not generic word lists.',
+    kicker: 'Study Methods',
+    datePublished: '2027-08-24',
+    dateModified: '2027-08-28',
+    readMinutes: 7,
+    keywords: ['GRE vocabulary', 'how to learn GRE words', 'GRE verbal prep', 'GRE vocab list'],
+    tools: ['flashcards', 'ink'],
+    related: ['how-to-study-for-the-gre', 'how-to-study-for-the-sat', 'how-to-learn-a-language'],
+    lede: 'GRE vocabulary is the highest-leverage skill on the test — the Verbal section is half the exam, and half of Verbal is vocabulary-in-context. But most students waste time memorizing word lists that never stick. The GRE rewards a different approach: learn words in context, not isolation, and focus on the words that actually appear.',
+    takeaways: [
+      'Take a practice test first — the vocabulary questions you miss tell you which words to learn.',
+      'Learn words in context, not isolation — flashcards with sentences, not dictionary definitions.',
+      'Focus on the 300-500 words that actually appear, not the 3,000 that might.',
+    ],
+    faq: [
+      {
+        q: 'How many words should I learn for the GRE?',
+        a: 'Most students need 300-500 words — the high-frequency words that appear in Text Completion and Sentence Equivalence. Start with a practice test to identify your weak spots, then build a personalized list rather than memorizing a generic 3,000-word list.',
+      },
+      {
+        q: 'Are GRE word lists worth it?',
+        a: 'Word lists are a starting point, but they\'re not enough. The GRE tests words *in context* — you need to know how a word fits in a sentence, not just its definition. Pair word lists with context-based practice: flashcards with sentences, practice questions, and real-world reading.',
+      },
+      {
+        q: 'How long should I study GRE vocabulary?',
+        a: 'Plan for 6-12 weeks of consistent daily practice. Vocabulary is a slow-burn skill — 15-20 flashcards per day for 8 weeks teaches more than 200 flashcards on a weekend. Consistency beats intensity.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the vocabulary game before you study it',
+        blocks: [
+          { k: 'p', t: 'The GRE tests vocabulary in context — Text Completion and Sentence Equivalence — not in isolation. You\'re not asked to define "ephemeral"; you\'re asked to choose the word that fits a blank in a sentence. This means you need to know words *and* how they\'re used, not just their dictionary definitions.' },
+          { k: 'p', t: 'Take a practice test first. The vocabulary questions you miss tell you exactly which words to learn — you don\'t need to memorize 3,000 words; you need to learn the 300-500 that actually appear.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards is the right tool for GRE vocabulary — spaced repetition, context sentences, and the ability to drill the words that matter most.' },
+        ],
+      },
+      {
+        h2: 'The vocabulary study loop',
+        blocks: [
+          { k: 'p', t: 'GRE vocabulary prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section.',
+            'Review every vocabulary question — right and wrong.',
+            'Identify the words you missed.',
+            'Drill those words with flashcards and context sentences.',
+            'Take another practice section to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'The words that matter most',
+        blocks: [
+          { k: 'p', t: 'Not all GRE words are equal. Focus on:' },
+          { k: 'deflist', items: [
+            { t: 'High-frequency words', d: 'The ones that appear in Text Completion and Sentence Equivalence most often.' },
+            { t: 'Words you miss repeatedly', d: 'Your personal weak spots matter more than generic lists.' },
+            { t: 'Words with multiple meanings', d: 'The GRE loves words that mean different things in different contexts.' },
+            { t: 'Root words', d: 'Knowing Greek and Latin roots helps you decode unfamiliar words on the test.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The context method: learn words, not definitions',
+        blocks: [
+          { k: 'p', t: 'The best GRE vocabulary method is context-based: learn words in sentences, not in isolation. For each word, create a flashcard with the word, the definition, and a sentence using the word in context.' },
+          { k: 'p', t: 'The context method works because the GRE tests words *in context* — you need to know how a word fits in a sentence, not just what it means. A flashcard with "ephemeral — lasting a very short time — The beauty of cherry blossoms is ephemeral." teaches the word better than a dictionary entry.' },
+          { k: 'tool', tool: 'ink', t: 'Ink lets you write context sentences by hand — the act of constructing the sentence is what makes the word stick.' },
+        ],
+      },
+      {
+        h2: 'The daily practice routine',
+        blocks: [
+          { k: 'p', t: 'Consistency beats intensity for vocabulary. A daily routine works better than a weekend cram:' },
+          { k: 'steps', items: [
+            'Morning: 15-20 flashcards — review yesterday\'s words and learn new ones.',
+            'Throughout the day: encounter words in context — reading articles, watching videos, noticing words in the wild.',
+            'Evening: 15-20 flashcards — the same words, spaced repetition.',
+            'Weekly: a timed practice section to measure progress.',
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Vocabulary isn\'t about memorizing words — it\'s about recognizing them in context.' },
+          { k: 'p', t: 'Learn words in context, focus on the words that matter, practice daily, and review every question. The GRE vocabulary is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
