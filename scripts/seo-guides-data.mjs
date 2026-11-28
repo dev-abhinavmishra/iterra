@@ -2847,6 +2847,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Cramming formulas the night before', d: 'The SAT tests patterns, not recall — a formula you learned Thursday is gone by Saturday. Drill question types weekly instead.' },
+            { t: 'Skipping the easy questions', d: 'Burning three minutes on a hard question costs the three easy ones you could have banked. Two-pass strategy: answer what you know, flag the rest.' },
+            { t: 'Never taking a full practice test', d: 'Section practice hides pacing problems. A full timed test exposes them — take one every 2-3 weeks.' },
+            { t: 'Reviewing only wrong answers', d: 'Right answers you guessed on are future wrong answers. Review every question, especially the lucky hits.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
@@ -2950,6 +2961,17 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'ACT timing is tight — about 49 seconds per English question, 60 per Math, 52 per Reading, and 53 per Science. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
           { k: 'p', t: 'Never leave a question blank — there\'s no penalty for guessing. If you\'re running out of time, guess on everything remaining.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Ignoring the Science section', d: 'ACT Science tests data-reading speed, not science knowledge — students who skip it leave easy points behind.' },
+            { t: 'Running out of time on Reading', d: 'The ACT gives about 53 seconds per Reading question. Practice passage-first triage or you will leave a full passage blank.' },
+            { t: 'Memorizing formulas cold', d: 'The ACT has no formula sheet — but drilling them without context produces fragile recall. Learn them inside problems.' },
+            { t: 'Practicing only easy questions', d: 'The last ten questions of each ACT section are where scores are won. If your practice set never reaches them, neither will your score.' },
+          ]},
         ],
       },
       {
@@ -3934,6 +3956,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Practicing vocabulary in lists, not passages', d: 'The GRE tests words in context — isolated word lists build recognition, not the judgment the exam measures.' },
+            { t: 'Treating Quant like the SAT', d: 'GRE math is more reasoning-heavy and calculator-optional; practicing only arithmetic-style problems leaves the hard questions untouched.' },
+            { t: 'Writing essays without timing', d: 'The Analytical Writing section is 30 minutes flat — an unpracticed essay runs out of road mid-argument.' },
+            { t: 'Skipping the research-style questions', d: 'Research questions reward evaluating sources, not topic knowledge — drill the reasoning, not the subject.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The bottom line',
         blocks: [
           { k: 'quote', t: 'Cramming fills your head with facts the exam never asks for.' },
@@ -4026,6 +4059,17 @@ export const GUIDES = [
           { k: 'p', t: 'MCAT timing is tight — about 95 seconds per science question, 90 per CARS. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
           { k: 'p', t: 'For science, read the questions first, then the passage — you know what you\'re looking for. For CARS, the same approach works — the questions tell you what to look for.' },
           { k: 'tool', tool: 'timer', t: 'Timer replicates the MCAT\'s timed pressure — practice sections at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Memorizing without understanding', d: 'The MCAT tests application — a memorized pathway fails the first question that twists it. Learn the *why* behind each system.' },
+            { t: 'Neglecting CARS', d: 'CARS is half the verbal battle — students who treat it as an afterthought plateau below their science scores.' },
+            { t: 'Practicing passages untimed', d: 'MCAT passages are dense and the clock is tight — untimed practice builds comprehension, not exam stamina.' },
+            { t: 'Ignoring psychology and sociology', d: 'These sections are high-yield and often under-studied — they reward conceptual frameworks over memorization.' },
+          ]},
         ],
       },
       {
@@ -4125,6 +4169,17 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'Reading Comprehension gives you dense passages and questions about them. The strategy: read the questions first, then the passage with those questions in mind. You\'re looking for specific answers, not reading for pleasure.' },
           { k: 'p', t: 'The passages are academic — law, science, humanities. The questions test whether you can identify the main idea, make inferences, and evaluate arguments.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Reading arguments passively', d: 'Every Logical Reasoning question is an argument — diagram the conclusion and evidence or you are guessing at structure.' },
+            { t: 'Skipping Logic Games setup', d: 'Games are winnable through diagramming — students who skip the setup diagram burn time rediscovering it per question.' },
+            { t: 'Treating Reading Comprehension like GRE reading', d: 'LSAT RC questions test structural function and inference discipline, not vocabulary or detail recall.' },
+            { t: 'Practicing only easy sections', d: 'The score is made or lost on the last five questions of each section — if your practice never reaches them, your pace is untested.' },
+          ]},
         ],
       },
       {
@@ -4446,6 +4501,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Practicing algebra the SAT way', d: 'GMAT quant emphasizes data sufficiency and logic over computation — pure arithmetic practice misses what the exam actually tests.' },
+            { t: 'Ignoring sentence correction rules', d: 'SC rewards parallelism and modifier discipline — "sounds right" answers are the trap the section is built on.' },
+            { t: 'Writing essays from scratch each time', d: 'The AWA rewards a memorized two-paragraph structure — build a template once, then practice filling it under time.' },
+            { t: 'Skipping data interpretation drills', d: 'IR is the section students skip — and it punishes skipping hardest, since partial credit rewards attempt strategy.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'Speed comes from certainty. Certainty comes from reps.' },
@@ -4542,6 +4608,17 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The MPT is 2 performance tasks — drafting a memo, brief, or contract from provided materials. The tasks test whether you can *do* legal work, not just know the law.' },
           { k: 'p', t: 'The strategy: read the task instructions carefully, identify the audience and purpose, and organize your answer logically. The MPT rewards clarity and organization, not just legal knowledge.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Treating the MBE like a law-school exam', d: 'The MBE tests application of black-letter rules to new facts — outlines alone do not build the skill; practice questions do.' },
+            { t: 'Writing MEE answers without a framework', d: 'IRAC structure is what graders reward — an unstructured essay buries the analysis even when the law is right.' },
+            { t: 'Practicing only multiple choice', d: 'The performance tests are a different skill — document drafting under time. Neglect them and you leave points on the table.' },
+            { t: 'Studying subjects evenly', d: 'MBE subjects are weighted differently — audit your practice results and weight your study time to the tested distribution.' },
+          ]},
         ],
       },
       {
@@ -4651,6 +4728,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Skipping the PAT until late', d: 'The PAT is a spatial-reasoning test unlike anything else on the exam — it needs its own practice type, not more bio review.' },
+            { t: 'Reading passages for comprehension, not speed', d: 'The DAT rewards pattern recognition under time — slow careful reading is a liability on this exam.' },
+            { t: 'Memorizing biology as lists', d: 'The DAT tests applied biology — know the pathways and processes, not isolated facts.' },
+            { t: 'Practicing only in the morning', d: 'The real DAT runs four-plus hours — stamina is trained, not assumed. Build long practice sessions early.' },
+          ]},
+        ],
+      },
+      {
         h2: 'Putting it together',
         blocks: [
           { k: 'quote', t: 'The clock is part of the test. Train with it, not against it.' },
@@ -4744,6 +4832,17 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The Writing section gives you a prompt and 30 minutes to write an essay. The essay is scored on organization, development, and language use — not on the "correct" answer.' },
           { k: 'p', t: 'Practice writing essays under timed conditions. The structure matters: introduction, body paragraphs, conclusion. The best essays are clear, organized, and well-supported.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Underestimating the writing section', d: 'The essay is scored separately but still counts — an unpracticed timed essay caps your composite score.' },
+            { t: 'Practicing science without timing', d: 'The science sections are passage-based and fast — untimed review builds knowledge, not the exam skill.' },
+            { t: 'Ignoring verbal reasoning', d: 'The verbal section is half the battle for many students — it rewards passage-map skills, not vocabulary drills.' },
+            { t: 'Taking the exam cold-turkey', d: 'PCAT scores are percentile-based — a diagnostic practice test tells you whether you need months or weeks.' },
+          ]},
         ],
       },
       {
@@ -4842,6 +4941,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Assuming OAT equals DAT with different content', d: 'The OAT has its own physics-heavy science section and different timing — DAT materials only half-transfer.' },
+            { t: 'Neglecting the physics section', d: 'Physics is uniquely heavy on the OAT compared to other entrance exams — it rewards problem-solving reps, not review.' },
+            { t: 'Practicing reading without timing', d: 'The OAT reading section is long and dense — pace is a trainable skill that untimed practice never builds.' },
+            { t: 'Skipping the quantitative review', d: 'The quant section covers algebra through statistics — a diagnostic shows which strand is actually weak.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The short version',
         blocks: [
           { k: 'quote', t: 'Patterns beat content. The exam asks the same shapes in new clothes.' },
@@ -4932,6 +5042,17 @@ export const GUIDES = [
           { k: 'p', t: 'FE timing is tight — about 2.75 minutes per question in the morning, 5.5 minutes per question in the afternoon. The strategy: answer the easy questions first, flag the hard ones, and come back.' },
           { k: 'p', t: 'For both sections, write down the formula before you start solving — it prevents careless errors. And check your units on every problem — unit errors are the most common mistake.' },
           { k: 'tool', tool: 'timer', t: 'Timer replicates the FE\'s timed pressure — practice sections at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Studying breadth instead of depth', d: 'The FE tests a wide syllabus but rewards depth on the fundamentals — scattered review misses the core concepts that dominate.' },
+            { t: 'Ignoring the morning general section', d: 'Every discipline shares the same morning exam — a weak general score caps your total regardless of afternoon performance.' },
+            { t: 'Practicing without an FE-style calculator', d: 'The exam restricts calculator models — practicing on the wrong one builds habits the room will not allow.' },
+            { t: 'Taking it before you are ready to pass', d: 'A failed attempt means a waiting period — a diagnostic practice exam tells you honestly whether to book yet.' },
+          ]},
         ],
       },
       {
@@ -5029,6 +5150,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Practicing speaking alone', d: 'TOEFL speaking is recorded and rated on delivery — solo practice without recording leaves your weakest skill unmeasured.' },
+            { t: 'Reading without note-taking', d: 'The listening and lecture sections assume active notes — passive listening guarantees you miss the detail questions.' },
+            { t: 'Memorizing templates for writing', d: 'ETS scores language use and development — rigid templates read as memorized and cap your score.' },
+            { t: 'Skipping full mock tests', d: 'Section practice hides the fatigue of a three-hour exam — take a full mock under real conditions at least twice.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The takeaway',
         blocks: [
           { k: 'quote', t: 'Mistakes are the syllabus the exam never published.' },
@@ -5120,6 +5252,17 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The Speaking section is a face-to-face interview with an examiner — 3 parts covering personal topics, a cue card, and a discussion. The interview is 11-14 minutes.' },
           { k: 'p', t: 'The strategy: practice speaking with a partner or recording yourself. Focus on fluency, coherence, and vocabulary — not perfection. The best speakers are clear and organized, not necessarily flawless.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Practicing only one English variety', d: 'IELTS accepts all standard varieties — but consistency matters; mixing registers within an answer reads as unstable.' },
+            { t: 'Writing essays without an opinion', d: 'Task 2 rewards a clear position defended with examples — a balanced non-answer scores lower than a committed one.' },
+            { t: 'Ignoring the speaking rubric', d: 'Speaking is scored on fluency, vocabulary, grammar and pronunciation — practicing alone without recording misses half the criteria.' },
+            { t: 'Reading for comprehension, not speed', d: 'IELTS reading is 60 minutes for 40 questions — you cannot afford full comprehension; learn to skim for what the questions ask.' },
+          ]},
         ],
       },
       {
@@ -5233,6 +5376,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Choosing answers from personal experience', d: 'NCLEX tests safe practice, not what you have seen — the "I did it this way at clinical" instinct fails prioritization questions.' },
+            { t: 'Skipping the prioritization questions', d: 'ABCs, Maslow and acute-vs-chronic are the backbone of the exam — drill them until they are automatic.' },
+            { t: 'Memorizing drug names without indications', d: 'Medication questions test classification, antidotes and patient teaching — name memorization alone answers almost nothing.' },
+            { t: 'Practicing only in study groups', d: 'Group study builds confidence, not accuracy — you need solo CAT-style practice to find your real weak spots.' },
+          ]},
+        ],
+      },
+      {
         h2: 'The honest summary',
         blocks: [
           { k: 'quote', t: 'Practice does not make perfect. Practiced review makes prepared.' },
@@ -5332,6 +5486,17 @@ export const GUIDES = [
             'Throughout the day: encounter words in context — reading articles, watching videos, noticing words in the wild.',
             'Evening: 15-20 flashcards — the same words, spaced repetition.',
             'Weekly: a timed practice section to measure progress.',
+          ]},
+        ],
+      },
+      {
+        h2: 'The mistakes that stall vocabulary growth',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Studying word lists in alphabetical order', d: 'Alphabetical lists feel productive and test nothing — shuffle them or the order becomes the memory.' },
+            { t: 'Memorizing definitions, not usage', d: 'The GRE tests words in context — a word you can define but not deploy in a sentence is half-learned.' },
+            { t: 'Doing all your vocab at once', d: 'Ten words a day retained beats a hundred crammed and forgotten — consistency is the mechanism, not volume.' },
+            { t: 'Ignoring the words you "know"', d: 'GRE traps sit in level-2 and 3 words you half-know — audit your misses, not just your unknowns.' },
           ]},
         ],
       },
@@ -5750,6 +5915,17 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'CARS is 90 minutes for 9 passages — about 10 minutes per passage. The strategy: spend 3-4 minutes reading, 6-7 minutes answering questions. Don\'t spend more than 12 minutes on any single passage.' },
           { k: 'p', t: 'For difficult passages, don\'t panic — move on and come back if you have time. The CAT doesn\'t penalize guessing, so answer every question.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Reading for the answer instead of the argument', d: 'CARS passages are built to be argued with — mapping the author\'s reasoning beats hunting for keywords.' },
+            { t: 'Bringing outside knowledge', d: 'CARS tests reasoning on the page, not your pre-med knowledge — the best-prepared students lose points here for importing facts.' },
+            { t: 'Answering from memory of a similar passage', d: 'Every passage is self-contained — the correct answer is always in the text, never in your head.' },
+            { t: 'Skipping the first read', d: 'A fast first pass for structure — claims, evidence, shifts — makes the questions faster. Skipping it makes every question a re-read.' },
+          ]},
         ],
       },
       {
@@ -6176,6 +6352,17 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'The mistakes that sink research papers',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Starting with the thesis before the research', d: 'A thesis written before you have read the sources is a guess — let the literature tell you what the argument should be.' },
+            { t: 'Treating the outline as a cage', d: 'Outlines organize thinking, they do not replace it — if a section fights the structure, the structure is wrong.' },
+            { t: 'Quoting instead of synthesizing', d: 'String-of-quotes papers score lower than ones that argue — use sources as evidence for your claim, not as the claim.' },
+            { t: 'Procrastinating the revision pass', d: 'The gap between a draft and a paper is revision — a paper "finished" without a second read is a first draft with a title.' },
+          ]},
+        ],
+      },
+      {
         h2: 'If you remember one thing',
         blocks: [
           { k: 'quote', t: 'The research paper isn\'t about finding information — it\'s about building an argument.' },
@@ -6278,6 +6465,17 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'CLEP timing is generous — 90 minutes for most exams, roughly 1.5-2 minutes per question. The strategy: answer every question, don\'t change answers unless you have a reason, and don\'t leave questions blank. The CLEP doesn\'t penalize guessing.' },
           { k: 'p', t: 'For difficult questions, don\'t panic — flag them and come back if you have time. The exam is designed to be completed in the time limit; if you\'re running out of time, you\'re spending too long on individual questions.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Assuming college credit equals easy credit', d: 'CLEP scores map to a C — the exam is calibrated so that "just passing" is genuinely passing-level work.' },
+            { t: 'Studying the whole course catalog', d: 'Each CLEP covers one course — target the exam\'s official outline, not the entire subject.' },
+            { t: 'Practicing without the timer', d: '90 minutes for roughly 90 questions is tight — untimed practice builds knowledge but not the pacing the exam demands.' },
+            { t: 'Ignoring your college\'s credit policy', d: 'Not every school accepts every CLEP — a passing score at one college can be worthless at another. Check before you book.' },
+          ]},
         ],
       },
       {
