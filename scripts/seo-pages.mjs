@@ -711,6 +711,12 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .tour{max-width:46rem}
 .tour h3{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:1.35rem;letter-spacing:-.02em;margin:1.6rem 0 .5rem;color:var(--ink)}
 .tour p{font-size:1.04rem;line-height:1.75;color:#333a34;margin-bottom:1rem}
+.series{margin-top:2.6rem;padding-top:1.4rem;border-top:1px solid var(--line)}
+.series>.mono{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:.7rem}
+.series .chips{display:flex;flex-wrap:wrap;gap:.45rem}
+.series .chips a{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;color:var(--mute);text-decoration:none;border:1px solid var(--line2);border-radius:999px;padding:.4rem .85rem;background:rgba(255,255,255,.45);transition:border-color .15s,color .15s,transform .15s,box-shadow .15s}
+.series .chips a:hover{border-color:rgba(43,84,64,.45);color:var(--accent);transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(43,84,64,.4)}
+.series .chips a.on{background:var(--accent);border-color:var(--accent);color:#f4f1e6}
 .pager{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:3rem;padding-top:1.8rem;border-top:1px solid var(--line)}
 .pager .dir{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);display:block}
 .pager a{display:block;margin-top:.45rem;text-decoration:none;color:var(--ink)}
@@ -851,7 +857,7 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .to-top.on{opacity:1;visibility:visible;transform:none}
 .to-top:hover{background:#fff;transform:translateY(-2px)}
 @media print{
-  .side,.topbar,.scrim,.read-progress,.ad-slot,.toc-rail,.pager,.author-card,.cta,.byline .av,.to-top,.lightbox{display:none!important}
+  .side,.topbar,.scrim,.read-progress,.ad-slot,.toc-rail,.pager,.series,.author-card,.cta,.byline .av,.to-top,.lightbox{display:none!important}
   .main{margin-left:0}.content,.foot{background:#fff}
   body::before,body::after{display:none}
   .hero{padding-top:0}
@@ -1398,6 +1404,39 @@ ${related
   const gi = GUIDES.findIndex((g) => g.slug === guide.slug);
   const prevGuide = gi > 0 ? GUIDES[gi - 1] : null;
   const nextGuide = gi >= 0 && gi < GUIDES.length - 1 ? GUIDES[gi + 1] : null;
+  /* series rails: "how to study for X" guides form an exam series,
+     "how to study X" guides form a subject series */
+  const seriesKind = /^how-to-study-for-/.test(guide.slug)
+    ? 'exam'
+    : /^how-to-study-(?!for-)/.test(guide.slug)
+      ? 'subject'
+      : null;
+  const ACR = new Set(['sat', 'act', 'gre', 'mcat', 'lsat', 'gmat', 'dat', 'pcat', 'oat', 'fe', 'toefl', 'ielts']);
+  const seriesName = (s) => {
+    const m = s.match(/^how-to-study-(?:for-(?:the-)?)?(.*)$/);
+    if (!m) return s;
+    return m[1]
+      .split('-')
+      .map((w) => (ACR.has(w) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)))
+      .join(' ');
+  };
+  const series = seriesKind
+    ? GUIDES.filter((g) =>
+        seriesKind === 'exam' ? /^how-to-study-for-/.test(g.slug) : /^how-to-study-(?!for-)/.test(g.slug),
+      )
+    : [];
+  const seriesHtml =
+    series.length > 2
+      ? `<nav class="series" aria-label="${seriesKind === 'exam' ? 'Exam study guides' : 'Subject study guides'} series">
+<span class="mono">${seriesKind === 'exam' ? 'Exam guides' : 'Subject guides'} · part ${series.findIndex((g) => g.slug === guide.slug) + 1} of ${series.length}</span>
+<div class="chips">${series
+        .map(
+          (g) =>
+            `<a href="/guides/${g.slug}"${g.slug === guide.slug ? ' class="on" aria-current="page"' : ''}>${esc(seriesName(g.slug))}</a>`,
+        )
+        .join('')}</div>
+</nav>`
+      : '';
   const pagerHtml =
     prevGuide || nextGuide
       ? `<nav class="pager" aria-label="More guides">
@@ -1541,6 +1580,7 @@ ${authorCardHtml}
 </article>
 ${tocRail}
 </div>
+${seriesHtml}
 ${pagerHtml}
 ${toolsHtml}
 ${relatedHtml}
