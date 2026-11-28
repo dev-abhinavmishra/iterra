@@ -2757,6 +2757,99 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-sat',
+    title: 'How to study for the <em>SAT</em>',
+    seoTitle: 'How to Study for the SAT: Strategy, Patterns, Timing',
+    description:
+      'Beat the SAT with a system: know the format, practice the question patterns, review every answer, and manage your timing — preparation method beats raw knowledge.',
+    kicker: 'Study Methods',
+    datePublished: '2027-02-16',
+    dateModified: '2027-02-20',
+    readMinutes: 7,
+    keywords: ['how to study for the SAT', 'SAT prep', 'SAT strategy', 'SAT practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-use-practice-tests', 'how-to-ace-multiple-choice-tests', 'how-to-study-for-finals-week'],
+    lede: 'The SAT is a test of patterns more than knowledge — the questions are designed to be solved with strategy, not just content. Students who treat it like a school exam (study the material, hope for the best) underperform students who treat it like a puzzle (learn the patterns, practice the timing). The difference is preparation method, not intelligence.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus your time.',
+      'Practice, review, repeat — the review is where the learning happens.',
+      'Timing strategy matters as much as content knowledge.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the SAT?',
+        a: 'Most students need 2-3 months of consistent prep for a meaningful score improvement. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak areas.',
+      },
+      {
+        q: 'Is the SAT harder than the ACT?',
+        a: 'They test similar skills but with different formats. The SAT is more focused on reading comprehension and problem-solving; the ACT includes a science section and is faster-paced. The study strategy is similar — practice tests, pattern recognition, and timing — but the content emphasis differs.',
+      },
+      {
+        q: 'Should I take the SAT or the ACT?',
+        a: 'Take a practice test for each and compare your scores. The SAT rewards careful reading and algebraic reasoning; the ACT rewards speed and broader content coverage. Most students do better on one format — the practice test will tell you which.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The SAT is a test of patterns more than knowledge — the questions are designed to be solved with strategy, not just content. Students who treat it like a school exam (study the material, hope for the best) underperform students who treat it like a puzzle (learn the patterns, practice the timing). The difference is preparation method, not intelligence.' },
+          { k: 'p', t: 'The SAT has a specific structure: Reading and Writing (two modules), Math (two modules), and an optional Essay. Each section is adaptive — the second module is harder if you do well on the first. Knowing the format, timing, and question types before you start studying prevents wasted effort on material that won\'t appear.' },
+          { k: 'p', t: 'Take a full practice test under timed conditions before you study anything. The score breakdown tells you where to focus — a student who scores 600 in Math but 400 in Reading should spend 80% of their time on Reading.' },
+        ],
+      },
+      {
+        h2: 'The SAT study loop',
+        blocks: [
+          { k: 'p', t: 'SAT prep works best as a cycle of practice, review, and repetition:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong — to understand the pattern.',
+            'Identify the question types you miss most often.',
+            'Drill those types with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where the learning happens. A practice test without review is just a measurement; a practice test with review is a study session.' },
+        ],
+      },
+      {
+        h2: 'Reading and Writing: the pattern-recognition game',
+        blocks: [
+          { k: 'p', t: 'The Reading and Writing section tests whether you can identify the main idea, make inferences, and understand vocabulary in context. The questions are formulaic — once you learn the patterns, they become mechanical.' },
+          { k: 'deflist', items: [
+            { t: 'Main idea', d: 'The answer is usually a paraphrase of the passage\'s thesis.' },
+            { t: 'Inference', d: 'The answer is supported by the text, not assumed.' },
+            { t: 'Vocabulary', d: 'The correct answer fits the context, not the dictionary definition.' },
+            { t: 'Transition', d: 'The answer creates logical flow between sentences.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Math: the formula sheet is your friend',
+        blocks: [
+          { k: 'p', t: 'The SAT Math section provides a formula sheet — use it. The questions test whether you can apply formulas, not whether you memorized them. The most-tested topics are algebra, problem-solving, and data analysis.' },
+          { k: 'p', t: 'For math, practice problems are the study method. Work through problems until the patterns are automatic — the exam rewards speed and accuracy, not deep understanding.' },
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'SAT timing is tight — about 71 seconds per question in Reading and Writing, 96 seconds in Math. The strategy: answer the easy questions first, flag the hard ones, and come back. A question you spend 3 minutes on might cost you 3 questions you could have answered.' },
+          { k: 'p', t: 'For Reading and Writing, read the question first, then the passage — you know what you\'re looking for. For Math, write down the formula before you start solving — it prevents careless errors.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the SAT\'s timed pressure — practice sections at real speed until pacing becomes automatic.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The SAT is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
