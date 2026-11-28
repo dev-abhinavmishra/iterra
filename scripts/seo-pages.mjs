@@ -1646,7 +1646,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
   const authorCardHtml = `<div class="author-card"><span class="av" aria-hidden="true">IT</span><div><span class="mono">About the author</span><div class="t">The Iterra terrain team</div><p class="d">Iterra is a free, local-first study workspace — planner, notes, flashcards, timer, and grader sharing one picture of your courses. These guides are written from what actually survives a semester, not what sounds good in a headline.</p><div class="share"><span class="mono">Share</span><a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(guide.title.replace(/<\/?em>/g, ''))}" target="_blank" rel="noopener noreferrer">X</a><a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}" target="_blank" rel="noopener noreferrer">LinkedIn</a><button type="button" data-copy="${url}">Copy link</button></div></div></div>`;
   /* three article hero treatments, rotated by guide index */
   const variant = ((gi % 3) + 3) % 3; /* 0 cover below · 1 split hero · 2 centered */
-  const heroCopy = `${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.title.replace(/<\/?em>/g, '') }])}
+  const heroCopy = `${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, ...(TOPIC_PAGE_SLUGS.has(topicSlug(guide.kicker)) ? [{ label: guide.kicker, href: `/topics/${topicSlug(guide.kicker)}` }] : []), { label: guide.title.replace(/<\/?em>/g, '') }])}
 <div class="kicker mono">Iterra Guides · <a class="klink" href="${topicHref(guide.kicker)}">${esc(guide.kicker)}</a></div>
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
@@ -1719,7 +1719,10 @@ ${guide.faq
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Iterra', item: `${SITE}/` },
           { '@type': 'ListItem', position: 2, name: 'Guides', item: `${SITE}/guides` },
-          { '@type': 'ListItem', position: 3, name: guide.title.replace(/<\/?em>/g, ''), item: url },
+          ...(TOPIC_PAGE_SLUGS.has(topicSlug(guide.kicker))
+            ? [{ '@type': 'ListItem', position: 3, name: guide.kicker, item: `${SITE}/topics/${topicSlug(guide.kicker)}` }]
+            : []),
+          { '@type': 'ListItem', position: TOPIC_PAGE_SLUGS.has(topicSlug(guide.kicker)) ? 4 : 3, name: guide.title.replace(/<\/?em>/g, ''), item: url },
         ],
       },
     ],
