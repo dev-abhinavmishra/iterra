@@ -142,6 +142,14 @@ const CARDS = [
     alt: 'Iterra atlas terrain',
   },
   {
+    file: 'topics.png',
+    kicker: 'Iterra Guides · Topics',
+    title: 'Study guides, <em>by topic</em>',
+    dek: `${GUIDES.length} research-backed articles across test prep, subject guides, study skills, and exam season.`,
+    shot: '/atlas/terrain-0.webp',
+    alt: 'Iterra study guide topics',
+  },
+  {
     file: 'compare.png',
     kicker: 'Iterra — Honest Comparisons',
     title: 'Iterra vs the field, <em>honestly</em>',

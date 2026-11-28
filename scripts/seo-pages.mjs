@@ -2241,15 +2241,15 @@ export function renderTopicsIndex() {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
-<title>Guide Topics — Iterra Study Guides</title>
+<title>Study Guides by Topic — Iterra</title>
 <meta name="description" content="Iterra study guides organized by topic — test prep, subject guides, study skills, and exam season. ${GUIDES.length} articles, all free." />
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Iterra" />
 <meta property="og:url" content="${url}" />
-<meta property="og:title" content="Guide Topics — Iterra Study Guides" />
+<meta property="og:title" content="Study Guides by Topic — Iterra" />
 <meta property="og:description" content="Iterra study guides organized by topic." />
-<meta property="og:image" content="${SITE}/og/guides.png" />
+<meta property="og:image" content="${SITE}/og/topics.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
