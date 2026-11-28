@@ -5598,6 +5598,105 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-statistics',
+    title: 'How to study <em>statistics</em>',
+    seoTitle: 'How to Study Statistics: Concepts, Calculations & Meaning',
+    description:
+      'Beat statistics by understanding the core ideas, not just memorizing formulas: practice the problem types, explain concepts in your own words, and balance calculations with interpretation.',
+    kicker: 'Study Methods',
+    datePublished: '2027-09-28',
+    dateModified: '2027-10-02',
+    readMinutes: 7,
+    keywords: ['how to study statistics', 'statistics study tips', 'statistics problems', 'statistics concepts'],
+    tools: ['proof', 'flashcards'],
+    related: ['how-to-study-math', 'how-to-study-economics', 'how-to-study-science'],
+    lede: 'Statistics is the subject where "I can calculate" and "I understand" are different things. Students who memorize formulas can plug in numbers but can\'t interpret the results; students who understand the concepts can interpret but struggle with the calculations. Statistics rewards a different approach: understand *why* each test works, and practice the problem types until they\'re automatic.',
+    takeaways: [
+      'Take a diagnostic first — the problems you can\'t solve tell you which concepts to review.',
+      'Understand the core ideas, not just the formulas — explain concepts in your own words.',
+      'Balance problems and concepts — 60% practice, 40% understanding.',
+    ],
+    faq: [
+      {
+        q: 'Is statistics harder than math?',
+        a: 'Statistics is different from math — it applies mathematical concepts to data and interpretation. The calculations are often simpler, but the interpretation is harder because you need to understand what the results mean, not just compute them.',
+      },
+      {
+        q: 'How do I know if I understand statistics?',
+        a: 'If you can explain a concept in your own words — what a p-value means, why correlation doesn\'t imply causation — you understand it. If you can only plug numbers into formulas, you don\'t. The Feynman technique works: teach the concept to someone else, and the gaps show up immediately.',
+      },
+      {
+        q: 'How much time should I spend on statistics problems vs. concepts?',
+        a: 'Aim for 60% problems and 40% concepts. Problems build fluency — you need to solve enough to recognize patterns. Concepts build understanding — you need to know *why* the tests work and how to interpret the results. You need both.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know statistics before you study it',
+        blocks: [
+          { k: 'p', t: 'Statistics is built on a few core ideas — descriptive statistics, probability, hypothesis testing, and regression. Everything else is application. If you understand the core ideas, the problems solve themselves; if you don\'t, you\'re just memorizing formulas.' },
+          { k: 'p', t: 'Take a practice test or diagnostic first. The problems you can\'t solve tell you exactly which concepts to review — you don\'t need to relearn everything; you need to shore up the foundations.' },
+          { k: 'tool', tool: 'proof', t: 'Proof helps organize statistics problem solutions — the step-by-step structure that turns a messy calculation into a clean, checkable argument.' },
+        ],
+      },
+      {
+        h2: 'The statistics study loop',
+        blocks: [
+          { k: 'p', t: 'Statistics prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Review the concept — read the textbook or watch a lecture.',
+            'Work through example problems — understand *why* each step works.',
+            'Solve problems independently — start with easy, then harder.',
+            'Review your mistakes — understand *why* you got it wrong.',
+            'Explain the concept in your own words — if you can\'t, you don\'t understand it.',
+          ]},
+          { k: 'p', t: 'The explain-in-your-own-words step is where understanding happens. A student who can explain why a p-value matters understands statistics; a student who can only plug into formulas doesn\'t.' },
+        ],
+      },
+      {
+        h2: 'The problem types that matter',
+        blocks: [
+          { k: 'p', t: 'Statistics problems fall into predictable types:' },
+          { k: 'deflist', items: [
+            { t: 'Descriptive statistics', d: 'Mean, median, mode, standard deviation — know the definitions cold.' },
+            { t: 'Probability', d: 'The foundation — know the rules and the common distributions.' },
+            { t: 'Hypothesis testing', d: 't-tests, chi-square, ANOVA — know when to use which.' },
+            { t: 'Regression', d: 'Correlation vs. causation — know the difference.' },
+            { t: 'Confidence intervals', d: 'The range of plausible values — know how to interpret them.' },
+          ]},
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the formulas, definitions, and test-selection rules that every statistics problem assumes you know.' },
+        ],
+      },
+      {
+        h2: 'The concept-vs-calculation balance',
+        blocks: [
+          { k: 'p', t: 'Statistics has two halves: conceptual questions ("what does this result mean?") and calculation problems ("what is the p-value?"). Students who only practice calculations miss half the exam; students who only review concepts can\'t solve the problems.' },
+          { k: 'p', t: 'The balance: spend 60% of your time on problems and 40% on concepts. Problems build fluency; concepts build understanding. You need both.' },
+        ],
+      },
+      {
+        h2: 'The common statistics traps',
+        blocks: [
+          { k: 'p', t: 'Statistics questions have predictable pitfalls:' },
+          { k: 'deflist', items: [
+            { t: 'P-values', d: 'A small p-value doesn\'t mean the effect is large — it means it\'s unlikely by chance.' },
+            { t: 'Correlation vs. causation', d: 'Correlation doesn\'t imply causation — know the difference.' },
+            { t: 'Sample size', d: 'Larger samples give more reliable results — small samples are noisy.' },
+            { t: 'Significance vs. importance', d: 'Statistical significance doesn\'t mean practical importance.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Statistics isn\'t about calculating numbers — it\'s about understanding what they mean.' },
+          { k: 'p', t: 'Understand the core ideas, practice the problem types, explain the concepts, and check your assumptions. The grade isn\'t a measure of intelligence — it\'s a measure of understanding.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
