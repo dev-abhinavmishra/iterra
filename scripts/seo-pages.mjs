@@ -1116,7 +1116,7 @@ const JS_NAME = JS_SRC
 
 /* Reading-progress bar + scrollspy — vanilla JS, no dependencies. The bar
    tracks the article container (not the page) so it reads honestly. */
-function readProgressScript(targetSel) {
+function readProgressEl(targetSel) {
   return `<div class="read-progress" data-pg="${targetSel}" aria-hidden="true"><i></i></div>`;
 }
 
@@ -1508,7 +1508,7 @@ ${adSlotHtml()}
 </div></div>
 </section>
 </div>
-${readProgressScript('.content>.wrap')}
+${readProgressEl('.content>.wrap')}
 ${footer()}
 </body>
 </html>
@@ -1810,7 +1810,7 @@ ${pagerHtml}
 ${toolsHtml}
 ${relatedHtml}
 </div>
-${readProgressScript('.guide-article')}
+${readProgressEl('.guide-article')}
 ${footer()}
 </body>
 </html>
@@ -2734,7 +2734,7 @@ ${nextCmp ? `<a class="next" href="/${base}/${nextCmp.slug}"><span class="dir">N
 </nav>`
     : ''}
 </div>
-${readProgressScript('.compare-body')}
+${readProgressEl('.compare-body')}
 ${footer()}
 </body>
 </html>
