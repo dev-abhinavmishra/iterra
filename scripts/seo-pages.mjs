@@ -935,7 +935,7 @@ body.reader .guide-article{max-width:46rem}
 .prose-fig{margin:2.4rem 0}
 .prose-fig .frame{box-shadow:0 1px 2px rgba(31,36,31,.05),0 24px 50px -30px rgba(31,36,31,.4)}
 .prose-fig figcaption{margin-top:.7rem;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
-.cols{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line2);margin:1.8rem 0}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line2);margin:1.8rem 0;padding:0;list-style:none}
 .col{padding:1.15rem 1.4rem 1.25rem 0;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:.5rem}
 .col:last-child{border-right:0;padding-right:0}
 .col .cn{font-size:10px;letter-spacing:.16em;color:var(--gold);font-weight:500}
@@ -1214,13 +1214,13 @@ function renderBlocks(blocks) {
       if (b.k === 'example')
         return `<div class="example"><span class="ex-tag mono">${esc(b.label || 'Worked example')}</span><div class="ex-body">${inline(b.t)}</div></div>`;
       if (b.k === 'cols')
-        return `<div class="cols">${b.items
+        return `<ol class="cols">${b.items
           .map((c, i) => {
             const h = typeof c === 'string' ? c : c.h || c.t || '';
             const d = typeof c === 'string' ? '' : c.d || '';
-            return `<div class="col"><span class="cn mono" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span><span class="ct">${inline(h)}</span>${d ? `<span class="cd">${inline(d)}</span>` : ''}</div>`;
+            return `<li class="col"><span class="cn mono" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span><span class="ct">${inline(h)}</span>${d ? `<span class="cd">${inline(d)}</span>` : ''}</li>`;
           })
-          .join('')}</div>`;
+          .join('')}</ol>`;
       if (b.k === 'figure') {
         const t = TOOLS.find((x) => x.id === b.tool);
         const src = b.src || (t ? `/shots/${t.id}.webp` : '');
