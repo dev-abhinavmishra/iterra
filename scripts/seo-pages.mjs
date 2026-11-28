@@ -1599,7 +1599,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
 <div class="kicker mono">Iterra Guides · <a class="klink" href="${topicHref(guide.kicker)}">${esc(guide.kicker)}</a></div>
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
-<div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><span>${dateFmt(guide.datePublished)}</span>${guide.dateModified && guide.dateModified !== guide.datePublished ? `<span class="dot">·</span><span>Updated ${dateFmt(guide.dateModified)}</span>` : ''}<span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
+<div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><time datetime="${guide.datePublished}">${dateFmt(guide.datePublished)}</time>${guide.dateModified && guide.dateModified !== guide.datePublished ? `<span class="dot">·</span><span>Updated <time datetime="${guide.dateModified}">${dateFmt(guide.dateModified)}</time></span>` : ''}<span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
   const heroFig = `<div class="frame"><img src="/shots/${coverTool.id}.webp" alt="${esc(coverTool.name)} inside the Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>`;
   const heroHtml =
     variant === 1
@@ -1992,7 +1992,7 @@ export function renderGuidesIndex() {
       const lis = t.items
         .map(
           (g, i) =>
-            `<li${i >= 8 ? ' hidden' : ''}><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+            `<li${i >= 8 ? ' hidden' : ''}><a href="/guides/${g.slug}"><span class="k mono"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )
         .join('\n');
       const moreBtn =
@@ -2080,7 +2080,7 @@ export function renderTopicPage(topic) {
     : '';
   const rows = topic.guides
     .map(
-      (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+      (g) => `<li><a href="/guides/${g.slug}"><span class="k mono"><time datetime="${g.datePublished}">${dateFmt(g.datePublished)}</time> · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
     )
     .join('\n');
   const ld = {
