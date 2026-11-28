@@ -1447,7 +1447,7 @@ export function renderGuidesIndex() {
     .map(
       (t) => `<h3 class="topic">${esc(t.k)} · ${t.items.length}</h3><ul class="rows">${t.items
         .map(
-          (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${esc(g.kicker)} · ${dateFmt(g.datePublished)} · ${g.readMinutes} min</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
+          (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )
         .join('\n')}</ul>`,
     )
@@ -1549,6 +1549,9 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools' }])}
 <p class="lede">Iterra gives every course a place. Plan the week, review the cards, write the notes, run the timer, work the math — all local-first, all connected.</p>
 </div></section>
 <div class="wrap">
+<figure class="plate">
+<div class="frame"><img src="/shots/boxed.webp" alt="Iterra's time-blocking planner — the Boxed place" width="1440" height="900" loading="lazy" decoding="async" /></div>
+</figure>
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Choose your place</h2>
 <ul class="rows">
@@ -1780,7 +1783,7 @@ ${footer()}
 function indexCards(pages, base) {
   return pages
     .map(
-      (p) => `<li><a href="/${base}/${p.slug}"><span class="k mono">${esc(p.kicker)} · ${p.datePublished ? dateFmt(p.datePublished) : ''}</span><span class="t">${esc(p.h1.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(p.description)}</span></a></li>`,
+      (p) => `<li><a href="/${base}/${p.slug}"><span class="k mono">${p.datePublished ? dateFmt(p.datePublished) : ''}</span><span class="t">${esc(p.h1.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(p.description)}</span></a></li>`,
     )
     .join('\n');
 }
@@ -1896,9 +1899,20 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Alternatives' }])}
 <div class="wrap">
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Picks by what you’re leaving</h2>
-<ul class="rows">
-${indexCards(pages, 'alternatives')}
-</ul>
+${(() => {
+  const topics = [];
+  for (const p of pages) {
+    let t = topics.find((x) => x.kicker === p.kicker);
+    if (!t) {
+      t = { kicker: p.kicker, k: p.kicker === 'Roundup' ? 'The honest roundup' : 'Alternative picks', items: [] };
+      topics.push(t);
+    }
+    t.items.push(p);
+  }
+  return topics
+    .map((t) => `<h3 class="topic">${esc(t.k)} · ${t.items.length}</h3><ul class="rows">${indexCards(t.items, 'alternatives')}</ul>`)
+    .join('\n');
+})()}
 <div class="cta" style="margin-top:2.5rem">
 <a class="primary" href="/#/today">Try Iterra — free, no account →</a>
 <a class="ghost" href="/compare">Prefer head-to-head?</a>
