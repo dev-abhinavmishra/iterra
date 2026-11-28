@@ -95,7 +95,7 @@ if(document.querySelector('.guide-article'))(function(){
 var onChip=document.querySelector('.series .chips a.on');
 if(onChip&&onChip.scrollIntoView)onChip.scrollIntoView({inline:'center',block:'nearest'});
 if(document.querySelector('.guide-article,.compare-table'))(function(){
-  var KEY='itr-read:'+location.pathname,art=document.querySelector('.guide-article,.content>.wrap')||document.body;
+  var KEY='itr-read:'+location.pathname,rpEl=document.querySelector('.read-progress'),art=document.querySelector(rpEl?rpEl.getAttribute('data-pg'):'.guide-article,.content>.wrap')||document.querySelector('.guide-article,.content>.wrap')||document.body;
   function frac(){var r=art.getBoundingClientRect(),total=r.height-innerHeight;return total>0?Math.min(1,Math.max(0,-r.top/total)):0}
   var saved=null;try{saved=parseFloat(localStorage.getItem(KEY))}catch(e){}
   var chip=document.createElement('button');chip.type='button';chip.className='resume-chip';chip.setAttribute('aria-label','Resume reading where you left off');
