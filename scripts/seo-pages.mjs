@@ -1428,6 +1428,7 @@ ${neighbors
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(tool.title)}</title>
 <meta name="description" content="${esc(metaDesc(tool.description))}" />
@@ -1444,6 +1445,7 @@ ${nextTool ? `<link rel="next" href="${SITE}/tools/${nextTool.id}" />` : ''}
 <meta property="og:image" content="${SITE}/og/tool-${tool.id}.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="${esc(tool.title)} — Iterra" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(tool.title)}" />
 <meta name="twitter:description" content="${esc(tool.description)}" />
@@ -1727,6 +1729,7 @@ ${guide.faq
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(guide.seoTitle)}</title>
 <meta name="description" content="${esc(metaDesc(guide.description))}" />
@@ -1743,6 +1746,7 @@ ${nextGuide ? `<link rel="next" href="${SITE}/guides/${nextGuide.slug}" />` : ''
 <meta property="og:image" content="${SITE}/og/guide-${guide.slug}.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="${esc(guide.title.replace(/<\/?em>/g, ''))} — Iterra guide" />
 <meta property="article:published_time" content="${guide.datePublished}" />
 <meta property="article:modified_time" content="${guide.dateModified || guide.datePublished}" />
 <meta property="article:section" content="${esc(guide.kicker)}" />
@@ -2063,6 +2067,7 @@ export function renderGuidesIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Study Guides — How to Learn Better | Iterra</title>
 <meta name="description" content="${esc(metaDesc('Practical, research-backed guides to studying better: semester planning, spaced repetition, active recall, pomodoro, time blocking, finals week, and more — plus the free tools that make it stick.'))}" />
@@ -2077,6 +2082,7 @@ export function renderGuidesIndex() {
 <link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Iterra study guides — research-backed articles" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Iterra Study Guides — How to Learn Better" />
 <meta name="twitter:description" content="Research-backed guides to studying better." />
@@ -2177,6 +2183,7 @@ export function renderTopicPage(topic) {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>${esc(/guide/i.test(topic.kicker) ? topic.kicker : `${topic.kicker} Study Guides`)} — Iterra</title>
 <meta name="description" content="${esc(metaDesc(`${topic.note || `Iterra guides on ${topic.kicker.toLowerCase()}.`} ${topic.guides.length} articles, all free.`))}" />
@@ -2190,6 +2197,7 @@ export function renderTopicPage(topic) {
 <meta property="og:image" content="${SITE}/og/topic-${topic.slug}.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="${esc(topic.kicker)} study guides — Iterra" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
@@ -2265,6 +2273,7 @@ export function renderTopicsIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Study Guides by Topic — Iterra</title>
 <meta name="description" content="Iterra study guides organized by topic — test prep, subject guides, study skills, and exam season. ${GUIDES.length} articles, all free." />
@@ -2278,6 +2287,7 @@ export function renderTopicsIndex() {
 <meta property="og:image" content="${SITE}/og/topics.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Iterra guide topics" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
@@ -2333,6 +2343,7 @@ export function renderToolsIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Iterra Study Tools — Planner, Flashcards, Notes, Timer & More</title>
 <meta name="description" content="${esc(metaDesc('Nine study tools in one local-first workspace: time-blocking planner, spaced-repetition flashcards, linked notes, pomodoro timer, math workbench, attendance, grading, and study materials.'))}" />
@@ -2346,6 +2357,7 @@ export function renderToolsIndex() {
 <meta property="og:image" content="${SITE}/og/tools.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Iterra study tools" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
@@ -2420,6 +2432,7 @@ ${published ? `<meta property="article:published_time" content="${published}" />
 <meta property="og:image" content="${image || `${SITE}/og/compare.png`}" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="${esc(title)} — Iterra" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(title)}" />
 <meta name="twitter:description" content="${esc(description)}" />
@@ -2606,6 +2619,7 @@ ${factHtml}
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 ${compareHead({
     title: page.title,
@@ -2700,6 +2714,7 @@ export function renderCompareIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Compare Iterra — Honest Study App Comparisons</title>
 <meta name="description" content="Head-to-head comparisons between Iterra and Notion, Quizlet, Anki, StudySmarter and Structured — where each wins, who should pick which." />
@@ -2713,6 +2728,7 @@ export function renderCompareIndex() {
 <meta property="og:image" content="${SITE}/og/compare.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Iterra honest comparisons" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
@@ -2787,6 +2803,7 @@ export function renderAlternativesIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="max-image-preview:large" />
 <meta name="theme-color" content="#f7f5ec" />
 <title>Study App Alternatives — Honest Picks for Students</title>
 <meta name="description" content="The best alternatives to Quizlet, Notion, Anki and StudySmarter for students — compared on price, privacy, offline use and what the app actually does." />
@@ -2800,6 +2817,7 @@ export function renderAlternativesIndex() {
 <meta property="og:image" content="${SITE}/og/alternatives.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Iterra alternatives guide" />
 <meta name="twitter:card" content="summary_large_image" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
