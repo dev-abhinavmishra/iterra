@@ -6909,6 +6909,124 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-usmle',
+    title: 'How to study for the <em>USMLE</em>',
+    seoTitle: 'How to Study for the USMLE: Step 1, 2 CK and 3 Strategy',
+    description:
+      'Beat the USMLE with a system: know the three steps, learn the content, drill questions daily, review every rationale, and track NBME scores — the loop that passes Step 1.',
+    kicker: 'Test Prep',
+    datePublished: '2027-11-23',
+    dateModified: '2027-11-27',
+    readMinutes: 7,
+    keywords: ['how to study for the USMLE', 'USMLE Step 1 prep', 'USMLE study plan', 'USMLE practice questions'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-for-the-nclex', 'how-to-study-for-the-mcat', 'how-to-study-anatomy'],
+    lede: 'The USMLE is three exams pretending to be one — Step 1 tests whether you know the science, Step 2 CK tests whether you can think clinically, and Step 3 tests whether you can manage a ward. Most students fail Step 1 not from lack of content but from lack of a system: questions treated as an afterthought, rationales skipped, and self-assessments saved for too late.',
+    takeaways: [
+      'Take an NBME self-assessment first — the baseline tells you how long you actually need.',
+      'Questions are the learning — review every rationale, not just your misses.',
+      'Behavioral science is a quarter of the exam and the most-skipped content.',
+    ],
+    faq: [
+      {
+        q: 'How long should I study for USMLE Step 1?',
+        a: 'Most students need four to six months of consistent prep alongside medical school. A diagnostic NBME early in that window tells you honestly whether you are looking at a light review or a full rebuild — the answer changes the plan completely.',
+      },
+      {
+        q: 'What is the best resource for USMLE Step 1?',
+        a: 'UWorld for questions and rationales, First Aid for content structure, Pathoma for pathology mechanisms, and NBME self-assessments for progress measurement. The resources matter less than the loop: content, questions, review, repeat.',
+      },
+      {
+        q: 'Is USMLE Step 1 pass/fail now?',
+        a: 'Yes — Step 1 moved to pass/fail scoring, but programs still screen on it and many track the three-digit score internally. Treat it as high-stakes regardless of what the transcript shows.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the USMLE before you study it',
+        blocks: [
+          { k: 'p', t: 'The USMLE is three separate exams, and confusing them is the first mistake. Step 1 tests basic science — pharmacology, biochemistry, pathology and friends. Step 2 CK tests clinical knowledge — diagnosis and management. Step 3 tests clinical management across two days. Each demands a different preparation.' },
+          { k: 'table', head: ['Step', 'What it tests', 'Format', 'Prep focus'], rows: [
+            ['Step 1', 'Basic science mechanisms', '~290 questions, 8 hours, pass/fail', 'Content depth + question skill'],
+            ['Step 2 CK', 'Clinical knowledge — dx & management', '~320 questions, 9 hours', 'UWorld-style clinical reasoning'],
+            ['Step 3', 'Clinical management', '~180 questions, 2 days', 'Ward-style decision making'],
+          ]},
+          { k: 'p', t: 'For Step 1 specifically — the gatekeeper — take an NBME self-assessment first. It is the closest simulation of the real exam, and the baseline score tells you whether you need four months or eight.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the USMLE day — eight hours of consecutive questions. Practicing at real speed builds the stamina the exam demands.' },
+        ],
+      },
+      {
+        h2: 'The USMLE study loop',
+        blocks: [
+          { k: 'p', t: 'Step 1 prep works best as a cycle of content, questions, and review:' },
+          { k: 'steps', items: [
+            'Learn the core content — First Aid chapters, Pathoma videos, your school\'s lectures.',
+            'Do UWorld questions in blocks — ten to twenty per sitting, subjects grouped.',
+            'Review every answer — the rationales teach more than the questions.',
+            'Revisit your misses weekly — failed concepts go back into the rotation.',
+            'Take an NBME every 3-4 weeks — the trajectory matters more than any single score.',
+          ]},
+          { k: 'p', t: 'The review step is where the learning happens. A question block without rationales is just a measurement; with review, it becomes a study session. Read every wrong-answer explanation — it describes the exact confusion the exam exploits.' },
+        ],
+      },
+      {
+        h2: 'The content areas: where the points live',
+        blocks: [
+          { k: 'p', t: 'Step 1 content is not evenly weighted. Focus where the exam actually spends its time:' },
+          { k: 'deflist', items: [
+            { t: 'Pharmacology', d: 'The single biggest block — mechanisms, side effects, antidotes, interactions.' },
+            { t: 'Pathology', d: 'Disease mechanisms and pathophysiology — Pathoma is the standard companion.' },
+            { t: 'Biochemistry', d: 'Metabolic pathways and enzyme defects — the diagrams repay the memorization.' },
+            { t: 'Micro/immunology', d: 'Organisms, toxins, virulence factors, immune mechanisms.' },
+            { t: 'Anatomy & physiology', d: 'Structure-function relationships — nerves, vessels, hemodynamics.' },
+            { t: 'Behavioral sciences', d: 'Psych, biostats, ethics — roughly a quarter of the exam and the most-skipped.' },
+          ]},
+          { k: 'quote', t: 'Behavioral science is where most Step 1 candidates leave points on the table — it is memorizable, high-yield, and almost nobody reviews it twice.' },
+        ],
+      },
+      {
+        h2: 'Question types: what the exam actually asks',
+        blocks: [
+          { k: 'p', t: 'Step 1 questions come in recognizable shapes — knowing them changes how you read:' },
+          { k: 'deflist', items: [
+            { t: 'Mechanism questions', d: '"Which enzyme/pathway/drug causes X?" — pure content recall; flashcards earn their keep here.' },
+            { t: 'Experimental interpretation', d: 'A passage plus data — the skill is extracting the finding, then mapping it to mechanism.' },
+            { t: 'Clinical vignette (basic science)', d: 'A patient story wrapped around a science question — strip the story, answer the mechanism.' },
+            { t: 'Biostatistics/epidemiology', d: 'Study design, test characteristics, bias — formulaic once you learn the vocabulary.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The timing strategy',
+        blocks: [
+          { k: 'p', t: 'Step 1 gives you about 82 seconds per question — tight for eight straight hours. The strategy: first pass flags long and experimental items, second pass handles them, and no question ever gets five minutes.' },
+          { k: 'p', t: 'Experimental-passage questions are the time sinks. They look intimidating but reward the same skill as regular questions: identify what the data shows, then pick the mechanism. Practice them specifically — they are a trainable format, not a talent.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards carry the pure-recall load — drug mechanisms, enzyme defects, organism facts — so question blocks stay focused on reasoning.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost the most points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Pure passive review', d: 'Re-reading First Aid feels productive and teaches almost nothing. Questions are the learning; review is the measurement.' },
+            { t: 'Skipping UWorld rationales', d: 'Reading only the correct answer wastes the question. The wrong-answer rationales explain the exact confusion the exam exploits.' },
+            { t: 'Neglecting behavioral science', d: 'Psych, biostats and ethics are roughly a quarter of the exam and the most-skipped content. They are also the most memorizable.' },
+            { t: 'First-guessing experimental questions', d: 'Experimental items reward patience — read the whole passage before answering; the conclusion is usually at the end.' },
+            { t: 'One-and-done NBME interpretation', d: 'An NBME is a diagnostic, not a verdict — review every miss on it like a UWorld block or the assessment was wasted.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'The USMLE does not test how much you know — it tests whether you can think like a physician under time pressure.' },
+          { k: 'p', t: 'Content first, questions always, rationales always, NBME regularly. The students who pass comfortably treated Step 1 as a skill to train, not a test to survive — and the same loop carries through Steps 2 and 3.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
