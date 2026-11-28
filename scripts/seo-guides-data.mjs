@@ -7574,6 +7574,121 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-sociology',
+    title: 'How to study <em>sociology</em>',
+    seoTitle: 'How to Study Sociology: Theories, Research Methods, Analysis',
+    description:
+      'Sociology courses test theory application, not recall. Learn functionalism, conflict and interactionism, apply them to real social trends, and argue with evidence.',
+    kicker: 'Subject Guides',
+    datePublished: '2028-01-04',
+    dateModified: '2028-01-11',
+    readMinutes: 7,
+    keywords: ['how to study sociology', 'sociology study tips', 'sociology exam prep', 'sociological theory'],
+    tools: ['ink', 'margin'],
+    related: ['how-to-study-business', 'how-to-study-communications', 'how-to-study-psychology'],
+    lede: 'Sociology feels like it should be the easiest course on the transcript — no equations, no lab reports, just reading about society. It is not. The subject tests whether you can apply theoretical frameworks to real social phenomena: explain a trend, predict a reaction, argue about why something happens. That skill is built by analyzing society, not by reading about it.',
+    takeaways: [
+      'Learn the theory, then apply it to real social phenomena — application is the learning.',
+      'Sociology is argument, not description — every claim needs evidence.',
+      'Your daily life is the data — the skill is seeing the structure in the ordinary.',
+    ],
+    faq: [
+      {
+        q: 'How is studying sociology different from other subjects?',
+        a: 'It is the most theory-application-heavy subject on most transcripts. Exams are essays about why social phenomena happen — trends, inequalities, behaviors. Reading about sociology produces almost nothing; analyzing real social patterns produces the skill.',
+      },
+      {
+        q: 'What theories should I learn for sociology?',
+        a: 'Start with three: functionalism (society as interdependent system), conflict theory (society shaped by power and inequality), and symbolic interactionism (society constructed through everyday interactions). These three frameworks cover most introductory and intermediate courses.',
+      },
+      {
+        q: 'How do I study for sociology exams?',
+        a: 'Practice theory application essays under time — define the phenomenon, apply the theory, support with evidence, commit to an argument. Compare your analysis to the case solution and write down where your reasoning diverged.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'How sociology is actually learned',
+        blocks: [
+          { k: 'p', t: 'Sociology feels like it should be the easiest course on the transcript — no equations, no lab reports, just reading about society. It is not. The subject tests whether you can apply theoretical frameworks to real social phenomena: explain a trend, predict a reaction, argue about why something happens.' },
+          { k: 'p', t: 'The study method that works: learn the theory, then find it in the news. A student who has explained fifty social trends understands sociology better than one who has read fifty pages about it.' },
+          { k: 'tool', tool: 'ink', t: 'Ink holds the theory applications — functionalism, conflict, symbolic interactionism applied to real social phenomena.' },
+        ],
+      },
+      {
+        h2: 'The sociology study loop',
+        blocks: [
+          { k: 'p', t: 'A week of sociology study that actually works:' },
+          { k: 'steps', items: [
+            'Learn the theory — functionalism, conflict theory, symbolic interactionism.',
+            'Find a real example — a news story, a trend, a social pattern you actually noticed.',
+            'Apply the theory — explain the example using the framework.',
+            'Argue it in discussion — see where your analysis diverged from classmates.',
+            'Write your own take — sociology is argument, not description.',
+          ]},
+          { k: 'quote', t: 'The sociological imagination is the ability to see the personal troubles of individuals as connected to public issues of social structure.' },
+        ],
+      },
+      {
+        h2: 'The three big theories',
+        blocks: [
+          { k: 'p', t: 'Three theoretical frameworks do most of the work across sociology courses — learn them once, apply them everywhere:' },
+          { k: 'deflist', items: [
+            { t: 'Functionalism', d: 'Society is a system of interdependent parts working toward stability — Durkheim, Parsons, Merton. Ask: what function does this serve?' },
+            { t: 'Conflict theory', d: 'Society is shaped by power and inequality — Marx, Weber, critical race theory. Ask: who benefits, who loses?' },
+            { t: 'Symbolic interactionism', d: 'Society is constructed through everyday interactions and meanings — Mead, Goffman, Blumer. Ask: how do people interpret this?' },
+          ]},
+          { k: 'p', t: 'The theories are not answers — they are lenses. A good sociological analysis applies the right lens to a real phenomenon and argues for why it fits.' },
+        ],
+      },
+      {
+        h2: 'The course types: different skills, different methods',
+        blocks: [
+          { k: 'p', t: 'Sociology is not one subject — the study method shifts by course type:' },
+          { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
+            ['Intro theory', 'Framework application', 'Essay analysis of social trends'],
+            ['Research methods', 'Study design + critique', 'Methods comparison + critique exercises'],
+            ['Social problems', 'Policy analysis', 'Case studies + policy evaluation'],
+            ['Inequality', 'Intersectional analysis', 'Data interpretation + theory application'],
+            ['Criminology', 'Theory + data', 'Theory application + statistical literacy'],
+          ]},
+        ],
+      },
+      {
+        h2: 'Research methods: the quantitative-qualitative divide',
+        blocks: [
+          { k: 'p', t: 'Most sociology programs require a research methods course — and it is where many students struggle because it is the most technical subject in the major. The key is understanding that quantitative and qualitative methods answer different questions.' },
+          { k: 'deflist', items: [
+            { t: 'Quantitative', d: 'Numbers, statistics, surveys — tests hypotheses about patterns and relationships. The data is the evidence.' },
+            { t: 'Qualitative', d: 'Interviews, observation, ethnography — explores meanings and processes. The narrative is the evidence.' },
+            { t: 'Mixed methods', d: 'Both — quantitative for patterns, qualitative for meanings. The gold standard for complex questions.' },
+          ]},
+          { k: 'p', t: 'The methods course is not about memorizing statistics — it is about knowing which method answers which question. A student who understands the trade-offs can critique any study.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost sociology students points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Treating theory as trivia', d: 'A theory you cannot apply to a new example is a theory you do not know. Apply every framework to at least three social phenomena.' },
+            { t: 'Describing instead of analyzing', d: 'Sociology essays argue a claim about why something happens — a summary of a trend is not an analysis.' },
+            { t: 'Ignoring the evidence', d: 'Sociology is empirical — claims need data, studies, or examples. Theory without evidence is opinion.' },
+            { t: 'Forgetting the intersectional lens', d: 'Modern sociology emphasizes intersectionality — race, class, gender, sexuality intersect. Single-axis analysis is incomplete.' },
+            { t: 'Waiting until exam week for theory', d: 'Theory application compounds — a semester of weekly analysis beats a week of cramming.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'Sociology is the course where your daily life is the data — the skill is seeing the structure in the ordinary.' },
+          { k: 'p', t: 'Learn the theory, find real examples, apply the framework, and argue your take. That loop is the whole method — and it holds for every sociology course you will take.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
