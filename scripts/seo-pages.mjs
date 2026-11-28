@@ -1489,7 +1489,7 @@ ${workflowHtml}
 ${tool.faqs?.length ? `<section class="block" id="faq">
 <h2 class="sec mono">Questions students ask</h2>
 <div class="faq-list">
-${tool.faqs.map((f) => `<details class="faq"><summary>${esc(f.q)}</summary><div class="a">${esc(f.a)}</div></details>`).join('\n')}
+${tool.faqs.map((f, fi) => `<details class="faq" id="faq-${fi + 1}"><summary>${esc(f.q)}</summary><div class="a">${esc(f.a)}</div></details>`).join('\n')}
 </div>
 </section>` : ''}
 ${relatedToolsHtml}
@@ -2563,7 +2563,7 @@ ${page.rivalWins.map((w) => `<li>${esc(w)}</li>`).join('\n')}
 <div class="faq-list">
 ${page.faqs
   .map(
-    (f) => `<details class="faq"><summary>${esc(f.q)}</summary><div class="a">${esc(f.a)}</div></details>`,
+    (f, fi) => `<details class="faq" id="faq-${fi + 1}"><summary>${esc(f.q)}</summary><div class="a">${esc(f.a)}</div></details>`,
   )
   .join('\n')}
 </div>
