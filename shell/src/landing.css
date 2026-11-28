@@ -117,6 +117,8 @@
 .atlas-end-links { margin-top:24px; display:flex; align-items:center; flex-wrap:wrap; gap:6px 24px; font-size:13px; }
 .atlas-end-links p { display:flex; align-items:center; gap:8px; }
 .atlas-end-links .atlas-link { color:#f6efda; text-decoration:underline; text-underline-offset:4px; }
+.atlas-end-nav { display:flex; align-items:center; flex-wrap:wrap; gap:6px 18px; }
+.atlas-end-nav a { color:#f6efda; font-size:13px; text-decoration:underline; text-underline-offset:4px; }
 @media (prefers-reduced-motion:no-preference) {
  .atlas-page[data-moving="true"] .atlas-end:hover .atlas-horizon,.atlas-page[data-moving="true"] .atlas-end:focus-within .atlas-horizon { transform:rotate(-12deg); }
  .atlas-horizon { transition:transform 1.4s ease-in-out; }

@@ -28,6 +28,7 @@ export function LandingNav() {
       <nav className="atlas-nav-links it-nav-band" aria-label="Landing navigation">
         <span ref={lens} className="it-nav-optic it-lens" aria-hidden="true" />
         <button onClick={() => jump('atlas-tools')}>Study atlas</button>
+        <a href="/guides">Guides</a>
         <a href="#/today">Open workspace <ArrowUpRight size={14} aria-hidden="true" /></a>
       </nav>
     </header>
@@ -103,7 +104,12 @@ export function LandingPage({ onEnter, onGo }: { onEnter: (id: string) => void; 
         <MosaicScene className="atlas-end-mosaic" />
         <div className="atlas-horizon" aria-hidden="true"><i /></div>
         <div className="atlas-signature">Iterra<span aria-hidden="true">✧</span></div>
-        <div className="atlas-end-links"><p><HardDrive size={16} /> Your workspace saves on this device.</p><button className="atlas-link" onClick={() => onGo('#/settings')}>Data &amp; backup <ArrowUpRight size={14} /></button></div>
+        <div className="atlas-end-links"><p><HardDrive size={16} /> Your workspace saves on this device.</p><nav className="atlas-end-nav" aria-label="Resources">
+          <a href="/guides">Study guides</a>
+          <a href="/tools">Tools</a>
+          <a href="/compare">Comparisons</a>
+          <button className="atlas-link" onClick={() => onGo('#/settings')}>Data &amp; backup <ArrowUpRight size={14} /></button>
+        </nav></div>
       </footer>
     </div>
   );
