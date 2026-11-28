@@ -973,7 +973,7 @@ ${compareLinks}
 </div>
 </nav>
 <div class="nav-empty" role="status" hidden>No pages match that filter.</div>
-<div class="end"><a href="/">iterrapp.vercel.app</a><a href="/#/today">Open the workspace ↗</a></div>
+<div class="end"><a href="/feed.xml">RSS feed</a><a href="/">iterrapp.vercel.app</a><a href="/#/today">Open the workspace ↗</a></div>
 </aside>
 <div class="scrim" data-nav-close></div>
 <div class="main">
@@ -1439,6 +1439,7 @@ ${guide.faq
 <meta name="twitter:title" content="${esc(guide.seoTitle)}" />
 <meta name="twitter:description" content="${esc(guide.description)}" />
 <meta name="twitter:image" content="${SITE}/og/guide-${guide.slug}.png" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
 <style>${CSS}</style>
@@ -1526,6 +1527,7 @@ export function renderGuidesIndex() {
 <meta property="og:title" content="Iterra Study Guides — How to Learn Better" />
 <meta property="og:description" content="Research-backed guides to studying better, from semester planning to spaced repetition." />
 <meta property="og:image" content="${SITE}/og/guides.png" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
@@ -1556,6 +1558,7 @@ ${cards}
 <div class="cta" style="margin-top:2.5rem">
 <a class="primary" href="/#/today">Open the workspace →</a>
 <a class="ghost" href="/tools">All tools</a>
+<a class="ghost" href="/feed.xml">RSS feed</a>
 </div>
 </section>
 </div>
@@ -2005,6 +2008,30 @@ ${footer()}
 `;
 }
 
+export function renderFeed() {
+  const items = GUIDES.map(
+    (g) => `  <item>
+    <title>${esc(g.title.replace(/<\/?em>/g, ''))}</title>
+    <link>${SITE}/guides/${g.slug}</link>
+    <guid>${SITE}/guides/${g.slug}</guid>
+    <pubDate>${new Date((g.dateModified || g.datePublished) + 'T00:00:00Z').toUTCString()}</pubDate>
+    <description>${esc(g.description)}</description>
+  </item>`,
+  ).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+  <title>Iterra Guides — Study Better, With Evidence</title>
+  <link>${SITE}/guides</link>
+  <description>Practical, research-backed guides to studying better — planning, memory, focus, and the tools that make it stick.</description>
+  <language>en-us</language>
+  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+${items}
+</channel>
+</rss>
+`;
+}
+
 export function renderSitemap(lastmod = new Date().toISOString().slice(0, 10)) {
   const urls = [
     { loc: `${SITE}/`, priority: '1.0', freq: 'weekly' },
@@ -2061,5 +2088,6 @@ export function writeSeoPages(distDir) {
     writeFileSync(join(distDir, 'guides', guide.slug, 'index.html'), renderGuidePage(guide));
   }
   writeFileSync(join(distDir, 'sitemap.xml'), renderSitemap());
+  writeFileSync(join(distDir, 'feed.xml'), renderFeed());
   console.log(`seo: wrote /tools index + ${TOOLS.length} tool pages + /guides index + ${GUIDES.length} guides + /compare + /alternatives indexes + ${COMPARE_PAGES.length} compare pages + sitemap.xml`);
 }
