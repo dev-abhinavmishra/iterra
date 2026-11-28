@@ -805,6 +805,23 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .prose-table tbody tr{transition:background .15s}
 .prose-table tbody tr:hover td{background:#faf6ea}
 .prose-table td:first-child{font-weight:600;color:var(--ink)}
+.checklist{list-style:none;padding:0;margin:1.8rem 0;border:1px solid var(--line);border-radius:14px;background:var(--sheet);overflow:hidden}
+.checklist li{border-bottom:1px solid var(--line)}
+.checklist li:last-child{border-bottom:none}
+.checklist label{display:flex;gap:.85rem;align-items:flex-start;padding:.9rem 1.1rem;cursor:pointer;transition:background .15s}
+.checklist label:hover{background:#faf6ea}
+.checklist input{appearance:none;width:20px;height:20px;flex:none;margin-top:.15rem;border:1.5px solid #c9c2ac;border-radius:6px;background:#fffdf6;cursor:pointer;position:relative;transition:border-color .15s,background .15s,box-shadow .15s}
+.checklist input:checked{background:var(--accent);border-color:var(--accent)}
+.checklist input:checked::after{content:"";position:absolute;left:6px;top:2.5px;width:5px;height:9px;border:solid #f7f3e6;border-width:0 2px 2px 0;transform:rotate(42deg)}
+.checklist input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.checklist li:has(input:checked) label span{color:var(--faint);text-decoration:line-through;text-decoration-color:rgba(140,130,100,.5);transition:color .2s}
+.timeline{list-style:none;padding:0;margin:1.8rem 0;position:relative}
+.timeline::before{content:"";position:absolute;left:6.4rem;top:.4rem;bottom:.4rem;width:1px;background:linear-gradient(var(--gold),var(--line) 30%,var(--line) 70%,var(--gold))}
+.timeline li{display:grid;grid-template-columns:5.6rem 1fr;gap:1.2rem;padding:.8rem 0;position:relative}
+.timeline .when{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);text-align:right;padding-top:.3rem}
+.timeline .when::after{content:"";position:absolute;left:calc(5.6rem + 1.2rem - 3px);top:1.15rem;width:7px;height:7px;border-radius:50%;background:var(--gold);border:2px solid var(--cream);box-shadow:0 0 0 1px var(--gold)}
+.timeline .what{font-size:1rem;line-height:1.65;color:#333a34;padding-left:.4rem}
+@media(max-width:640px){.timeline::before{left:4.6rem}.timeline li{grid-template-columns:4rem 1fr;gap:.9rem}.timeline .when{font-size:10px}.timeline .when::after{left:calc(4rem + .9rem - 3px)}}
 .guide-article.dc .gsec:first-of-type .prose p:first-of-type::first-letter{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:3.5em;float:left;line-height:.8;padding:.08em .14em 0 0;color:var(--accent)}
 .topic{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:2.2rem 0 .4rem}
 .topic::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
@@ -936,6 +953,17 @@ function renderBlocks(blocks) {
         if (!t) return '';
         return `<a class="tool-inline" href="${t.path}"><span class="k mono">${esc(t.kicker)} · the ${esc(t.name)} place</span><span class="t">${esc(t.name)}</span><span class="d">${esc(t.lede.split('.')[0])}.</span></a>`;
       }
+      if (b.k === 'checklist')
+        return `<ul class="checklist" data-cl="${esc(b.id || '')}">${b.items
+          .map((i) => `<li><label><input type="checkbox" /><span>${inline(i)}</span></label></li>`)
+          .join('')}</ul>`;
+      if (b.k === 'timeline')
+        return `<ol class="timeline">${b.items
+          .map(
+            (t) =>
+              `<li><span class="when mono">${esc(t.when || '')}</span><span class="what">${inline(t.what || t)}</span></li>`,
+          )
+          .join('')}</ol>`;
       return '';
     })
     .join('\n');
@@ -1089,6 +1117,18 @@ if(fimgs.length){
   lbX.addEventListener('click',closeLb);
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLb()});
 }
+[].slice.call(document.querySelectorAll('.checklist')).forEach(function(ul){
+  var key='itcl:'+location.pathname+'#'+(ul.getAttribute('data-cl')||'');
+  var saved={};try{saved=JSON.parse(localStorage.getItem(key)||'{}')}catch(e){}
+  [].slice.call(ul.querySelectorAll('li')).forEach(function(li,i){
+    var cb=li.querySelector('input');if(!cb)return;
+    if(saved[i])cb.checked=true;
+    cb.addEventListener('change',function(){
+      saved[i]=cb.checked?1:0;
+      try{localStorage.setItem(key,JSON.stringify(saved))}catch(e){}
+    });
+  });
+});
 var rv=document.querySelectorAll('.content .block,.content .plate,.content .article-cover,.content .related,.content .pager,.content .tldr,.content .takeaways,.content .article-end');
 if(rv.length&&'IntersectionObserver' in window&&matchMedia('(prefers-reduced-motion: no-preference)').matches){
   [].slice.call(rv).forEach(function(el){el.classList.add('rv')});
