@@ -1716,6 +1716,23 @@ ${page.related.map((r) => `<a href="${r.href}">${esc(r.label)}</a>`).join('\n')}
         : [],
   );
 
+  /* rotate the same three hero treatments used on guide articles */
+  const cIdx = COMPARE_PAGES.indexOf(page);
+  const cVariant = ((cIdx % 3) + 3) % 3;
+  const cCopy = `${crumbs([{ label: 'Iterra', href: '/' }, { label: base === 'compare' ? 'Compare' : 'Alternatives', href: `/${base}` }, { label: String(page.h1).replace(/<\/?em>/g, '') }])}
+<div class="kicker mono">${esc(page.kicker)} · Iterra terrain</div>
+<h1>${emH1(page.h1)}</h1>
+<p class="lede">${esc(page.lede)}</p>
+${matchupHtml}
+${factHtml}
+<div class="meta-row"><span>${dateFmt(page.datePublished)}</span>${page.dateModified && page.dateModified !== page.datePublished ? `<span>Updated ${dateFmt(page.dateModified)}</span>` : ''}<span><a href="/${base}">All ${base === 'compare' ? 'comparisons' : 'alternatives'}</a></span></div>`;
+  const cFig = `<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>`;
+  const cHeroHtml =
+    cVariant === 1
+      ? `<section class="hero hero-split"><div class="wrap"><div class="hero-grid"><div class="hero-copy">${cCopy}</div><figure class="hero-fig">${cFig}</figure></div></div></section>`
+      : `<section class="hero${cVariant === 2 ? ' hero-center' : ''}"><div class="wrap">${cCopy}</div></section>`;
+  const cCoverHtml = cVariant === 1 ? '' : `<figure class="plate">${cFig}</figure>`;
+
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -1727,20 +1744,9 @@ ${jsonLd(ld)}
 </head>
 <body>
 ${header(`/${base}/${slug}`)}
-<section class="hero"><div class="wrap">
-${crumbs([{ label: 'Iterra', href: '/' }, { label: base === 'compare' ? 'Compare' : 'Alternatives', href: `/${base}` }, { label: String(page.h1).replace(/<\/?em>/g, '') }])}
-<div class="kicker mono">${esc(page.kicker)} · Iterra terrain</div>
-<h1>${emH1(page.h1)}</h1>
-<p class="lede">${esc(page.lede)}</p>
-${matchupHtml}
-${factHtml}
-<div class="meta-row"><span>${dateFmt(page.datePublished)}</span>${page.dateModified && page.dateModified !== page.datePublished ? `<span>Updated ${dateFmt(page.dateModified)}</span>` : ''}<span><a href="/${base}">All ${base === 'compare' ? 'comparisons' : 'alternatives'}</a></span></div>
-</div></section>
+${cHeroHtml}
 <div class="wrap compare-body">
-<figure class="plate">
-<div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
-
-</figure>
+${cCoverHtml}
 <aside class="tldr"><span class="tk mono">In short</span><p>${esc(tldrOf(page.verdict))}</p></aside>
 <section class="block">
 <h2 class="sec mono">At a glance</h2>
