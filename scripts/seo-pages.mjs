@@ -1101,6 +1101,9 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var
   .article-cover{margin-top:1.4rem}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.cta a,.frame img,.rows a::after,.rel-grid a::after,.tool-inline::after,.side{transition:none}}
+@keyframes tgt{0%{box-shadow:0 0 0 0 rgba(209,232,170,.0)}25%{box-shadow:0 0 0 6px rgba(209,232,170,.4)}100%{box-shadow:0 0 0 0 rgba(209,232,170,0)}}
+.prose h2:target,.prose h3:target,.sec:target,.block:target{animation:tgt 1.9s ease;border-radius:8px}
+details.faq:target{border-color:var(--gold)}
 `;
 
 const CSS_NAME = `iterra-pages.${createHash('sha1').update(CSS).digest('hex').slice(0, 10)}.css`;
