@@ -2245,6 +2245,7 @@ export function renderTopicPage(topic) {
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 <link rel="icon" type="image/svg+xml" href="/icon.svg" />
 ${FONTS}
 <style>${CSS}</style>
@@ -2891,14 +2892,16 @@ export function renderFeed() {
     <link>${SITE}/guides/${g.slug}</link>
     <guid>${SITE}/guides/${g.slug}</guid>
     <pubDate>${new Date((g.dateModified || g.datePublished) + 'T00:00:00Z').toUTCString()}</pubDate>
+    <category>${esc(g.kicker)}</category>
     <description>${esc(g.description)}</description>
   </item>`,
   ).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>Iterra Guides — Study Better, With Evidence</title>
   <link>${SITE}/guides</link>
+  <atom:link href="${SITE}/feed.xml" rel="self" type="application/rss+xml" />
   <description>Practical, research-backed guides to studying better — planning, memory, focus, and the tools that make it stick.</description>
   <language>en-us</language>
   <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
