@@ -485,6 +485,8 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .side .end{margin-top:auto;padding-top:14px;border-top:1px solid rgba(120,115,90,.25);display:grid;gap:3px;padding-left:10px}
 .side .end a{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--faint);text-decoration:none;text-transform:uppercase;transition:color .15s}
 .side .end a:hover{color:var(--accent)}
+.nav-empty{display:none;padding:14px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+.nav-empty.show{display:block}
 .scrim{display:none}
 .main{flex:1;min-width:0;margin-left:282px;display:flex;flex-direction:column}
 .topbar{display:none}
@@ -970,6 +972,7 @@ ${navLink('/alternatives', 'Alternatives hub')}
 ${compareLinks}
 </div>
 </nav>
+<div class="nav-empty" role="status" hidden>No pages match that filter.</div>
 <div class="end"><a href="/">iterrapp.vercel.app</a><a href="/#/today">Open the workspace ↗</a></div>
 </aside>
 <div class="scrim" data-nav-close></div>
@@ -1022,6 +1025,7 @@ var nf=document.getElementById('navfilter');
 if(nf){
   var navAs=[].slice.call(document.querySelectorAll('.side nav a'));
   var navGs=[].slice.call(document.querySelectorAll('.side .navg'));
+  var navEmpty=document.querySelector('.nav-empty');
   function applyFilter(){
     var q=nf.value.trim().toLowerCase();
     navAs.forEach(function(a){a.style.display=!q||a.textContent.toLowerCase().indexOf(q)>-1?'':'none'});
@@ -1029,6 +1033,7 @@ if(nf){
       var any=navAs.some(function(a){return a.closest('.navg')===g&&a.style.display!=='none'});
       g.style.display=any?'':'none';
     });
+    if(navEmpty)navEmpty.classList.toggle('show',!!q&&navAs.every(function(a){return a.style.display==='none'}));
   }
   nf.addEventListener('input',applyFilter);
   document.addEventListener('keydown',function(e){
