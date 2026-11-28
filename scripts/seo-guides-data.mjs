@@ -2797,6 +2797,11 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The SAT is a test of patterns more than knowledge — the questions are designed to be solved with strategy, not just content. Students who treat it like a school exam (study the material, hope for the best) underperform students who treat it like a puzzle (learn the patterns, practice the timing). The difference is preparation method, not intelligence.' },
           { k: 'p', t: 'The SAT has a specific structure: Reading and Writing (two modules), Math (two modules), and an optional Essay. Each section is adaptive — the second module is harder if you do well on the first. Knowing the format, timing, and question types before you start studying prevents wasted effort on material that won\'t appear.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
+            ['Reading & Writing', '54', '64 min', 'Vocabulary, comprehension, analysis'],
+            ['Math', '44', '70 min', 'Algebra, problem-solving, data analysis'],
+            ['Essay (optional)', '1', '50 min', 'Analysis of a source text'],
+          ]},
           { k: 'p', t: 'Take a full practice test under timed conditions before you study anything. The score breakdown tells you where to focus — a student who scores 600 in Math but 400 in Reading should spend 80% of their time on Reading.' },
         ],
       },
@@ -2890,6 +2895,13 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The ACT is faster and broader than the SAT — more questions, less time per question, and a science section the SAT doesn\'t have. But the prep strategy is the same: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The ACT has four sections: English, Math, Reading, and Science — plus an optional Writing essay. Each section is 35-60 minutes, with 215 questions total. The Science section doesn\'t test science knowledge; it tests whether you can read data tables and graphs quickly. Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
+            ['English', '75', '45 min', 'Grammar, punctuation, rhetoric'],
+            ['Math', '60', '60 min', 'Algebra, geometry, trigonometry'],
+            ['Reading', '40', '35 min', 'Comprehension, inference, main idea'],
+            ['Science', '40', '35 min', 'Data interpretation, graphs, experiments'],
+            ['Writing (optional)', '1', '40 min', 'Essay response to a prompt'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown shows where to focus — a student who scores 30 in English but 20 in Science should spend most of their time on Science.' },
         ],
       },
@@ -3872,6 +3884,11 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The GRE is the gatekeeper for graduate school — a test that feels like the SAT but for adults, with vocabulary that sounds like a different language and math that\'s mostly algebra and data analysis. But the GRE rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question.' },
           { k: 'p', t: 'The GRE has three sections: Verbal Reasoning, Quantitative Reasoning, and Analytical Writing. Each section is scored separately, and the Verbal and Quant sections are adaptive — the second section is harder if you do well on the first. Knowing the format prevents wasted effort on material that won\'t appear.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Score Range'], rows: [
+            ['Verbal Reasoning', '40', '60 min', '130-170'],
+            ['Quantitative Reasoning', '40', '70 min', '130-170'],
+            ['Analytical Writing', '1', '30 min', '0-6'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 160 in Verbal but 145 in Quant should spend 80% of their time on Quant.' },
         ],
       },
@@ -3965,6 +3982,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The MCAT is the longest standardized test you\'ll ever take — 7.5 hours, four sections, and content that spans every science course you\'ve ever taken. But the MCAT rewards the same approach as any big test: know the format, practice the patterns, and review every question. The students who do well treat it as a system, not a cram.' },
           { k: 'p', t: 'The MCAT has four sections: Chemical and Physical Foundations, Biological and Biochemical Foundations, Psychological, Social, and Biological Foundations, and Critical Analysis and Reasoning Skills (CARS). Each section is scored separately, and the test is 7.5 hours long. Knowing the format prevents wasted effort.' },
+          { k: 'timeline', items: [
+            { t: 'Month 1-2', d: 'Content review — go through your notes, textbooks, and review books for each section.' },
+            { t: 'Month 3-4', d: 'Practice questions — work through question banks, focusing on your weak areas.' },
+            { t: 'Month 5-6', d: 'Full-length practice tests — simulate the real exam conditions.' },
+            { t: 'Final 2 weeks', d: 'Review and rest — light review, good sleep, and exam-day preparation.' },
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 125 in CARS but 115 in Bio should spend most of their time on Bio.' },
         ],
       },
@@ -5086,6 +5109,18 @@ export const GUIDES = [
             { t: 'Mental health', d: 'Therapeutic communication and crisis intervention.' },
           ]},
           { k: 'tool', tool: 'flashcards', t: 'Flashcards drills the high-yield nursing content — the drug classes, lab values, and priority assessments that every question assumes you know.' },
+          { k: 'checklist', id: 'nclex-prep', items: [
+            'Take a full practice test to gauge your baseline.',
+            'Review every question — right and wrong — with rationales.',
+            'Identify your weak content areas and drill them daily.',
+            'Practice prioritization questions — Maslow\'s hierarchy, ABCs.',
+            'Practice delegation questions — RN scope vs. LPN scope.',
+            'Practice pharmacology — drug classes, adverse effects, interactions.',
+            'Take timed practice tests weekly to measure progress.',
+            'Review rationales for every missed question.',
+            'Get enough sleep the night before — memory consolidates during sleep.',
+            'Arrive early on test day — the CAT is adaptive and unforgiving.',
+          ]},
         ],
       },
       {
@@ -5145,6 +5180,11 @@ export const GUIDES = [
           { k: 'p', t: 'The GRE tests vocabulary in context — Text Completion and Sentence Equivalence — not in isolation. You\'re not asked to define "ephemeral"; you\'re asked to choose the word that fits a blank in a sentence. This means you need to know words *and* how they\'re used, not just their dictionary definitions.' },
           { k: 'p', t: 'Take a practice test first. The vocabulary questions you miss tell you exactly which words to learn — you don\'t need to memorize 3,000 words; you need to learn the 300-500 that actually appear.' },
           { k: 'tool', tool: 'flashcards', t: 'Flashcards is the right tool for GRE vocabulary — spaced repetition, context sentences, and the ability to drill the words that matter most.' },
+          { k: 'stats', items: [
+            { v: '300-500', l: 'Words that actually appear on the GRE' },
+            { v: '15-20', l: 'Flashcards per day for consistent progress' },
+            { v: '6-12', l: 'Weeks of daily practice for real improvement' },
+          ]},
         ],
       },
       {
