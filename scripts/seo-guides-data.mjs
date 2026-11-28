@@ -7245,6 +7245,111 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-medical-school',
+    title: 'How to study for <em>medical school</em>',
+    seoTitle: 'How to Study for Medical School: Systems, Anki, Questions',
+    description:
+      'Survive medical school with the method that works: systems-based study, daily spaced repetition, question practice alongside content, and weekly consolidation — not the cram-everything approach.',
+    kicker: 'Subject Guides',
+    datePublished: '2027-12-14',
+    dateModified: '2027-12-18',
+    readMinutes: 7,
+    keywords: ['how to study for medical school', 'med school study tips', 'medical school survival guide', 'Anki medical school'],
+    tools: ['flashcards', 'ink'],
+    related: ['how-to-study-for-the-usmle', 'how-to-study-for-nursing-school', 'how-to-study-anatomy'],
+    lede: 'Medical school is where the study habits that worked everywhere else go to die. The volume is unlike anything before it — a single block can cover an entire textbook — and the exams test application, not recall. The students who thrive share one trait: they stopped trying to learn everything and started learning the right things deeply.',
+    takeaways: [
+      'Study by system, not by lecture — connect anatomy, physio, path and pharm.',
+      'Anki daily is non-negotiable — spaced repetition carries the factual volume.',
+      'Questions are diagnostic and teaching — start them early, not in exam week.',
+    ],
+    faq: [
+      {
+        q: 'How is medical school different from undergraduate studying?',
+        a: 'The volume is an order of magnitude larger and the exams test application, not recall. The winning method shifts from "learn everything" to "learn the systems deeply, memorize the facts via spaced repetition, and practice questions early."',
+      },
+      {
+        q: 'Do I really need Anki for medical school?',
+        a: 'Most successful students use some form of spaced repetition daily — Anki is the standard but any system works. The volume is impossible to hold in working memory; the deck is how the facts survive to exam day.',
+      },
+      {
+        q: 'When should I start doing practice questions?',
+        a: 'Early — within the first few weeks of each block. Questions are diagnostic (they show your gaps) and teaching (the rationales explain the mechanism). Waiting until exam week means discovering gaps on the real exam.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'How med school is actually learned',
+        blocks: [
+          { k: 'p', t: 'Medical school punishes the study habits that worked everywhere else. The volume is unlike anything before it — a single block can cover an entire textbook — and the exams test application, not recall. The students who thrive share one trait: they stopped trying to learn everything and started learning the right things deeply.' },
+          { k: 'p', t: 'The method that works: systems-based study. Organize by body system or mechanism, not by lecture order. A cardiac block that connects anatomy, physiology, pathology and pharmacology teaches more than four disconnected courses — because that is how medicine actually works.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards carry the factual load — drug mechanisms, organisms, lab values — so your limited deep-study hours go to understanding, not memorization.' },
+        ],
+      },
+      {
+        h2: 'The med school study loop',
+        blocks: [
+          { k: 'p', t: 'A week of med school study that actually works:' },
+          { k: 'steps', items: [
+            'Preview the block — syllabus and learning objectives before lectures start.',
+            'Attend or watch actively — annotate for understanding, not transcription.',
+            'Do Anki daily — spaced repetition for the factual skeleton.',
+            'Work UWorld-style questions — application practice alongside content.',
+            'Review weekly — consolidate the block into a one-page system summary.',
+          ]},
+          { k: 'p', t: 'The Anki step is non-negotiable. Med school volume is impossible to hold in working memory — spaced repetition is how the facts survive to exam day. Skip it and you are relearning the same material every week.' },
+        ],
+      },
+      {
+        h2: 'The course types: different skills, different methods',
+        blocks: [
+          { k: 'p', t: 'Med school is not one subject — the study method shifts by course type:' },
+          { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
+            ['Basic science blocks', 'Systems integration', 'Block-by-system, connect all four disciplines'],
+            ['Clinical rotations', 'Pattern recognition', 'Learn presentations, work the differential'],
+            ['Skills courses', 'History & physical exam', 'Practice on each other weekly'],
+            ['Board-prep courses', 'Application under time', 'UWorld questions as the curriculum'],
+          ]},
+        ],
+      },
+      {
+        h2: 'Anki: the factual skeleton',
+        blocks: [
+          { k: 'p', t: 'Anki (or any spaced-repetition system) is how med students hold the volume. Drug mechanisms, organism facts, lab values, anatomical relations — the raw material of medicine — lives in the deck, reviewed daily, so your brain is free for the harder work: understanding.' },
+          { k: 'p', t: 'The mistake is making cards for everything. Good cards test mechanisms and relationships; bad cards test trivia. If a fact will never be asked as "what is the mechanism," it probably does not need a card.' },
+          { k: 'tool', tool: 'ink', t: 'Ink holds the integrated notes — the system summaries, the connected understanding — that Anki cannot carry.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that derail med students',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Trying to learn everything', d: 'The volume is designed to be impossible — triage by what exams test, not what lectures cover.' },
+            { t: 'Passive lecture transcription', d: 'Typing every slide produces notes you never read. Annotate for understanding or record and review.' },
+            { t: 'Skipping Anki until exam week', d: 'Spaced repetition needs time — starting in April means the schedule has no room to work.' },
+            { t: 'Studying in silos', d: 'Learning cardio physiology separate from cardio pathology separate from cardio pharmacology triples the work. Systems integration is the shortcut.' },
+            { t: 'Never doing questions early', d: 'UWorld questions are diagnostic and teaching — waiting until exam week means discovering your gaps on the real exam.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The systems integration trick',
+        blocks: [
+          { k: 'p', t: 'The highest-yield habit in med school: when you learn a new fact, attach it to the system it belongs to. A fact about digoxin is not a pharmacology fact — it is a heart-failure fact that connects to the cardiac block, the renal handling, the toxicity signs.' },
+          { k: 'p', t: 'Students who study this way find that blocks start connecting — the second cardiac-related topic is easier because the first one built the scaffold. Students who study in silos relearn the same connections every exam.' },
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'Med school does not test how much you know — it tests whether you can think like a physician with incomplete information.' },
+          { k: 'p', t: 'Systems-based study, daily Anki, question practice alongside content, weekly consolidation. The students who survive are the ones who stopped trying to learn everything — and started learning the right things deeply.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
