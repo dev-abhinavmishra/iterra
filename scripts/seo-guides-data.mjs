@@ -3270,6 +3270,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked significance ranking',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to the question every history exam asks: "Which cause of World War I was most significant?" The trap is listing causes — the exam wants a ranked argument.' },
+          { k: 'steps', items: [
+            'List the candidate causes — alliances, militarism, imperialism, nationalism, the assassination.',
+            'Weigh each by mechanism — which one actually made war more likely, not just present?',
+            'Rank with reasoning — assassination was the trigger; the alliance system turned a local crisis into a continental war.',
+            'Argue the counterfactual — without the alliance system, would the assassination have stayed a Balkan war?',
+            'Commit to a claim — "the alliance system was the decisive cause because it multiplied a regional crisis into a general war" beats "all of these caused it."',
+          ]},
+          { k: 'p', t: 'This is what historical argument looks like — not a summary of events but a defended ranking of causes. The same structure handles every "most significant" question: define the criterion, weigh the candidates, commit.' },
+        ],
+      },
+      {
         h2: 'The bottom line',
         blocks: [
           { k: 'quote', t: 'History rewards understanding, not memorization.' },
@@ -3482,6 +3496,20 @@ export const GUIDES = [
         ],
       },
       {
+        h2: 'A worked application question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic psychology question: "A rat presses a lever to receive food. The food is delivered on a variable-ratio schedule. What happens to pressing behavior when food is discontinued?" The answer is in the framework, not the memory."' },
+          { k: 'steps', items: [
+            'Name the paradigm — this is operant conditioning: behavior shaped by consequences.',
+            'Identify the schedule — variable-ratio means reinforcement after an unpredictable number of responses; it produces the highest, most extinction-resistant response rates.',
+            'Predict extinction — after discontinuation, behavior persists longer than under fixed schedules because the animal keeps checking.',
+            'Choose the answer — response rate is high during acquisition and slow to extinguish.',
+            'Generalize the principle — the same logic explains slot machines, email refreshes, and why some habits are harder to break than others.',
+          ]},
+          { k: 'p', t: 'Psychology questions test whether you can move from paradigm to prediction — name the framework, identify the mechanism, derive the outcome. A student who memorized "variable ratio = high rate" answers; a student who understands why can answer any schedule question.' },
+        ],
+      },
+      {
         h2: 'Where this leaves you',
         blocks: [
           { k: 'quote', t: 'Psychology rewards understanding frameworks, not memorizing terms.' },
@@ -3576,6 +3604,20 @@ export const GUIDES = [
             { t: 'Not connecting concepts to real-world examples', d: 'Application is what makes the model stick.' },
             { t: 'Studying only before exams', d: 'Economics requires consistent review — the material accumulates.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked supply-and-demand problem',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic: "A new sugar tax raises the price of soda by 20%. Demand falls by 8%. Is demand elastic or inelastic, and what does the government collect?" The graph is simple — the interpretation is the exam."' },
+          { k: 'steps', items: [
+            'Compute elasticity — % change in quantity (−8%) ÷ % change in price (+20%) = −0.4; absolute value 0.4 < 1, so demand is inelastic.',
+            'Interpret — consumers cut consumption less than proportionally, so total revenue rises for sellers and the tax raises significant revenue.',
+            'Check the policy logic — inelastic demand means the tax mostly transfers surplus rather than changing behavior; that is the economic argument for and against it.',
+            'Avoid the trap — "demand is elastic" would mean revenue falls; your number says the opposite.',
+            'Say it in words — the tax works as revenue policy more than health policy, because consumption barely responds.',
+          ]},
+          { k: 'p', t: 'Economics questions test whether you can move from numbers to policy meaning — elasticity is not just a calculation, it is the answer to "who bears the burden and does the policy work?" Practice narrating what each result implies.' },
         ],
       },
       {
@@ -3871,6 +3913,20 @@ export const GUIDES = [
             { t: 'Not practicing NCLEX questions until too late', d: 'The question format is the skill — practice it throughout.' },
             { t: 'Studying only before exams', d: 'Nursing requires consistent review — the material accumulates.' },
           ]},
+        ],
+      },
+      {
+        h2: 'A worked prioritization question',
+        blocks: [
+          { k: 'p', t: 'Here is the method applied to a classic nursing scenario: "A post-op patient has a fever of 38.9°C, is diaphoretic, and mentions her incision "feels warm." What do you assess first?" The options all sound clinical — the framework sorts them." },
+          { k: 'steps', items: [
+            'Apply the ABC lens — airway, breathing, circulation come before everything; check for instability first.',
+            'Read the signals — fever plus diaphoresis plus a warm incision is a sepsis pattern, not a routine observation.',
+            'Choose the assessment that changes management — full vital signs and a sepsis screen, not just a temperature recheck.',
+            'Eliminate the traps — "document the finding" and "recheck in an hour" are real tasks but miss the urgency the vitals signal.',
+            'Think like a nurse — the question tests whether you connect findings into a pattern, not whether you know the definitions.',
+          ]},
+          { k: 'p', t: 'Nursing questions reward pattern recognition over fact recall — fever + diaphoresis + warm incision is a story, and the story is sepsis until proven otherwise. Practice reading scenarios as patterns, not lists of symptoms.' },
         ],
       },
       {

@@ -969,6 +969,25 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .timeline .when::after{content:"";position:absolute;left:calc(5.6rem + 1.2rem - 3px);top:1.15rem;width:7px;height:7px;border-radius:50%;background:var(--gold);border:2px solid var(--cream);box-shadow:0 0 0 1px var(--gold)}
 .timeline .what{font-size:1rem;line-height:1.65;color:#333a34;padding-left:.4rem}
 @media(max-width:640px){.timeline::before{left:4.6rem}.timeline li{grid-template-columns:4rem 1fr;gap:.9rem}.timeline .when{font-size:10px}.timeline .when::after{left:calc(4rem + .9rem - 3px)}}
+.versus{display:grid;grid-template-columns:1fr auto 1fr;gap:1.4rem;align-items:stretch;margin:2.2rem 0;padding:1.8rem 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);position:relative}
+.versus::before,.versus::after{content:"";position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.4}
+.versus::before{top:0}.versus::after{bottom:0}
+.vside{display:flex;flex-direction:column;gap:.6rem;padding:0 .4rem}
+.vside.a{border-right:1px dashed var(--line);padding-right:1.4rem}
+.vside.b{border-left:1px dashed var(--line);padding-left:1.4rem}
+.vk{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.vside.b .vk{color:var(--accent)}
+.vt{font-family:Newsreader,Georgia,serif;font-size:1.15rem;font-weight:480;line-height:1.5;color:var(--ink)}
+.vmedal{align-self:center;display:grid;place-items:center;width:3rem;height:3rem;border-radius:50%;border:1px solid var(--gold);background:var(--cream);color:var(--accent);font-size:11px;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 4px 14px rgba(20,40,30,.08);flex:none}
+@media(max-width:720px){.versus{grid-template-columns:1fr;gap:.4rem}.vmedal{margin:1rem auto}.vside.a,.vside.b{border:none;padding:0}.vside.a{border-bottom:1px dashed var(--line);padding-bottom:1.2rem}.vside.b{padding-top:1.2rem}}
+.mistakes{list-style:none;padding:0;margin:2rem 0;border-top:1px solid var(--line)}
+.mistakes li{display:grid;grid-template-columns:1.4rem 1fr 1fr;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--line);align-items:baseline}
+.m-x{color:#b3563f;font-weight:600}
+.m-tag{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:.2rem}
+.m-tag.ok{color:var(--accent)}
+.m-w{color:var(--mute);font-size:.95rem;line-height:1.6}
+.m-r{font-size:.95rem;line-height:1.6;color:var(--ink)}
+@media(max-width:720px){.mistakes li{grid-template-columns:1.4rem 1fr}.m-r{grid-column:2;margin-top:.4rem;padding-top:.6rem;border-top:1px dashed var(--line)}}
 .guide-article.dc .gsec:first-of-type .prose p:first-of-type::first-letter{font-family:Newsreader,Georgia,serif;font-weight:500;font-size:3.5em;float:left;line-height:.8;padding:.08em .14em 0 0;color:var(--accent)}
 .picks{display:grid;grid-template-columns:repeat(3,1fr);gap:2.2rem;margin-bottom:1rem}
 .pick{display:flex;flex-direction:column;gap:.5rem;text-decoration:none;color:var(--ink);padding-top:1.2rem;border-top:2px solid var(--ink);transition:border-color .2s}
@@ -1125,6 +1144,15 @@ function renderBlocks(blocks) {
               `<li><span class="when mono">${esc(t.when || '')}</span><span class="what">${inline(t.what || t)}</span></li>`,
           )
           .join('')}</ol>`;
+      if (b.k === 'versus')
+        return `<div class="versus"><div class="vside a"><span class="vk mono">${esc(b.a?.k || 'Instead of')}</span><span class="vt">${inline(b.a?.t || '')}</span></div><span class="vmedal mono" aria-hidden="true">vs</span><div class="vside b"><span class="vk mono">${esc(b.b?.k || 'Try')}</span><span class="vt">${inline(b.b?.t || '')}</span></div></div>`;
+      if (b.k === 'mistakes')
+        return `<ul class="mistakes">${b.items
+          .map(
+            (m) =>
+              `<li><span class="m-x" aria-hidden="true">✕</span><span class="m-w"><span class="mono m-tag">Instead</span> ${inline(m.bad || m.w || '')}</span><span class="m-r"><span class="mono m-tag ok">Better</span> ${inline(m.good || m.r || '')}</span></li>`,
+          )
+          .join('')}</ul>`;
       return '';
     })
     .join('\n');
