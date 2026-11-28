@@ -3636,6 +3636,104 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-nursing-school',
+    title: 'How to study for <em>nursing school</em>',
+    seoTitle: 'How to Study for Nursing School: Systems, Application, NCLEX',
+    description:
+      'Survive nursing school by studying smart: learn the body systems, connect everything to the patient, use application-based recall, and practice NCLEX questions relentlessly.',
+    kicker: 'Study Methods',
+    datePublished: '2027-05-04',
+    dateModified: '2027-05-08',
+    readMinutes: 7,
+    keywords: ['how to study for nursing school', 'nursing school study tips', 'NCLEX prep', 'nursing exam study'],
+    tools: ['flashcards', 'margin'],
+    related: ['how-to-study-science', 'how-to-study-math', 'how-to-use-practice-tests'],
+    lede: 'Nursing school is the course load that breaks people — pharmacology, pathophysiology, med-surg, and a clinical that starts at 6am. The students who survive aren’t the ones who study the most; they’re the ones who study *smart*. Nursing rewards a specific approach: learn the systems, connect everything to the patient, and practice the application relentlessly.',
+    takeaways: [
+      'Nursing is systems, not facts — learn the body systems and the details organize themselves.',
+      'Connect everything to the patient — application is the learning.',
+      'Practice NCLEX questions throughout — the question format is the skill.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for nursing school?',
+        a: 'Learn the body systems first, then connect everything to the patient. Use application-based flashcards — "what\'s the priority intervention" not just "what is the drug." Practice NCLEX-style questions throughout the program.',
+      },
+      {
+        q: 'How do I prepare for the NCLEX?',
+        a: 'Practice questions — hundreds of them, with rationales. The NCLEX tests whether you can think like a nurse, not just recall facts. The question format (prioritization, delegation, safety) is the skill. Start practicing early, not just at the end.',
+      },
+      {
+        q: 'How do I memorize nursing medications?',
+        a: 'Don\'t memorize drugs in isolation — connect each to its system and indication. Learn the drug class, the mechanism, the side effects, and the priority assessment. Application-based flashcards work better than definition cards.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Nursing is systems, not facts',
+        blocks: [
+          { k: 'p', t: 'Nursing school is the course load that breaks people — pharmacology, pathophysiology, med-surg, and a clinical that starts at 6am. The students who survive aren’t the ones who study the most; they’re the ones who study *smart*. Nursing rewards a specific approach: learn the systems, connect everything to the patient, and practice the application relentlessly.' },
+          { k: 'p', t: 'Every nursing course is built on systems — cardiovascular, respiratory, renal, neuro. The medications, lab values, and assessments are all expressions of these systems. Learn the system and the details organize themselves; memorize the details and they\'re a blur.' },
+          { k: 'p', t: 'When you encounter a new medication or condition, ask: which system does this affect? What\'s the normal function? What goes wrong? The system is the framework; everything else hangs on it.' },
+        ],
+      },
+      {
+        h2: 'The nursing study loop',
+        blocks: [
+          { k: 'p', t: 'A productive nursing study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Review the system — the anatomy, physiology, and normal function.',
+            'Learn the pathophysiology — what goes wrong and why.',
+            'Study the medications — what they do, side effects, interactions.',
+            'Practice the application — NCLEX-style questions, case studies.',
+            'Connect to the patient — how does this manifest clinically?',
+          ]},
+          { k: 'p', t: 'The connect-to-the-patient step is crucial for nursing. A lab value means nothing until you connect it to the patient\'s symptoms, the nurse\'s assessment, and the intervention. Nursing is applied science — the application is the learning.' },
+          { k: 'tool', tool: 'flashcards', t: 'Flashcards turns nursing content into application-based recall — "what\'s the priority intervention" not just "what is the drug."' },
+        ],
+      },
+      {
+        h2: 'Active recall for nursing',
+        blocks: [
+          { k: 'p', t: 'Nursing flashcards work best when they test *application*, not just recall. Instead of "What is the normal potassium range?" use "A patient with potassium of 6.2 — what are the cardiac risks and what\'s the priority intervention?"' },
+          { k: 'deflist', items: [
+            { t: 'For medications', d: '"What\'s the priority assessment before giving this drug?"' },
+            { t: 'For lab values', d: '"What does this abnormal value indicate and what\'s the intervention?"' },
+            { t: 'For conditions', d: '"What are the priority nursing diagnoses and interventions?"' },
+            { t: 'For assessments', d: '"What would you expect to find on physical exam?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The NCLEX connection',
+        blocks: [
+          { k: 'p', t: 'The NCLEX is the final exam — it tests whether you can *think* like a nurse, not just recall facts. Practice NCLEX-style questions throughout the program, not just at the end. The question format (prioritization, delegation, safety) is the skill.' },
+          { k: 'p', t: 'The best NCLEX prep is doing questions — hundreds of them, with rationales. Every wrong answer is a learning opportunity; every right answer is confirmation. The questions teach you the *thinking*, not just the content.' },
+        ],
+      },
+      {
+        h2: 'Common nursing study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common nursing study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing facts without understanding systems', d: 'Facts are expressions of systems — learn the system, not the fact.' },
+            { t: 'Skipping the application', d: 'Nursing is applied science — the application is the learning.' },
+            { t: 'Not practicing NCLEX questions until too late', d: 'The question format is the skill — practice it throughout.' },
+            { t: 'Studying only before exams', d: 'Nursing requires consistent review — the material accumulates.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Nursing rewards understanding systems, not memorizing facts.' },
+          { k: 'p', t: 'Learn the body systems, connect everything to the patient, use application-based recall, and practice NCLEX questions relentlessly. The students who treat nursing as applied science outperform the ones who treat it as a content course.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
