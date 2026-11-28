@@ -1620,7 +1620,7 @@ ${nextGuide ? `<a class="next" href="/guides/${nextGuide.slug}"><span class="dir
   /* three article hero treatments, rotated by guide index */
   const variant = ((gi % 3) + 3) % 3; /* 0 cover below · 1 split hero · 2 centered */
   const heroCopy = `${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: guide.title.replace(/<\/?em>/g, '') }])}
-<div class="kicker mono">Iterra Guides · <a class="klink" href="/topics/${topicSlug(guide.kicker)}">${esc(guide.kicker)}</a></div>
+<div class="kicker mono">Iterra Guides · <a class="klink" href="${topicHref(guide.kicker)}">${esc(guide.kicker)}</a></div>
 <h1>${h1html}</h1>
 <p class="lede">${inline(guide.lede)}</p>
 <div class="byline"><span class="av" aria-hidden="true">IT</span><span class="who">Iterra terrain team</span><span class="dot">·</span><span>${dateFmt(guide.datePublished)}</span>${guide.dateModified && guide.dateModified !== guide.datePublished ? `<span class="dot">·</span><span>Updated ${dateFmt(guide.dateModified)}</span>` : ''}<span class="dot">·</span><span>${guide.readMinutes} min read</span><span class="dot">·</span><a href="/guides">All guides</a></div>`;
@@ -1953,13 +1953,19 @@ const TOPIC_PAGES = (() => {
     if (!map.has(g.kicker)) map.set(g.kicker, []);
     map.get(g.kicker).push(g);
   }
-  return [...map.entries()].map(([kicker, guides]) => ({
-    kicker,
-    slug: topicSlug(kicker),
-    guides,
-    note: TOPIC_NOTES[kicker] || '',
-  }));
+  return [...map.entries()]
+    .map(([kicker, guides]) => ({
+      kicker,
+      slug: topicSlug(kicker),
+      guides,
+      note: TOPIC_NOTES[kicker] || '',
+    }))
+    .filter((t) => t.guides.length >= 3);
 })();
+
+const TOPIC_PAGE_SLUGS = new Set(TOPIC_PAGES.map((t) => t.slug));
+const topicHref = (kicker) =>
+  TOPIC_PAGE_SLUGS.has(topicSlug(kicker)) ? `/topics/${topicSlug(kicker)}` : `/guides#topic-${topicSlug(kicker)}`;
 
 export function renderGuidesIndex() {
   const url = `${SITE}/guides`;
@@ -2007,7 +2013,7 @@ export function renderGuidesIndex() {
     .join('\n');
   const cards = topics
     .map(
-      (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}"><a class="topic-link" href="/topics/${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</a></h3>${TOPIC_NOTES[t.k] ? `<p class="topic-d">${esc(TOPIC_NOTES[t.k])}</p>` : ''}<ul class="rows">${t.items
+      (t) => `<h3 class="topic" id="topic-${topicSlug(t.k)}">${TOPIC_PAGE_SLUGS.has(topicSlug(t.k)) ? `<a class="topic-link" href="/topics/${topicSlug(t.k)}">${esc(t.k)} · ${t.items.length}</a>` : `${esc(t.k)} · ${t.items.length}`}</h3>${TOPIC_NOTES[t.k] ? `<p class="topic-d">${esc(TOPIC_NOTES[t.k])}</p>` : ''}<ul class="rows">${t.items
         .map(
           (g) => `<li><a href="/guides/${g.slug}"><span class="k mono">${dateFmt(g.datePublished)} · ${g.readMinutes} min read</span><span class="t">${esc(g.title.replace(/<\/?em>/g, ''))}</span><span class="d">${esc(g.description.split('.')[0])}.</span></a></li>`,
         )
@@ -2225,6 +2231,18 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools' }])}
 <figure class="plate">
 <div class="frame"><img src="/shots/boxed.webp" alt="Iterra's time-blocking planner — the Boxed place" width="1440" height="900" loading="lazy" decoding="async" /></div>
 </figure>
+<section class="block">
+<h2 class="sec mono">How the pieces fit together</h2>
+<div class="prose">${renderBlocks([
+  { k: 'p', t: 'Most study apps give you one tool and a login wall. Iterra gives you a workspace — the tools share courses, decks, notes and schedules, so the plan you make in the morning is the deck you review at night.' },
+  { k: 'deflist', items: [
+    { t: 'Plan', d: 'Boxed holds the week, Syllabus holds the semester, Rhythm holds the habits — the when and how often.' },
+    { t: 'Learn', d: 'Flashcards holds the recall, Ink holds the understanding, Margin holds the source material — the what.' },
+    { t: 'Measure', d: 'Timer holds the sessions, GradeStack holds the scores, Proof holds the problem-solving — the proof it worked.' },
+  ]},
+  { k: 'p', t: 'Everything lives on your device by default. No account, no subscription, no export anxiety — your study data is a folder, not a hostage.' },
+])}</div>
+</section>
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Choose your place</h2>
 <ul class="rows">
@@ -2553,6 +2571,18 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Compare' }])}
 <figure class="plate">
 <div class="frame"><img src="${COMPARE_SHOT}" alt="The Iterra study workspace" width="1440" height="900" loading="lazy" decoding="async" /></div>
 </figure>
+<section class="block">
+<h2 class="sec mono">How to read these</h2>
+<div class="prose">${renderBlocks([
+  { k: 'p', t: 'Each comparison below follows the same honest structure: what the other tool does well, where Iterra genuinely wins, and a verdict for specific kinds of students — not a universal "we're better."' },
+  { k: 'deflist', items: [
+    { t: 'The wins grid', d: 'Every page lists where the competitor comes out ahead. If a page has nothing in that column, it is not a real comparison.' },
+    { t: 'The verdict', d: 'Written for a reader, not a search engine — "pick Notion if…" is more useful than "Iterra wins."' },
+    { t: 'The caveats', d: 'Price, privacy, offline use and platform limits are called out where they matter, not buried in fine print.' },
+  ]},
+  { k: 'quote', t: 'A comparison you can’t trust is just an ad. These are written by the people who make Iterra — and they say so.' },
+])}</div>
+</section>
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Iterra vs the tools you know</h2>
 <ul class="rows">
@@ -2619,6 +2649,18 @@ ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Alternatives' }])}
 <figure class="plate">
 <div class="frame"><img src="/shots/flashcards.webp" alt="Iterra flashcards — one of the tools covered in these comparisons" width="1440" height="900" loading="lazy" decoding="async" /></div>
 </figure>
+<section class="block">
+<h2 class="sec mono">How these picks were chosen</h2>
+<div class="prose">${renderBlocks([
+  { k: 'p', t: 'Alternatives pages are where review sites go to hide their affiliate links. These picks were chosen on five criteria that actually matter to students — and Iterra is allowed to lose.' },
+  { k: 'deflist', items: [
+    { t: 'What it does', d: 'Does the alternative actually solve the problem you are leaving the current app for? A prettier interface is not a feature.' },
+    { t: 'What it costs', d: 'Free tier, trial, or subscription — and what happens when the trial ends. The fine print is the product.' },
+    { t: 'Where your data lives', d: 'Cloud-locked, exportable, or local-first. Your notes are years of work; portability is not a nice-to-have.' },
+    { t: 'Who it is for', d: 'Every pick names its ideal user. If none of them fit you, the honest answer is sometimes "stay where you are."' },
+  ]},
+])}</div>
+</section>
 <section class="block" style="border-bottom:none">
 <h2 class="sec mono">Picks by what you’re leaving</h2>
 ${(() => {
