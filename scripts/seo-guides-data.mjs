@@ -3244,6 +3244,104 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-psychology',
+    title: 'How to <em>study psychology</em>',
+    seoTitle: 'How to Study Psychology: Frameworks, Terms, Application',
+    description:
+      'Study psychology as frameworks, not terms: learn the core theories, organize concepts by framework, use application-based recall, and connect to real-world examples.',
+    kicker: 'Study Methods',
+    datePublished: '2027-03-23',
+    dateModified: '2027-03-27',
+    readMinutes: 6,
+    keywords: ['how to study psychology', 'psychology study tips', 'psychology exam', 'psychology flashcards'],
+    tools: ['margin', 'flashcards'],
+    related: ['how-to-study-science', 'how-to-study-history', 'active-recall-vs-rereading'],
+    lede: 'Psychology is the subject where students most often drown in terms — hundreds of them, each with a definition that sounds similar to the last. But psychology isn\'t a vocabulary list; it\'s a set of interconnected theories about how people think and behave. The students who do well learn the *frameworks*, not just the terms.',
+    takeaways: [
+      'Psychology is frameworks, not terms — learn the core theories and the terms organize themselves.',
+      'Use application-based recall — test understanding, not just definitions.',
+      'Connect concepts to real-world examples — application makes the theory stick.'
+    ],
+    faq: [
+      {
+        q: 'How do I study for a psychology exam?',
+        a: 'Learn the core frameworks first, then organize the terms by theory. Use application-based flashcards — "how would you use X to treat Y" rather than "what is X." Practice essays under timed conditions.',
+      },
+      {
+        q: 'Are flashcards effective for psychology?',
+        a: 'Yes, but differently than for vocabulary. Use application-based cards — test whether you can apply the concept, not just define it. "How would classical conditioning treat a phobia?" is more valuable than "What is classical conditioning?"',
+      },
+      {
+        q: 'How do I understand psychology theories?',
+        a: 'Learn the framework first — behaviorism, cognitive theory, developmental stages. Then connect each term to its framework. Ask how the theory explains real-world behavior. The connections are what make the material stick.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Psychology is frameworks, not terms',
+        blocks: [
+          { k: 'p', t: 'Psychology is the subject where students most often drown in terms — hundreds of them, each with a definition that sounds similar to the last. But psychology isn\'t a vocabulary list; it\'s a set of interconnected theories about how people think and behave. The students who do well learn the *frameworks*, not just the terms.' },
+          { k: 'p', t: 'Every psychology course is built on a small number of core frameworks — behaviorism, cognitive theory, developmental stages, social influence. The hundreds of terms are examples of these frameworks. Learn the framework first and the terms organize themselves; memorize the terms first and they\'re a blur.' },
+          { k: 'p', t: 'When you encounter a new term, ask: which framework does this belong to? How does it connect to what I already know? The connections are what make the material stick.' },
+        ],
+      },
+      {
+        h2: 'The psychology study loop',
+        blocks: [
+          { k: 'p', t: 'A productive psychology study session follows a pattern:' },
+          { k: 'steps', items: [
+            'Read the material once for the big picture — the theory and its context.',
+            'Go back and learn the terms — definitions, examples, key researchers.',
+            'Organize by framework — group terms by theory, not alphabetically.',
+            'Draw the connections — how do these concepts relate?',
+            'Test yourself — recall the terms and their applications.',
+          ]},
+          { k: 'p', t: 'The organize-by-framework step is crucial for psychology. A term memorized in isolation is forgotten; the same term placed in a framework is remembered. "Classical conditioning" means nothing until you connect it to "operant conditioning" and "observational learning".' },
+          { k: 'tool', tool: 'margin', t: 'Margin is built for the framework step — group terms by theory, tag the connections, and build your mental map as you read.' },
+        ],
+      },
+      {
+        h2: 'Active recall for psychology',
+        blocks: [
+          { k: 'p', t: 'Psychology flashcards work best when they test *application*, not just definition. Instead of "What is classical conditioning?" use "How would you use classical conditioning to treat a phobia?" or "What\'s the difference between classical and operant conditioning?"' },
+          { k: 'deflist', items: [
+            { t: 'For theories', d: '"How would this theory explain X behavior?"' },
+            { t: 'For terms', d: '"What\'s an example of this concept?"' },
+            { t: 'For researchers', d: '"What did this person contribute to psychology?"' },
+            { t: 'For disorders', d: '"What are the symptoms and treatments?"' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The case-study connection',
+        blocks: [
+          { k: 'p', t: 'Psychology courses often use case studies — real or fictional examples of psychological phenomena. Treat them as study material: connect each case to the theory it illustrates. A case study you understand is worth ten definitions you memorized.' },
+          { k: 'p', t: 'If your course has research studies, learn the *method* — what was the hypothesis, what was the design, what did the results show? The method is often more important than the findings.' },
+        ],
+      },
+      {
+        h2: 'Common psychology study mistakes',
+        blocks: [
+          { k: 'p', t: 'The most common psychology study failures:' },
+          { k: 'deflist', items: [
+            { t: 'Memorizing terms without understanding frameworks', d: 'Terms are examples of theories — learn the theory, not the term.' },
+            { t: 'Treating theories as isolated', d: 'Psychology is interconnected — each theory builds on the last.' },
+            { t: 'Not connecting concepts to real-world examples', d: 'Application is what makes the theory stick.' },
+            { t: 'Studying only before exams', d: 'Psychology requires consistent review — the material accumulates.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'Psychology rewards understanding frameworks, not memorizing terms.' },
+          { k: 'p', t: 'Learn the core theories, connect the terms to them, use application-based recall, and practice the essay format. The students who treat psychology as a set of interconnected ideas outperform the ones who treat it as a vocabulary list.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
