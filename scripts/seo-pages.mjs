@@ -2142,8 +2142,13 @@ ${footer()}
 `;
 }
 
+function topicLastmod(t) {
+  return t.guides.map((g) => g.dateModified || g.datePublished || '').sort().pop() || '';
+}
+
 export function renderTopicPage(topic) {
   const url = `${SITE}/topics/${topic.slug}`;
+  const topicMod = topicLastmod(topic);
   const ti = TOPIC_PAGES.findIndex((t) => t.slug === topic.slug);
   const tPrev = TOPIC_PAGES[(ti - 1 + TOPIC_PAGES.length) % TOPIC_PAGES.length];
   const tNext = TOPIC_PAGES[(ti + 1) % TOPIC_PAGES.length];
@@ -2167,6 +2172,7 @@ export function renderTopicPage(topic) {
         description: topic.note || `Iterra guides on ${topic.kicker.toLowerCase()}.`,
         url,
         isPartOf: { '@type': 'WebSite', name: 'Iterra', url: `${SITE}/` },
+        ...(topicMod ? { dateModified: topicMod } : {}),
       },
       {
         '@type': 'BreadcrumbList',
@@ -2993,7 +2999,7 @@ export function renderSitemap(lastmod = new Date().toISOString().slice(0, 10)) {
     })),
     ...TOOLS.map((t) => ({ loc: `${SITE}${t.path}`, lastmod: t.updated || lastmod, priority: '0.7', freq: 'monthly' })),
     ...GUIDES.map((g) => ({ loc: `${SITE}/guides/${g.slug}`, lastmod: g.dateModified || g.datePublished || lastmod, priority: '0.7', freq: 'monthly' })),
-    ...TOPIC_PAGES.map((t) => ({ loc: `${SITE}/topics/${t.slug}`, lastmod, priority: '0.6', freq: 'weekly' })),
+    ...TOPIC_PAGES.map((t) => ({ loc: `${SITE}/topics/${t.slug}`, lastmod: topicLastmod(t) || lastmod, priority: '0.6', freq: 'weekly' })),
   ];
   const body = urls
     .map(
