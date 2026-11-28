@@ -7689,6 +7689,122 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-political-science',
+    title: 'How to study <em>political science</em>',
+    seoTitle: 'How to Study Political Science: Theories, Institutions, Analysis',
+    description:
+      'Political science courses test analysis, not recall. Learn pluralism, elite theory, rational choice and institutionalism, apply them to real politics, and argue.',
+    kicker: 'Subject Guides',
+    datePublished: '2028-01-11',
+    dateModified: '2028-01-18',
+    readMinutes: 7,
+    keywords: ['how to study political science', 'political science study tips', 'pol sci exam prep', 'political theory'],
+    tools: ['ink', 'margin'],
+    related: ['how-to-study-sociology', 'how-to-study-psychology', 'how-to-study-economics'],
+    lede: 'Political science feels like it should be easy — reading about governments and elections. It is not. The subject tests whether you can analyze political phenomena: explain why a policy passed, predict an election outcome, argue about institutional design. That skill is built by analyzing politics, not by reading about it.',
+    takeaways: [
+      'Learn the approach, then apply it to current events — application is the learning.',
+      'Political science is argument, not description — every claim needs evidence.',
+      'Your daily news is the data — the skill is seeing the politics in the ordinary.',
+    ],
+    faq: [
+      {
+        q: 'How is studying political science different from other subjects?',
+        a: 'It is the most current-events-heavy subject on most transcripts. Exams are essays about why political phenomena happen — elections, policies, institutional conflicts. Reading about politics produces almost nothing; analyzing real political events produces the skill.',
+      },
+      {
+        q: 'What theories should I learn for political science?',
+        a: 'Start with four: pluralism (power dispersed among groups), elite theory (power concentrated in a ruling class), rational choice (actors as self-interested maximizers), and institutionalism (rules and norms shape outcomes). These cover most introductory and intermediate courses.',
+      },
+      {
+        q: 'How do I study for political science exams?',
+        a: 'Practice analysis essays under time — define the phenomenon, apply the theory, support with evidence, commit to an argument. Compare your analysis to the case solution and write down where your reasoning diverged.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'How political science is actually learned',
+        blocks: [
+          { k: 'p', t: 'Political science feels like it should be easy — reading about governments and elections. It is not. The subject tests whether you can analyze political phenomena: explain why a policy passed, predict an election outcome, argue about institutional design.' },
+          { k: 'p', t: 'The study method that works: learn the approach, then apply it to current events. A student who has explained fifty political trends understands the field better than one who has read fifty pages about it.' },
+          { k: 'tool', tool: 'ink', t: 'Ink holds the theory applications — pluralism, elite theory, rational choice applied to real political phenomena.' },
+        ],
+      },
+      {
+        h2: 'The political science study loop',
+        blocks: [
+          { k: 'p', t: 'A week of political science study that actually works:' },
+          { k: 'steps', items: [
+            'Learn the approach — pluralism, elite theory, rational choice, institutionalism.',
+            'Find a live case — an election result, a court ruling, a policy fight in the news.',
+            'Run the analysis — which approach explains what happened, and what does not fit?',
+            'Test it against a second case — a theory that only works once is a coincidence.',
+            'Commit to a claim — political science rewards argued answers, not balanced ones.',
+          ]},
+          { k: 'quote', t: 'Political science is not about what politicians say — it is about what institutions do and why.' },
+        ],
+      },
+      {
+        h2: 'The major approaches',
+        blocks: [
+          { k: 'p', t: 'Several theoretical approaches do most of the work across political science courses — learn them once, apply them everywhere:' },
+          { k: 'deflist', items: [
+            { t: 'Pluralism', d: 'Power is dispersed among competing groups — elections, interest groups, parties. Ask: who is competing, and who wins?' },
+            { t: 'Elite theory', d: 'Power concentrates in a small ruling class — Mills, Domhoff. Ask: who actually makes decisions?' },
+            { t: 'Rational choice', d: 'Actors are self-interested utility maximizers — Downs, Buchanan. Ask: what incentives shape behavior?' },
+            { t: 'Institutionalism', d: 'Institutions shape political outcomes — March, Olsen, historical institutionalism. Ask: how do rules and norms constrain choices?' },
+          ]},
+          { k: 'p', t: 'The approaches are not answers — they are lenses. A good political analysis applies the right lens to a real phenomenon and argues for why it fits.' },
+        ],
+      },
+      {
+        h2: 'The course types: different skills, different methods',
+        blocks: [
+          { k: 'p', t: 'Political science is not one subject — the study method shifts by course type:' },
+          { k: 'table', head: ['Course type', 'What it tests', 'Best method'], rows: [
+            ['Intro theory', 'Framework application', 'Essay analysis of political trends'],
+            ['Comparative politics', 'Institutional analysis', 'Case comparison + regime analysis'],
+            ['IR / foreign policy', 'Theory + current events', 'Case studies + policy analysis'],
+            ['American politics', 'Institutions + behavior', 'Election analysis + constitutional reasoning'],
+            ['Political theory', 'Textual analysis', 'Close reading + argument reconstruction'],
+          ]},
+        ],
+      },
+      {
+        h2: 'The quantitative-qualitative divide',
+        blocks: [
+          { k: 'p', t: 'Political science has its own version of the methods divide — and it matters because different subfields reward different skills:' },
+          { k: 'deflist', items: [
+            { t: 'Quantitative', d: 'Statistics, econometrics, game theory — tests hypotheses about patterns and outcomes. Common in political behavior and formal theory.' },
+            { t: 'Qualitative', d: 'Case studies, archival research, fieldwork — explores meanings and processes. Common in comparative politics and political theory.' },
+            { t: 'Mixed methods', d: 'Both — quantitative for patterns, qualitative for mechanisms. The gold standard for complex questions.' },
+          ]},
+          { k: 'p', t: 'The methods course is not about memorizing statistics — it is about knowing which method answers which question. A student who understands the trade-offs can critique any study.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost political science students points',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Treating theory as trivia', d: 'An approach you cannot apply to a new example is an approach you do not know. Apply every framework to at least three political phenomena.' },
+            { t: 'Describing instead of analyzing', d: 'Political science essays argue a claim about why something happens — a summary of an event is not an analysis.' },
+            { t: 'Ignoring the evidence', d: 'Political science is empirical — claims need data, studies, or institutional analysis. Theory without evidence is opinion.' },
+            { t: 'Forgetting the institutional context', d: 'Political outcomes are shaped by rules, norms, and history — analysis that ignores institutions misses the mechanism.' },
+            { t: 'Waiting until exam week for theory', d: 'Theory application compounds — a semester of weekly analysis beats a week of cramming.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'Political science is the course where your daily news is the data — the skill is seeing the politics in the ordinary.' },
+          { k: 'p', t: 'Learn the approach, find real cases, apply the framework, and argue your take. That loop is the whole method — and it holds for every political science course you will take.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
