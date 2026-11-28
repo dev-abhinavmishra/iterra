@@ -209,6 +209,12 @@ async function snapshotLanding(base) {
     console.log('prerender: dist/ not found — run npm run build first');
     process.exit(1);
   }
+  // `npm run seo` skips the vite build, so shell/public assets (iterra-pages.js,
+  // icons, og cards) can go stale in dist/. Sync them so previews match deploys.
+  const pub = path.resolve('shell/public');
+  if (fs.existsSync(pub)) {
+    fs.cpSync(pub, DIST, { recursive: true });
+  }
   writeSeoPages(DIST);
 
   const srv = await serve(DIST);
