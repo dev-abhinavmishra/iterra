@@ -4292,6 +4292,97 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-the-gmat',
+    title: 'How to study for the <em>GMAT</em>',
+    seoTitle: 'How to Study for the GMAT: Strategy, Patterns, Timing',
+    description:
+      'Beat the GMAT with a system: know the format, practice the question patterns, review every answer, and manage your timing — the GMAT rewards preparation, not cramming.',
+    kicker: 'Study Methods',
+    datePublished: '2027-06-22',
+    dateModified: '2027-06-26',
+    readMinutes: 7,
+    keywords: ['how to study for the GMAT', 'GMAT prep', 'GMAT strategy', 'GMAT practice test'],
+    tools: ['timer', 'flashcards'],
+    related: ['how-to-study-for-the-gre', 'how-to-study-for-the-lsat', 'how-to-use-practice-tests'],
+    lede: 'The GMAT is the test that decides business school — a 3-hour exam that tests quantitative reasoning, verbal skills, and integrated reasoning. But the GMAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.',
+    takeaways: [
+      'Take a practice test first — the score breakdown tells you where to focus.',
+      'Practice, review, repeat — the review is where learning happens.',
+      'Data sufficiency is unique to the GMAT — practice it separately.'
+    ],
+    faq: [
+      {
+        q: 'How long should I study for the GMAT?',
+        a: 'Most students need 2-3 months of consistent prep. A focused 8-12 week plan with 5-10 hours per week works better than a last-minute cram. Start with a practice test to gauge your baseline, then build a schedule around your weak sections.',
+      },
+      {
+        q: 'Is the GMAT harder than the GRE?',
+        a: 'They test different skills. The GMAT has data sufficiency and integrated reasoning sections that the GRE doesn\'t; the GRE has more complex vocabulary. The study strategy is similar — practice tests, pattern recognition, and timing.',
+      },
+      {
+        q: 'Should I take the GMAT or the GRE for business school?',
+        a: 'Most business schools accept either, but the GMAT is still preferred by some programs. Check your program\'s requirements — if they accept both, take practice tests for each and choose the one you score higher on.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'Know the test before you study for it',
+        blocks: [
+          { k: 'p', t: 'The GMAT is the test that decides business school — a 3-hour exam that tests quantitative reasoning, verbal skills, and integrated reasoning. But the GMAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
+          { k: 'p', t: 'The GMAT has four sections: Analytical Writing Assessment, Integrated Reasoning, Quantitative Reasoning, and Verbal Reasoning. Each section is scored separately, and the Quant and Verbal sections are adaptive — the second section is harder if you do well on the first. Knowing the format prevents wasted effort.' },
+          { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 700 in Quant but 600 in Verbal should spend most of their time on Verbal.' },
+        ],
+      },
+      {
+        h2: 'The GMAT study loop',
+        blocks: [
+          { k: 'p', t: 'GMAT prep works best as a cycle:' },
+          { k: 'steps', items: [
+            'Take a timed practice section or test.',
+            'Review every question — right and wrong.',
+            'Identify the question types you miss most.',
+            'Drill those types with focused practice.',
+            'Take another timed test to measure progress.',
+          ]},
+          { k: 'p', t: 'The review step is where learning happens. A practice test without review is just a measurement; with review, it\'s a study session.' },
+        ],
+      },
+      {
+        h2: 'Quantitative: the data-sufficiency game',
+        blocks: [
+          { k: 'p', t: 'The Quant section tests arithmetic, algebra, geometry, and data sufficiency. The data sufficiency questions are unique to the GMAT — they test whether you can determine if there\'s enough information to answer, not whether you can solve the problem.' },
+          { k: 'p', t: 'Practice problems are the study method. Work through them until the patterns are automatic — the exam rewards speed and accuracy, not deep understanding.' },
+        ],
+      },
+      {
+        h2: 'Verbal: the sentence-correction game',
+        blocks: [
+          { k: 'p', t: 'The Verbal section tests reading comprehension, critical reasoning, and sentence correction. The sentence correction questions are formulaic — once you learn the grammar patterns, they become mechanical.' },
+          { k: 'deflist', items: [
+            { t: 'Sentence correction', d: 'Check for subject-verb agreement, pronoun agreement, and parallelism.' },
+            { t: 'Critical reasoning', d: 'Identify the conclusion, find the assumption, evaluate the argument.' },
+            { t: 'Reading comprehension', d: 'The answer is supported by the text, not assumed.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'Integrated Reasoning: the multi-source game',
+        blocks: [
+          { k: 'p', t: 'Integrated Reasoning tests whether you can synthesize information from multiple sources — tables, graphs, and text. The questions are unique to the GMAT and test a skill that\'s harder to practice than the other sections.' },
+          { k: 'p', t: 'The strategy: read all the sources first, then answer the questions. The answers are always in the data — Integrated Reasoning doesn\'t test outside knowledge.' },
+        ],
+      },
+      {
+        h2: 'The bottom line',
+        blocks: [
+          { k: 'quote', t: 'The score isn\'t a measure of intelligence — it\'s a measure of preparation.' },
+          { k: 'p', t: 'Know the format, practice the patterns, review every question, and manage your time ruthlessly. The GMAT is beatable with a system.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
