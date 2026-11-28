@@ -2917,7 +2917,7 @@ RSS feed: https://iterrapp.vercel.app/feed.xml
 
 Index: https://iterrapp.vercel.app/topics
 
-${TOPIC_PAGES.map((t) => `- [${t.kicker} guides](https://iterrapp.vercel.app/topics/${t.slug}): ${t.guides.length} articles`).join('\n')}
+${TOPIC_PAGES.map((t) => `- [${/guide/i.test(t.kicker) ? t.kicker : `${t.kicker} guides`}](https://iterrapp.vercel.app/topics/${t.slug}): ${t.guides.length} articles`).join('\n')}
 
 ## Comparisons & alternatives
 
