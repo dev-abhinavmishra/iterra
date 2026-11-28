@@ -151,6 +151,21 @@ if(fimgs.length){
     });
   });
 });
+var railNav=document.querySelector('.toc-rail nav');
+if(railNav&&'IntersectionObserver' in window){
+  var rlinks=[].slice.call(railNav.querySelectorAll('a'));
+  var pairs=rlinks.map(function(a){
+    var t=document.getElementById((a.getAttribute('href')||'').slice(1));
+    var sec=t&&(t.closest('.gsec')||t.closest('.block')||t);
+    return sec?{a:a,sec:sec}:null;
+  }).filter(Boolean);
+  if(pairs.length){
+    var spyIo=new IntersectionObserver(function(es){
+      es.forEach(function(e){if(e.isIntersecting)pairs.forEach(function(p){p.a.classList.toggle('on',p.sec===e.target)})});
+    },{rootMargin:'-12% 0px -72% 0px'});
+    pairs.forEach(function(p){spyIo.observe(p.sec)});
+  }
+}
 var rv=document.querySelectorAll('.content .block,.content .gsec,.content .plate,.content .article-cover,.content .related,.content .pager,.content .tldr,.content .takeaways,.content .article-end');
 if(rv.length&&'IntersectionObserver' in window&&matchMedia('(prefers-reduced-motion: no-preference)').matches){
   [].slice.call(rv).forEach(function(el){el.classList.add('rv')});
