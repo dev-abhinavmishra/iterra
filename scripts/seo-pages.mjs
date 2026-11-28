@@ -2343,9 +2343,10 @@ ${footer()}
 
 const COMPARE_SHOT = '/shots/today.webp';
 
-function compareHead({ title, description, url, image, published, modified }) {
+function compareHead({ title, description, url, image, published, modified, keywords }) {
   return `<title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}" />
+${keywords?.length ? `<meta name="keywords" content="${esc(keywords.join(', '))}" />` : ''}
 <link rel="canonical" href="${url}" />
 <meta property="og:type" content="article" />
 ${published ? `<meta property="article:published_time" content="${published}" />\n<meta property="article:modified_time" content="${modified || published}" />` : ''}
@@ -2540,7 +2541,20 @@ ${factHtml}
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f5ec" />
-${compareHead({ title: page.title, description: page.description, url, image: `${SITE}/og/${page.section}-${slug}.png`, published: page.datePublished, modified: page.dateModified })}
+${compareHead({
+    title: page.title,
+    description: page.description,
+    url,
+    image: `${SITE}/og/${page.section}-${slug}.png`,
+    published: page.datePublished,
+    modified: page.dateModified,
+    keywords:
+      page.section === 'compare' && page.rival && !['roundup', 'generic planners'].includes(page.rival)
+        ? [`iterra vs ${page.rival.split(' (')[0]}`, `${page.rival.split(' (')[0]} alternative`, 'study app comparison', 'student productivity apps']
+        : page.rival && page.rival !== 'roundup'
+          ? [`${page.rival.split(' (')[0]} alternative`, 'best study apps', 'free study planner', 'student productivity apps']
+          : ['best study apps', 'study app comparison', 'quizlet alternative', 'notion alternative for students'],
+  })}
 ${jsonLd(ld)}
 </head>
 <body>
