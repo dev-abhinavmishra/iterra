@@ -7135,6 +7135,116 @@ export const GUIDES = [
       },
     ],
   },
+
+  {
+    slug: 'how-to-study-for-law-school-exams',
+    title: 'How to study for <em>law school exams</em>',
+    seoTitle: 'How to Study for Law School Exams: IRAC, Outlines, Practice',
+    description:
+      'Law school exams test issue-spotting and legal argument, not memorization. Learn doctrine through cases, build your own outline, and practice exams under time — the method that grades well.',
+    kicker: 'Test Prep',
+    datePublished: '2027-12-07',
+    dateModified: '2027-12-11',
+    readMinutes: 7,
+    keywords: ['how to study for law school exams', 'law school exam prep', 'IRAC method', 'law school outline'],
+    tools: ['timer', 'ink'],
+    related: ['how-to-study-for-the-bar-exam', 'how-to-write-a-research-paper', 'how-to-study-for-finals-week'],
+    lede: 'Law school exams are nothing like undergraduate exams. There is no multiple-choice section, no memorization points, and often no open-book anything — just a fact pattern and three hours to prove you can think like a lawyer. The students who treat practice exams as optional are the ones who learn the format on the real one.',
+    takeaways: [
+      'Practice exams are the course — timed, closed-book, honestly graded.',
+      'Build your own outline — the synthesis is the learning, the document is the receipt.',
+      'IRAC is scaffolding, not the point — the analysis is where the grades live.',
+    ],
+    faq: [
+      {
+        q: 'How are law school exams different from undergraduate exams?',
+        a: 'They test application, not recall. You get a fact pattern and must spot issues, apply doctrine, and argue — the same skills a lawyer uses, not the ones a textbook rewards. Practice exams are the only honest preparation.',
+      },
+      {
+        q: 'What is IRAC and why does it matter?',
+        a: 'Issue, Rule, Analysis, Conclusion — the skeleton most law essays reward. It is not a formula to fill but a structure that lets your analysis breathe. Graders read fifty essays; the one that spots the issue first is the one they remember.',
+      },
+      {
+        q: 'How do I make a law school outline?',
+        a: 'Synthesize the course yourself — doctrine, rules, elements, policy arguments, in your own words. Commercial outlines are reference tools; your outline is the course compressed into a document you actually know.',
+      },
+    ],
+    sections: [
+      {
+        h2: 'How law school exams actually work',
+        blocks: [
+          { k: 'p', t: 'Law school exams are nothing like undergraduate exams. There are no multiple-choice questions, no memorization points, and often no open-book anything. You get a fact pattern and three hours to produce a structured legal analysis — the exam tests whether you can spot issues, apply doctrine, and argue like a lawyer.' },
+          { k: 'p', t: 'That means the study method is different too. Reading cases teaches doctrine; practice exams teach the skill. The students who win law school are the ones who treated every practice exam like the real thing — timed, closed-book, and graded honestly.' },
+          { k: 'tool', tool: 'timer', t: 'Timer replicates the three-hour exam — timed practice exams are the only honest measure of whether your issue-spotting is fast enough.' },
+        ],
+      },
+      {
+        h2: 'The law school study loop',
+        blocks: [
+          { k: 'p', t: 'A week of law school study that actually works:' },
+          { k: 'steps', items: [
+            'Learn the doctrine — cases, rules, elements for the current unit.',
+            'Make a course outline — your own synthesis, not the commercial one.',
+            'Do practice questions — hypos and past exams, issue-spotting drills.',
+            'Write practice essays — IRAC structure, timed, then self-grade.',
+            'Visit office hours — bring your weakest essay and ask why it lost points.',
+          ]},
+          { k: 'p', t: 'The practice-exam step is where the grade is made. Law professors write exams the same way every year — issue-spotting, rule application, policy argument. Practice exams teach you to see the issues before you start writing.' },
+        ],
+      },
+      {
+        h2: 'The exam types: different skills, different prep',
+        blocks: [
+          { k: 'p', t: 'Not all law school courses test the same way — know which game you are playing:' },
+          { k: 'table', head: ['Exam type', 'What it tests', 'Best prep'], rows: [
+            ['Issue-spotting', 'Find every issue in a fact pattern', 'Hypos + past exams, timed'],
+            ['Policy essay', 'Argue a position with cases', 'Thesis practice + counterarguments'],
+            ['Closed-book doctrinal', 'Rule recall + application', 'Outlines + flashcard drills'],
+            ['Take-home', 'Depth + polish', 'Draft early, revise ruthlessly'],
+          ]},
+        ],
+      },
+      {
+        h2: 'IRAC: the structure that carries essays',
+        blocks: [
+          { k: 'p', t: 'Most law school essays reward the same skeleton — Issue, Rule, Analysis, Conclusion. The structure is not the point; it is the scaffolding that lets the analysis breathe.' },
+          { k: 'deflist', items: [
+            { t: 'Issue', d: 'State the legal question precisely — "Did the defendant breach contract?" beats "This is a contract case."' },
+            { t: 'Rule', d: 'State the governing doctrine accurately — elements, tests, exceptions. Vagueness here caps the whole essay.' },
+            { t: 'Analysis', d: 'Apply the rule to the facts — this is where the points live. Argue both sides before committing.' },
+            { t: 'Conclusion', d: 'Answer the issue directly — a hedged non-answer reads as no answer.' },
+          ]},
+          { k: 'quote', t: 'The grader reads fifty essays that say the same thing. The one that spots the hidden issue first is the one they remember.' },
+        ],
+      },
+      {
+        h2: 'The mistakes that cost law students their grades',
+        blocks: [
+          { k: 'deflist', items: [
+            { t: 'Reading cases without synthesizing', d: 'Case reading teaches facts; outlines teach doctrine. If you are not building your own outline, you are reading for nothing.' },
+            { t: 'Practicing essays untimed', d: 'A three-hour exam is a different skill than a five-hour take-home — timed practice builds the pacing the exam demands.' },
+            { t: 'Skipping practice exams until finals', d: 'Practice exams are the course — waiting until December means discovering the format on exam day.' },
+            { t: 'Writing answers without a roadmap', d: 'IRAC structure is not optional — an essay that buries the issue scores lower than a messy one that spots it first.' },
+            { t: 'Memorizing rules without applying them', d: 'Law exams test application, not recall — a rule you cannot deploy to new facts is a rule you do not know.' },
+          ]},
+        ],
+      },
+      {
+        h2: 'The outline advantage',
+        blocks: [
+          { k: 'p', t: 'Your outline is the course — the single document that replaces fifty case briefs. Build it yourself: doctrine, rules, elements, policy arguments, all in your own words. The act of synthesizing is the learning; the outline is the receipt.' },
+          { k: 'p', t: 'A student with a weak outline and strong practice-exam skills outperforms one with a beautiful outline and no practice — the exam tests the skill, not the document.' },
+        ],
+      },
+      {
+        h2: 'The honest summary',
+        blocks: [
+          { k: 'quote', t: 'Law school exams do not test whether you know the law. They test whether you can think like a lawyer under pressure.' },
+          { k: 'p', t: 'Learn the doctrine, build your own outline, practice exams like they count — because they do. The students who treat practice exams as optional are the ones who learn the format on the real one.' },
+        ],
+      },
+    ],
+  },
 ];
 
 export const GUIDE_BY_SLUG = Object.fromEntries(GUIDES.map((g) => [g.slug, g]));
