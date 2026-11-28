@@ -4077,6 +4077,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The LSAT is the test that decides law school — a 3.5-hour exam that tests logical reasoning, not legal knowledge. But the LSAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The LSAT has four sections: Logical Reasoning, Analytical Reasoning (Logic Games), Reading Comprehension, and an unscored Writing Sample. Each section is 35 minutes, with about 100-101 questions total. Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
+            ['Logical Reasoning', '24-26', '35 min', 'Argument analysis, assumptions, inferences'],
+            ['Analytical Reasoning', '22-23', '35 min', 'Logic games, diagramming, deductions'],
+            ['Reading Comprehension', '26-28', '35 min', 'Dense passages, main idea, inference'],
+            ['Writing Sample', '1', '35 min', 'Persuasive essay (unscored)'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 160 in Logical Reasoning but 145 in Logic Games should spend most of their time on Logic Games.' },
         ],
       },
@@ -4355,6 +4361,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The GMAT is the test that decides business school — a 3-hour exam that tests quantitative reasoning, verbal skills, and integrated reasoning. But the GMAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The GMAT has four sections: Analytical Writing Assessment, Integrated Reasoning, Quantitative Reasoning, and Verbal Reasoning. Each section is scored separately, and the Quant and Verbal sections are adaptive — the second section is harder if you do well on the first. Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Score Range'], rows: [
+            ['Analytical Writing', '1', '30 min', '0-6'],
+            ['Integrated Reasoning', '12', '30 min', '1-8'],
+            ['Quantitative Reasoning', '31', '62 min', '0-60'],
+            ['Verbal Reasoning', '36', '65 min', '0-60'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 700 in Quant but 600 in Verbal should spend most of their time on Verbal.' },
         ],
       },
@@ -4446,6 +4458,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The bar exam is the final boss of law school — a two-day test that covers every subject you studied, plus performance tests that require writing under pressure. But the bar rewards the same approach as any big exam: know the format, practice the patterns, and review every question. The students who pass aren\'t the ones who study the most — they\'re the ones who study *smart*.' },
           { k: 'p', t: 'The bar exam has multiple sections: Multistate Bar Examination (MBE), Multistate Essay Examination (MEE), Multistate Performance Test (MPT), and state-specific components. The MBE is 200 multiple-choice questions; the MEE is 6 essays; the MPT is 2 performance tasks. Knowing the format prevents wasted effort.' },
+          { k: 'timeline', items: [
+            { t: 'Weeks 1-3', d: 'Content review — go through your notes, outlines, and practice questions for each subject.' },
+            { t: 'Weeks 4-6', d: 'Practice questions — work through MBE question banks and essay prompts.' },
+            { t: 'Weeks 7-8', d: 'Full-length practice tests — simulate the real exam conditions.' },
+            { t: 'Final 2 weeks', d: 'Review and rest — light review, good sleep, and exam-day preparation.' },
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 1300 in MBE but struggles with essays should spend most of their time on essay writing.' },
         ],
       },
@@ -4539,6 +4557,12 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The DAT is the test that decides dental school — a 4.5-hour exam that tests biology, chemistry, physics, reading comprehension, and perceptual ability. But the DAT rewards the same approach as any standardized test: learn the patterns, practice under timed conditions, and review every question. The students who improve are the ones who treat prep as a system, not a cram.' },
           { k: 'p', t: 'The DAT has four sections: Survey of Natural Sciences (Biology, General Chemistry, Organic Chemistry), Perceptual Ability (PAT), Reading Comprehension, and Quantitative Reasoning. Each section is scored separately, and the test is 4.5 hours long. Knowing the format prevents wasted effort.' },
+          { k: 'table', head: ['Section', 'Questions', 'Time', 'Focus'], rows: [
+            ['Survey of Natural Sciences', '100', '90 min', 'Biology, chemistry, physics'],
+            ['Perceptual Ability (PAT)', '90', '60 min', 'Spatial reasoning, patterns'],
+            ['Reading Comprehension', '50', '60 min', 'Passage analysis, inference'],
+            ['Quantitative Reasoning', '40', '45 min', 'Math, data analysis'],
+          ]},
           { k: 'p', t: 'Take a full practice test before you study anything. The score breakdown tells you where to focus — a student who scores 20 in Bio but 15 in PAT should spend most of their time on PAT.' },
         ],
       },
@@ -4569,6 +4593,18 @@ export const GUIDES = [
         blocks: [
           { k: 'p', t: 'The Perceptual Ability Test is unique to the DAT — it tests spatial reasoning, pattern recognition, and visual acuity. The questions are unlike any other standardized test — you\'re identifying patterns, rotating objects, and comparing shapes.' },
           { k: 'p', t: 'The strategy: practice PAT questions daily — even 15 minutes a day builds the skill. The PAT is the section that improves most with practice; the patterns become recognizable with reps.' },
+          { k: 'checklist', id: 'dat-prep', items: [
+            'Take a full practice test to gauge your baseline.',
+            'Review every question — right and wrong — with rationales.',
+            'Focus on high-yield science content: cell bio, biochem, anatomy, organic chem.',
+            'Practice PAT daily — even 15 minutes builds the skill.',
+            'Practice reading comprehension under timed conditions.',
+            'Drill quantitative reasoning — algebra, geometry, data analysis.',
+            'Take timed practice tests weekly to measure progress.',
+            'Review rationales for every missed question.',
+            'Get enough sleep the night before — memory consolidates during sleep.',
+            'Arrive early on test day — the DAT is long and demanding.',
+          ]},
         ],
       },
       {
