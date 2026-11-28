@@ -1751,6 +1751,7 @@ ${nextGuide ? `<link rel="next" href="${SITE}/guides/${nextGuide.slug}" />` : ''
 <meta property="article:modified_time" content="${guide.dateModified || guide.datePublished}" />
 <meta property="article:section" content="${esc(guide.kicker)}" />
 <meta property="article:tag" content="${esc(guide.kicker)}" />
+${(guide.keywords || []).slice(0, 3).map((k) => `<meta property="article:tag" content="${esc(k)}" />`).join('\n')}
 <meta property="article:author" content="Iterra terrain team" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(guide.seoTitle)}" />
