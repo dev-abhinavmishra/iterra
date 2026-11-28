@@ -1119,7 +1119,9 @@ const topicSlug = (k) => k.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-
    Content is authored in seo-guides-data.mjs — no user input reaches this. */
 function inline(s) {
   let out = esc(s);
-  out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+  out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, txt, url) =>
+    /^https?:\/\//.test(url) ? `<a href="${url}" rel="noopener">${txt}</a>` : `<a href="${url}">${txt}</a>`,
+  );
   out = out.replace(/`([^`\n]+)`/g, '<code>$1</code>');
   out = out.replace(/==([^=\n]+)==/g, '<mark>$1</mark>');
   out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
