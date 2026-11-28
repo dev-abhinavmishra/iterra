@@ -784,6 +784,8 @@ details.faq .a{margin-top:.7rem;color:var(--mute);font-size:.97rem;line-height:1
 .prose p{font-size:1.06rem;line-height:1.78;color:#333a34;margin-bottom:1.15rem;text-wrap:pretty}
 .prose mark{background:linear-gradient(transparent 55%,rgba(212,175,55,.38) 55%);color:inherit;padding:0 .08em;border-radius:2px}
 .prose ul{margin:0 0 1.3rem;padding-left:1.35rem}
+.prose ul>li::marker{color:var(--gold);font-size:.85em}
+.prose ol>li::marker{color:var(--gold);font-family:'IBM Plex Mono',monospace;font-size:.8em;font-weight:500}
 .prose li{font-size:1.04rem;line-height:1.7;color:#333a34;margin-bottom:.5rem}
 .prose a{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--gold2)}
 .prose a:hover{color:var(--accent2)}
