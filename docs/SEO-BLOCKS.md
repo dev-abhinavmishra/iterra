@@ -9,6 +9,7 @@ fields support inline markup via `inline()`: `**bold**`, `*italic*`,
 
 | k | Shape | Renders as |
 |---|-------|-----------|
+| `h3` | `{t}` | sub-heading inside a section |
 | `p` | `{t}` | paragraph |
 | `ul` | `{items:[...]}` | bullet list |
 | `callout` | `{t}` | centered serif pull-style callout |

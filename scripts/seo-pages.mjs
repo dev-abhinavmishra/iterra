@@ -1128,6 +1128,7 @@ function adSlotHtml() {
 function renderBlocks(blocks) {
   return blocks
     .map((b) => {
+      if (b.k === 'h3') return `<h3>${inline(b.t)}</h3>`;
       if (b.k === 'p') return `<p>${inline(b.t)}</p>`;
       if (b.k === 'ul')
         return `<ul>${b.items.map((i) => `<li>${inline(i)}</li>`).join('')}</ul>`;
