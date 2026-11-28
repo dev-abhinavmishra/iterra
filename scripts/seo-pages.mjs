@@ -669,6 +669,9 @@ h1 em{color:var(--accent);font-style:italic;font-weight:430}
 section.block{padding:clamp(36px,5vw,72px) 0;border-bottom:1px solid var(--line)}
 section.block:last-of-type{border-bottom:none}
 h2.sec{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:1.8rem}
+.pt-tool .content{counter-reset:ts}
+.pt-tool .block:not(#explore)>.sec{counter-increment:ts}
+.pt-tool .block:not(#explore)>.sec::before{content:counter(ts,decimal-leading-zero);display:inline-block;min-width:2.1rem;margin-right:.55rem;color:var(--gold);font-weight:500;letter-spacing:.08em;vertical-align:.12em}
 .feats{list-style:none;padding:0;max-width:56rem}
 .feats li{display:grid;grid-template-columns:auto 1fr;gap:1rem;align-items:baseline;padding:1rem 0;border-bottom:1px solid var(--line)}
 .feats li:first-child{border-top:1px solid var(--line)}
@@ -1448,7 +1451,7 @@ ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-tool">
 ${header(tool.path)}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools', href: '/tools' }, { label: tool.name }])}
@@ -1753,7 +1756,7 @@ ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-guide">
 ${header('/guides')}
 ${heroHtml}
 <div class="wrap">
@@ -2080,7 +2083,7 @@ ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-guides">
 ${header('/guides')}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides' }])}
@@ -2192,7 +2195,7 @@ ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-topic">
 ${header('/guides')}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: topic.kicker }])}
@@ -2279,7 +2282,7 @@ ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-topics">
 ${header('/guides')}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Guides', href: '/guides' }, { label: 'Topics' }])}
@@ -2347,7 +2350,7 @@ ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-tools">
 ${header('/tools')}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Tools' }])}
@@ -2615,7 +2618,7 @@ ${compareHead({
   })}
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-vs">
 ${header(`/${base}/${slug}`)}
 ${cHeroHtml}
 <div class="wrap compare-body">
@@ -2714,7 +2717,7 @@ ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-compare">
 ${header('/compare')}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Compare' }])}
@@ -2801,7 +2804,7 @@ ${FONTS}
 <style>${CSS}</style>
 ${jsonLd(ld)}
 </head>
-<body>
+<body class="pt-alt">
 ${header('/alternatives')}
 <section class="hero"><div class="wrap">
 ${crumbs([{ label: 'Iterra', href: '/' }, { label: 'Alternatives' }])}
