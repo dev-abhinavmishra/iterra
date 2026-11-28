@@ -3918,7 +3918,7 @@ export const GUIDES = [
       {
         h2: 'A worked prioritization question',
         blocks: [
-          { k: 'p', t: 'Here is the method applied to a classic nursing scenario: "A post-op patient has a fever of 38.9°C, is diaphoretic, and mentions her incision "feels warm." What do you assess first?" The options all sound clinical — the framework sorts them." },
+          { k: 'p', t: 'Here is the method applied to a classic nursing scenario: "A post-op patient has a fever of 38.9°C, is diaphoretic, and mentions her incision "feels warm." What do you assess first?" The options all sound clinical — the framework sorts them."' },
           { k: 'steps', items: [
             'Apply the ABC lens — airway, breathing, circulation come before everything; check for instability first.',
             'Read the signals — fever plus diaphoresis plus a warm incision is a sepsis pattern, not a routine observation.',
