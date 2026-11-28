@@ -1455,6 +1455,7 @@ ${nextTool ? `<link rel="next" href="${SITE}/tools/${nextTool.id}" />` : ''}
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 ${FONTS}
 <link rel="stylesheet" href="/${CSS_NAME}" />
 ${jsonLd(ld)}
@@ -2322,6 +2323,7 @@ export function renderTopicsIndex() {
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 ${FONTS}
 <link rel="stylesheet" href="/${CSS_NAME}" />
 ${jsonLd(ld)}
@@ -2392,6 +2394,7 @@ export function renderToolsIndex() {
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 ${FONTS}
 <link rel="stylesheet" href="/${CSS_NAME}" />
 ${jsonLd(ld)}
@@ -2472,6 +2475,7 @@ ${published ? `<meta property="article:published_time" content="${published}" />
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 ${FONTS}
 <link rel="stylesheet" href="/${CSS_NAME}" />`;
 }
@@ -2778,6 +2782,7 @@ export function renderCompareIndex() {
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 ${FONTS}
 <link rel="stylesheet" href="/${CSS_NAME}" />
 ${jsonLd(ld)}
@@ -2867,6 +2872,7 @@ export function renderAlternativesIndex() {
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="manifest" href="/site.webmanifest" />
+<link rel="alternate" type="application/rss+xml" title="Iterra Guides" href="/feed.xml" />
 ${FONTS}
 <link rel="stylesheet" href="/${CSS_NAME}" />
 ${jsonLd(ld)}
